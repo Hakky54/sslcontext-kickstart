@@ -5,7 +5,6 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
-import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
@@ -15,12 +14,18 @@ public final class TrustManagerUtils {
 
     private TrustManagerUtils() {}
 
-    public static TrustManager[] getTrustManagers(KeyStore trustStore) {
-        return new TrustManager[] {
+    public static X509TrustManager[] getTrustManagers(KeyStore trustStore) {
+        return new X509TrustManager[] {
                 CompositeX509TrustManager.builder()
                                          .withTrustStore(trustStore)
                                          .build()
         };
+    }
+
+    public static X509TrustManager combine(X509TrustManager... trustManagers) {
+        return CompositeX509TrustManager.builder()
+                                 .withX509TrustManagers(Arrays.asList(trustManagers))
+                                 .build();
     }
 
     public static X509TrustManager getJdkDefaultTrustManager() {

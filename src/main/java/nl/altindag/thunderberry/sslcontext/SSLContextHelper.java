@@ -76,14 +76,6 @@ public class SSLContextHelper {
         }
     }
 
-    private void createSSLContextWithKeyStore() {
-        try {
-            createSSLContext(getKeyManagerFactory(keyStore, keyStorePassword).getKeyManagers(), null);
-        } catch (UnrecoverableKeyException | NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     private void createSSLContext(KeyManager[] keyManagers, X509TrustManager trustManager) throws NoSuchAlgorithmException, KeyManagementException {
         sslContext = SSLContext.getInstance(protocol);
         sslContext.init(keyManagers, new TrustManager[]{trustManager} , null);
