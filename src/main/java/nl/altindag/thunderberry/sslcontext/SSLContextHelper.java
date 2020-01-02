@@ -1,17 +1,19 @@
 package nl.altindag.thunderberry.sslcontext;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.nio.file.Path;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
-import java.util.Arrays;
+import java.security.cert.X509Certificate;
+import java.util.Objects;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManager;
@@ -24,73 +26,81 @@ import javax.net.ssl.X509TrustManager;
 import org.apache.http.conn.ssl.DefaultHostnameVerifier;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 
+import nl.altindag.thunderberry.sslcontext.util.KeystoreUtils;
+
 public class SSLContextHelper {
 
     private KeyStore keyStore;
-    private String keyStorePath;
     private String keyStorePassword;
     private KeyStore trustStore;
-    private String trustStorePath;
     private String trustStorePassword;
 
     private boolean securityEnabled;
     private boolean oneWayAuthenticationEnabled;
     private boolean twoWayAuthenticationEnabled;
+    private boolean includeDefaultJdkTrustStore;
+
+    private String protocol;
+    private String trustManagerAlgorithm;
+    private String keyManagerAlgorithm;
 
     private SSLContext sslContext;
-    private TrustManagerFactory trustManagerFactory;
+    private CompositeX509TrustManager trustManager;
     private KeyManagerFactory keyManagerFactory;
     private HostnameVerifier hostnameVerifier;
 
     private SSLContextHelper() {}
 
-    private void createSSLContextWithClientTrustStore() {
+    private void createSSLContextWithOnlyJdkTrustStore() {
         try {
-            sslContext = getSSLContext(null, getTrustManagerFactory(trustStorePath, trustStorePassword).getTrustManagers());
-        } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException | IOException | CertificateException e) {
+            createSSLContext(null, getTrustManager(null));
+        } catch (NoSuchAlgorithmException | KeyManagementException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private void createSSLContextWithClientKeyStoreAndTrustStore() {
+    private void createSSLContextWithTrustStore() {
         try {
-            sslContext = getSSLContext(getKeyManagerFactory(keyStorePath, keyStorePassword).getKeyManagers(),
-                                       getTrustManagerFactory(trustStorePath, trustStorePassword).getTrustManagers());
-        } catch (UnrecoverableKeyException | NoSuchAlgorithmException | CertificateException | KeyStoreException | IOException | KeyManagementException e) {
+            createSSLContext(null, getTrustManager(trustStore));
+        } catch (NoSuchAlgorithmException | KeyManagementException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private static SSLContext getSSLContext(KeyManager[] keyManagers, TrustManager[] trustManagers) throws NoSuchAlgorithmException, KeyManagementException {
-        SSLContext sslContext = SSLContext.getInstance("TLSv1.3");
-        sslContext.init(keyManagers, trustManagers, null);
-        return sslContext;
+    private void createSSLContextWithKeyStoreAndTrustStore() {
+        try {
+            createSSLContext(getKeyManagerFactory(keyStore, keyStorePassword).getKeyManagers(),
+                             getTrustManager(trustStore));
+        } catch (UnrecoverableKeyException | NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    private KeyManagerFactory getKeyManagerFactory(String keystorePath, String keystorePassword) throws NoSuchAlgorithmException, KeyStoreException, IOException, CertificateException, UnrecoverableKeyException {
-        keyStore = loadKeyStore(keystorePath, keystorePassword);
-        keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+    private void createSSLContextWithKeyStore() {
+        try {
+            createSSLContext(getKeyManagerFactory(keyStore, keyStorePassword).getKeyManagers(), null);
+        } catch (UnrecoverableKeyException | NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void createSSLContext(KeyManager[] keyManagers, X509TrustManager trustManager) throws NoSuchAlgorithmException, KeyManagementException {
+        sslContext = SSLContext.getInstance(protocol);
+        sslContext.init(keyManagers, new TrustManager[]{trustManager} , null);
+    }
+
+    private KeyManagerFactory getKeyManagerFactory(KeyStore keyStore, String keystorePassword) throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException {
+        keyManagerFactory = KeyManagerFactory.getInstance(keyManagerAlgorithm);
         keyManagerFactory.init(keyStore, keystorePassword.toCharArray());
         return keyManagerFactory;
     }
 
-    private TrustManagerFactory getTrustManagerFactory(String truststorePath, String truststorePassword) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException {
-        trustStore = loadKeyStore(truststorePath, truststorePassword);
-        trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-        trustManagerFactory.init(trustStore);
-        return trustManagerFactory;
-    }
-
-    private static KeyStore loadKeyStore(String keystorePath, String keystorePassword) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException {
-        try(InputStream keystoreInputStream = SSLContextHelper.class.getClassLoader().getResourceAsStream(keystorePath)) {
-            if (isNull(keystoreInputStream)) {
-                throw new RuntimeException(String.format("Could not find the keystore file with the given location %s", keystorePath));
-            }
-
-            KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
-            keystore.load(keystoreInputStream, keystorePassword.toCharArray());
-            return keystore;
-        }
+    private X509TrustManager getTrustManager(KeyStore trustStore) {
+        trustManager = CompositeX509TrustManager.builder()
+                                                .withDefaultJdkTrustStore(includeDefaultJdkTrustStore)
+                                                .withTrustStore(trustStore, trustManagerAlgorithm)
+                                                .build();
+        return trustManager;
     }
 
     public KeyStore getKeyStore() {
@@ -125,25 +135,22 @@ public class SSLContextHelper {
         return sslContext;
     }
 
-    public TrustManagerFactory getTrustManagerFactory() {
-        return trustManagerFactory;
-    }
-
     public KeyManagerFactory getKeyManagerFactory() {
         return keyManagerFactory;
     }
 
     public X509TrustManager getX509TrustManager() {
-        RuntimeException clientException = new RuntimeException("The TrustManager could not be provided because it is not available");
-        if (isNull(trustManagerFactory)) {
-            throw clientException;
+        if (isNull(trustManager)) {
+            throw new RuntimeException("The TrustManager could not be provided because it is not available");
         }
+        return trustManager;
+    }
 
-        return Arrays.stream(trustManagerFactory.getTrustManagers())
-                                                  .filter(trustManager -> trustManager instanceof X509TrustManager)
-                                                  .map(trustManager -> (X509TrustManager) trustManager)
-                                                  .findFirst()
-                                                  .orElseThrow(() -> clientException);
+    public X509Certificate[] getTrustedX509Certificate() {
+        if (isNull(trustManager)) {
+            throw new RuntimeException("The trusted certificates could not be provided because it is not available");
+        }
+        return trustManager.getAcceptedIssuers();
     }
 
     public HostnameVerifier getHostnameVerifier() {
@@ -156,14 +163,22 @@ public class SSLContextHelper {
 
     public static class Builder {
 
-        private String keyStorePath;
+        private static final String TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE = "TrustStore details are empty, which are required to be present when SSL/TLS is enabled";
+        private static final String KEY_STORE_AND_TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE = "TrustStore or KeyStore details are empty, which are required to be present when SSL/TLS is enabled";
+
+        private String protocol = "TLSv1.2";
+        private String keyManagerAlgorithm = KeyManagerFactory.getDefaultAlgorithm();
+        private String trustManagerAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
+        private boolean hostnameVerifierEnabled = true;
+
+        private KeyStore keyStore;
         private String keyStorePassword;
-        private String trustStorePath;
+        private KeyStore trustStore;
         private String trustStorePassword;
 
         private boolean oneWayAuthenticationEnabled;
         private boolean twoWayAuthenticationEnabled;
-        private boolean hostnameVerifierEnabled = true;
+        private boolean includeDefaultJdkTrustStore = true;
 
         public Builder withoutSecurity() {
             oneWayAuthenticationEnabled = false;
@@ -172,28 +187,130 @@ public class SSLContextHelper {
         }
 
         public Builder withOneWayAuthentication(String trustStorePath, String trustStorePassword) {
+            return withOneWayAuthentication(trustStorePath, trustStorePassword, KeyStore.getDefaultType());
+        }
+
+        public Builder withOneWayAuthentication(String trustStorePath, String trustStorePassword, String trustStoreType) {
             if (isBlank(trustStorePath) || isBlank(trustStorePassword)) {
-                throw new RuntimeException("TrustStore details are empty, which are required to be present when SSL is enabled");
+                throw new RuntimeException(TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
+            }
+
+            try {
+                this.trustStore = KeystoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType);
+                this.trustStorePassword = trustStorePassword;
+            } catch (IOException | KeyStoreException | NoSuchAlgorithmException | CertificateException e) {
+                throw new RuntimeException("BOOM");
             }
 
             this.oneWayAuthenticationEnabled = true;
             this.twoWayAuthenticationEnabled = false;
-            this.trustStorePath = trustStorePath;
+            return this;
+        }
+
+        public Builder withOneWayAuthentication() {
+            this.oneWayAuthenticationEnabled = true;
+            this.twoWayAuthenticationEnabled = false;
+            trustStore = null;
+            return this;
+        }
+
+        public Builder withOneWayAuthentication(Path trustStorePath, String trustStorePassword) {
+            return withOneWayAuthentication(trustStorePath, trustStorePassword, KeyStore.getDefaultType());
+        }
+
+        public Builder withOneWayAuthentication(Path trustStorePath, String trustStorePassword, String trustStoreType) {
+            if (Objects.isNull(trustStorePath) || isBlank(trustStorePassword) || isBlank(trustStoreType)) {
+                throw new RuntimeException(TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
+            }
+
+            try {
+                this.trustStore = KeystoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType);
+                this.trustStorePassword = trustStorePassword;
+            } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
+                throw new RuntimeException("BOOM");
+            }
+
+            this.oneWayAuthenticationEnabled = true;
+            this.twoWayAuthenticationEnabled = false;
+            return this;
+        }
+
+        public Builder withOneWayAuthentication(KeyStore trustStore, String trustStorePassword) {
+            if (isNull(trustStore) || isBlank(trustStorePassword)) {
+                throw new RuntimeException(TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
+            }
+
+            this.trustStore = trustStore;
             this.trustStorePassword = trustStorePassword;
+            this.oneWayAuthenticationEnabled = true;
+            this.twoWayAuthenticationEnabled = false;
             return this;
         }
 
         public Builder withTwoWayAuthentication(String keyStorePath, String keyStorePassword, String trustStorePath, String trustStorePassword) {
-            if (isBlank(keyStorePath) || isBlank(keyStorePassword) || isBlank(trustStorePath) || isBlank(trustStorePassword)) {
+            return withTwoWayAuthentication(keyStorePath, keyStorePassword, KeyStore.getDefaultType(), trustStorePath, trustStorePassword, KeyStore.getDefaultType());
+        }
+
+        public Builder withTwoWayAuthentication(String keyStorePath, String keyStorePassword, String keyStoreType,
+                                                String trustStorePath, String trustStorePassword, String trustStoreType) {
+            if (isBlank(keyStorePath) || isBlank(keyStorePassword) || isBlank(keyStoreType)
+                    || isBlank(trustStorePath) || isBlank(trustStorePassword) || isBlank(trustStoreType)) {
                 throw new RuntimeException("TrustStore or KeyStore details are empty, which are required to be present when SSL is enabled");
             }
 
+            try {
+                this.keyStore = KeystoreUtils.loadKeyStore(keyStorePath, keyStorePassword, keyStoreType);
+                this.keyStorePassword = keyStorePassword;
+                this.trustStore = KeystoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType);
+                this.trustStorePassword = trustStorePassword;
+                this.oneWayAuthenticationEnabled = false;
+                this.twoWayAuthenticationEnabled = true;
+            } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
+                throw new RuntimeException("BOOM");
+            }
+            return this;
+        }
+
+        public Builder withTwoWayAuthentication(Path keyStorePath, String keyStorePassword, Path trustStorePath, String trustStorePassword) {
+            return withTwoWayAuthentication(keyStorePath, keyStorePassword, KeyStore.getDefaultType(), trustStorePath, trustStorePassword, KeyStore.getDefaultType());
+        }
+
+        public Builder withTwoWayAuthentication(Path keyStorePath, String keyStorePassword, String keyStoreType, Path trustStorePath, String trustStorePassword, String trustStoreType) {
+            if (isNull(keyStorePath) || isBlank(keyStorePassword) || isBlank(keyStoreType)
+                    || isNull(trustStorePath) || isBlank(trustStorePassword) || isBlank(trustStoreType)) {
+                throw new RuntimeException(KEY_STORE_AND_TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
+            }
+
+            try {
+                this.keyStore = KeystoreUtils.loadKeyStore(keyStorePath, trustStorePassword, trustStoreType);
+                this.keyStorePassword = keyStorePassword;
+                this.trustStore = KeystoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType);
+                this.trustStorePassword = trustStorePassword;
+                this.oneWayAuthenticationEnabled = false;
+                this.twoWayAuthenticationEnabled = true;
+            } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
+                throw new RuntimeException("BOOM");
+            }
+            return this;
+        }
+
+        public Builder withTwoWayAuthentication(KeyStore keyStore, String keyStorePassword, KeyStore trustStore, String trustStorePassword) {
+            if (isNull(keyStore) || isBlank(keyStorePassword)
+                    || isNull(trustStore) || isBlank(trustStorePassword)) {
+                throw new RuntimeException(TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
+            }
+
+            this.keyStore = keyStore;
+            this.keyStorePassword = keyStorePassword;
+            this.trustStore = trustStore;
+            this.trustStorePassword = trustStorePassword;
             this.oneWayAuthenticationEnabled = false;
             this.twoWayAuthenticationEnabled = true;
-            this.keyStorePath = keyStorePath;
-            this.keyStorePassword = keyStorePassword;
-            this.trustStorePath = trustStorePath;
-            this.trustStorePassword = trustStorePassword;
+            return this;
+        }
+
+        public Builder withDefaultJdkTrustStore(boolean includeDefaultJdkTrustStore) {
+            this.includeDefaultJdkTrustStore = includeDefaultJdkTrustStore;
             return this;
         }
 
@@ -202,9 +319,29 @@ public class SSLContextHelper {
             return this;
         }
 
+        public Builder withProtocol(String protocol) {
+            this.protocol = protocol;
+            return this;
+        }
+
+        public Builder withKeyManagerAlgorithm(String keyManagerAlgorithm) {
+            this.keyManagerAlgorithm = keyManagerAlgorithm;
+            return this;
+        }
+
+        public Builder withTrustManagerAlgorithm(String trustManagerAlgorithm) {
+            this.trustManagerAlgorithm = trustManagerAlgorithm;
+            return this;
+        }
+
         public SSLContextHelper build() {
             SSLContextHelper sslContextHelper = new SSLContextHelper();
             buildHostnameVerifier(sslContextHelper);
+            sslContextHelper.protocol = protocol;
+            sslContextHelper.keyManagerAlgorithm = keyManagerAlgorithm;
+            sslContextHelper.trustManagerAlgorithm = trustManagerAlgorithm;
+            sslContextHelper.includeDefaultJdkTrustStore = includeDefaultJdkTrustStore;
+
             if (oneWayAuthenticationEnabled || twoWayAuthenticationEnabled) {
                 sslContextHelper.securityEnabled = true;
                 buildSLLContextForOneWayAuthenticationIfEnabled(sslContextHelper);
@@ -224,22 +361,27 @@ public class SSLContextHelper {
         private void buildSLLContextForTwoWayAuthenticationIfEnabled(SSLContextHelper sslContextHelper) {
             if (twoWayAuthenticationEnabled) {
                 sslContextHelper.twoWayAuthenticationEnabled = true;
-                sslContextHelper.keyStorePath = keyStorePath;
+                sslContextHelper.keyStore = keyStore;
                 sslContextHelper.keyStorePassword = keyStorePassword;
-                sslContextHelper.trustStorePath = trustStorePath;
+                sslContextHelper.trustStore = trustStore;
                 sslContextHelper.trustStorePassword = trustStorePassword;
-                sslContextHelper.createSSLContextWithClientKeyStoreAndTrustStore();
+                sslContextHelper.createSSLContextWithKeyStoreAndTrustStore();
             }
         }
 
         private void buildSLLContextForOneWayAuthenticationIfEnabled(SSLContextHelper sslContextHelper) {
             if (oneWayAuthenticationEnabled) {
                 sslContextHelper.oneWayAuthenticationEnabled = true;
-                sslContextHelper.trustStorePath = trustStorePath;
-                sslContextHelper.trustStorePassword = trustStorePassword;
-                sslContextHelper.createSSLContextWithClientTrustStore();
+                if (nonNull(trustStore)) {
+                    sslContextHelper.trustStore = trustStore;
+                    sslContextHelper.trustStorePassword = trustStorePassword;
+                    sslContextHelper.createSSLContextWithTrustStore();
+                } else {
+                    sslContextHelper.createSSLContextWithOnlyJdkTrustStore();
+                }
             }
         }
+
     }
 
 }

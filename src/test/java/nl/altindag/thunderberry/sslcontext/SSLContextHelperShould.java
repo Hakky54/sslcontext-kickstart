@@ -12,7 +12,7 @@ import org.junit.Test;
 public class SSLContextHelperShould {
 
     @Test
-    public void createSSLContextWithClientIdentity() {
+    public void createSSLContextForTwoWayAutentication() {
         String keyStorePath = "keystores-for-unit-tests/identity.jks";
         String keyStorePassword = "secret";
         String trustStorePath = "keystores-for-unit-tests/truststore.jks";
@@ -32,15 +32,15 @@ public class SSLContextHelperShould {
         assertThat(sslContextHelper.getKeyManagerFactory().getKeyManagers()).isNotEmpty();
         assertThat(sslContextHelper.getKeyStore()).isNotNull();
 
-        assertThat(sslContextHelper.getTrustManagerFactory()).isNotNull();
-        assertThat(sslContextHelper.getTrustManagerFactory().getTrustManagers()).isNotEmpty();
+        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
+        assertThat(sslContextHelper.getTrustedX509Certificate()).isNotEmpty();
         assertThat(sslContextHelper.getTrustStore()).isNotNull();
         assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
         assertThat(sslContextHelper.getHostnameVerifier()).isNotNull();
     }
 
     @Test
-    public void createSSLContextWithClientTrustStore() {
+    public void createSSLContextForOneWayAuthentication() {
         String trustStorePath = "keystores-for-unit-tests/truststore.jks";
         String trustStorePassword = "secret";
 
@@ -53,8 +53,8 @@ public class SSLContextHelperShould {
         assertThat(sslContextHelper.isTwoWayAuthenticationEnabled()).isFalse();
         assertThat(sslContextHelper.getSslContext()).isNotNull();
 
-        assertThat(sslContextHelper.getTrustManagerFactory()).isNotNull();
-        assertThat(sslContextHelper.getTrustManagerFactory().getTrustManagers()).isNotEmpty();
+        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
+        assertThat(sslContextHelper.getTrustedX509Certificate()).isNotEmpty();
         assertThat(sslContextHelper.getTrustStore()).isNotNull();
         assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
         assertThat(sslContextHelper.getHostnameVerifier()).isNotNull();
@@ -87,28 +87,28 @@ public class SSLContextHelperShould {
     }
 
     @Test
-    public void createSSLContextWithTlsProtocolVersionOneDotThree() {
+    public void createSSLContextWithTlsProtocolVersionOneDotOne() {
         String trustStorePath = "keystores-for-unit-tests/truststore.jks";
         String trustStorePassword = "secret";
 
         SSLContextHelper sslContextHelper = SSLContextHelper.builder()
                                                             .withOneWayAuthentication(trustStorePath, trustStorePassword)
+                                                            .withProtocol("TLSv1.1")
                                                             .build();
 
         assertThat(sslContextHelper.getSslContext()).isNotNull();
-        assertThat(sslContextHelper.getSslContext().getProtocol()).isEqualTo("TLSv1.3");
+        assertThat(sslContextHelper.getSslContext().getProtocol()).isEqualTo("TLSv1.1");
     }
+
 
     @Test
     public void throwExceptionWhenKeyStoreFileIsNotFound() {
         String trustStorePath = "keystores-for-unit-tests/not-existing-truststore.jks";
         String trustStorePassword = "secret";
 
-        SSLContextHelper.Builder sslContextHelperBuilder = SSLContextHelper.builder().withOneWayAuthentication(trustStorePath, trustStorePassword);
-
-        assertThatThrownBy(sslContextHelperBuilder::build)
+        assertThatThrownBy(() -> SSLContextHelper.builder().withOneWayAuthentication(trustStorePath, trustStorePassword))
                 .isInstanceOf(RuntimeException.class)
-                .hasMessage("Could not find the keystore file with the given location keystores-for-unit-tests/not-existing-truststore.jks");
+                .hasMessage("Could not find the keystore file");
     }
 
     @Test
@@ -118,7 +118,7 @@ public class SSLContextHelperShould {
 
         assertThatThrownBy(() -> SSLContextHelper.builder().withOneWayAuthentication(trustStorePath, trustStorePassword))
                 .isInstanceOf(RuntimeException.class)
-                .hasMessage("TrustStore details are empty, which are required to be present when SSL is enabled");
+                .hasMessage("TrustStore details are empty, which are required to be present when SSL/TLS is enabled");
     }
 
     @Test
@@ -128,7 +128,7 @@ public class SSLContextHelperShould {
 
         assertThatThrownBy(() -> SSLContextHelper.builder().withOneWayAuthentication(trustStorePath, trustStorePassword))
                 .isInstanceOf(RuntimeException.class)
-                .hasMessage("TrustStore details are empty, which are required to be present when SSL is enabled");
+                .hasMessage("TrustStore details are empty, which are required to be present when SSL/TLS is enabled");
     }
 
     @Test
