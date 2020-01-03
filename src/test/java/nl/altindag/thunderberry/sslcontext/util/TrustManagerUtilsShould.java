@@ -9,57 +9,68 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 
-import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 import org.junit.Test;
 
-import nl.altindag.thunderberry.sslcontext.CompositeX509TrustManager;
-
 public class TrustManagerUtilsShould {
 
-    private static final String KEYSTORE_FILE_NAME = "identity.jks";
-    private static final String KEYSTORE_PASSWORD = "secret";
+    private static final String TRUSTSTORE_FILE_NAME = "truststore.jks";
+    private static final String TRUSTSTORE_PASSWORD = "secret";
     private static final String KEYSTORE_LOCATION = "keystores-for-unit-tests/";
 
     @Test
-    public void getTrustManagersWithDefaultJdkTrustedCertificatesWhenProvidingNullAsTrustStore() {
-        TrustManager[] trustManagers = TrustManagerUtils.getTrustManagers(null);
+    public void combineTrustManagers() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        KeyStore trustStoreOne = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+        KeyStore trustStoreTwo = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD);
+        X509TrustManager trustManager = TrustManagerUtils
+                .combine(TrustManagerUtils.createTrustManager(trustStoreOne), TrustManagerUtils.createTrustManager(trustStoreTwo));
 
-        assertThat(trustManagers).hasSize(1);
-        assertThat(trustManagers[0]).isInstanceOf(CompositeX509TrustManager.class);
-        CompositeX509TrustManager trustManager = (CompositeX509TrustManager) trustManagers[0];
-        assertThat(trustManager.getAcceptedIssuers()).hasSizeGreaterThan(10);
-        assertThat(trustManager.getTrustManagers()).hasSize(1);
+        assertThat(trustStoreOne.size()).isEqualTo(1);
+        assertThat(trustStoreTwo.size()).isEqualTo(1);
+        assertThat(trustManager.getAcceptedIssuers()).hasSize(2);
     }
 
     @Test
-    public void getDefaultJdkTrustManagerWhenCallingGetJdkDefaultTrustManager() {
-        X509TrustManager trustManager = TrustManagerUtils.getJdkDefaultTrustManager();
+    public void combineTrustManagersWhileFilteringDublicateCertificates() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        KeyStore trustStore = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+        X509TrustManager trustManager = TrustManagerUtils
+                .combine(TrustManagerUtils.createTrustManager(trustStore), TrustManagerUtils.createTrustManager(trustStore));
+
+        assertThat(trustStore.size()).isEqualTo(1);
+        assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
+    }
+
+    @Test
+    public void createTrustManagerWithJdkTrustedCertificatesWhenProvidingNullAsTrustStore() {
+        X509TrustManager trustManager = TrustManagerUtils.createTrustManager(null);
 
         assertThat(trustManager).isNotNull();
-        assertThat(trustManager).isInstanceOf(X509TrustManager.class);
-        assertThat((trustManager).getAcceptedIssuers()).hasSizeGreaterThan(10);
-
+        assertThat(trustManager.getAcceptedIssuers()).hasSizeGreaterThan(10);
     }
 
     @Test
-    public void getTrustManagersWhenProvidingACustomTrustStore() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        KeyStore trustStore = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD);
-        TrustManager[] trustManagers = TrustManagerUtils.getTrustManagers(trustStore);
+    public void createTrustManagerWithJdkTrustedCertificatesWhenCallingCreateTrustManagerWithJdkTrustedCertificates() {
+        X509TrustManager trustManager = TrustManagerUtils.createTrustManagerWithJdkTrustedCertificates();
 
-        assertThat(trustManagers).hasSize(1);
-        assertThat(trustManagers[0]).isInstanceOf(CompositeX509TrustManager.class);
-        CompositeX509TrustManager trustManager = (CompositeX509TrustManager) trustManagers[0];
-        assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
-        assertThat(trustManager.getTrustManagers()).hasSize(1);
+        assertThat(trustManager).isNotNull();
+        assertThat((trustManager).getAcceptedIssuers()).hasSizeGreaterThan(10);
+    }
+
+    @Test
+    public void createTrustManagerWhenProvidingACustomTrustStore() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        KeyStore trustStore = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+        X509TrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
+
+        assertThat(trustManager).isNotNull();
+        assertThat((trustManager).getAcceptedIssuers()).hasSize(1);
     }
 
     @Test
     public void throwExceptionWhenInvalidTrustManagerAlgorithmIsProvided() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        KeyStore trustStore = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD);
+        KeyStore trustStore = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 
-        assertThatThrownBy(() -> TrustManagerUtils.getTrustManager(trustStore, "ABCD"))
+        assertThatThrownBy(() -> TrustManagerUtils.createTrustManager(trustStore, "ABCD"))
                 .isInstanceOf(RuntimeException.class);
     }
 

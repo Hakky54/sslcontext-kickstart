@@ -6,6 +6,7 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import javax.net.ssl.X509TrustManager;
 
@@ -29,19 +30,10 @@ public class CompositeX509TrustManager implements X509TrustManager {
 
     @Override
     public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-        checkCertificateIsTrusted(chain, authType);
-    }
-
-    @Override
-    public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-        checkCertificateIsTrusted(chain, authType);
-    }
-
-    private void checkCertificateIsTrusted(X509Certificate[] chain, String authType) throws CertificateException {
         List<CertificateException> certificateExceptions = new ArrayList<>();
-        for (X509TrustManager x509TrustManager : trustManagers) {
+        for (X509TrustManager trustManager : trustManagers) {
             try {
-                x509TrustManager.checkClientTrusted(chain, authType);
+                trustManager.checkClientTrusted(chain, authType);
                 return;
             } catch (CertificateException e) {
                 certificateExceptions.add(e);
@@ -51,7 +43,27 @@ public class CompositeX509TrustManager implements X509TrustManager {
         for (CertificateException certificateException : certificateExceptions) {
             LOGGER.error(certificateException.getMessage(), certificateException);
         }
-        throw new CertificateException("None of the TrustManagers trust this certificate chain");
+
+        throw new CertificateException("None of the TrustManagers trust this client certificate chain");
+    }
+
+    @Override
+    public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+        List<CertificateException> certificateExceptions = new ArrayList<>();
+        for (X509TrustManager trustManager : trustManagers) {
+            try {
+                trustManager.checkServerTrusted(chain, authType);
+                return;
+            } catch (CertificateException e) {
+                certificateExceptions.add(e);
+            }
+        }
+
+        for (CertificateException certificateException : certificateExceptions) {
+            LOGGER.error(certificateException.getMessage(), certificateException);
+        }
+
+        throw new CertificateException("None of the TrustManagers trust this server certificate chain");
     }
 
     @Override
@@ -59,6 +71,7 @@ public class CompositeX509TrustManager implements X509TrustManager {
         return trustManagers.stream()
                             .map(X509TrustManager::getAcceptedIssuers)
                             .flatMap(Arrays::stream)
+                            .distinct()
                             .toArray(X509Certificate[]::new);
     }
 
@@ -85,13 +98,27 @@ public class CompositeX509TrustManager implements X509TrustManager {
             return this;
         }
 
+        public Builder withTrustStores(KeyStore... trustStores) {
+            for (KeyStore trustStore : trustStores) {
+                withTrustStore(trustStore);
+            }
+            return this;
+        }
+
         public Builder withTrustStore(KeyStore trustStore) {
-            this.trustManagers.add(TrustManagerUtils.getTrustManager(trustStore));
+            this.trustManagers.add(TrustManagerUtils.createTrustManager(trustStore));
+            return this;
+        }
+
+        public Builder withTrustStores(Map<KeyStore, String> trustStoresContainer) {
+            for (Map.Entry<KeyStore, String> trustStore : trustStoresContainer.entrySet()) {
+                withTrustStore(trustStore.getKey(), trustStore.getValue());
+            }
             return this;
         }
 
         public Builder withTrustStore(KeyStore keystore, String trustManagerAlgorithm) {
-            this.trustManagers.add(TrustManagerUtils.getTrustManager(keystore, trustManagerAlgorithm));
+            this.trustManagers.add(TrustManagerUtils.createTrustManager(keystore, trustManagerAlgorithm));
             return this;
         }
 
@@ -102,7 +129,7 @@ public class CompositeX509TrustManager implements X509TrustManager {
 
         public CompositeX509TrustManager build() {
             if (includeDefaultJdkTrustStore) {
-                this.trustManagers.add(TrustManagerUtils.getJdkDefaultTrustManager());
+                this.trustManagers.add(TrustManagerUtils.createTrustManagerWithJdkTrustedCertificates());
             }
             return new CompositeX509TrustManager(trustManagers);
         }

@@ -14,33 +14,25 @@ public final class TrustManagerUtils {
 
     private TrustManagerUtils() {}
 
-    public static X509TrustManager[] getTrustManagers(KeyStore trustStore) {
-        return new X509TrustManager[] {
-                CompositeX509TrustManager.builder()
-                                         .withTrustStore(trustStore)
-                                         .build()
-        };
-    }
-
     public static X509TrustManager combine(X509TrustManager... trustManagers) {
         return CompositeX509TrustManager.builder()
                                  .withX509TrustManagers(Arrays.asList(trustManagers))
                                  .build();
     }
 
-    public static X509TrustManager getJdkDefaultTrustManager() {
-        return getTrustManager(null);
+    public static X509TrustManager createTrustManagerWithJdkTrustedCertificates() {
+        return createTrustManager(null);
     }
 
-    public static X509TrustManager getTrustManager(KeyStore keystore) {
-        return getTrustManager(keystore, TrustManagerFactory.getDefaultAlgorithm());
+    public static X509TrustManager createTrustManager(KeyStore trustStore) {
+        return createTrustManager(trustStore, TrustManagerFactory.getDefaultAlgorithm());
     }
 
-    public static X509TrustManager getTrustManager(KeyStore keystore, String algorithm) {
+    public static X509TrustManager createTrustManager(KeyStore trustStore, String algorithm) {
         try {
             TrustManagerFactory trustManagerFactory;
             trustManagerFactory = TrustManagerFactory.getInstance(algorithm);
-            trustManagerFactory.init(keystore);
+            trustManagerFactory.init(trustStore);
 
             return Arrays.stream(trustManagerFactory.getTrustManagers())
                          .filter(trustManager -> trustManager instanceof X509TrustManager)
