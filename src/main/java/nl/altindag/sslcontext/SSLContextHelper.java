@@ -1,4 +1,4 @@
-package nl.altindag.thunderberry.sslcontext;
+package nl.altindag.sslcontext;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
@@ -26,7 +26,7 @@ import javax.net.ssl.X509TrustManager;
 import org.apache.http.conn.ssl.DefaultHostnameVerifier;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 
-import nl.altindag.thunderberry.sslcontext.util.KeystoreUtils;
+import nl.altindag.sslcontext.util.KeystoreUtils;
 
 public class SSLContextHelper {
 

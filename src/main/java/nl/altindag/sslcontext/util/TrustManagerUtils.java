@@ -1,4 +1,4 @@
-package nl.altindag.thunderberry.sslcontext.util;
+package nl.altindag.sslcontext.util;
 
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -8,7 +8,7 @@ import java.util.Arrays;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
-import nl.altindag.thunderberry.sslcontext.CompositeX509TrustManager;
+import nl.altindag.sslcontext.CompositeX509TrustManager;
 
 public final class TrustManagerUtils {
 

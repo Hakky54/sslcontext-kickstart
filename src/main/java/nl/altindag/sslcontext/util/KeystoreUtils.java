@@ -1,4 +1,4 @@
-package nl.altindag.thunderberry.sslcontext.util;
+package nl.altindag.sslcontext.util;
 
 import static java.util.Objects.isNull;
 
@@ -12,7 +12,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 
-import nl.altindag.thunderberry.sslcontext.SSLContextHelper;
+import nl.altindag.sslcontext.SSLContextHelper;
 
 public final class KeystoreUtils {
 

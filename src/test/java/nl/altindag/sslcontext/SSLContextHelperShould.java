@@ -1,4 +1,4 @@
-package nl.altindag.thunderberry.sslcontext;
+package nl.altindag.sslcontext;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.assertj.core.api.Assertions.assertThat;

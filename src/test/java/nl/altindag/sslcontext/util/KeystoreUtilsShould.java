@@ -1,4 +1,4 @@
-package nl.altindag.thunderberry.sslcontext.util;
+package nl.altindag.sslcontext.util;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.assertj.core.api.Assertions.assertThat;

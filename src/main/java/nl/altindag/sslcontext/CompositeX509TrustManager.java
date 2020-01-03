@@ -1,4 +1,4 @@
-package nl.altindag.thunderberry.sslcontext;
+package nl.altindag.sslcontext;
 
 import java.security.KeyStore;
 import java.security.cert.CertificateException;
@@ -6,14 +6,13 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import javax.net.ssl.X509TrustManager;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import nl.altindag.thunderberry.sslcontext.util.TrustManagerUtils;
+import nl.altindag.sslcontext.util.TrustManagerUtils;
 
 //https://gist.github.com/HughJeffner/6eac419b18c6001aeadb
 //https://stackoverflow.com/questions/24555890/using-a-custom-truststore-in-java-as-well-as-the-default-one
@@ -98,21 +97,9 @@ public class CompositeX509TrustManager implements X509TrustManager {
             return this;
         }
 
-        public Builder withTrustStores(KeyStore... trustStores) {
+        public Builder withTrustStore(KeyStore... trustStores) {
             for (KeyStore trustStore : trustStores) {
-                withTrustStore(trustStore);
-            }
-            return this;
-        }
-
-        public Builder withTrustStore(KeyStore trustStore) {
-            this.trustManagers.add(TrustManagerUtils.createTrustManager(trustStore));
-            return this;
-        }
-
-        public Builder withTrustStores(Map<KeyStore, String> trustStoresContainer) {
-            for (Map.Entry<KeyStore, String> trustStore : trustStoresContainer.entrySet()) {
-                withTrustStore(trustStore.getKey(), trustStore.getValue());
+                this.trustManagers.add(TrustManagerUtils.createTrustManager(trustStore));
             }
             return this;
         }

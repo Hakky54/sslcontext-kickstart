@@ -1,4 +1,4 @@
-package nl.altindag.thunderberry.sslcontext.util;
+package nl.altindag.sslcontext.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -32,7 +32,7 @@ public class TrustManagerUtilsShould {
     }
 
     @Test
-    public void combineTrustManagersWhileFilteringDublicateCertificates() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    public void combineTrustManagersWhileFilteringDuplicateCertificates() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore trustStore = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         X509TrustManager trustManager = TrustManagerUtils
                 .combine(TrustManagerUtils.createTrustManager(trustStore), TrustManagerUtils.createTrustManager(trustStore));

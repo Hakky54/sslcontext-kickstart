@@ -1,4 +1,4 @@
-package nl.altindag.thunderberry.sslcontext.util;
+package nl.altindag.sslcontext.util;
 
 import static java.util.stream.Collectors.toList;
 
