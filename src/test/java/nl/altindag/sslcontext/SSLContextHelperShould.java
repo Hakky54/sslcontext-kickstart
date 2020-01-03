@@ -14,9 +14,12 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.Arrays;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManagerFactory;
+import javax.security.auth.x500.X500Principal;
 
 import org.apache.http.conn.ssl.DefaultHostnameVerifier;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
@@ -73,7 +76,7 @@ public class SSLContextHelperShould {
         assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
         assertThat(sslContextHelper.getTrustStore()).isNull();
         assertThat(sslContextHelper.getTrustStorePassword()).isNull();
-        assertThat(sslContextHelper.getTrustedX509Certificate()).hasSize(105);
+        assertThat(sslContextHelper.getTrustedX509Certificate()).hasSizeGreaterThan(10);
     }
 
     @Test
@@ -86,7 +89,7 @@ public class SSLContextHelperShould {
         assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
         assertThat(sslContextHelper.getTrustStore()).isNull();
         assertThat(sslContextHelper.getTrustStorePassword()).isNull();
-        assertThat(sslContextHelper.getTrustedX509Certificate()).hasSize(105);
+        assertThat(sslContextHelper.getTrustedX509Certificate()).hasSizeGreaterThan(10);
     }
 
     @Test
@@ -100,7 +103,10 @@ public class SSLContextHelperShould {
         assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
         assertThat(sslContextHelper.getTrustStore()).isNotNull();
         assertThat(sslContextHelper.getTrustStorePassword()).isEqualTo(TRUSTSTORE_PASSWORD);
-        assertThat(sslContextHelper.getTrustedX509Certificate()).hasSize(106);
+        assertThat(sslContextHelper.getTrustedX509Certificate()).hasSizeGreaterThan(10);
+        assertThat(Arrays.stream(sslContextHelper.getTrustedX509Certificate())
+                         .map(X509Certificate::getSubjectX500Principal)
+                         .map(X500Principal::toString)).contains("CN=*.google.com, O=Google LLC, L=Mountain View, ST=California, C=US");
     }
 
     @Test
