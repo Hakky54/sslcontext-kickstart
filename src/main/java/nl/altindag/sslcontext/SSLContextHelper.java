@@ -174,12 +174,6 @@ public class SSLContextHelper {
         private boolean twoWayAuthenticationEnabled;
         private boolean includeDefaultJdkTrustStore = true;
 
-        public Builder withoutSecurity() {
-            oneWayAuthenticationEnabled = false;
-            twoWayAuthenticationEnabled = false;
-            return this;
-        }
-
         public Builder withOneWayAuthentication() {
             this.oneWayAuthenticationEnabled = true;
             this.twoWayAuthenticationEnabled = false;

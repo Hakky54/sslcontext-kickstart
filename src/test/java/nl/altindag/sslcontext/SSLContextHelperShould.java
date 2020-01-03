@@ -43,30 +43,6 @@ public class SSLContextHelperShould {
     private static final String TEMPORALLY_KEYSTORE_LOCATION = System.getProperty("user.home");
 
     @Test
-    public void createSslContextHelperWithoutSecurity() {
-        SSLContextHelper sslContextHelper = SSLContextHelper.builder()
-                                                            .withoutSecurity()
-                                                            .build();
-
-        assertThat(sslContextHelper).isNotNull();
-        assertThat(sslContextHelper.getSslContext()).isNull();
-        assertThat(sslContextHelper.isSecurityEnabled()).isFalse();
-        assertThat(sslContextHelper.getIdentity()).isNull();
-        assertThat(sslContextHelper.getIdentityPassword()).isNull();
-        assertThat(sslContextHelper.getKeyManagerFactory()).isNull();
-        assertThat(sslContextHelper.getTrustStore()).isNull();
-        assertThat(sslContextHelper.getTrustStorePassword()).isNull();
-        assertThat(sslContextHelper.getX509TrustManager()).isNull();
-        assertThat(sslContextHelper.getHostnameVerifier()).isInstanceOf(DefaultHostnameVerifier.class);
-        assertThat(sslContextHelper.getKeyManagerFactory()).isNull();
-        assertThat(sslContextHelper.isOneWayAuthenticationEnabled()).isFalse();
-        assertThat(sslContextHelper.isTwoWayAuthenticationEnabled()).isFalse();
-        assertThatThrownBy(sslContextHelper::getTrustedX509Certificate)
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("The trusted certificates could not be provided because it is not available");
-    }
-
-    @Test
     public void createSSLContextForOneWayAuthenticationWithOnlyJdkTrustedCertificates() {
         SSLContextHelper sslContextHelper = SSLContextHelper.builder()
                                                             .withDefaultJdkTrustStore(true)
