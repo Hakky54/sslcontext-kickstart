@@ -13,7 +13,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.Objects;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManager;
@@ -30,8 +29,8 @@ import nl.altindag.sslcontext.util.KeystoreUtils;
 
 public class SSLContextHelper {
 
-    private KeyStore keyStore;
-    private String keyStorePassword;
+    private KeyStore identity;
+    private String identityPassword;
     private KeyStore trustStore;
     private String trustStorePassword;
 
@@ -69,7 +68,7 @@ public class SSLContextHelper {
 
     private void createSSLContextWithKeyStoreAndTrustStore() {
         try {
-            createSSLContext(getKeyManagerFactory(keyStore, keyStorePassword).getKeyManagers(),
+            createSSLContext(getKeyManagerFactory(identity, identityPassword).getKeyManagers(),
                              getTrustManager(trustStore));
         } catch (UnrecoverableKeyException | NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
             throw new RuntimeException(e);
@@ -88,19 +87,25 @@ public class SSLContextHelper {
     }
 
     private X509TrustManager getTrustManager(KeyStore trustStore) {
-        trustManager = CompositeX509TrustManager.builder()
-                                                .withDefaultJdkTrustStore(includeDefaultJdkTrustStore)
-                                                .withTrustStore(trustStore, trustManagerAlgorithm)
-                                                .build();
+        if (isNull(trustStore)) {
+            trustManager = CompositeX509TrustManager.builder()
+                                                    .withDefaultJdkTrustStore(includeDefaultJdkTrustStore)
+                                                    .build();
+        } else {
+            trustManager = CompositeX509TrustManager.builder()
+                                                    .withDefaultJdkTrustStore(includeDefaultJdkTrustStore)
+                                                    .withTrustStore(trustStore, trustManagerAlgorithm)
+                                                    .build();
+        }
         return trustManager;
     }
 
-    public KeyStore getKeyStore() {
-        return keyStore;
+    public KeyStore getIdentity() {
+        return identity;
     }
 
-    public String getKeyStorePassword() {
-        return keyStorePassword;
+    public String getIdentityPassword() {
+        return identityPassword;
     }
 
     public KeyStore getTrustStore() {
@@ -132,9 +137,6 @@ public class SSLContextHelper {
     }
 
     public X509TrustManager getX509TrustManager() {
-        if (isNull(trustManager)) {
-            throw new RuntimeException("The TrustManager could not be provided because it is not available");
-        }
         return trustManager;
     }
 
@@ -163,8 +165,8 @@ public class SSLContextHelper {
         private String trustManagerAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
         private boolean hostnameVerifierEnabled = true;
 
-        private KeyStore keyStore;
-        private String keyStorePassword;
+        private KeyStore identity;
+        private String identityPassword;
         private KeyStore trustStore;
         private String trustStorePassword;
 
@@ -175,6 +177,13 @@ public class SSLContextHelper {
         public Builder withoutSecurity() {
             oneWayAuthenticationEnabled = false;
             twoWayAuthenticationEnabled = false;
+            return this;
+        }
+
+        public Builder withOneWayAuthentication() {
+            this.oneWayAuthenticationEnabled = true;
+            this.twoWayAuthenticationEnabled = false;
+            trustStore = null;
             return this;
         }
 
@@ -199,19 +208,12 @@ public class SSLContextHelper {
             return this;
         }
 
-        public Builder withOneWayAuthentication() {
-            this.oneWayAuthenticationEnabled = true;
-            this.twoWayAuthenticationEnabled = false;
-            trustStore = null;
-            return this;
-        }
-
         public Builder withOneWayAuthentication(Path trustStorePath, String trustStorePassword) {
             return withOneWayAuthentication(trustStorePath, trustStorePassword, KeyStore.getDefaultType());
         }
 
         public Builder withOneWayAuthentication(Path trustStorePath, String trustStorePassword, String trustStoreType) {
-            if (Objects.isNull(trustStorePath) || isBlank(trustStorePassword) || isBlank(trustStoreType)) {
+            if (isNull(trustStorePath) || isBlank(trustStorePassword) || isBlank(trustStoreType)) {
                 throw new RuntimeException(TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
             }
 
@@ -239,20 +241,20 @@ public class SSLContextHelper {
             return this;
         }
 
-        public Builder withTwoWayAuthentication(String keyStorePath, String keyStorePassword, String trustStorePath, String trustStorePassword) {
-            return withTwoWayAuthentication(keyStorePath, keyStorePassword, KeyStore.getDefaultType(), trustStorePath, trustStorePassword, KeyStore.getDefaultType());
+        public Builder withTwoWayAuthentication(String identityPath, String identityPassword, String trustStorePath, String trustStorePassword) {
+            return withTwoWayAuthentication(identityPath, identityPassword, KeyStore.getDefaultType(), trustStorePath, trustStorePassword, KeyStore.getDefaultType());
         }
 
-        public Builder withTwoWayAuthentication(String keyStorePath, String keyStorePassword, String keyStoreType,
+        public Builder withTwoWayAuthentication(String identityPath, String identityPassword, String keyStoreType,
                                                 String trustStorePath, String trustStorePassword, String trustStoreType) {
-            if (isBlank(keyStorePath) || isBlank(keyStorePassword) || isBlank(keyStoreType)
+            if (isBlank(identityPath) || isBlank(identityPassword) || isBlank(keyStoreType)
                     || isBlank(trustStorePath) || isBlank(trustStorePassword) || isBlank(trustStoreType)) {
-                throw new RuntimeException("TrustStore or KeyStore details are empty, which are required to be present when SSL is enabled");
+                throw new RuntimeException("TrustStore or Identity details are empty, which are required to be present when SSL is enabled");
             }
 
             try {
-                this.keyStore = KeystoreUtils.loadKeyStore(keyStorePath, keyStorePassword, keyStoreType);
-                this.keyStorePassword = keyStorePassword;
+                this.identity = KeystoreUtils.loadKeyStore(identityPath, identityPassword, keyStoreType);
+                this.identityPassword = identityPassword;
                 this.trustStore = KeystoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType);
                 this.trustStorePassword = trustStorePassword;
                 this.oneWayAuthenticationEnabled = false;
@@ -263,19 +265,19 @@ public class SSLContextHelper {
             return this;
         }
 
-        public Builder withTwoWayAuthentication(Path keyStorePath, String keyStorePassword, Path trustStorePath, String trustStorePassword) {
-            return withTwoWayAuthentication(keyStorePath, keyStorePassword, KeyStore.getDefaultType(), trustStorePath, trustStorePassword, KeyStore.getDefaultType());
+        public Builder withTwoWayAuthentication(Path identityPath, String identityPassword, Path trustStorePath, String trustStorePassword) {
+            return withTwoWayAuthentication(identityPath, identityPassword, KeyStore.getDefaultType(), trustStorePath, trustStorePassword, KeyStore.getDefaultType());
         }
 
-        public Builder withTwoWayAuthentication(Path keyStorePath, String keyStorePassword, String keyStoreType, Path trustStorePath, String trustStorePassword, String trustStoreType) {
-            if (isNull(keyStorePath) || isBlank(keyStorePassword) || isBlank(keyStoreType)
+        public Builder withTwoWayAuthentication(Path identityPath, String identityPassword, String keyStoreType, Path trustStorePath, String trustStorePassword, String trustStoreType) {
+            if (isNull(identityPath) || isBlank(identityPassword) || isBlank(keyStoreType)
                     || isNull(trustStorePath) || isBlank(trustStorePassword) || isBlank(trustStoreType)) {
                 throw new RuntimeException(KEY_STORE_AND_TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
             }
 
             try {
-                this.keyStore = KeystoreUtils.loadKeyStore(keyStorePath, trustStorePassword, trustStoreType);
-                this.keyStorePassword = keyStorePassword;
+                this.identity = KeystoreUtils.loadKeyStore(identityPath, trustStorePassword, trustStoreType);
+                this.identityPassword = identityPassword;
                 this.trustStore = KeystoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType);
                 this.trustStorePassword = trustStorePassword;
                 this.oneWayAuthenticationEnabled = false;
@@ -286,14 +288,14 @@ public class SSLContextHelper {
             return this;
         }
 
-        public Builder withTwoWayAuthentication(KeyStore keyStore, String keyStorePassword, KeyStore trustStore, String trustStorePassword) {
-            if (isNull(keyStore) || isBlank(keyStorePassword)
+        public Builder withTwoWayAuthentication(KeyStore identity, String identityPassword, KeyStore trustStore, String trustStorePassword) {
+            if (isNull(identity) || isBlank(identityPassword)
                     || isNull(trustStore) || isBlank(trustStorePassword)) {
                 throw new RuntimeException(TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
             }
 
-            this.keyStore = keyStore;
-            this.keyStorePassword = keyStorePassword;
+            this.identity = identity;
+            this.identityPassword = identityPassword;
             this.trustStore = trustStore;
             this.trustStorePassword = trustStorePassword;
             this.oneWayAuthenticationEnabled = false;
@@ -303,6 +305,7 @@ public class SSLContextHelper {
 
         public Builder withDefaultJdkTrustStore(boolean includeDefaultJdkTrustStore) {
             this.includeDefaultJdkTrustStore = includeDefaultJdkTrustStore;
+            this.oneWayAuthenticationEnabled = true;
             return this;
         }
 
@@ -353,8 +356,8 @@ public class SSLContextHelper {
         private void buildSLLContextForTwoWayAuthenticationIfEnabled(SSLContextHelper sslContextHelper) {
             if (twoWayAuthenticationEnabled) {
                 sslContextHelper.twoWayAuthenticationEnabled = true;
-                sslContextHelper.keyStore = keyStore;
-                sslContextHelper.keyStorePassword = keyStorePassword;
+                sslContextHelper.identity = identity;
+                sslContextHelper.identityPassword = identityPassword;
                 sslContextHelper.trustStore = trustStore;
                 sslContextHelper.trustStorePassword = trustStorePassword;
                 sslContextHelper.createSSLContextWithKeyStoreAndTrustStore();

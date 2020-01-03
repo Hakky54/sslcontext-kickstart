@@ -10,11 +10,7 @@ import java.nio.file.StandardOpenOption;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
 
 import nl.altindag.sslcontext.SSLContextHelper;
 
@@ -40,16 +36,6 @@ public final class KeystoreUtils {
         try(InputStream keystoreInputStream = Files.newInputStream(keystorePath, StandardOpenOption.READ)) {
             return loadKeyStore(keystoreInputStream, keystorePassword, keystoreType);
         }
-    }
-
-    public static List<Certificate> getTrustedCerts(KeyStore keyStore) throws KeyStoreException {
-        List<Certificate> certificates = new ArrayList<>();
-        Enumeration<String> aliases = keyStore.aliases();
-        while (aliases.hasMoreElements()) {
-            Certificate certificate = keyStore.getCertificate(aliases.nextElement());
-            certificates.add(certificate);
-        }
-        return certificates;
     }
 
     private static KeyStore loadKeyStore(InputStream keystoreInputStream, String keystorePassword, String keystoreType) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {

@@ -8,10 +8,13 @@ import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.List;
 
 import javax.net.ssl.KeyManagerFactory;
@@ -191,11 +194,16 @@ public class CompositeX509TrustManagerShould extends LogTestHelper<CompositeX509
         return CompositeX509TrustManager.class;
     }
 
-
     private X509Certificate[] getTrustedX509Certificates(KeyStore trustStore) throws KeyStoreException {
-        return KeystoreUtils.getTrustedCerts(trustStore).stream()
-                            .filter(certificate -> certificate instanceof X509Certificate)
-                            .map(certificate -> (X509Certificate) certificate)
-                            .toArray(X509Certificate[]::new);
+        List<X509Certificate> certificates = new ArrayList<>();
+        Enumeration<String> aliases = trustStore.aliases();
+        while (aliases.hasMoreElements()) {
+            Certificate certificate = trustStore.getCertificate(aliases.nextElement());
+            if (certificate instanceof X509Certificate) {
+                certificates.add((X509Certificate) certificate);
+            }
+        }
+
+        return certificates.toArray(new X509Certificate[0]);
     }
 }

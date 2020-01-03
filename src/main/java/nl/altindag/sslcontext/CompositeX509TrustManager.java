@@ -1,5 +1,7 @@
 package nl.altindag.sslcontext;
 
+import static java.util.Objects.isNull;
+
 import java.security.KeyStore;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -22,6 +24,7 @@ public class CompositeX509TrustManager implements X509TrustManager {
     private static final Logger LOGGER = LogManager.getLogger(CompositeX509TrustManager.class);
 
     private final List<X509TrustManager> trustManagers = new ArrayList<>();
+    private X509Certificate[] acceptedIssuers;
 
     public CompositeX509TrustManager(List<X509TrustManager> trustManagers) {
         this.trustManagers.addAll(trustManagers);
@@ -67,11 +70,14 @@ public class CompositeX509TrustManager implements X509TrustManager {
 
     @Override
     public X509Certificate[] getAcceptedIssuers() {
-        return trustManagers.stream()
-                            .map(X509TrustManager::getAcceptedIssuers)
-                            .flatMap(Arrays::stream)
-                            .distinct()
-                            .toArray(X509Certificate[]::new);
+        if (isNull(acceptedIssuers)) {
+            acceptedIssuers = trustManagers.stream()
+                                           .map(X509TrustManager::getAcceptedIssuers)
+                                           .flatMap(Arrays::stream)
+                                           .distinct()
+                                           .toArray(X509Certificate[]::new);
+        }
+        return acceptedIssuers;
     }
 
     public X509TrustManager[] getTrustManagers() {
