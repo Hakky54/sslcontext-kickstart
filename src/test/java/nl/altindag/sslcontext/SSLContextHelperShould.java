@@ -17,8 +17,6 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.TrustManagerFactory;
 import javax.security.auth.x500.X500Principal;
 
 import org.apache.http.conn.ssl.DefaultHostnameVerifier;
@@ -102,8 +100,6 @@ public class SSLContextHelperShould {
         SSLContextHelper sslContextHelper = SSLContextHelper.builder()
                                                             .withTwoWayAuthentication(identityPath, identityPassword,
                                                                                       trustStorePath, trustStorePassword)
-                                                            .withKeyManagerAlgorithm(KeyManagerFactory.getDefaultAlgorithm())
-                                                            .withTrustManagerAlgorithm(TrustManagerFactory.getDefaultAlgorithm())
                                                             .build();
 
         assertThat(sslContextHelper.isSecurityEnabled()).isTrue();

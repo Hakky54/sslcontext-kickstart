@@ -40,9 +40,6 @@ public class SSLContextHelper {
     private boolean includeDefaultJdkTrustStore;
 
     private String protocol;
-    private String trustManagerAlgorithm;
-    private String keyManagerAlgorithm;
-
     private SSLContext sslContext;
     private CompositeX509TrustManager trustManager;
     private KeyManagerFactory keyManagerFactory;
@@ -81,7 +78,7 @@ public class SSLContextHelper {
     }
 
     private KeyManagerFactory getKeyManagerFactory(KeyStore keyStore, String keystorePassword) throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException {
-        keyManagerFactory = KeyManagerFactory.getInstance(keyManagerAlgorithm);
+        keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
         keyManagerFactory.init(keyStore, keystorePassword.toCharArray());
         return keyManagerFactory;
     }
@@ -94,7 +91,7 @@ public class SSLContextHelper {
         } else {
             trustManager = CompositeX509TrustManager.builder()
                                                     .withDefaultJdkTrustStore(includeDefaultJdkTrustStore)
-                                                    .withTrustStore(trustStore, trustManagerAlgorithm)
+                                                    .withTrustStore(trustStore, TrustManagerFactory.getDefaultAlgorithm())
                                                     .build();
         }
         return trustManager;
@@ -161,8 +158,6 @@ public class SSLContextHelper {
         private static final String KEY_STORE_AND_TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE = "TrustStore or KeyStore details are empty, which are required to be present when SSL/TLS is enabled";
 
         private String protocol = "TLSv1.2";
-        private String keyManagerAlgorithm = KeyManagerFactory.getDefaultAlgorithm();
-        private String trustManagerAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
         private boolean hostnameVerifierEnabled = true;
 
         private KeyStore identity;
@@ -313,22 +308,10 @@ public class SSLContextHelper {
             return this;
         }
 
-        public Builder withKeyManagerAlgorithm(String keyManagerAlgorithm) {
-            this.keyManagerAlgorithm = keyManagerAlgorithm;
-            return this;
-        }
-
-        public Builder withTrustManagerAlgorithm(String trustManagerAlgorithm) {
-            this.trustManagerAlgorithm = trustManagerAlgorithm;
-            return this;
-        }
-
         public SSLContextHelper build() {
             SSLContextHelper sslContextHelper = new SSLContextHelper();
             buildHostnameVerifier(sslContextHelper);
             sslContextHelper.protocol = protocol;
-            sslContextHelper.keyManagerAlgorithm = keyManagerAlgorithm;
-            sslContextHelper.trustManagerAlgorithm = trustManagerAlgorithm;
             sslContextHelper.includeDefaultJdkTrustStore = includeDefaultJdkTrustStore;
 
             if (oneWayAuthenticationEnabled || twoWayAuthenticationEnabled) {
