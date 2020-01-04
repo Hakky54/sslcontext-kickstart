@@ -173,7 +173,7 @@ public class SSLContextHelper {
             }
 
             try {
-                this.trustStore = KeystoreUtils.loadKeyStore((String) trustStorePath, trustStorePassword, trustStoreType);
+                this.trustStore = KeystoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType);
                 this.trustStorePassword = trustStorePassword;
             } catch (IOException | KeyStoreException | NoSuchAlgorithmException | CertificateException e) {
                 throw new RuntimeException("BOOM");
