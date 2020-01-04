@@ -193,7 +193,7 @@ public class SSLContextHelper {
             }
 
             try {
-                this.trustStore = KeystoreUtils.loadKeyStore((Path) trustStorePath, trustStorePassword, trustStoreType);
+                this.trustStore = KeystoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType);
                 this.trustStorePassword = trustStorePassword;
             } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
                 throw new RuntimeException("BOOM");
@@ -221,7 +221,7 @@ public class SSLContextHelper {
             }
 
             try {
-                this.identity = KeystoreUtils.loadKeyStore((String) identityPath, identityPassword, identityType);
+                this.identity = KeystoreUtils.loadKeyStore(identityPath, identityPassword, identityType);
                 this.identityPassword = identityPassword;
                 this.twoWayAuthenticationEnabled = true;
             } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
@@ -235,12 +235,12 @@ public class SSLContextHelper {
         }
 
         public Builder withIdentity(Path identityPath, String identityPassword, String identityType) {
-            if (isNull((Path) identityPath) || isBlank(identityPassword) || isBlank(identityType)) {
+            if (isNull(identityPath) || isBlank(identityPassword) || isBlank(identityType)) {
                 throw new RuntimeException(IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
             }
 
             try {
-                this.identity = KeystoreUtils.loadKeyStore((Path) identityPath, identityPassword, identityType);
+                this.identity = KeystoreUtils.loadKeyStore(identityPath, identityPassword, identityType);
                 this.identityPassword = identityPassword;
                 this.twoWayAuthenticationEnabled = true;
             } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
