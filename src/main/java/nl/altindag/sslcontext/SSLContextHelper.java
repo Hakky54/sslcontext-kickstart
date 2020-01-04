@@ -129,9 +129,6 @@ public class SSLContextHelper {
     }
 
     public X509Certificate[] getTrustedX509Certificate() {
-        if (isNull(trustManager)) {
-            throw new RuntimeException("The trusted certificates could not be provided because it is not available");
-        }
         return trustManager.getAcceptedIssuers();
     }
 
@@ -282,7 +279,7 @@ public class SSLContextHelper {
             sslContextHelper.protocol = protocol;
             sslContextHelper.includeDefaultJdkTrustStore = includeDefaultJdkTrustStore;
 
-            if (oneWayAuthenticationEnabled && twoWayAuthenticationEnabled) {
+            if (twoWayAuthenticationEnabled) {
                 oneWayAuthenticationEnabled = false;
             }
 
@@ -321,7 +318,5 @@ public class SSLContextHelper {
                 sslContextHelper.createSSLContextWithKeyStoreAndTrustStore();
             }
         }
-
     }
-
 }
