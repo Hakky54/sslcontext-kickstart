@@ -173,7 +173,7 @@ public class SSLContextHelper {
             }
 
             try {
-                this.trustStore = KeystoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType);
+                this.trustStore = KeystoreUtils.loadKeyStore((String) trustStorePath, trustStorePassword, trustStoreType);
                 this.trustStorePassword = trustStorePassword;
             } catch (IOException | KeyStoreException | NoSuchAlgorithmException | CertificateException e) {
                 throw new RuntimeException("BOOM");
@@ -193,7 +193,7 @@ public class SSLContextHelper {
             }
 
             try {
-                this.trustStore = KeystoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType);
+                this.trustStore = KeystoreUtils.loadKeyStore((Path) trustStorePath, trustStorePassword, trustStoreType);
                 this.trustStorePassword = trustStorePassword;
             } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
                 throw new RuntimeException("BOOM");
@@ -204,10 +204,7 @@ public class SSLContextHelper {
         }
 
         public Builder withTrustStore(KeyStore trustStore, String trustStorePassword) {
-            if (isNull(trustStore) || isBlank(trustStorePassword)) {
-                throw new RuntimeException(TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
-            }
-
+            validateKeyStore(trustStore, trustStorePassword, TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
             this.trustStore = trustStore;
             this.trustStorePassword = trustStorePassword;
             this.oneWayAuthenticationEnabled = true;
@@ -238,7 +235,7 @@ public class SSLContextHelper {
         }
 
         public Builder withIdentity(Path identityPath, String identityPassword, String identityType) {
-            if (isNull(identityPath) || isBlank(identityPassword) || isBlank(identityType)) {
+            if (isNull((Path) identityPath) || isBlank(identityPassword) || isBlank(identityType)) {
                 throw new RuntimeException(IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
             }
 
@@ -253,14 +250,17 @@ public class SSLContextHelper {
         }
 
         public Builder withIdentity(KeyStore identity, String identityPassword) {
-            if (isNull(identity) || isBlank(identityPassword)) {
-                throw new RuntimeException(IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
-            }
-
+            validateKeyStore(identity, identityPassword, IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
             this.identity = identity;
             this.identityPassword = identityPassword;
             this.twoWayAuthenticationEnabled = true;
             return this;
+        }
+
+        private void validateKeyStore(KeyStore keyStore, String keyStorePassword, String exceptionMessage) {
+            if (isNull(keyStore) || isBlank(keyStorePassword)) {
+                throw new RuntimeException(exceptionMessage);
+            }
         }
 
         public Builder withHostnameVerifierEnabled(boolean hostnameVerifierEnabled) {
