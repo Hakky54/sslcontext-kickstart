@@ -77,6 +77,32 @@ public class SSLContextHelperShould {
     }
 
     @Test
+    public void createSSLContextForTwoWayAuthenticationWithOnlyJdkTrustedCertificates() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        KeyStore identity = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        SSLContextHelper sslContextHelper = SSLContextHelper.builder()
+                                                            .withIdentity(identity, IDENTITY_PASSWORD)
+                                                            .withOnlyDefaultJdkTrustStore(true)
+                                                            .build();
+
+        assertThat(sslContextHelper.isSecurityEnabled()).isTrue();
+        assertThat(sslContextHelper.isOneWayAuthenticationEnabled()).isFalse();
+        assertThat(sslContextHelper.isTwoWayAuthenticationEnabled()).isTrue();
+        assertThat(sslContextHelper.getSslContext()).isNotNull();
+
+        assertThat(sslContextHelper.getKeyManagerFactory()).isNotNull();
+        assertThat(sslContextHelper.getKeyManagerFactory().getKeyManagers()).isNotEmpty();
+        assertThat(sslContextHelper.getIdentity()).isNotNull();
+        assertThat(sslContextHelper.getIdentityPassword()).isEqualTo(IDENTITY_PASSWORD);
+
+        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
+        assertThat(sslContextHelper.getTrustedX509Certificate()).isNotEmpty();
+        assertThat(sslContextHelper.getTrustStore()).isNull();
+        assertThat(sslContextHelper.getTrustStorePassword()).isNull();
+        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
+        assertThat(sslContextHelper.getHostnameVerifier()).isNotNull();
+    }
+
+    @Test
     public void createSSLContextForTwoWayAutentication() {
         SSLContextHelper sslContextHelper = SSLContextHelper.builder()
                                                             .withIdentity(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD)
