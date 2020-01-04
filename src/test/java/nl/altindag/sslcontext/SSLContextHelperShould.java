@@ -268,7 +268,7 @@ public class SSLContextHelperShould {
     public void throwExceptionWhenCreateSSLContextForTwoWayAuthenticationWithPathWhileProvidingWrongPassword() throws IOException {
         Path identityPath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, IDENTITY_FILE_NAME);
 
-        assertThatThrownBy(() -> SSLContextHelper.builder().withTrustStore(identityPath, "password"))
+        assertThatThrownBy(() -> SSLContextHelper.builder().withIdentity(identityPath, "password"))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("BOOM");
 
