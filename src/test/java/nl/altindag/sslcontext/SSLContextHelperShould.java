@@ -70,13 +70,6 @@ public class SSLContextHelperShould {
     }
 
     @Test
-    public void throwExceptionWhenPasswordIsWrongWhenCreatingSSLContextForOneWayAuthentication() {
-        assertThatThrownBy(() -> SSLContextHelper.builder().withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, "password"))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("BOOM");
-    }
-
-    @Test
     public void createSSLContextForTwoWayAuthenticationWithOnlyJdkTrustedCertificates() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore identity = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         SSLContextHelper sslContextHelper = SSLContextHelper.builder()
@@ -247,6 +240,13 @@ public class SSLContextHelperShould {
     }
 
     @Test
+    public void throwExceptionWhenCreateSSLContextForOneWayAuthenticationWhileProvidingWrongPassword() {
+        assertThatThrownBy(() -> SSLContextHelper.builder().withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, "password"))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("BOOM");
+    }
+
+    @Test
     public void throwExceptionWhenCreateSSLContextForOneWayAuthenticationWithPathWhileProvidingWrongPassword() throws IOException {
         Path trustStorePath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
 
@@ -255,6 +255,24 @@ public class SSLContextHelperShould {
                 .hasMessage("BOOM");
 
         Files.delete(trustStorePath);
+    }
+
+    @Test
+    public void throwExceptionWhenCreateSSLContextForTwoWayAuthenticationWhileProvidingWrongPassword() {
+        assertThatThrownBy(() -> SSLContextHelper.builder().withIdentity(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, "password"))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("BOOM");
+    }
+
+    @Test
+    public void throwExceptionWhenCreateSSLContextForTwoWayAuthenticationWithPathWhileProvidingWrongPassword() throws IOException {
+        Path identityPath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, IDENTITY_FILE_NAME);
+
+        assertThatThrownBy(() -> SSLContextHelper.builder().withTrustStore(identityPath, "password"))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("BOOM");
+
+        Files.delete(identityPath);
     }
 
     @Test
