@@ -224,7 +224,7 @@ public class SSLContextHelper {
             }
 
             try {
-                this.identity = KeystoreUtils.loadKeyStore(identityPath, identityPassword, identityType);
+                this.identity = KeystoreUtils.loadKeyStore((String) identityPath, identityPassword, identityType);
                 this.identityPassword = identityPassword;
                 this.twoWayAuthenticationEnabled = true;
             } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
@@ -243,7 +243,7 @@ public class SSLContextHelper {
             }
 
             try {
-                this.identity = KeystoreUtils.loadKeyStore(identityPath, identityPassword, identityType);
+                this.identity = KeystoreUtils.loadKeyStore((Path) identityPath, identityPassword, identityType);
                 this.identityPassword = identityPassword;
                 this.twoWayAuthenticationEnabled = true;
             } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
@@ -277,17 +277,15 @@ public class SSLContextHelper {
             SSLContextHelper sslContextHelper = new SSLContextHelper();
             buildHostnameVerifier(sslContextHelper);
             sslContextHelper.protocol = protocol;
+            sslContextHelper.securityEnabled = true;
             sslContextHelper.includeDefaultJdkTrustStore = includeDefaultJdkTrustStore;
 
             if (twoWayAuthenticationEnabled) {
                 oneWayAuthenticationEnabled = false;
             }
 
-            if (oneWayAuthenticationEnabled || twoWayAuthenticationEnabled) {
-                sslContextHelper.securityEnabled = true;
-                buildSLLContextForOneWayAuthenticationIfEnabled(sslContextHelper);
-                buildSLLContextForTwoWayAuthenticationIfEnabled(sslContextHelper);
-            }
+            buildSLLContextForOneWayAuthenticationIfEnabled(sslContextHelper);
+            buildSLLContextForTwoWayAuthenticationIfEnabled(sslContextHelper);
             return sslContextHelper;
         }
 
@@ -301,6 +299,10 @@ public class SSLContextHelper {
 
         private void buildSLLContextForOneWayAuthenticationIfEnabled(SSLContextHelper sslContextHelper) {
             if (oneWayAuthenticationEnabled) {
+                if (isNull(trustStore) && !includeDefaultJdkTrustStore) {
+                    throw new RuntimeException(TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
+                }
+
                 sslContextHelper.oneWayAuthenticationEnabled = true;
                 sslContextHelper.trustStore = trustStore;
                 sslContextHelper.trustStorePassword = trustStorePassword;
@@ -310,6 +312,10 @@ public class SSLContextHelper {
 
         private void buildSLLContextForTwoWayAuthenticationIfEnabled(SSLContextHelper sslContextHelper) {
             if (twoWayAuthenticationEnabled) {
+                if (isNull(trustStore) && !includeDefaultJdkTrustStore) {
+                    throw new RuntimeException(TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
+                }
+
                 sslContextHelper.twoWayAuthenticationEnabled = true;
                 sslContextHelper.identity = identity;
                 sslContextHelper.identityPassword = identityPassword;
