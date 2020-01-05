@@ -4,5 +4,5 @@ coverage:
   range: "90...100"
 
 ignore:
-  - "sslcontext-kickstart/src/main/java/nl/altindag/sslcontext/exception/GenericKeyStoreException.java"
-  - "sslcontext-kickstart/src/main/java/nl/altindag/sslcontext/exception/GenericSSLContextException.java"
+  - "src/main/java/nl/altindag/sslcontext/exception/GenericKeyStoreException.java"
+  - "src/main/java/nl/altindag/sslcontext/exception/GenericSSLContextException.java"
