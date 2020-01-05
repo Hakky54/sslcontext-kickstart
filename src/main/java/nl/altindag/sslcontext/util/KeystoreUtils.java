@@ -40,7 +40,7 @@ public final class KeystoreUtils {
 
     private static KeyStore loadKeyStore(InputStream keystoreInputStream, String keystorePassword, String keystoreType) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
         if (isNull(keystoreInputStream)) {
-            throw new RuntimeException("Could not find the keystore file");
+            throw new IOException("Could not find the keystore file");
         }
 
         KeyStore keystore = KeyStore.getInstance(keystoreType);

@@ -9,6 +9,7 @@ import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
 import nl.altindag.sslcontext.CompositeX509TrustManager;
+import nl.altindag.sslcontext.exception.GenericKeyStoreException;
 
 public final class TrustManagerUtils {
 
@@ -41,7 +42,7 @@ public final class TrustManagerUtils {
                          .orElseThrow(() -> new RuntimeException("BOOOOM!"));
 
         } catch (KeyStoreException | NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
+            throw new GenericKeyStoreException(e);
         }
     }
 

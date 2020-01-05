@@ -51,7 +51,7 @@ public class KeystoreUtilsShould {
     @Test
     public void throwExceptionWhenLoadingNonExistingKeystore() {
         Assertions.assertThatThrownBy(() -> KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + NON_EXISTING_KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD))
-                  .isInstanceOf(RuntimeException.class)
+                  .isInstanceOf(IOException.class)
                   .hasMessage("Could not find the keystore file");
     }
 

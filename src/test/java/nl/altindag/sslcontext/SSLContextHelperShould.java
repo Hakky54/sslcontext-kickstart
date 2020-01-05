@@ -23,6 +23,7 @@ import org.apache.http.conn.ssl.DefaultHostnameVerifier;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.junit.Test;
 
+import nl.altindag.sslcontext.exception.GenericKeyStoreException;
 import nl.altindag.sslcontext.util.KeystoreUtils;
 
 @SuppressWarnings({ "squid:S1192", "squid:S2068"})
@@ -40,169 +41,9 @@ public class SSLContextHelperShould {
     private static final String TEMPORALLY_KEYSTORE_LOCATION = System.getProperty("user.home");
 
     @Test
-    public void createSSLContextForOneWayAuthenticationWithOnlyJdkTrustedCertificates() {
-        SSLContextHelper sslContextHelper = SSLContextHelper.builder()
-                                                            .withOnlyDefaultJdkTrustStore(true)
-                                                            .build();
-
-        assertThat(sslContextHelper.isSecurityEnabled()).isTrue();
-        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
-        assertThat(sslContextHelper.getTrustStore()).isNull();
-        assertThat(sslContextHelper.getTrustStorePassword()).isNull();
-        assertThat(sslContextHelper.getTrustedX509Certificate()).hasSizeGreaterThan(10);
-    }
-
-    @Test
-    public void createSSLContextForOneWayAuthenticationWithJdkTrustedCertificatesAndCustomTrustStore() {
-        SSLContextHelper sslContextHelper = SSLContextHelper.builder()
-                                                            .withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
-                                                            .withOnlyDefaultJdkTrustStore(true)
-                                                            .build();
-
-        assertThat(sslContextHelper.isSecurityEnabled()).isTrue();
-        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
-        assertThat(sslContextHelper.getTrustStore()).isNotNull();
-        assertThat(sslContextHelper.getTrustStorePassword()).isEqualTo(TRUSTSTORE_PASSWORD);
-        assertThat(sslContextHelper.getTrustedX509Certificate()).hasSizeGreaterThan(10);
-        assertThat(Arrays.stream(sslContextHelper.getTrustedX509Certificate())
-                         .map(X509Certificate::getSubjectX500Principal)
-                         .map(X500Principal::toString)).contains("CN=*.google.com, O=Google LLC, L=Mountain View, ST=California, C=US");
-    }
-
-    @Test
-    public void createSSLContextForTwoWayAuthenticationWithOnlyJdkTrustedCertificates() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        KeyStore identity = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
-        SSLContextHelper sslContextHelper = SSLContextHelper.builder()
-                                                            .withIdentity(identity, IDENTITY_PASSWORD)
-                                                            .withOnlyDefaultJdkTrustStore(true)
-                                                            .build();
-
-        assertThat(sslContextHelper.isSecurityEnabled()).isTrue();
-        assertThat(sslContextHelper.isOneWayAuthenticationEnabled()).isFalse();
-        assertThat(sslContextHelper.isTwoWayAuthenticationEnabled()).isTrue();
-        assertThat(sslContextHelper.getSslContext()).isNotNull();
-
-        assertThat(sslContextHelper.getKeyManagerFactory()).isNotNull();
-        assertThat(sslContextHelper.getKeyManagerFactory().getKeyManagers()).isNotEmpty();
-        assertThat(sslContextHelper.getIdentity()).isNotNull();
-        assertThat(sslContextHelper.getIdentityPassword()).isEqualTo(IDENTITY_PASSWORD);
-
-        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
-        assertThat(sslContextHelper.getTrustedX509Certificate()).isNotEmpty();
-        assertThat(sslContextHelper.getTrustStore()).isNull();
-        assertThat(sslContextHelper.getTrustStorePassword()).isNull();
-        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
-        assertThat(sslContextHelper.getHostnameVerifier()).isNotNull();
-    }
-
-    @Test
-    public void createSSLContextForTwoWayAutentication() {
-        SSLContextHelper sslContextHelper = SSLContextHelper.builder()
-                                                            .withIdentity(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD)
-                                                            .withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
-                                                            .build();
-
-        assertThat(sslContextHelper.isSecurityEnabled()).isTrue();
-        assertThat(sslContextHelper.isOneWayAuthenticationEnabled()).isFalse();
-        assertThat(sslContextHelper.isTwoWayAuthenticationEnabled()).isTrue();
-        assertThat(sslContextHelper.getSslContext()).isNotNull();
-
-        assertThat(sslContextHelper.getKeyManagerFactory()).isNotNull();
-        assertThat(sslContextHelper.getKeyManagerFactory().getKeyManagers()).isNotEmpty();
-        assertThat(sslContextHelper.getIdentity()).isNotNull();
-        assertThat(sslContextHelper.getIdentityPassword()).isEqualTo(IDENTITY_PASSWORD);
-
-        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
-        assertThat(sslContextHelper.getTrustedX509Certificate()).isNotEmpty();
-        assertThat(sslContextHelper.getTrustStore()).isNotNull();
-        assertThat(sslContextHelper.getTrustStorePassword()).isEqualTo(TRUSTSTORE_PASSWORD);
-        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
-        assertThat(sslContextHelper.getHostnameVerifier()).isNotNull();
-    }
-
-    @Test
-    public void createSSLContextForTwoWayAutenticationWithPath() throws IOException {
-        Path identityPath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, IDENTITY_FILE_NAME);
-        Path trustStorePath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
-
-        SSLContextHelper sslContextHelper = SSLContextHelper.builder()
-                                                            .withIdentity(identityPath, IDENTITY_PASSWORD)
-                                                            .withTrustStore(trustStorePath, TRUSTSTORE_PASSWORD)
-                                                            .build();
-
-        assertThat(sslContextHelper.isSecurityEnabled()).isTrue();
-        assertThat(sslContextHelper.isOneWayAuthenticationEnabled()).isFalse();
-        assertThat(sslContextHelper.isTwoWayAuthenticationEnabled()).isTrue();
-        assertThat(sslContextHelper.getSslContext()).isNotNull();
-
-        assertThat(sslContextHelper.getKeyManagerFactory()).isNotNull();
-        assertThat(sslContextHelper.getKeyManagerFactory().getKeyManagers()).isNotEmpty();
-        assertThat(sslContextHelper.getIdentity()).isNotNull();
-        assertThat(sslContextHelper.getIdentityPassword()).isEqualTo(IDENTITY_PASSWORD);
-
-        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
-        assertThat(sslContextHelper.getTrustedX509Certificate()).isNotEmpty();
-        assertThat(sslContextHelper.getTrustStore()).isNotNull();
-        assertThat(sslContextHelper.getTrustStorePassword()).isEqualTo(TRUSTSTORE_PASSWORD);
-        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
-        assertThat(sslContextHelper.getHostnameVerifier()).isNotNull();
-
-        Files.delete(identityPath);
-        Files.delete(trustStorePath);
-    }
-
-    @Test
-    public void createSSLContextForTwoWayAutenticationWithKeyStore() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
-        KeyStore identity = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
-        KeyStore trustStore = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
-
-        SSLContextHelper sslContextHelper = SSLContextHelper.builder()
-                                                            .withIdentity(identity, IDENTITY_PASSWORD)
-                                                            .withTrustStore(trustStore, TRUSTSTORE_PASSWORD)
-                                                            .build();
-
-        assertThat(sslContextHelper.isSecurityEnabled()).isTrue();
-        assertThat(sslContextHelper.isOneWayAuthenticationEnabled()).isFalse();
-        assertThat(sslContextHelper.isTwoWayAuthenticationEnabled()).isTrue();
-        assertThat(sslContextHelper.getSslContext()).isNotNull();
-
-        assertThat(sslContextHelper.getKeyManagerFactory()).isNotNull();
-        assertThat(sslContextHelper.getKeyManagerFactory().getKeyManagers()).isNotEmpty();
-        assertThat(sslContextHelper.getIdentity()).isNotNull();
-        assertThat(sslContextHelper.getIdentityPassword()).isEqualTo(IDENTITY_PASSWORD);
-
-        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
-        assertThat(sslContextHelper.getTrustedX509Certificate()).isNotEmpty();
-        assertThat(sslContextHelper.getTrustStore()).isNotNull();
-        assertThat(sslContextHelper.getTrustStorePassword()).isEqualTo(TRUSTSTORE_PASSWORD);
-        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
-        assertThat(sslContextHelper.getHostnameVerifier()).isNotNull();
-    }
-
-    @Test
     public void createSSLContextForOneWayAuthentication() {
         SSLContextHelper sslContextHelper = SSLContextHelper.builder()
                                                             .withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
-                                                            .build();
-
-        assertThat(sslContextHelper.isSecurityEnabled()).isTrue();
-        assertThat(sslContextHelper.isOneWayAuthenticationEnabled()).isTrue();
-        assertThat(sslContextHelper.isTwoWayAuthenticationEnabled()).isFalse();
-        assertThat(sslContextHelper.getSslContext()).isNotNull();
-
-        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
-        assertThat(sslContextHelper.getTrustedX509Certificate()).isNotEmpty();
-        assertThat(sslContextHelper.getTrustStore()).isNotNull();
-        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
-        assertThat(sslContextHelper.getHostnameVerifier()).isNotNull();
-    }
-
-    @Test
-    public void createSSLContextForOneWayAuthenticationWithKeyStore() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        KeyStore trustStore = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
-
-        SSLContextHelper sslContextHelper = SSLContextHelper.builder()
-                                                            .withTrustStore(trustStore, TRUSTSTORE_PASSWORD)
                                                             .build();
 
         assertThat(sslContextHelper.isSecurityEnabled()).isTrue();
@@ -240,10 +81,201 @@ public class SSLContextHelperShould {
     }
 
     @Test
+    public void createSSLContextForOneWayAuthenticationWithKeyStore() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        KeyStore trustStore = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+
+        SSLContextHelper sslContextHelper = SSLContextHelper.builder()
+                                                            .withTrustStore(trustStore, TRUSTSTORE_PASSWORD)
+                                                            .build();
+
+        assertThat(sslContextHelper.isSecurityEnabled()).isTrue();
+        assertThat(sslContextHelper.isOneWayAuthenticationEnabled()).isTrue();
+        assertThat(sslContextHelper.isTwoWayAuthenticationEnabled()).isFalse();
+        assertThat(sslContextHelper.getSslContext()).isNotNull();
+
+        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
+        assertThat(sslContextHelper.getTrustedX509Certificate()).isNotEmpty();
+        assertThat(sslContextHelper.getTrustStore()).isNotNull();
+        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
+        assertThat(sslContextHelper.getHostnameVerifier()).isNotNull();
+    }
+
+    @Test
+    public void createSSLContextForOneWayAuthenticationWithOnlyJdkTrustedCertificates() {
+        SSLContextHelper sslContextHelper = SSLContextHelper.builder()
+                                                            .withDefaultJdkTrustStore(true)
+                                                            .build();
+
+        assertThat(sslContextHelper.isSecurityEnabled()).isTrue();
+        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
+        assertThat(sslContextHelper.getTrustStore()).isNull();
+        assertThat(sslContextHelper.getTrustStorePassword()).isNull();
+        assertThat(sslContextHelper.getTrustedX509Certificate()).hasSizeGreaterThan(10);
+    }
+
+    @Test
+    public void createSSLContextForOneWayAuthenticationWithJdkTrustedCertificatesAndCustomTrustStore() {
+        SSLContextHelper sslContextHelper = SSLContextHelper.builder()
+                                                            .withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
+                                                            .withDefaultJdkTrustStore(true)
+                                                            .build();
+
+        assertThat(sslContextHelper.isSecurityEnabled()).isTrue();
+        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
+        assertThat(sslContextHelper.getTrustStore()).isNotNull();
+        assertThat(sslContextHelper.getTrustStorePassword()).isEqualTo(TRUSTSTORE_PASSWORD);
+        assertThat(sslContextHelper.getTrustedX509Certificate()).hasSizeGreaterThan(10);
+        assertThat(Arrays.stream(sslContextHelper.getTrustedX509Certificate())
+                         .map(X509Certificate::getSubjectX500Principal)
+                         .map(X500Principal::toString)).contains("CN=*.google.com, O=Google LLC, L=Mountain View, ST=California, C=US");
+    }
+
+    @Test
+    public void createSSLContextForTwoWayAuthentication() {
+        SSLContextHelper sslContextHelper = SSLContextHelper.builder()
+                                                            .withIdentity(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD)
+                                                            .withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
+                                                            .build();
+
+        assertThat(sslContextHelper.isSecurityEnabled()).isTrue();
+        assertThat(sslContextHelper.isOneWayAuthenticationEnabled()).isFalse();
+        assertThat(sslContextHelper.isTwoWayAuthenticationEnabled()).isTrue();
+        assertThat(sslContextHelper.getSslContext()).isNotNull();
+
+        assertThat(sslContextHelper.getKeyManagerFactory()).isNotNull();
+        assertThat(sslContextHelper.getKeyManagerFactory().getKeyManagers()).isNotEmpty();
+        assertThat(sslContextHelper.getIdentity()).isNotNull();
+        assertThat(sslContextHelper.getIdentityPassword()).isEqualTo(IDENTITY_PASSWORD);
+
+        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
+        assertThat(sslContextHelper.getTrustedX509Certificate()).isNotEmpty();
+        assertThat(sslContextHelper.getTrustStore()).isNotNull();
+        assertThat(sslContextHelper.getTrustStorePassword()).isEqualTo(TRUSTSTORE_PASSWORD);
+        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
+        assertThat(sslContextHelper.getHostnameVerifier()).isNotNull();
+    }
+
+    @Test
+    public void createSSLContextForTwoWayAuthenticationWithOnlyJdkTrustedCertificates() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        KeyStore identity = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        SSLContextHelper sslContextHelper = SSLContextHelper.builder()
+                                                            .withIdentity(identity, IDENTITY_PASSWORD)
+                                                            .withDefaultJdkTrustStore(true)
+                                                            .build();
+
+        assertThat(sslContextHelper.isSecurityEnabled()).isTrue();
+        assertThat(sslContextHelper.isOneWayAuthenticationEnabled()).isFalse();
+        assertThat(sslContextHelper.isTwoWayAuthenticationEnabled()).isTrue();
+        assertThat(sslContextHelper.getSslContext()).isNotNull();
+
+        assertThat(sslContextHelper.getKeyManagerFactory()).isNotNull();
+        assertThat(sslContextHelper.getKeyManagerFactory().getKeyManagers()).isNotEmpty();
+        assertThat(sslContextHelper.getIdentity()).isNotNull();
+        assertThat(sslContextHelper.getIdentityPassword()).isEqualTo(IDENTITY_PASSWORD);
+
+        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
+        assertThat(sslContextHelper.getTrustedX509Certificate()).isNotEmpty();
+        assertThat(sslContextHelper.getTrustStore()).isNull();
+        assertThat(sslContextHelper.getTrustStorePassword()).isNull();
+        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
+        assertThat(sslContextHelper.getHostnameVerifier()).isNotNull();
+    }
+
+    @Test
+    public void createSSLContextForTwoWayAuthenticationWithPath() throws IOException {
+        Path identityPath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, IDENTITY_FILE_NAME);
+        Path trustStorePath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
+
+        SSLContextHelper sslContextHelper = SSLContextHelper.builder()
+                                                            .withIdentity(identityPath, IDENTITY_PASSWORD)
+                                                            .withTrustStore(trustStorePath, TRUSTSTORE_PASSWORD)
+                                                            .build();
+
+        assertThat(sslContextHelper.isSecurityEnabled()).isTrue();
+        assertThat(sslContextHelper.isOneWayAuthenticationEnabled()).isFalse();
+        assertThat(sslContextHelper.isTwoWayAuthenticationEnabled()).isTrue();
+        assertThat(sslContextHelper.getSslContext()).isNotNull();
+
+        assertThat(sslContextHelper.getKeyManagerFactory()).isNotNull();
+        assertThat(sslContextHelper.getKeyManagerFactory().getKeyManagers()).isNotEmpty();
+        assertThat(sslContextHelper.getIdentity()).isNotNull();
+        assertThat(sslContextHelper.getIdentityPassword()).isEqualTo(IDENTITY_PASSWORD);
+
+        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
+        assertThat(sslContextHelper.getTrustedX509Certificate()).isNotEmpty();
+        assertThat(sslContextHelper.getTrustStore()).isNotNull();
+        assertThat(sslContextHelper.getTrustStorePassword()).isEqualTo(TRUSTSTORE_PASSWORD);
+        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
+        assertThat(sslContextHelper.getHostnameVerifier()).isNotNull();
+
+        Files.delete(identityPath);
+        Files.delete(trustStorePath);
+    }
+
+    @Test
+    public void createSSLContextForTwoWayAuthenticationWithKeyStore() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
+        KeyStore identity = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore trustStore = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+
+        SSLContextHelper sslContextHelper = SSLContextHelper.builder()
+                                                            .withIdentity(identity, IDENTITY_PASSWORD)
+                                                            .withTrustStore(trustStore, TRUSTSTORE_PASSWORD)
+                                                            .build();
+
+        assertThat(sslContextHelper.isSecurityEnabled()).isTrue();
+        assertThat(sslContextHelper.isOneWayAuthenticationEnabled()).isFalse();
+        assertThat(sslContextHelper.isTwoWayAuthenticationEnabled()).isTrue();
+        assertThat(sslContextHelper.getSslContext()).isNotNull();
+
+        assertThat(sslContextHelper.getKeyManagerFactory()).isNotNull();
+        assertThat(sslContextHelper.getKeyManagerFactory().getKeyManagers()).isNotEmpty();
+        assertThat(sslContextHelper.getIdentity()).isNotNull();
+        assertThat(sslContextHelper.getIdentityPassword()).isEqualTo(IDENTITY_PASSWORD);
+
+        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
+        assertThat(sslContextHelper.getTrustedX509Certificate()).isNotEmpty();
+        assertThat(sslContextHelper.getTrustStore()).isNotNull();
+        assertThat(sslContextHelper.getTrustStorePassword()).isEqualTo(TRUSTSTORE_PASSWORD);
+        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
+        assertThat(sslContextHelper.getHostnameVerifier()).isNotNull();
+    }
+
+    @Test
+    public void createSSLContextHelperWithHostnameVerifier() {
+        SSLContextHelper sslContextHelper = SSLContextHelper.builder()
+                                                            .withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
+                                                            .withHostnameVerifierEnabled(true)
+                                                            .build();
+
+        assertThat(sslContextHelper.getHostnameVerifier()).isInstanceOf(DefaultHostnameVerifier.class);
+    }
+
+    @Test
+    public void createSSLContextHelperWithoutHostnameVerifier() {
+        SSLContextHelper sslContextHelper = SSLContextHelper.builder()
+                                                            .withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
+                                                            .withHostnameVerifierEnabled(false)
+                                                            .build();
+
+        assertThat(sslContextHelper.getHostnameVerifier()).isInstanceOf(NoopHostnameVerifier.class);
+    }
+
+    @Test
+    public void createSSLContextWithTlsProtocolVersionOneDotOne() {
+        SSLContextHelper sslContextHelper = SSLContextHelper.builder()
+                                                            .withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
+                                                            .withProtocol("TLSv1.1")
+                                                            .build();
+
+        assertThat(sslContextHelper.getSslContext()).isNotNull();
+        assertThat(sslContextHelper.getSslContext().getProtocol()).isEqualTo("TLSv1.1");
+    }
+
+    @Test
     public void throwExceptionWhenCreateSSLContextForOneWayAuthenticationWhileProvidingWrongPassword() {
         assertThatThrownBy(() -> SSLContextHelper.builder().withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, "password"))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("BOOM");
+                .isInstanceOf(GenericKeyStoreException.class)
+                .hasMessage("Failed to load the keystore");
     }
 
     @Test
@@ -251,8 +283,8 @@ public class SSLContextHelperShould {
         Path trustStorePath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
 
         assertThatThrownBy(() -> SSLContextHelper.builder().withTrustStore(trustStorePath, "password"))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("BOOM");
+                .isInstanceOf(GenericKeyStoreException.class)
+                .hasMessage("Failed to load the keystore");
 
         Files.delete(trustStorePath);
     }
@@ -260,8 +292,8 @@ public class SSLContextHelperShould {
     @Test
     public void throwExceptionWhenCreateSSLContextForTwoWayAuthenticationWhileProvidingWrongPassword() {
         assertThatThrownBy(() -> SSLContextHelper.builder().withIdentity(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, "password"))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("BOOM");
+                .isInstanceOf(GenericKeyStoreException.class)
+                .hasMessage("Failed to load the keystore");
     }
 
     @Test
@@ -269,8 +301,8 @@ public class SSLContextHelperShould {
         Path identityPath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, IDENTITY_FILE_NAME);
 
         assertThatThrownBy(() -> SSLContextHelper.builder().withIdentity(identityPath, "password"))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("BOOM");
+                .isInstanceOf(GenericKeyStoreException.class)
+                .hasMessage("Failed to load the keystore");
 
         Files.delete(identityPath);
     }
@@ -320,43 +352,12 @@ public class SSLContextHelperShould {
                 .hasMessage(GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE);
     }
 
-    @Test
-    public void createSSLContextHelperWithHostnameVerifier() {
-        SSLContextHelper sslContextHelper = SSLContextHelper.builder()
-                                                            .withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
-                                                            .withHostnameVerifierEnabled(true)
-                                                            .build();
-
-        assertThat(sslContextHelper.getHostnameVerifier()).isInstanceOf(DefaultHostnameVerifier.class);
-    }
-
-    @Test
-    public void createSSLContextHelperWithoutHostnameVerifier() {
-        SSLContextHelper sslContextHelper = SSLContextHelper.builder()
-                                                            .withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
-                                                            .withHostnameVerifierEnabled(false)
-                                                            .build();
-
-        assertThat(sslContextHelper.getHostnameVerifier()).isInstanceOf(NoopHostnameVerifier.class);
-    }
-
-    @Test
-    public void createSSLContextWithTlsProtocolVersionOneDotOne() {
-        SSLContextHelper sslContextHelper = SSLContextHelper.builder()
-                                                            .withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
-                                                            .withProtocol("TLSv1.1")
-                                                            .build();
-
-        assertThat(sslContextHelper.getSslContext()).isNotNull();
-        assertThat(sslContextHelper.getSslContext().getProtocol()).isEqualTo("TLSv1.1");
-    }
-
 
     @Test
     public void throwExceptionWhenKeyStoreFileIsNotFound() {
         assertThatThrownBy(() -> SSLContextHelper.builder().withTrustStore(KEYSTORE_LOCATION + "not-existing-truststore.jks", TRUSTSTORE_PASSWORD))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("Could not find the keystore file");
+                .isInstanceOf(GenericKeyStoreException.class)
+                .hasMessage("Failed to load the keystore");
     }
 
     @Test
@@ -442,7 +443,7 @@ public class SSLContextHelperShould {
     @Test
     public void throwExceptionWhileBuildingSSLContextHelperWithoutProvidingTrustStoreDetails() {
         assertThatThrownBy(() -> SSLContextHelper.builder()
-                                                 .withOnlyDefaultJdkTrustStore(false)
+                                                 .withDefaultJdkTrustStore(false)
                                                  .build())
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage(GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE);
@@ -454,7 +455,7 @@ public class SSLContextHelperShould {
 
         assertThatThrownBy(() -> SSLContextHelper.builder()
                                                  .withIdentity(identity, IDENTITY_PASSWORD)
-                                                 .withOnlyDefaultJdkTrustStore(false)
+                                                 .withDefaultJdkTrustStore(false)
                                                  .build())
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage(GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE);
