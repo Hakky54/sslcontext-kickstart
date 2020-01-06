@@ -155,8 +155,8 @@ public class SSLContextHelper {
     public static class Builder {
 
         private static final String TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE = "TrustStore details are empty, which are required to be present when SSL/TLS is enabled";
-        private static final String TRUST_STRATEGY_VALIDATION_EXCEPTION_MESSAGE = "Trust strategy is missing. Please validate if TrustStore is present, "
-                + "or default JDK trustStore is enabled or "
+        private static final String TRUST_STRATEGY_VALIDATION_EXCEPTION_MESSAGE = "Trust strategy is missing. Please validate if the TrustStore is present, "
+                + "or default including the JDK trustStore is enabled or "
                 + "trusting all certificates without validation is enabled";
 
         private static final String IDENTITY_VALIDATION_EXCEPTION_MESSAGE = "Identity details are empty, which are required to be present when SSL/TLS is enabled";
