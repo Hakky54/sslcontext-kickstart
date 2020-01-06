@@ -26,7 +26,10 @@ import org.apache.http.conn.ssl.NoopHostnameVerifier;
 
 import nl.altindag.sslcontext.exception.GenericKeyStoreException;
 import nl.altindag.sslcontext.exception.GenericSSLContextException;
+import nl.altindag.sslcontext.trustmanager.CompositeX509TrustManager;
+import nl.altindag.sslcontext.trustmanager.UnsafeTrustManager;
 import nl.altindag.sslcontext.util.KeystoreUtils;
+import nl.altindag.sslcontext.util.TrustManagerUtils;
 
 public class SSLContextHelper {
 
@@ -39,6 +42,7 @@ public class SSLContextHelper {
     private boolean oneWayAuthenticationEnabled;
     private boolean twoWayAuthenticationEnabled;
     private boolean includeDefaultJdkTrustStore;
+    private boolean trustingAllCertificatesWithoutValidationEnabled;
 
     private String protocol;
     private SSLContext sslContext;
@@ -50,7 +54,7 @@ public class SSLContextHelper {
 
     private void createSSLContextWithTrustStore() {
         try {
-            createSSLContext(null, getTrustManager(trustStore));
+            createSSLContext(null, createTrustManager(trustStore));
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
             throw new GenericSSLContextException(e);
         }
@@ -58,8 +62,8 @@ public class SSLContextHelper {
 
     private void createSSLContextWithKeyStoreAndTrustStore() {
         try {
-            createSSLContext(getKeyManagerFactory(identity, identityPassword).getKeyManagers(),
-                             getTrustManager(trustStore));
+            createSSLContext(createKeyManagerFactory(identity, identityPassword).getKeyManagers(),
+                             createTrustManager(trustStore));
         } catch (UnrecoverableKeyException | NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
             throw new GenericSSLContextException(e);
         }
@@ -70,22 +74,28 @@ public class SSLContextHelper {
         sslContext.init(keyManagers, new TrustManager[]{trustManager} , null);
     }
 
-    private KeyManagerFactory getKeyManagerFactory(KeyStore keyStore, String keystorePassword) throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException {
+    private KeyManagerFactory createKeyManagerFactory(KeyStore keyStore, String keystorePassword) throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException {
         keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
         keyManagerFactory.init(keyStore, keystorePassword.toCharArray());
         return keyManagerFactory;
     }
 
-    private X509TrustManager getTrustManager(KeyStore trustStore) {
+    private X509TrustManager createTrustManager(KeyStore trustStore) {
+        CompositeX509TrustManager.Builder trustManagerBuilder = CompositeX509TrustManager.builder();
+
+        if (trustingAllCertificatesWithoutValidationEnabled) {
+            trustManagerBuilder.withTrustManager(UnsafeTrustManager.INSTANCE);
+        }
+
+        if (includeDefaultJdkTrustStore) {
+            trustManagerBuilder.withTrustManager(TrustManagerUtils.createTrustManagerWithJdkTrustedCertificates());
+        }
+
         if (isNull(trustStore)) {
-            trustManager = CompositeX509TrustManager.builder()
-                                                    .withDefaultJdkTrustStore(includeDefaultJdkTrustStore)
-                                                    .build();
+            trustManager = trustManagerBuilder.build();
         } else {
-            trustManager = CompositeX509TrustManager.builder()
-                                                    .withDefaultJdkTrustStore(includeDefaultJdkTrustStore)
-                                                    .withTrustStore(trustStore, TrustManagerFactory.getDefaultAlgorithm())
-                                                    .build();
+            trustManager = trustManagerBuilder.withTrustStore(trustStore, TrustManagerFactory.getDefaultAlgorithm())
+                                              .build();
         }
         return trustManager;
     }
@@ -145,6 +155,10 @@ public class SSLContextHelper {
     public static class Builder {
 
         private static final String TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE = "TrustStore details are empty, which are required to be present when SSL/TLS is enabled";
+        private static final String TRUST_STRATEGY_VALIDATION_EXCEPTION_MESSAGE = "Trust strategy is missing. Please validate if the TrustStore is present, "
+                + "or default including the JDK trustStore is enabled or "
+                + "trusting all certificates without validation is enabled";
+
         private static final String IDENTITY_VALIDATION_EXCEPTION_MESSAGE = "Identity details are empty, which are required to be present when SSL/TLS is enabled";
         private static final String KEY_STORE_LOADING_EXCEPTION = "Failed to load the keystore";
 
@@ -159,9 +173,10 @@ public class SSLContextHelper {
         private boolean oneWayAuthenticationEnabled;
         private boolean twoWayAuthenticationEnabled;
         private boolean includeDefaultJdkTrustStore = false;
+        private boolean trustingAllCertificatesWithoutValidationEnabled = false;
 
-        public Builder withDefaultJdkTrustStore(boolean includeDefaultJdkTrustStore) {
-            this.includeDefaultJdkTrustStore = includeDefaultJdkTrustStore;
+        public Builder withDefaultJdkTrustStore() {
+            this.includeDefaultJdkTrustStore = true;
             this.oneWayAuthenticationEnabled = true;
             return this;
         }
@@ -276,12 +291,21 @@ public class SSLContextHelper {
             return this;
         }
 
+        public Builder withTrustingAllCertificatesWithoutValidation() {
+            this.trustingAllCertificatesWithoutValidationEnabled = true;
+            this.oneWayAuthenticationEnabled = true;
+            return this;
+        }
+
         public SSLContextHelper build() {
+            validateTrustStore();
+
             SSLContextHelper sslContextHelper = new SSLContextHelper();
             buildHostnameVerifier(sslContextHelper);
             sslContextHelper.protocol = protocol;
             sslContextHelper.securityEnabled = true;
             sslContextHelper.includeDefaultJdkTrustStore = includeDefaultJdkTrustStore;
+            sslContextHelper.trustingAllCertificatesWithoutValidationEnabled = trustingAllCertificatesWithoutValidationEnabled;
 
             if (twoWayAuthenticationEnabled) {
                 oneWayAuthenticationEnabled = false;
@@ -302,10 +326,6 @@ public class SSLContextHelper {
 
         private void buildSLLContextForOneWayAuthenticationIfEnabled(SSLContextHelper sslContextHelper) {
             if (oneWayAuthenticationEnabled) {
-                if (isNull(trustStore) && !includeDefaultJdkTrustStore) {
-                    throw new GenericKeyStoreException(TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
-                }
-
                 sslContextHelper.oneWayAuthenticationEnabled = true;
                 sslContextHelper.trustStore = trustStore;
                 sslContextHelper.trustStorePassword = trustStorePassword;
@@ -315,16 +335,18 @@ public class SSLContextHelper {
 
         private void buildSLLContextForTwoWayAuthenticationIfEnabled(SSLContextHelper sslContextHelper) {
             if (twoWayAuthenticationEnabled) {
-                if (isNull(trustStore) && !includeDefaultJdkTrustStore) {
-                    throw new GenericKeyStoreException(TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
-                }
-
                 sslContextHelper.twoWayAuthenticationEnabled = true;
                 sslContextHelper.identity = identity;
                 sslContextHelper.identityPassword = identityPassword;
                 sslContextHelper.trustStore = trustStore;
                 sslContextHelper.trustStorePassword = trustStorePassword;
                 sslContextHelper.createSSLContextWithKeyStoreAndTrustStore();
+            }
+        }
+
+        private void validateTrustStore() {
+            if (isNull(trustStore) && !includeDefaultJdkTrustStore && !trustingAllCertificatesWithoutValidationEnabled) {
+                throw new GenericKeyStoreException(TRUST_STRATEGY_VALIDATION_EXCEPTION_MESSAGE);
             }
         }
     }

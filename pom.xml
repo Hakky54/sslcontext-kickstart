@@ -15,6 +15,7 @@
         <version.maven-surefire-plugin>2.22.2</version.maven-surefire-plugin>
         <version.commons-lang3>3.9</version.commons-lang3>
         <version.log4j-core>2.13.0</version.log4j-core>
+        <version.guava>28.1-jre</version.guava>
         <version.jacoco-maven-plugin>0.8.5</version.jacoco-maven-plugin>
         <version.maven-compiler-plugin>3.8.1</version.maven-compiler-plugin>
         <version.maven-javadoc-plugin>3.1.1</version.maven-javadoc-plugin>
@@ -38,6 +39,12 @@
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
             <version>${version.log4j-core}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${version.guava}</version>
         </dependency>
 
         <dependency>
