@@ -32,6 +32,7 @@ public class SSLContextHelperShould {
 
     private static final String GENERIC_IDENTITY_VALIDATION_EXCEPTION_MESSAGE = "Identity details are empty, which are required to be present when SSL/TLS is enabled";
     private static final String GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE = "TrustStore details are empty, which are required to be present when SSL/TLS is enabled";
+    private static final String GENERIC_TRUST_STRATEGY_VALIDATION_EXCEPTION_MESSAGE = "Trust strategy is missing. Please validate if TrustStore is present, or default JDK trustStore is enabled or trusting all certificates without validation is enabled";
 
     private static final String IDENTITY_FILE_NAME = "identity.jks";
     private static final String TRUSTSTORE_FILE_NAME = "truststore.jks";
@@ -286,6 +287,16 @@ public class SSLContextHelperShould {
     }
 
     @Test
+    public void throwExceptionWhenCreateSSLContextForOneWayAuthenticationNotTrustingAllCertificatesWhileCustomTrustStoreAndJdkTrustStoreNotPresent() {
+        assertThatThrownBy(() -> SSLContextHelper.builder()
+                                                 .withTrustingAllCertificatesWithoutValidation(false)
+                                                 .withDefaultJdkTrustStore(false)
+                                                 .build())
+                .isInstanceOf(GenericKeyStoreException.class)
+                .hasMessage(GENERIC_TRUST_STRATEGY_VALIDATION_EXCEPTION_MESSAGE);
+    }
+
+    @Test
     public void throwExceptionWhenCreateSSLContextForOneWayAuthenticationWhileProvidingWrongPassword() {
         assertThatThrownBy(() -> SSLContextHelper.builder().withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, "password"))
                 .isInstanceOf(GenericKeyStoreException.class)
@@ -301,6 +312,19 @@ public class SSLContextHelperShould {
                 .hasMessage("Failed to load the keystore");
 
         Files.delete(trustStorePath);
+    }
+
+    @Test
+    public void throwExceptionWhenCreateSSLContextForTwoWayAuthenticationNotTrustingAllCertificatesWhileCustomTrustStoreAndJdkTrustStoreNotPresent() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        KeyStore identity = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+
+        assertThatThrownBy(() -> SSLContextHelper.builder()
+                                                 .withIdentity(identity, IDENTITY_PASSWORD)
+                                                 .withTrustingAllCertificatesWithoutValidation(false)
+                                                 .withDefaultJdkTrustStore(false)
+                                                 .build())
+                .isInstanceOf(GenericKeyStoreException.class)
+                .hasMessage(GENERIC_TRUST_STRATEGY_VALIDATION_EXCEPTION_MESSAGE);
     }
 
     @Test
@@ -459,8 +483,8 @@ public class SSLContextHelperShould {
         assertThatThrownBy(() -> SSLContextHelper.builder()
                                                  .withDefaultJdkTrustStore(false)
                                                  .build())
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage(GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE);
+                .isInstanceOf(GenericKeyStoreException.class)
+                .hasMessage(GENERIC_TRUST_STRATEGY_VALIDATION_EXCEPTION_MESSAGE);
     }
 
     @Test
@@ -471,8 +495,8 @@ public class SSLContextHelperShould {
                                                  .withIdentity(identity, IDENTITY_PASSWORD)
                                                  .withDefaultJdkTrustStore(false)
                                                  .build())
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage(GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE);
+                .isInstanceOf(GenericKeyStoreException.class)
+                .hasMessage(GENERIC_TRUST_STRATEGY_VALIDATION_EXCEPTION_MESSAGE);
     }
 
     private Path copyKeystoreToHomeDirectory(String path, String fileName) throws IOException {

@@ -155,6 +155,10 @@ public class SSLContextHelper {
     public static class Builder {
 
         private static final String TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE = "TrustStore details are empty, which are required to be present when SSL/TLS is enabled";
+        private static final String TRUST_STRATEGY_VALIDATION_EXCEPTION_MESSAGE = "Trust strategy is missing. Please validate if TrustStore is present, "
+                + "or default JDK trustStore is enabled or "
+                + "trusting all certificates without validation is enabled";
+
         private static final String IDENTITY_VALIDATION_EXCEPTION_MESSAGE = "Identity details are empty, which are required to be present when SSL/TLS is enabled";
         private static final String KEY_STORE_LOADING_EXCEPTION = "Failed to load the keystore";
 
@@ -323,7 +327,7 @@ public class SSLContextHelper {
                 if (isNull(trustStore)
                         && !includeDefaultJdkTrustStore
                         && !trustingAllCertificatesWithoutValidationEnabled) {
-                    throw new GenericKeyStoreException(TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
+                    throw new GenericKeyStoreException(TRUST_STRATEGY_VALIDATION_EXCEPTION_MESSAGE);
                 }
 
                 sslContextHelper.oneWayAuthenticationEnabled = true;
@@ -338,7 +342,7 @@ public class SSLContextHelper {
                 if (isNull(trustStore)
                         && !includeDefaultJdkTrustStore
                         && !trustingAllCertificatesWithoutValidationEnabled) {
-                    throw new GenericKeyStoreException(TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
+                    throw new GenericKeyStoreException(TRUST_STRATEGY_VALIDATION_EXCEPTION_MESSAGE);
                 }
 
                 sslContextHelper.twoWayAuthenticationEnabled = true;
