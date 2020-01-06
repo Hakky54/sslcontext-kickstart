@@ -1,4 +1,4 @@
-package nl.altindag.sslcontext;
+package nl.altindag.sslcontext.trustmanager;
 
 import static java.util.Objects.isNull;
 
@@ -14,6 +14,8 @@ import javax.net.ssl.X509TrustManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.google.common.collect.ImmutableList;
+
 import nl.altindag.sslcontext.util.TrustManagerUtils;
 
 //https://gist.github.com/HughJeffner/6eac419b18c6001aeadb
@@ -23,11 +25,11 @@ public class CompositeX509TrustManager implements X509TrustManager {
 
     private static final Logger LOGGER = LogManager.getLogger(CompositeX509TrustManager.class);
 
-    private final List<X509TrustManager> trustManagers = new ArrayList<>();
+    private final List<? extends X509TrustManager> trustManagers;
     private X509Certificate[] acceptedIssuers;
 
-    public CompositeX509TrustManager(List<X509TrustManager> trustManagers) {
-        this.trustManagers.addAll(trustManagers);
+    public CompositeX509TrustManager(List<? extends X509TrustManager> trustManagers) {
+        this.trustManagers = ImmutableList.copyOf(trustManagers);
     }
 
     @Override
@@ -91,39 +93,30 @@ public class CompositeX509TrustManager implements X509TrustManager {
     public static class Builder {
 
         private final List<X509TrustManager> trustManagers = new ArrayList<>();
-        private boolean includeDefaultJdkTrustStore = false;
 
-        public Builder withX509TrustManager(X509TrustManager trustManager) {
+        public <T extends X509TrustManager> Builder withTrustManager(T trustManager) {
             trustManagers.add(trustManager);
             return this;
         }
 
-        public Builder withX509TrustManagers(List<X509TrustManager> trustManagers) {
+        public Builder withTrustManagers(List<? extends X509TrustManager> trustManagers) {
             this.trustManagers.addAll(trustManagers);
             return this;
         }
 
-        public Builder withTrustStore(KeyStore... trustStores) {
+        public <T extends KeyStore> Builder withTrustStore(T... trustStores) {
             for (KeyStore trustStore : trustStores) {
                 this.trustManagers.add(TrustManagerUtils.createTrustManager(trustStore));
             }
             return this;
         }
 
-        public Builder withTrustStore(KeyStore keystore, String trustManagerAlgorithm) {
-            this.trustManagers.add(TrustManagerUtils.createTrustManager(keystore, trustManagerAlgorithm));
-            return this;
-        }
-
-        public Builder withDefaultJdkTrustStore(boolean includeDefaultJdkTrustStore) {
-            this.includeDefaultJdkTrustStore = includeDefaultJdkTrustStore;
+        public <T extends KeyStore> Builder withTrustStore(T trustStore, String trustManagerAlgorithm) {
+            this.trustManagers.add(TrustManagerUtils.createTrustManager(trustStore, trustManagerAlgorithm));
             return this;
         }
 
         public CompositeX509TrustManager build() {
-            if (includeDefaultJdkTrustStore) {
-                this.trustManagers.add(TrustManagerUtils.createTrustManagerWithJdkTrustedCertificates());
-            }
             return new CompositeX509TrustManager(trustManagers);
         }
 

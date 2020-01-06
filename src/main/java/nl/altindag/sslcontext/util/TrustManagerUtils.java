@@ -8,8 +8,8 @@ import java.util.Arrays;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
-import nl.altindag.sslcontext.CompositeX509TrustManager;
 import nl.altindag.sslcontext.exception.GenericKeyStoreException;
+import nl.altindag.sslcontext.trustmanager.CompositeX509TrustManager;
 
 public final class TrustManagerUtils {
 
@@ -17,7 +17,7 @@ public final class TrustManagerUtils {
 
     public static X509TrustManager combine(X509TrustManager... trustManagers) {
         return CompositeX509TrustManager.builder()
-                                 .withX509TrustManagers(Arrays.asList(trustManagers))
+                                 .withTrustManagers(Arrays.asList(trustManagers))
                                  .build();
     }
 

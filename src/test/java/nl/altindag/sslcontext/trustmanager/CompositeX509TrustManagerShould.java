@@ -1,4 +1,4 @@
-package nl.altindag.sslcontext;
+package nl.altindag.sslcontext.trustmanager;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -8,13 +8,10 @@ import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Enumeration;
 import java.util.List;
 
 import javax.net.ssl.KeyManagerFactory;
@@ -54,16 +51,6 @@ public class CompositeX509TrustManagerShould extends LogTestHelper<CompositeX509
     }
 
     @Test
-    public void createCompositeX509TrustManagerWithJdkTrustedCertificates() {
-        CompositeX509TrustManager trustManager = CompositeX509TrustManager.builder()
-                                                                          .withDefaultJdkTrustStore(true)
-                                                                          .build();
-
-        assertThat(trustManager.getTrustManagers()).hasSize(1);
-        assertThat(trustManager.getAcceptedIssuers()).hasSizeGreaterThan(10);
-    }
-
-    @Test
     public void createCompositeX509TrustManagerWithKeyStoreAndTrustManagerAlgorithm() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore trustStore = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 
@@ -98,7 +85,7 @@ public class CompositeX509TrustManagerShould extends LogTestHelper<CompositeX509
         KeyStore trustStoreTwo = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD);
 
         CompositeX509TrustManager trustManager = CompositeX509TrustManager.builder()
-                                                                          .withX509TrustManagers(
+                                                                          .withTrustManagers(
                                                                                   Arrays.asList(TrustManagerUtils.createTrustManager(trustStoreOne),
                                                                                                 TrustManagerUtils.createTrustManager(trustStoreTwo)))
                                                                           .build();
@@ -115,7 +102,7 @@ public class CompositeX509TrustManagerShould extends LogTestHelper<CompositeX509
     public void checkClientTrusted() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore trustStore = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         X509TrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
-        X509Certificate[] trustedCerts = getTrustedX509Certificates(trustStore);
+        X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
 
         CompositeX509TrustManager compositeX509TrustManager = new CompositeX509TrustManager(Collections.singletonList(trustManager));
         assertThat(trustManager).isNotNull();
@@ -129,7 +116,7 @@ public class CompositeX509TrustManagerShould extends LogTestHelper<CompositeX509
     @Test
     public void checkServerTrusted() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore trustStore = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-dummy-client.jks", TRUSTSTORE_PASSWORD);
-        X509Certificate[] trustedCerts = getTrustedX509Certificates(KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
+        X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
         CompositeX509TrustManager trustManager = CompositeX509TrustManager.builder()
                                                                           .withTrustStore(trustStore)
@@ -144,10 +131,10 @@ public class CompositeX509TrustManagerShould extends LogTestHelper<CompositeX509
     @Test
     public void throwsExceptionWhenCheckServerTrustedDoesNotTrustTheSuppliedCertificate() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore trustStore = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
-        X509Certificate[] trustedCerts = getTrustedX509Certificates(KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
+        X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
         CompositeX509TrustManager trustManager = CompositeX509TrustManager.builder()
-                                                                          .withX509TrustManager(TrustManagerUtils.createTrustManager(trustStore))
+                                                                          .withTrustManager(TrustManagerUtils.createTrustManager(trustStore))
                                                                           .build();
         assertThat(trustedCerts).hasSize(1);
         assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
@@ -174,7 +161,7 @@ public class CompositeX509TrustManagerShould extends LogTestHelper<CompositeX509
     public void throwsExceptionWhenCheckClientTrustedDoesNotTrustTheSuppliedCertificate() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore trustStore = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         X509TrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
-        X509Certificate[] trustedCerts = getTrustedX509Certificates(KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD));
+        X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD));
 
         CompositeX509TrustManager compositeX509TrustManager = new CompositeX509TrustManager(Collections.singletonList(trustManager));
         assertThat(trustManager).isNotNull();
@@ -194,16 +181,4 @@ public class CompositeX509TrustManagerShould extends LogTestHelper<CompositeX509
         return CompositeX509TrustManager.class;
     }
 
-    private X509Certificate[] getTrustedX509Certificates(KeyStore trustStore) throws KeyStoreException {
-        List<X509Certificate> certificates = new ArrayList<>();
-        Enumeration<String> aliases = trustStore.aliases();
-        while (aliases.hasMoreElements()) {
-            Certificate certificate = trustStore.getCertificate(aliases.nextElement());
-            if (certificate instanceof X509Certificate) {
-                certificates.add((X509Certificate) certificate);
-            }
-        }
-
-        return certificates.toArray(new X509Certificate[0]);
-    }
 }

@@ -24,6 +24,7 @@ import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.junit.Test;
 
 import nl.altindag.sslcontext.exception.GenericKeyStoreException;
+import nl.altindag.sslcontext.trustmanager.CompositeX509TrustManager;
 import nl.altindag.sslcontext.util.KeystoreUtils;
 
 @SuppressWarnings({ "squid:S1192", "squid:S2068"})
@@ -269,6 +270,19 @@ public class SSLContextHelperShould {
 
         assertThat(sslContextHelper.getSslContext()).isNotNull();
         assertThat(sslContextHelper.getSslContext().getProtocol()).isEqualTo("TLSv1.1");
+    }
+
+    @Test
+    public void createSSLContextWithTrustingAllCertificatesWithoutValidation() {
+        SSLContextHelper sslContextHelper = SSLContextHelper.builder()
+                                                            .withTrustingAllCertificatesWithoutValidation(true)
+                                                            .build();
+
+        assertThat(sslContextHelper.getSslContext()).isNotNull();
+        assertThat(sslContextHelper.getTrustedX509Certificate()).isEmpty();
+        assertThat(sslContextHelper.getTrustStore()).isNull();
+        assertThat(sslContextHelper.getTrustStorePassword()).isNull();
+        assertThat(sslContextHelper.getX509TrustManager()).isInstanceOf(CompositeX509TrustManager.class);
     }
 
     @Test
