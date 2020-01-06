@@ -105,7 +105,7 @@ public class SSLContextHelperShould {
     @Test
     public void createSSLContextForOneWayAuthenticationWithOnlyJdkTrustedCertificates() {
         SSLContextHelper sslContextHelper = SSLContextHelper.builder()
-                                                            .withDefaultJdkTrustStore(true)
+                                                            .withDefaultJdkTrustStore()
                                                             .build();
 
         assertThat(sslContextHelper.isSecurityEnabled()).isTrue();
@@ -119,7 +119,7 @@ public class SSLContextHelperShould {
     public void createSSLContextForOneWayAuthenticationWithJdkTrustedCertificatesAndCustomTrustStore() {
         SSLContextHelper sslContextHelper = SSLContextHelper.builder()
                                                             .withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
-                                                            .withDefaultJdkTrustStore(true)
+                                                            .withDefaultJdkTrustStore()
                                                             .build();
 
         assertThat(sslContextHelper.isSecurityEnabled()).isTrue();
@@ -162,7 +162,7 @@ public class SSLContextHelperShould {
         KeyStore identity = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         SSLContextHelper sslContextHelper = SSLContextHelper.builder()
                                                             .withIdentity(identity, IDENTITY_PASSWORD)
-                                                            .withDefaultJdkTrustStore(true)
+                                                            .withDefaultJdkTrustStore()
                                                             .build();
 
         assertThat(sslContextHelper.isSecurityEnabled()).isTrue();
@@ -276,7 +276,7 @@ public class SSLContextHelperShould {
     @Test
     public void createSSLContextWithTrustingAllCertificatesWithoutValidation() {
         SSLContextHelper sslContextHelper = SSLContextHelper.builder()
-                                                            .withTrustingAllCertificatesWithoutValidation(true)
+                                                            .withTrustingAllCertificatesWithoutValidation()
                                                             .build();
 
         assertThat(sslContextHelper.getSslContext()).isNotNull();
@@ -284,16 +284,6 @@ public class SSLContextHelperShould {
         assertThat(sslContextHelper.getTrustStore()).isNull();
         assertThat(sslContextHelper.getTrustStorePassword()).isNull();
         assertThat(sslContextHelper.getX509TrustManager()).isInstanceOf(CompositeX509TrustManager.class);
-    }
-
-    @Test
-    public void throwExceptionWhenCreateSSLContextForOneWayAuthenticationNotTrustingAllCertificatesWhileCustomTrustStoreAndJdkTrustStoreNotPresent() {
-        assertThatThrownBy(() -> SSLContextHelper.builder()
-                                                 .withTrustingAllCertificatesWithoutValidation(false)
-                                                 .withDefaultJdkTrustStore(false)
-                                                 .build())
-                .isInstanceOf(GenericKeyStoreException.class)
-                .hasMessage(GENERIC_TRUST_STRATEGY_VALIDATION_EXCEPTION_MESSAGE);
     }
 
     @Test
@@ -312,19 +302,6 @@ public class SSLContextHelperShould {
                 .hasMessage("Failed to load the keystore");
 
         Files.delete(trustStorePath);
-    }
-
-    @Test
-    public void throwExceptionWhenCreateSSLContextForTwoWayAuthenticationNotTrustingAllCertificatesWhileCustomTrustStoreAndJdkTrustStoreNotPresent() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        KeyStore identity = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
-
-        assertThatThrownBy(() -> SSLContextHelper.builder()
-                                                 .withIdentity(identity, IDENTITY_PASSWORD)
-                                                 .withTrustingAllCertificatesWithoutValidation(false)
-                                                 .withDefaultJdkTrustStore(false)
-                                                 .build())
-                .isInstanceOf(GenericKeyStoreException.class)
-                .hasMessage(GENERIC_TRUST_STRATEGY_VALIDATION_EXCEPTION_MESSAGE);
     }
 
     @Test
@@ -413,35 +390,35 @@ public class SSLContextHelperShould {
     }
 
     @Test
-    public void throwExceptionTwoWayAuthenticationEnabledWhileKeyStorePathIsNotProvided() {
+    public void throwExceptionTwoWayAuthenticationEnabledWhileIdentityPathIsNotProvided() {
         assertThatThrownBy(() -> SSLContextHelper.builder().withIdentity(EMPTY, IDENTITY_PASSWORD))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage(GENERIC_IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
     }
 
     @Test
-    public void throwExceptionTwoWayAuthenticationEnabledWhileKeyStorePasswordIsNotProvided() {
+    public void throwExceptionTwoWayAuthenticationEnabledWhileIdentityPasswordIsNotProvided() {
         assertThatThrownBy(() -> SSLContextHelper.builder().withIdentity(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, EMPTY))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage(GENERIC_IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
     }
 
     @Test
-    public void throwExceptionTwoWayAuthenticationEnabledWhileKeyStoreTypeIsNotProvided() {
+    public void throwExceptionTwoWayAuthenticationEnabledWhileIdentityTypeIsNotProvided() {
         assertThatThrownBy(() -> SSLContextHelper.builder().withIdentity(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD, EMPTY))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage(GENERIC_IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
     }
 
     @Test
-    public void throwExceptionTwoWayAuthenticationEnabledWhileKeyStorePathIsNull() {
+    public void throwExceptionTwoWayAuthenticationEnabledWhileIdentityPathIsNull() {
         assertThatThrownBy(() -> SSLContextHelper.builder().withIdentity((Path) null, IDENTITY_PASSWORD))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage(GENERIC_IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
     }
 
     @Test
-    public void throwExceptionTwoWayAuthenticationEnabledWhileKeyStorePasswordIsNotProvidedWhileUsingPath() throws IOException {
+    public void throwExceptionTwoWayAuthenticationEnabledWhileIdentityPasswordIsNotProvidedWhileUsingPath() throws IOException {
         Path identityPath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, IDENTITY_FILE_NAME);
 
         assertThatThrownBy(() -> SSLContextHelper.builder().withIdentity(identityPath, EMPTY))
@@ -452,14 +429,14 @@ public class SSLContextHelperShould {
     }
 
     @Test
-    public void throwExceptionTwoWayAuthenticationEnabledWhileKeyStoreIsNull() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    public void throwExceptionTwoWayAuthenticationEnabledWhileIdentityIsNull() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         assertThatThrownBy(() -> SSLContextHelper.builder().withIdentity((KeyStore) null, IDENTITY_PASSWORD))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage(GENERIC_IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
     }
 
     @Test
-    public void throwExceptionTwoWayAuthenticationEnabledWhileKeyStorePasswordIsEmptyWhileUsingKeyStoreAsOBject() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    public void throwExceptionTwoWayAuthenticationEnabledWhileIdentityPasswordIsEmptyWhileUsingKeyStoreAsObject() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore identity = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
 
         assertThatThrownBy(() -> SSLContextHelper.builder().withIdentity(identity, EMPTY))
@@ -468,7 +445,7 @@ public class SSLContextHelperShould {
     }
 
     @Test
-    public void throwExceptionTwoWayAuthenticationEnabledWhileKeyStoreTypeIsNotProvidedWhileUsingPath() throws IOException {
+    public void throwExceptionTwoWayAuthenticationEnabledWhileIdentityTypeIsNotProvidedWhileUsingPath() throws IOException {
         Path identityPath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, IDENTITY_FILE_NAME);
 
         assertThatThrownBy(() -> SSLContextHelper.builder().withIdentity(identityPath, IDENTITY_PASSWORD, EMPTY))
@@ -479,21 +456,19 @@ public class SSLContextHelperShould {
     }
 
     @Test
-    public void throwExceptionWhileBuildingSSLContextHelperWithoutProvidingTrustStoreDetails() {
+    public void throwExceptionWhenCreateSSLContextForOneWayAuthenticationWhileNotIncludingTrustStoreAndJdkTrustStoreAndNotTrustingAllCertificates() {
         assertThatThrownBy(() -> SSLContextHelper.builder()
-                                                 .withDefaultJdkTrustStore(false)
                                                  .build())
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_TRUST_STRATEGY_VALIDATION_EXCEPTION_MESSAGE);
     }
 
     @Test
-    public void throwExceptionWhileBuildingSSLContextHelperForTwoWayAuthenticationWithoutProvidingTrustStoreDetails() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    public void throwExceptionWhenCreateSSLContextForTwoWayAuthenticationNotTrustingAllCertificatesWhileCustomTrustStoreAndJdkTrustStoreNotPresent() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore identity = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
 
         assertThatThrownBy(() -> SSLContextHelper.builder()
                                                  .withIdentity(identity, IDENTITY_PASSWORD)
-                                                 .withDefaultJdkTrustStore(false)
                                                  .build())
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_TRUST_STRATEGY_VALIDATION_EXCEPTION_MESSAGE);

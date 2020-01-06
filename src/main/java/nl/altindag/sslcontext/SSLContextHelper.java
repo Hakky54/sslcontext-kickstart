@@ -175,8 +175,8 @@ public class SSLContextHelper {
         private boolean includeDefaultJdkTrustStore = false;
         private boolean trustingAllCertificatesWithoutValidationEnabled = false;
 
-        public Builder withDefaultJdkTrustStore(boolean includeDefaultJdkTrustStore) {
-            this.includeDefaultJdkTrustStore = includeDefaultJdkTrustStore;
+        public Builder withDefaultJdkTrustStore() {
+            this.includeDefaultJdkTrustStore = true;
             this.oneWayAuthenticationEnabled = true;
             return this;
         }
@@ -291,13 +291,15 @@ public class SSLContextHelper {
             return this;
         }
 
-        public Builder withTrustingAllCertificatesWithoutValidation(boolean enabled) {
-            this.trustingAllCertificatesWithoutValidationEnabled = enabled;
+        public Builder withTrustingAllCertificatesWithoutValidation() {
+            this.trustingAllCertificatesWithoutValidationEnabled = true;
             this.oneWayAuthenticationEnabled = true;
             return this;
         }
 
         public SSLContextHelper build() {
+            validateTrustStore();
+
             SSLContextHelper sslContextHelper = new SSLContextHelper();
             buildHostnameVerifier(sslContextHelper);
             sslContextHelper.protocol = protocol;
@@ -324,12 +326,6 @@ public class SSLContextHelper {
 
         private void buildSLLContextForOneWayAuthenticationIfEnabled(SSLContextHelper sslContextHelper) {
             if (oneWayAuthenticationEnabled) {
-                if (isNull(trustStore)
-                        && !includeDefaultJdkTrustStore
-                        && !trustingAllCertificatesWithoutValidationEnabled) {
-                    throw new GenericKeyStoreException(TRUST_STRATEGY_VALIDATION_EXCEPTION_MESSAGE);
-                }
-
                 sslContextHelper.oneWayAuthenticationEnabled = true;
                 sslContextHelper.trustStore = trustStore;
                 sslContextHelper.trustStorePassword = trustStorePassword;
@@ -339,18 +335,18 @@ public class SSLContextHelper {
 
         private void buildSLLContextForTwoWayAuthenticationIfEnabled(SSLContextHelper sslContextHelper) {
             if (twoWayAuthenticationEnabled) {
-                if (isNull(trustStore)
-                        && !includeDefaultJdkTrustStore
-                        && !trustingAllCertificatesWithoutValidationEnabled) {
-                    throw new GenericKeyStoreException(TRUST_STRATEGY_VALIDATION_EXCEPTION_MESSAGE);
-                }
-
                 sslContextHelper.twoWayAuthenticationEnabled = true;
                 sslContextHelper.identity = identity;
                 sslContextHelper.identityPassword = identityPassword;
                 sslContextHelper.trustStore = trustStore;
                 sslContextHelper.trustStorePassword = trustStorePassword;
                 sslContextHelper.createSSLContextWithKeyStoreAndTrustStore();
+            }
+        }
+
+        private void validateTrustStore() {
+            if (isNull(trustStore) && !includeDefaultJdkTrustStore && !trustingAllCertificatesWithoutValidationEnabled) {
+                throw new GenericKeyStoreException(TRUST_STRATEGY_VALIDATION_EXCEPTION_MESSAGE);
             }
         }
     }
