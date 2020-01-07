@@ -57,6 +57,7 @@ public class SSLContextHelperShould {
         assertThat(sslContextHelper.getTrustedX509Certificate()).isNotEmpty();
         assertThat(sslContextHelper.getTrustStore()).isNotNull();
         assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
+        assertThat(sslContextHelper.getTrustManagerFactory()).isNotNull();
         assertThat(sslContextHelper.getHostnameVerifier()).isNotNull();
     }
 
@@ -77,6 +78,7 @@ public class SSLContextHelperShould {
         assertThat(sslContextHelper.getTrustedX509Certificate()).isNotEmpty();
         assertThat(sslContextHelper.getTrustStore()).isNotNull();
         assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
+        assertThat(sslContextHelper.getTrustManagerFactory()).isNotNull();
         assertThat(sslContextHelper.getHostnameVerifier()).isNotNull();
 
         Files.delete(trustStorePath);
@@ -99,6 +101,7 @@ public class SSLContextHelperShould {
         assertThat(sslContextHelper.getTrustedX509Certificate()).isNotEmpty();
         assertThat(sslContextHelper.getTrustStore()).isNotNull();
         assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
+        assertThat(sslContextHelper.getTrustManagerFactory()).isNotNull();
         assertThat(sslContextHelper.getHostnameVerifier()).isNotNull();
     }
 
@@ -112,6 +115,7 @@ public class SSLContextHelperShould {
         assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
         assertThat(sslContextHelper.getTrustStore()).isNull();
         assertThat(sslContextHelper.getTrustStorePassword()).isNull();
+        assertThat(sslContextHelper.getTrustManagerFactory()).isNotNull();
         assertThat(sslContextHelper.getTrustedX509Certificate()).hasSizeGreaterThan(10);
     }
 
@@ -127,6 +131,7 @@ public class SSLContextHelperShould {
         assertThat(sslContextHelper.getTrustStore()).isNotNull();
         assertThat(sslContextHelper.getTrustStorePassword()).isEqualTo(TRUSTSTORE_PASSWORD);
         assertThat(sslContextHelper.getTrustedX509Certificate()).hasSizeGreaterThan(10);
+        assertThat(sslContextHelper.getTrustManagerFactory()).isNotNull();
         assertThat(Arrays.stream(sslContextHelper.getTrustedX509Certificate())
                          .map(X509Certificate::getSubjectX500Principal)
                          .map(X500Principal::toString)).contains("CN=*.google.com, O=Google LLC, L=Mountain View, ST=California, C=US");
@@ -154,6 +159,7 @@ public class SSLContextHelperShould {
         assertThat(sslContextHelper.getTrustStore()).isNotNull();
         assertThat(sslContextHelper.getTrustStorePassword()).isEqualTo(TRUSTSTORE_PASSWORD);
         assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
+        assertThat(sslContextHelper.getTrustManagerFactory()).isNotNull();
         assertThat(sslContextHelper.getHostnameVerifier()).isNotNull();
     }
 
@@ -180,6 +186,7 @@ public class SSLContextHelperShould {
         assertThat(sslContextHelper.getTrustStore()).isNull();
         assertThat(sslContextHelper.getTrustStorePassword()).isNull();
         assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
+        assertThat(sslContextHelper.getTrustManagerFactory()).isNotNull();
         assertThat(sslContextHelper.getHostnameVerifier()).isNotNull();
     }
 
@@ -208,6 +215,7 @@ public class SSLContextHelperShould {
         assertThat(sslContextHelper.getTrustStore()).isNotNull();
         assertThat(sslContextHelper.getTrustStorePassword()).isEqualTo(TRUSTSTORE_PASSWORD);
         assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
+        assertThat(sslContextHelper.getTrustManagerFactory()).isNotNull();
         assertThat(sslContextHelper.getHostnameVerifier()).isNotNull();
 
         Files.delete(identityPath);
@@ -239,6 +247,7 @@ public class SSLContextHelperShould {
         assertThat(sslContextHelper.getTrustStore()).isNotNull();
         assertThat(sslContextHelper.getTrustStorePassword()).isEqualTo(TRUSTSTORE_PASSWORD);
         assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
+        assertThat(sslContextHelper.getTrustManagerFactory()).isNotNull();
         assertThat(sslContextHelper.getHostnameVerifier()).isNotNull();
     }
 
@@ -284,6 +293,7 @@ public class SSLContextHelperShould {
         assertThat(sslContextHelper.getTrustStore()).isNull();
         assertThat(sslContextHelper.getTrustStorePassword()).isNull();
         assertThat(sslContextHelper.getX509TrustManager()).isInstanceOf(CompositeX509TrustManager.class);
+        assertThat(sslContextHelper.getTrustManagerFactory()).isNotNull();
     }
 
     @Test

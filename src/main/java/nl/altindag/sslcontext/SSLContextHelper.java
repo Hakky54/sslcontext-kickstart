@@ -27,6 +27,7 @@ import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import nl.altindag.sslcontext.exception.GenericKeyStoreException;
 import nl.altindag.sslcontext.exception.GenericSSLContextException;
 import nl.altindag.sslcontext.trustmanager.CompositeX509TrustManager;
+import nl.altindag.sslcontext.trustmanager.TrustManagerFactoryWrapper;
 import nl.altindag.sslcontext.trustmanager.UnsafeTrustManager;
 import nl.altindag.sslcontext.util.KeystoreUtils;
 import nl.altindag.sslcontext.util.TrustManagerUtils;
@@ -47,6 +48,7 @@ public class SSLContextHelper {
     private String protocol;
     private SSLContext sslContext;
     private CompositeX509TrustManager trustManager;
+    private TrustManagerFactory trustManagerFactory;
     private KeyManagerFactory keyManagerFactory;
     private HostnameVerifier hostnameVerifier;
 
@@ -97,6 +99,7 @@ public class SSLContextHelper {
             trustManager = trustManagerBuilder.withTrustStore(trustStore, TrustManagerFactory.getDefaultAlgorithm())
                                               .build();
         }
+        this.trustManagerFactory = new TrustManagerFactoryWrapper(trustManager);
         return trustManager;
     }
 
@@ -138,6 +141,10 @@ public class SSLContextHelper {
 
     public X509TrustManager getX509TrustManager() {
         return trustManager;
+    }
+
+    public TrustManagerFactory getTrustManagerFactory() {
+        return trustManagerFactory;
     }
 
     public X509Certificate[] getTrustedX509Certificate() {
