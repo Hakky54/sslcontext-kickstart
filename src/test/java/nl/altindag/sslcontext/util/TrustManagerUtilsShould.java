@@ -13,6 +13,8 @@ import javax.net.ssl.X509TrustManager;
 
 import org.junit.Test;
 
+import nl.altindag.sslcontext.exception.GenericKeyStoreException;
+
 public class TrustManagerUtilsShould {
 
     private static final String TRUSTSTORE_FILE_NAME = "truststore.jks";
@@ -71,7 +73,7 @@ public class TrustManagerUtilsShould {
         KeyStore trustStore = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 
         assertThatThrownBy(() -> TrustManagerUtils.createTrustManager(trustStore, "ABCD"))
-                .isInstanceOf(RuntimeException.class);
+                .isInstanceOf(GenericKeyStoreException.class);
     }
 
 }

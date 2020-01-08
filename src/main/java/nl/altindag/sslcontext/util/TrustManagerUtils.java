@@ -39,7 +39,7 @@ public final class TrustManagerUtils {
                          .filter(trustManager -> trustManager instanceof X509TrustManager)
                          .map(trustManager -> (X509TrustManager) trustManager)
                          .findFirst()
-                         .orElseThrow(() -> new RuntimeException("BOOOOM!"));
+                         .orElseThrow(() -> new GenericKeyStoreException("Could not create a TrustManager with the provided trustStore"));
 
         } catch (KeyStoreException | NoSuchAlgorithmException e) {
             throw new GenericKeyStoreException(e);

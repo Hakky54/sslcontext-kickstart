@@ -99,7 +99,7 @@ public class SSLContextHelper {
             trustManager = trustManagerBuilder.withTrustStore(trustStore, TrustManagerFactory.getDefaultAlgorithm())
                                               .build();
         }
-        this.trustManagerFactory = new TrustManagerFactoryWrapper(trustManager);
+        trustManagerFactory = new TrustManagerFactoryWrapper(trustManager);
         return trustManagerFactory;
     }
 
@@ -299,8 +299,8 @@ public class SSLContextHelper {
         }
 
         public Builder withTrustingAllCertificatesWithoutValidation() {
-            this.trustingAllCertificatesWithoutValidationEnabled = true;
-            this.oneWayAuthenticationEnabled = true;
+            trustingAllCertificatesWithoutValidationEnabled = true;
+            oneWayAuthenticationEnabled = true;
             return this;
         }
 
