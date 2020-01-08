@@ -56,7 +56,7 @@ public class SSLContextHelper {
 
     private void createSSLContextWithTrustStore() {
         try {
-            createSSLContext(null, createTrustManager(trustStore));
+            createSSLContext(null, createTrustManagerFactory().getTrustManagers());
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
             throw new GenericSSLContextException(e);
         }
@@ -64,25 +64,25 @@ public class SSLContextHelper {
 
     private void createSSLContextWithKeyStoreAndTrustStore() {
         try {
-            createSSLContext(createKeyManagerFactory(identity, identityPassword).getKeyManagers(),
-                             createTrustManager(trustStore));
+            createSSLContext(createKeyManagerFactory().getKeyManagers(),
+                             createTrustManagerFactory().getTrustManagers());
         } catch (UnrecoverableKeyException | NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
             throw new GenericSSLContextException(e);
         }
     }
 
-    private void createSSLContext(KeyManager[] keyManagers, X509TrustManager trustManager) throws NoSuchAlgorithmException, KeyManagementException {
+    private void createSSLContext(KeyManager[] keyManagers, TrustManager[] trustManagers) throws NoSuchAlgorithmException, KeyManagementException {
         sslContext = SSLContext.getInstance(protocol);
-        sslContext.init(keyManagers, new TrustManager[]{trustManager} , null);
+        sslContext.init(keyManagers, trustManagers , null);
     }
 
-    private KeyManagerFactory createKeyManagerFactory(KeyStore keyStore, String keystorePassword) throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException {
+    private KeyManagerFactory createKeyManagerFactory() throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException {
         keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-        keyManagerFactory.init(keyStore, keystorePassword.toCharArray());
+        keyManagerFactory.init(identity, identityPassword.toCharArray());
         return keyManagerFactory;
     }
 
-    private X509TrustManager createTrustManager(KeyStore trustStore) {
+    private TrustManagerFactory createTrustManagerFactory() {
         CompositeX509TrustManager.Builder trustManagerBuilder = CompositeX509TrustManager.builder();
 
         if (trustingAllCertificatesWithoutValidationEnabled) {
@@ -100,7 +100,7 @@ public class SSLContextHelper {
                                               .build();
         }
         this.trustManagerFactory = new TrustManagerFactoryWrapper(trustManager);
-        return trustManager;
+        return trustManagerFactory;
     }
 
     public KeyStore getIdentity() {
