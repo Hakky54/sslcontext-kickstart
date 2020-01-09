@@ -297,6 +297,28 @@ public class SSLContextHelperShould {
     }
 
     @Test
+    public void createSSLContextWithSecurityDisabled() {
+        SSLContextHelper sslContextHelper = SSLContextHelper.builder()
+                                                            .build();
+
+        assertThat(sslContextHelper.isSecurityEnabled()).isFalse();
+        assertThat(sslContextHelper.isOneWayAuthenticationEnabled()).isFalse();
+        assertThat(sslContextHelper.isTwoWayAuthenticationEnabled()).isFalse();
+
+        assertThat(sslContextHelper.getKeyManagerFactory()).isNull();
+        assertThat(sslContextHelper.getIdentity()).isNull();
+        assertThat(sslContextHelper.getIdentityPassword()).isNull();
+
+        assertThat(sslContextHelper.getSslContext()).isNull();
+        assertThat(sslContextHelper.getTrustedX509Certificate()).isEmpty();
+        assertThat(sslContextHelper.getTrustStore()).isNull();
+        assertThat(sslContextHelper.getTrustStorePassword()).isNull();
+        assertThat(sslContextHelper.getX509TrustManager()).isNull();
+        assertThat(sslContextHelper.getTrustManagerFactory()).isNull();
+        assertThat(sslContextHelper.getHostnameVerifier()).isNull();
+    }
+
+    @Test
     public void throwExceptionWhenCreateSSLContextForOneWayAuthenticationWhileProvidingWrongPassword() {
         assertThatThrownBy(() -> SSLContextHelper.builder().withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, "password"))
                 .isInstanceOf(GenericKeyStoreException.class)
@@ -463,14 +485,6 @@ public class SSLContextHelperShould {
                 .hasMessage(GENERIC_IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
 
         Files.delete(identityPath);
-    }
-
-    @Test
-    public void throwExceptionWhenCreateSSLContextForOneWayAuthenticationWhileNotIncludingTrustStoreAndJdkTrustStoreAndNotTrustingAllCertificates() {
-        assertThatThrownBy(() -> SSLContextHelper.builder()
-                                                 .build())
-                .isInstanceOf(GenericKeyStoreException.class)
-                .hasMessage(GENERIC_TRUST_STRATEGY_VALIDATION_EXCEPTION_MESSAGE);
     }
 
     @Test

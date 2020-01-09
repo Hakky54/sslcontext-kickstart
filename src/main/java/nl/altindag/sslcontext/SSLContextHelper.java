@@ -12,6 +12,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.Optional;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManager;
@@ -148,7 +149,9 @@ public class SSLContextHelper {
     }
 
     public X509Certificate[] getTrustedX509Certificate() {
-        return trustManager.getAcceptedIssuers();
+        return Optional.ofNullable(trustManager)
+                       .map(X509TrustManager::getAcceptedIssuers)
+                       .orElse(new X509Certificate[]{});
     }
 
     public HostnameVerifier getHostnameVerifier() {
@@ -305,9 +308,12 @@ public class SSLContextHelper {
         }
 
         public SSLContextHelper build() {
-            validateTrustStore();
-
             SSLContextHelper sslContextHelper = new SSLContextHelper();
+            if (!oneWayAuthenticationEnabled && !twoWayAuthenticationEnabled) {
+                return sslContextHelper;
+            }
+
+            validateTrustStore();
             buildHostnameVerifier(sslContextHelper);
             sslContextHelper.protocol = protocol;
             sslContextHelper.securityEnabled = true;
