@@ -4,9 +4,46 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>nl.altindag</groupId>
+    <groupId>io.github.hakky54</groupId>
     <artifactId>sslcontext-kickstart</artifactId>
     <version>1.0.0-SNAPSHOT</version>
+
+    <licenses>
+        <license>
+            <name>GPL-3.0</name>
+            <url>https://opensource.org/licenses/GPL-3.0</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <url>https://github.com/Hakky54/sslcontext-kickstart</url>
+        <connection>scm:git:git@github.com:Hakky54/sslcontext-kickstart.git</connection>
+        <developerConnection>scm:git:git@github.com:Hakky54/sslcontext-kickstart.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
+    <developers>
+        <developer>
+            <id>Hakky54</id>
+            <name>Hakan Altindag</name>
+            <url>https://github.com/Hakky54</url>
+            <roles>
+                <role>Maintainer</role>
+            </roles>
+        </developer>
+    </developers>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
 
     <properties>
         <version.java>1.8</version.java>
@@ -21,6 +58,10 @@
         <version.maven-compiler-plugin>3.8.1</version.maven-compiler-plugin>
         <version.maven-javadoc-plugin>3.1.1</version.maven-javadoc-plugin>
         <version.maven-source-plugin>3.2.1</version.maven-source-plugin>
+        <version.maven-gpg-plugin>1.6</version.maven-gpg-plugin>
+        <version.maven-release-plugin>2.5.3</version.maven-release-plugin>
+        <version.maven-scm-publish-plugin>3.0.0</version.maven-scm-publish-plugin>
+        <version.nexus-staging-maven-plugin>1.6.8</version.nexus-staging-maven-plugin>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -132,15 +173,53 @@
                 </executions>
             </plugin>
 
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>${version.maven-release-plugin}</version>
+                <configuration>
+                    <arguments>maven.test.skip=true</arguments>
+                    <tagNameFormat>v@{project.version}</tagNameFormat>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <version>${version.nexus-staging-maven-plugin}</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <serverId>ossrh</serverId>
+                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                </configuration>
+            </plugin>
+
         </plugins>
     </build>
 
-    <licenses>
-        <license>
-            <name>GPL-3.0</name>
-            <url>https://opensource.org/licenses/GPL-3.0</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
+    <profiles>
+        <profile>
+            <id>ossrh</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>${version.maven-gpg-plugin}</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>
