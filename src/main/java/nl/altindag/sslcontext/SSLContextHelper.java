@@ -1,6 +1,7 @@
 package nl.altindag.sslcontext;
 
 import static java.util.Objects.isNull;
+import static org.apache.commons.lang3.ArrayUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import java.io.IOException;
@@ -36,9 +37,9 @@ import nl.altindag.sslcontext.util.TrustManagerUtils;
 public class SSLContextHelper {
 
     private KeyStore identity;
-    private String identityPassword;
+    private char[] identityPassword;
     private KeyStore trustStore;
-    private String trustStorePassword;
+    private char[] trustStorePassword;
 
     private boolean securityEnabled;
     private boolean oneWayAuthenticationEnabled;
@@ -79,7 +80,7 @@ public class SSLContextHelper {
 
     private KeyManagerFactory createKeyManagerFactory() throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException {
         keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-        keyManagerFactory.init(identity, identityPassword.toCharArray());
+        keyManagerFactory.init(identity, identityPassword);
         return keyManagerFactory;
     }
 
@@ -108,7 +109,7 @@ public class SSLContextHelper {
         return identity;
     }
 
-    public String getIdentityPassword() {
+    public char[] getIdentityPassword() {
         return identityPassword;
     }
 
@@ -116,7 +117,7 @@ public class SSLContextHelper {
         return trustStore;
     }
 
-    public String getTrustStorePassword() {
+    public char[] getTrustStorePassword() {
         return trustStorePassword;
     }
 
@@ -176,9 +177,9 @@ public class SSLContextHelper {
         private boolean hostnameVerifierEnabled = true;
 
         private KeyStore identity;
-        private String identityPassword;
+        private char[] identityPassword;
         private KeyStore trustStore;
-        private String trustStorePassword;
+        private char[] trustStorePassword;
 
         private boolean oneWayAuthenticationEnabled;
         private boolean twoWayAuthenticationEnabled;
@@ -191,12 +192,12 @@ public class SSLContextHelper {
             return this;
         }
 
-        public Builder withTrustStore(String trustStorePath, String trustStorePassword) {
+        public Builder withTrustStore(String trustStorePath, char[] trustStorePassword) {
             return withTrustStore(trustStorePath, trustStorePassword, KeyStore.getDefaultType());
         }
 
-        public Builder withTrustStore(String trustStorePath, String trustStorePassword, String trustStoreType) {
-            if (isBlank(trustStorePath) || isBlank(trustStorePassword)) {
+        public Builder withTrustStore(String trustStorePath, char[] trustStorePassword, String trustStoreType) {
+            if (isBlank(trustStorePath) || isEmpty(trustStorePassword)) {
                 throw new GenericKeyStoreException(TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
             }
 
@@ -211,12 +212,12 @@ public class SSLContextHelper {
             return this;
         }
 
-        public Builder withTrustStore(Path trustStorePath, String trustStorePassword) {
+        public Builder withTrustStore(Path trustStorePath, char[] trustStorePassword) {
             return withTrustStore(trustStorePath, trustStorePassword, KeyStore.getDefaultType());
         }
 
-        public Builder withTrustStore(Path trustStorePath, String trustStorePassword, String trustStoreType) {
-            if (isNull(trustStorePath) || isBlank(trustStorePassword) || isBlank(trustStoreType)) {
+        public Builder withTrustStore(Path trustStorePath, char[] trustStorePassword, String trustStoreType) {
+            if (isNull(trustStorePath) || isEmpty(trustStorePassword) || isBlank(trustStoreType)) {
                 throw new GenericKeyStoreException(TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
             }
 
@@ -231,7 +232,7 @@ public class SSLContextHelper {
             return this;
         }
 
-        public Builder withTrustStore(KeyStore trustStore, String trustStorePassword) {
+        public Builder withTrustStore(KeyStore trustStore, char[] trustStorePassword) {
             validateKeyStore(trustStore, trustStorePassword, TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
             this.trustStore = trustStore;
             this.trustStorePassword = trustStorePassword;
@@ -239,12 +240,12 @@ public class SSLContextHelper {
             return this;
         }
 
-        public Builder withIdentity(String identityPath, String identityPassword) {
+        public Builder withIdentity(String identityPath, char[] identityPassword) {
             return withIdentity(identityPath, identityPassword, KeyStore.getDefaultType());
         }
 
-        public Builder withIdentity(String identityPath, String identityPassword, String identityType) {
-            if (isBlank(identityPath) || isBlank(identityPassword) || isBlank(identityType)) {
+        public Builder withIdentity(String identityPath, char[] identityPassword, String identityType) {
+            if (isBlank(identityPath) || isEmpty(identityPassword) || isBlank(identityType)) {
                 throw new GenericKeyStoreException(IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
             }
 
@@ -258,12 +259,12 @@ public class SSLContextHelper {
             return this;
         }
 
-        public Builder withIdentity(Path identityPath, String identityPassword) {
+        public Builder withIdentity(Path identityPath, char[] identityPassword) {
             return withIdentity(identityPath, identityPassword, KeyStore.getDefaultType());
         }
 
-        public Builder withIdentity(Path identityPath, String identityPassword, String identityType) {
-            if (isNull(identityPath) || isBlank(identityPassword) || isBlank(identityType)) {
+        public Builder withIdentity(Path identityPath, char[] identityPassword, String identityType) {
+            if (isNull(identityPath) || isEmpty(identityPassword) || isBlank(identityType)) {
                 throw new GenericKeyStoreException(IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
             }
 
@@ -277,7 +278,7 @@ public class SSLContextHelper {
             return this;
         }
 
-        public Builder withIdentity(KeyStore identity, String identityPassword) {
+        public Builder withIdentity(KeyStore identity, char[] identityPassword) {
             validateKeyStore(identity, identityPassword, IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
             this.identity = identity;
             this.identityPassword = identityPassword;
@@ -285,8 +286,8 @@ public class SSLContextHelper {
             return this;
         }
 
-        private void validateKeyStore(KeyStore keyStore, String keyStorePassword, String exceptionMessage) {
-            if (isNull(keyStore) || isBlank(keyStorePassword)) {
+        private void validateKeyStore(KeyStore keyStore, char[] keyStorePassword, String exceptionMessage) {
+            if (isNull(keyStore) || isEmpty(keyStorePassword)) {
                 throw new GenericKeyStoreException(exceptionMessage);
             }
         }

@@ -18,33 +18,33 @@ public final class KeystoreUtils {
 
     private KeystoreUtils() {}
 
-    public static KeyStore loadKeyStore(String keystorePath, String keystorePassword) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException {
+    public static KeyStore loadKeyStore(String keystorePath, char[] keystorePassword) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException {
         return loadKeyStore(keystorePath, keystorePassword, KeyStore.getDefaultType());
     }
 
-    public static KeyStore loadKeyStore(String keystorePath, String keystorePassword, String keystoreType) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException {
+    public static KeyStore loadKeyStore(String keystorePath, char[] keystorePassword, String keystoreType) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException {
         try(InputStream keystoreInputStream = SSLContextHelper.class.getClassLoader().getResourceAsStream(keystorePath)) {
             return loadKeyStore(keystoreInputStream, keystorePassword, keystoreType);
         }
     }
 
-    public static KeyStore loadKeyStore(Path keystorePath, String keystorePassword) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException {
+    public static KeyStore loadKeyStore(Path keystorePath, char[] keystorePassword) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException {
         return loadKeyStore(keystorePath, keystorePassword, KeyStore.getDefaultType());
     }
 
-    public static KeyStore loadKeyStore(Path keystorePath, String keystorePassword, String keystoreType) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException {
+    public static KeyStore loadKeyStore(Path keystorePath, char[] keystorePassword, String keystoreType) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException {
         try(InputStream keystoreInputStream = Files.newInputStream(keystorePath, StandardOpenOption.READ)) {
             return loadKeyStore(keystoreInputStream, keystorePassword, keystoreType);
         }
     }
 
-    private static KeyStore loadKeyStore(InputStream keystoreInputStream, String keystorePassword, String keystoreType) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
+    private static KeyStore loadKeyStore(InputStream keystoreInputStream, char[] keystorePassword, String keystoreType) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
         if (isNull(keystoreInputStream)) {
             throw new IOException("Could not find the keystore file");
         }
 
         KeyStore keystore = KeyStore.getInstance(keystoreType);
-        keystore.load(keystoreInputStream, keystorePassword.toCharArray());
+        keystore.load(keystoreInputStream, keystorePassword);
         return keystore;
     }
 

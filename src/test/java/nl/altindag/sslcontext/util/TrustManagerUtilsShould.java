@@ -18,7 +18,7 @@ import nl.altindag.sslcontext.exception.GenericKeyStoreException;
 public class TrustManagerUtilsShould {
 
     private static final String TRUSTSTORE_FILE_NAME = "truststore.jks";
-    private static final String TRUSTSTORE_PASSWORD = "secret";
+    private static final char[] TRUSTSTORE_PASSWORD = new char[] {'s', 'e', 'c', 'r', 'e', 't'};
     private static final String KEYSTORE_LOCATION = "keystores-for-unit-tests/";
 
     @Test

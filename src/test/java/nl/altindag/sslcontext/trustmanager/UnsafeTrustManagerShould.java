@@ -19,9 +19,9 @@ import nl.altindag.sslcontext.util.KeystoreUtils;
 public class UnsafeTrustManagerShould {
 
     private static final String TRUSTSTORE_FILE_NAME = "truststore.jks";
-    private static final String TRUSTSTORE_PASSWORD = "secret";
+    private static final char[] TRUSTSTORE_PASSWORD = new char[] {'s', 'e', 'c', 'r', 'e', 't'};
     private static final String KEYSTORE_FILE_NAME = "identity.jks";
-    private static final String KEYSTORE_PASSWORD = "secret";
+    private static final char[] KEYSTORE_PASSWORD = new char[] {'s', 'e', 'c', 'r', 'e', 't'};
     private static final String KEYSTORE_LOCATION = "keystores-for-unit-tests/";
 
     @Test

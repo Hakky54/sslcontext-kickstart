@@ -28,13 +28,13 @@ public class KeystoreUtilsShould {
 
     @Test
     public void loadKeyStoreFromClasspath() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        KeyStore keyStore = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD);
+        KeyStore keyStore = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD.toCharArray());
         assertThat(keyStore).isNotNull();
     }
 
     @Test
     public void loadJCEKSKeyStoreFromClasspath() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        KeyStore keyStore = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + JCEKS_KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD, "JCEKS");
+        KeyStore keyStore = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + JCEKS_KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD.toCharArray(), "JCEKS");
         assertThat(keyStore).isNotNull();
     }
 
@@ -42,7 +42,7 @@ public class KeystoreUtilsShould {
     public void loadKeyStoreWithPathFromDirectory() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         Path keystorePath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, KEYSTORE_FILE_NAME);
 
-        KeyStore keyStore = KeystoreUtils.loadKeyStore(keystorePath, KEYSTORE_PASSWORD);
+        KeyStore keyStore = KeystoreUtils.loadKeyStore(keystorePath, KEYSTORE_PASSWORD.toCharArray());
         assertThat(keyStore).isNotNull();
 
         Files.delete(keystorePath);
@@ -50,7 +50,7 @@ public class KeystoreUtilsShould {
 
     @Test
     public void throwExceptionWhenLoadingNonExistingKeystore() {
-        Assertions.assertThatThrownBy(() -> KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + NON_EXISTING_KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD))
+        Assertions.assertThatThrownBy(() -> KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + NON_EXISTING_KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD.toCharArray()))
                   .isInstanceOf(IOException.class)
                   .hasMessage("Could not find the keystore file");
     }
