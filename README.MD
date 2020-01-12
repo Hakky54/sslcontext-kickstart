@@ -54,13 +54,34 @@ There is a github project available named [Mutual-tls-ssl](https://github.com/Ha
 It will also explain how to create KeyStores, Certificates, Certificate Signing Requests and how to implement it.
 
 # Usage
-One way authentication with only the default JDK trusted certificates 
+Example configuration with apache http client, or see here for other clients: [ClientConfig class](https://github.com/Hakky54/mutual-tls-ssl/blob/master/client/src/main/java/nl/altindag/client/ClientConfig.java)
 ```java
-SSLContextHelper.builder()
-                .withDefaultJdkTrustStore()
-                .build();
-```
+import java.io.IOException;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.HttpClients;
+
+import nl.altindag.sslcontext.SSLContextHelper;
+
+public class App {
+
+    public static void main(String[] args) throws IOException {
+        SSLContextHelper sslContextHelper = SSLContextHelper.builder()
+                                                            .withDefaultJdkTrustStore()
+                                                            .build();
+        HttpClient httpClient = HttpClients.custom()
+                                           .setSSLContext(sslContextHelper.getSslContext())
+                                           .setSSLHostnameVerifier(sslContextHelper.getHostnameVerifier())
+                                           .build();
+
+        HttpGet request = new HttpGet("https://github.com/");
+        HttpResponse response = httpClient.execute(request);
+    }
+
+}
+```
 One way authentication with custom trustStore 
 ```java
 SSLContextHelper.builder()
