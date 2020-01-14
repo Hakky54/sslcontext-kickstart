@@ -4,6 +4,7 @@
 [![codecov](https://codecov.io/gh/Hakky54/sslcontext-kickstart/branch/master/graph/badge.svg)](https://codecov.io/gh/Hakky54/sslcontext-kickstart)
 [![Apache2 license](https://img.shields.io/badge/license-Aache2.0-blue.svg)](https://github.com/Hakky54/sslcontext-kickstart/blob/master/LICENSE)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.hakky54/sslcontext-kickstart/badge.svg)](https://mvnrepository.com/artifact/io.github.hakky54/sslcontext-kickstart)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FHakky54%2Fsslcontext-kickstart.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FHakky54%2Fsslcontext-kickstart?ref=badge_shield)
 
 # Install with [maven](https://mvnrepository.com/artifact/io.github.hakky54/sslcontext-kickstart)
 ```xml
@@ -114,3 +115,7 @@ SSLContextHelper.builder()
                 .withProtocol("TLSv1.2")
                 .build();
 ```
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FHakky54%2Fsslcontext-kickstart.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FHakky54%2Fsslcontext-kickstart?ref=badge_large)
