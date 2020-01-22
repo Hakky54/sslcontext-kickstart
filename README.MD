@@ -63,12 +63,15 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import nl.altindag.sslcontext.SSLContextHelper;
 
 public class App {
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, JSONException {
         SSLContextHelper sslContextHelper = SSLContextHelper.builder()
                                                             .withDefaultJdkTrustStore()
                                                             .build();
@@ -77,12 +80,23 @@ public class App {
                                            .setSSLHostnameVerifier(sslContextHelper.getHostnameVerifier())
                                            .build();
 
-        HttpGet request = new HttpGet("https://github.com/");
+        HttpGet request = new HttpGet("https://api.chucknorris.io/jokes/random");
+
         HttpResponse response = httpClient.execute(request);
+        String chuckNorrisJoke = new JSONObject(EntityUtils.toString(response.getEntity())).getString("value");
+
+        System.out.println(String.format("Received the following status code: %d", response.getStatusLine().getStatusCode()));
+        System.out.println(String.format("Received the following joke: %s", chuckNorrisJoke));
     }
 
 }
 ```
+Response:
+```text
+Received the following status code: 200
+Received the following joke: If a black cat crosses your path, you have bad luck. If Chuck Norris crosses your path, it was nice knowing you.
+```
+### Other possible configurations for SSLContextHelper
 One way authentication with custom trustStore 
 ```java
 SSLContextHelper.builder()

@@ -14,7 +14,9 @@ import javax.net.ssl.X509TrustManager;
 
 import org.junit.Test;
 
+import ch.qos.logback.classic.Level;
 import nl.altindag.sslcontext.util.KeystoreUtils;
+import nl.altindag.sslcontext.util.LogCaptor;
 
 public class UnsafeTrustManagerShould {
 
@@ -26,6 +28,8 @@ public class UnsafeTrustManagerShould {
 
     @Test
     public void notThrowExceptionWhenValidatingCertificate() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        LogCaptor logCaptor = LogCaptor.forClass(UnsafeTrustManager.class);
+
         KeyStore trustStore = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         X509TrustManager trustManager = UnsafeTrustManager.INSTANCE;
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
@@ -36,10 +40,15 @@ public class UnsafeTrustManagerShould {
 
         assertThatCode(() -> trustManager.checkClientTrusted(trustedCerts, "RSA"))
                 .doesNotThrowAnyException();
+
+        assertThat(logCaptor.getLogs(Level.DEBUG)).hasSize(1);
+        assertThat(logCaptor.getLogs(Level.DEBUG)).contains("Accepting a client certificate: CN=*.google.com, O=Google LLC, L=Mountain View, ST=California, C=US");
     }
 
     @Test
     public void checkServerTrusted() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        LogCaptor logCaptor = LogCaptor.forClass(UnsafeTrustManager.class);
+
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
         X509TrustManager trustManager = UnsafeTrustManager.INSTANCE;
@@ -49,6 +58,9 @@ public class UnsafeTrustManagerShould {
 
         assertThatCode(() -> trustManager.checkServerTrusted(trustedCerts, "RSA"))
                 .doesNotThrowAnyException();
+
+        assertThat(logCaptor.getLogs(Level.DEBUG)).hasSize(1);
+        assertThat(logCaptor.getLogs(Level.DEBUG)).contains("Accepting a server certificate: CN=Prof Oak, OU=Oak Pokémon Research Lab, O=Oak Pokémon Research Lab, C=Pallet Town");
     }
 
 }

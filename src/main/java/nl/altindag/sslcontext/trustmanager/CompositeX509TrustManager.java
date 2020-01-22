@@ -18,9 +18,25 @@ import com.google.common.collect.ImmutableList;
 
 import nl.altindag.sslcontext.util.TrustManagerUtils;
 
-//https://gist.github.com/HughJeffner/6eac419b18c6001aeadb
-//https://stackoverflow.com/questions/24555890/using-a-custom-truststore-in-java-as-well-as-the-default-one
-
+/**
+ * {@link CompositeX509TrustManager} is wrapper for a collection of TrustManagers.
+ * It has the ability to validate a certificate chain against multiple TrustManagers.
+ * If any one of the composed managers trusts a certificate chain, then it is trusted by the composite manager.
+ * The TrustManager can be build from one or more of any combination provided within the {@link Builder CompositeX509TrustManager.Builder}.
+ * <br><br>
+ * This includes:
+ * <pre>
+ *     - Any amount of custom TrustManagers
+ *     - Any amount of custom TrustStores
+ * </pre>
+ *
+ * @see <a href="http://stackoverflow.com/questions/1793979/registering-multiple-keystores-in-jvm">
+ *     http://stackoverflow.com/questions/1793979/registering-multiple-keystores-in-jvm
+ *     </a>
+ * @see <a href="http://codyaray.com/2013/04/java-ssl-with-multiple-keystores">
+ *     http://codyaray.com/2013/04/java-ssl-with-multiple-keystores
+ *     </a>
+ */
 public class CompositeX509TrustManager implements X509TrustManager {
 
     private static final Logger LOGGER = LogManager.getLogger(CompositeX509TrustManager.class);
@@ -94,8 +110,8 @@ public class CompositeX509TrustManager implements X509TrustManager {
 
         private final List<X509TrustManager> trustManagers = new ArrayList<>();
 
-        public <T extends X509TrustManager> Builder withTrustManager(T trustManager) {
-            trustManagers.add(trustManager);
+        public <T extends X509TrustManager> Builder withTrustManager(T... trustManagers) {
+            this.trustManagers.addAll(Arrays.asList(trustManagers));
             return this;
         }
 

@@ -25,6 +25,8 @@ import javax.net.ssl.X509TrustManager;
 
 import org.apache.http.conn.ssl.DefaultHostnameVerifier;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import nl.altindag.sslcontext.exception.GenericKeyStoreException;
 import nl.altindag.sslcontext.exception.GenericSSLContextException;
@@ -35,6 +37,8 @@ import nl.altindag.sslcontext.util.KeystoreUtils;
 import nl.altindag.sslcontext.util.TrustManagerUtils;
 
 public class SSLContextHelper {
+
+    private static final Logger LOGGER = LogManager.getLogger(SSLContextHelper.class);
 
     private KeyStore identity;
     private char[] identityPassword;
@@ -88,6 +92,7 @@ public class SSLContextHelper {
         CompositeX509TrustManager.Builder trustManagerBuilder = CompositeX509TrustManager.builder();
 
         if (trustingAllCertificatesWithoutValidationEnabled) {
+            LOGGER.warn("UnsafeTrustManager is being used. Client/Server certificates will be accepted without validation. Please don't use this configuration at production.");
             trustManagerBuilder.withTrustManager(UnsafeTrustManager.INSTANCE);
         }
 

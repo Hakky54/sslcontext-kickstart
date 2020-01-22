@@ -21,10 +21,10 @@ import org.junit.Test;
 
 import ch.qos.logback.classic.Level;
 import nl.altindag.sslcontext.util.KeystoreUtils;
-import nl.altindag.sslcontext.util.LogTestHelper;
+import nl.altindag.sslcontext.util.LogCaptor;
 import nl.altindag.sslcontext.util.TrustManagerUtils;
 
-public class CompositeX509TrustManagerShould extends LogTestHelper<CompositeX509TrustManager> {
+public class CompositeX509TrustManagerShould {
 
     private static final String TRUSTSTORE_FILE_NAME = "truststore.jks";
     private static final char[] TRUSTSTORE_PASSWORD = new char[] {'s', 'e', 'c', 'r', 'e', 't'};
@@ -133,6 +133,8 @@ public class CompositeX509TrustManagerShould extends LogTestHelper<CompositeX509
         KeyStore trustStore = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
+        LogCaptor logCaptor = LogCaptor.forClass(CompositeX509TrustManager.class);
+
         CompositeX509TrustManager trustManager = CompositeX509TrustManager.builder()
                                                                           .withTrustManager(TrustManagerUtils.createTrustManager(trustStore))
                                                                           .build();
@@ -143,7 +145,7 @@ public class CompositeX509TrustManagerShould extends LogTestHelper<CompositeX509
                 .isInstanceOf(CertificateException.class)
                 .hasMessage("None of the TrustManagers trust this server certificate chain");
 
-        List<String> logs = getLogs(Level.ERROR);
+        List<String> logs = logCaptor.getLogs(Level.ERROR);
         assertThat(logs).containsExactly("PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target");
     }
 
@@ -163,6 +165,8 @@ public class CompositeX509TrustManagerShould extends LogTestHelper<CompositeX509
         X509TrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD));
 
+        LogCaptor logCaptor = LogCaptor.forClass(CompositeX509TrustManager.class);
+
         CompositeX509TrustManager compositeX509TrustManager = new CompositeX509TrustManager(Collections.singletonList(trustManager));
         assertThat(trustManager).isNotNull();
         assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
@@ -172,13 +176,8 @@ public class CompositeX509TrustManagerShould extends LogTestHelper<CompositeX509
                 .isInstanceOf(CertificateException.class)
                 .hasMessage("None of the TrustManagers trust this client certificate chain");
 
-        List<String> logs = getLogs(Level.ERROR);
+        List<String> logs = logCaptor.getLogs(Level.ERROR);
         assertThat(logs).containsExactly("PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target");
-    }
-
-    @Override
-    protected Class<CompositeX509TrustManager> getTargetClass() {
-        return CompositeX509TrustManager.class;
     }
 
 }

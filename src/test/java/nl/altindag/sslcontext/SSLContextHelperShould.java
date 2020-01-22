@@ -23,9 +23,11 @@ import org.apache.http.conn.ssl.DefaultHostnameVerifier;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.junit.Test;
 
+import ch.qos.logback.classic.Level;
 import nl.altindag.sslcontext.exception.GenericKeyStoreException;
 import nl.altindag.sslcontext.trustmanager.CompositeX509TrustManager;
 import nl.altindag.sslcontext.util.KeystoreUtils;
+import nl.altindag.sslcontext.util.LogCaptor;
 
 @SuppressWarnings({ "squid:S1192", "squid:S2068"})
 public class SSLContextHelperShould {
@@ -284,6 +286,8 @@ public class SSLContextHelperShould {
 
     @Test
     public void createSSLContextWithTrustingAllCertificatesWithoutValidation() {
+        LogCaptor logCaptor = LogCaptor.forClass(SSLContextHelper.class);
+
         SSLContextHelper sslContextHelper = SSLContextHelper.builder()
                                                             .withTrustingAllCertificatesWithoutValidation()
                                                             .build();
@@ -294,6 +298,8 @@ public class SSLContextHelperShould {
         assertThat(sslContextHelper.getTrustStorePassword()).isNull();
         assertThat(sslContextHelper.getX509TrustManager()).isInstanceOf(CompositeX509TrustManager.class);
         assertThat(sslContextHelper.getTrustManagerFactory()).isNotNull();
+        assertThat(logCaptor.getLogs(Level.WARN)).hasSize(1);
+        assertThat(logCaptor.getLogs(Level.WARN)).containsExactly("UnsafeTrustManager is being used. Client/Server certificates will be accepted without validation. Please don't use this configuration at production.");
     }
 
     @Test

@@ -7,7 +7,6 @@ import javax.net.ssl.TrustManager;
 
 import io.netty.handler.ssl.util.SimpleTrustManagerFactory;
 
-// copy of io.netty.handler.ssl.TrustManagerFactoryWrapper
 public class TrustManagerFactoryWrapper extends SimpleTrustManagerFactory {
 
     private TrustManager trustManager;
