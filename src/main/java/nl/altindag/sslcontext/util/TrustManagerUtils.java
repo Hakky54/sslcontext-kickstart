@@ -31,8 +31,7 @@ public final class TrustManagerUtils {
 
     public static X509TrustManager createTrustManager(KeyStore trustStore, String algorithm) {
         try {
-            TrustManagerFactory trustManagerFactory;
-            trustManagerFactory = TrustManagerFactory.getInstance(algorithm);
+            TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(algorithm);
             trustManagerFactory.init(trustStore);
 
             return Arrays.stream(trustManagerFactory.getTrustManagers())

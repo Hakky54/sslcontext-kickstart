@@ -7,12 +7,12 @@ import javax.net.ssl.TrustManager;
 
 import io.netty.handler.ssl.util.SimpleTrustManagerFactory;
 
-public class TrustManagerFactoryWrapper extends SimpleTrustManagerFactory {
+public final class TrustManagerFactoryWrapper extends SimpleTrustManagerFactory {
 
-    private TrustManager trustManager;
+    private final TrustManager[] trustManagers;
 
     public TrustManagerFactoryWrapper(final TrustManager trustManager) {
-        this.trustManager = trustManager;
+        this.trustManagers = new TrustManager[] {trustManager};
     }
 
     @Override
@@ -23,7 +23,7 @@ public class TrustManagerFactoryWrapper extends SimpleTrustManagerFactory {
 
     @Override
     protected TrustManager[] engineGetTrustManagers() {
-        return new TrustManager[] {trustManager};
+        return trustManagers;
     }
 
 }
