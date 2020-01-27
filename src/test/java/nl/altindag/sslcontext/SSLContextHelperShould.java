@@ -25,6 +25,7 @@ import org.junit.Test;
 
 import ch.qos.logback.classic.Level;
 import nl.altindag.sslcontext.exception.GenericKeyStoreException;
+import nl.altindag.sslcontext.exception.GenericSSLContextException;
 import nl.altindag.sslcontext.trustmanager.CompositeX509TrustManager;
 import nl.altindag.sslcontext.util.KeystoreUtils;
 import nl.altindag.sslcontext.util.LogCaptor;
@@ -58,9 +59,10 @@ public class SSLContextHelperShould {
         assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
         assertThat(sslContextHelper.getTrustedX509Certificate()).isNotEmpty();
         assertThat(sslContextHelper.getTrustStores()).isNotEmpty();
-        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
         assertThat(sslContextHelper.getTrustManagerFactory()).isNotNull();
         assertThat(sslContextHelper.getHostnameVerifier()).isNotNull();
+        assertThat(sslContextHelper.getX509KeyManager()).isNull();
+        assertThat(sslContextHelper.getKeyManagerFactory()).isNull();
     }
 
     @Test
@@ -79,9 +81,12 @@ public class SSLContextHelperShould {
         assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
         assertThat(sslContextHelper.getTrustedX509Certificate()).isNotEmpty();
         assertThat(sslContextHelper.getTrustStores()).isNotEmpty();
-        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
         assertThat(sslContextHelper.getTrustManagerFactory()).isNotNull();
         assertThat(sslContextHelper.getHostnameVerifier()).isNotNull();
+
+        assertThat(sslContextHelper.getX509KeyManager()).isNull();
+        assertThat(sslContextHelper.getKeyManagerFactory()).isNull();
+        assertThat(sslContextHelper.getIdentities()).isEmpty();
 
         Files.delete(trustStorePath);
     }
@@ -102,9 +107,12 @@ public class SSLContextHelperShould {
         assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
         assertThat(sslContextHelper.getTrustedX509Certificate()).isNotEmpty();
         assertThat(sslContextHelper.getTrustStores()).isNotEmpty();
-        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
         assertThat(sslContextHelper.getTrustManagerFactory()).isNotNull();
         assertThat(sslContextHelper.getHostnameVerifier()).isNotNull();
+
+        assertThat(sslContextHelper.getX509KeyManager()).isNull();
+        assertThat(sslContextHelper.getKeyManagerFactory()).isNull();
+        assertThat(sslContextHelper.getIdentities()).isEmpty();
     }
 
     @Test
@@ -118,6 +126,10 @@ public class SSLContextHelperShould {
         assertThat(sslContextHelper.getTrustStores()).isEmpty();
         assertThat(sslContextHelper.getTrustManagerFactory()).isNotNull();
         assertThat(sslContextHelper.getTrustedX509Certificate()).hasSizeGreaterThan(10);
+
+        assertThat(sslContextHelper.getX509KeyManager()).isNull();
+        assertThat(sslContextHelper.getKeyManagerFactory()).isNull();
+        assertThat(sslContextHelper.getIdentities()).isEmpty();
     }
 
     @Test
@@ -136,6 +148,10 @@ public class SSLContextHelperShould {
         assertThat(Arrays.stream(sslContextHelper.getTrustedX509Certificate())
                          .map(X509Certificate::getSubjectX500Principal)
                          .map(X500Principal::toString)).contains("CN=*.google.com, O=Google LLC, L=Mountain View, ST=California, C=US");
+
+        assertThat(sslContextHelper.getX509KeyManager()).isNull();
+        assertThat(sslContextHelper.getKeyManagerFactory()).isNull();
+        assertThat(sslContextHelper.getIdentities()).isEmpty();
     }
 
     @Test
@@ -150,6 +166,7 @@ public class SSLContextHelperShould {
         assertThat(sslContextHelper.isTwoWayAuthenticationEnabled()).isTrue();
         assertThat(sslContextHelper.getSslContext()).isNotNull();
 
+        assertThat(sslContextHelper.getX509KeyManager()).isNotNull();
         assertThat(sslContextHelper.getKeyManagerFactory()).isNotNull();
         assertThat(sslContextHelper.getKeyManagerFactory().getKeyManagers()).isNotEmpty();
         assertThat(sslContextHelper.getIdentities()).isNotEmpty();
@@ -177,6 +194,7 @@ public class SSLContextHelperShould {
         assertThat(sslContextHelper.isTwoWayAuthenticationEnabled()).isTrue();
         assertThat(sslContextHelper.getSslContext()).isNotNull();
 
+        assertThat(sslContextHelper.getX509KeyManager()).isNotNull();
         assertThat(sslContextHelper.getKeyManagerFactory()).isNotNull();
         assertThat(sslContextHelper.getKeyManagerFactory().getKeyManagers()).isNotEmpty();
         assertThat(sslContextHelper.getIdentities()).isNotEmpty();
@@ -205,6 +223,7 @@ public class SSLContextHelperShould {
         assertThat(sslContextHelper.isTwoWayAuthenticationEnabled()).isTrue();
         assertThat(sslContextHelper.getSslContext()).isNotNull();
 
+        assertThat(sslContextHelper.getX509KeyManager()).isNotNull();
         assertThat(sslContextHelper.getKeyManagerFactory()).isNotNull();
         assertThat(sslContextHelper.getKeyManagerFactory().getKeyManagers()).isNotEmpty();
         assertThat(sslContextHelper.getIdentities()).isNotEmpty();
@@ -237,6 +256,7 @@ public class SSLContextHelperShould {
         assertThat(sslContextHelper.isTwoWayAuthenticationEnabled()).isTrue();
         assertThat(sslContextHelper.getSslContext()).isNotNull();
 
+        assertThat(sslContextHelper.getX509KeyManager()).isNotNull();
         assertThat(sslContextHelper.getKeyManagerFactory()).isNotNull();
         assertThat(sslContextHelper.getKeyManagerFactory().getKeyManagers()).isNotEmpty();
         assertThat(sslContextHelper.getIdentities()).isNotEmpty();
@@ -462,7 +482,7 @@ public class SSLContextHelperShould {
     }
 
     @Test
-    public void throwExceptionTwoWayAuthenticationEnabledWhileIdentityIsNull() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    public void throwExceptionTwoWayAuthenticationEnabledWhileIdentityIsNull() {
         assertThatThrownBy(() -> SSLContextHelper.builder().withIdentity((KeyStore) null, IDENTITY_PASSWORD))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
@@ -497,6 +517,29 @@ public class SSLContextHelperShould {
                                                  .build())
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_TRUST_STRATEGY_VALIDATION_EXCEPTION_MESSAGE);
+    }
+
+    @Test
+    public void throwExceptionWhenProvidingAnInvalidEncryptionProtocolForOneWayAuthentication() {
+        assertThatThrownBy(() -> SSLContextHelper.builder()
+                                                 .withTrustingAllCertificatesWithoutValidation()
+                                                 .withProtocol("ENCRYPTIONv1.1")
+                                                 .build())
+                .isInstanceOf(GenericSSLContextException.class)
+                .hasMessage("java.security.NoSuchAlgorithmException: ENCRYPTIONv1.1 SSLContext not available");
+    }
+
+    @Test
+    public void throwExceptionWhenProvidingAnInvalidEncryptionProtocolForTwoWayAuthentication() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        KeyStore identity = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+
+        assertThatThrownBy(() -> SSLContextHelper.builder()
+                                                 .withIdentity(identity, IDENTITY_PASSWORD)
+                                                 .withTrustingAllCertificatesWithoutValidation()
+                                                 .withProtocol("ENCRYPTIONv1.1")
+                                                 .build())
+                .isInstanceOf(GenericSSLContextException.class)
+                .hasMessage("java.security.NoSuchAlgorithmException: ENCRYPTIONv1.1 SSLContext not available");
     }
 
     private Path copyKeystoreToHomeDirectory(String path, String fileName) throws IOException {
