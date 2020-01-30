@@ -1,4 +1,4 @@
-package nl.altindag.sslcontext.trustmanager;
+package nl.altindag.sslcontext.keymanager;
 
 import java.net.Socket;
 import java.security.KeyStore;
@@ -151,7 +151,7 @@ public class CompositeX509KeyManager implements X509KeyManager {
 
         private final List<X509KeyManager> keyManagers = new ArrayList<>();
 
-        public <T extends X509KeyManager> Builder withKeyManager(T... keyManagers) {
+        public <T extends X509KeyManager> Builder withKeyManagers(T... keyManagers) {
             return withKeyManagers(Arrays.asList(keyManagers));
         }
 
@@ -160,7 +160,7 @@ public class CompositeX509KeyManager implements X509KeyManager {
             return this;
         }
 
-        public <T extends KeyStoreHolder> Builder withIdentity(T... identities) {
+        public <T extends KeyStoreHolder> Builder withIdentities(T... identities) {
             return withIdentities(Arrays.asList(identities));
         }
 

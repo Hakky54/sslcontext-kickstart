@@ -9,6 +9,7 @@ import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
 import nl.altindag.sslcontext.exception.GenericKeyStoreException;
+import nl.altindag.sslcontext.exception.GenericSecurityException;
 import nl.altindag.sslcontext.trustmanager.CompositeX509TrustManager;
 
 public final class TrustManagerUtils {
@@ -41,7 +42,7 @@ public final class TrustManagerUtils {
                          .orElseThrow(() -> new GenericKeyStoreException("Could not create a TrustManager with the provided trustStore"));
 
         } catch (KeyStoreException | NoSuchAlgorithmException e) {
-            throw new GenericKeyStoreException(e);
+            throw new GenericSecurityException(e);
         }
     }
 

@@ -1,4 +1,4 @@
-package nl.altindag.sslcontext.trustmanager;
+package nl.altindag.sslcontext.keymanager;
 
 import java.security.KeyStore;
 

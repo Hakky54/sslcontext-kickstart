@@ -34,10 +34,10 @@ import com.google.common.collect.ImmutableList;
 
 import nl.altindag.sslcontext.exception.GenericKeyStoreException;
 import nl.altindag.sslcontext.exception.GenericSSLContextException;
+import nl.altindag.sslcontext.keymanager.CompositeX509KeyManager;
+import nl.altindag.sslcontext.keymanager.KeyManagerFactoryWrapper;
 import nl.altindag.sslcontext.model.KeyStoreHolder;
-import nl.altindag.sslcontext.trustmanager.CompositeX509KeyManager;
 import nl.altindag.sslcontext.trustmanager.CompositeX509TrustManager;
-import nl.altindag.sslcontext.trustmanager.KeyManagerFactoryWrapper;
 import nl.altindag.sslcontext.trustmanager.TrustManagerFactoryWrapper;
 import nl.altindag.sslcontext.trustmanager.UnsafeTrustManager;
 import nl.altindag.sslcontext.util.KeystoreUtils;
@@ -101,11 +101,11 @@ public class SSLContextHelper {
 
         if (trustingAllCertificatesWithoutValidationEnabled) {
             LOGGER.warn("UnsafeTrustManager is being used. Client/Server certificates will be accepted without validation. Please don't use this configuration at production.");
-            trustManagerBuilder.withTrustManager(UnsafeTrustManager.INSTANCE);
+            trustManagerBuilder.withTrustManagers(UnsafeTrustManager.INSTANCE);
         }
 
         if (includeDefaultJdkTrustStore) {
-            trustManagerBuilder.withTrustManager(TrustManagerUtils.createTrustManagerWithJdkTrustedCertificates());
+            trustManagerBuilder.withTrustManagers(TrustManagerUtils.createTrustManagerWithJdkTrustedCertificates());
         }
 
         trustStores.forEach(trustStoreHolder -> trustManagerBuilder.withTrustStore(trustStoreHolder.getKeyStore(),TrustManagerFactory.getDefaultAlgorithm()));

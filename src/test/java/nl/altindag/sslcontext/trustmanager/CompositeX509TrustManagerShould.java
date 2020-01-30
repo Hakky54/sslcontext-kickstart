@@ -38,8 +38,8 @@ public class CompositeX509TrustManagerShould {
         KeyStore trustStoreTwo = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD);
 
         CompositeX509TrustManager trustManager = CompositeX509TrustManager.builder()
-                                                                          .withTrustStore(trustStoreOne)
-                                                                          .withTrustStore(trustStoreTwo)
+                                                                          .withTrustStores(trustStoreOne)
+                                                                          .withTrustStores(trustStoreTwo)
                                                                           .build();
 
         assertThat(trustManager).isNotNull();
@@ -68,7 +68,7 @@ public class CompositeX509TrustManagerShould {
         KeyStore trustStoreTwo = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD);
 
         CompositeX509TrustManager trustManager = CompositeX509TrustManager.builder()
-                                                                          .withTrustStore(trustStoreOne, trustStoreTwo)
+                                                                          .withTrustStores(trustStoreOne, trustStoreTwo)
                                                                           .build();
 
         assertThat(trustManager).isNotNull();
@@ -119,7 +119,7 @@ public class CompositeX509TrustManagerShould {
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
         CompositeX509TrustManager trustManager = CompositeX509TrustManager.builder()
-                                                                          .withTrustStore(trustStore)
+                                                                          .withTrustStores(trustStore)
                                                                           .build();
         assertThat(trustedCerts).hasSize(1);
         assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
@@ -136,7 +136,7 @@ public class CompositeX509TrustManagerShould {
         LogCaptor logCaptor = LogCaptor.forClass(CompositeX509TrustManager.class);
 
         CompositeX509TrustManager trustManager = CompositeX509TrustManager.builder()
-                                                                          .withTrustManager(TrustManagerUtils.createTrustManager(trustStore))
+                                                                          .withTrustManagers(TrustManagerUtils.createTrustManager(trustStore))
                                                                           .build();
         assertThat(trustedCerts).hasSize(1);
         assertThat(trustManager.getAcceptedIssuers()).hasSize(1);

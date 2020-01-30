@@ -10,13 +10,14 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.X509KeyManager;
 
 import nl.altindag.sslcontext.exception.GenericKeyStoreException;
-import nl.altindag.sslcontext.trustmanager.CompositeX509KeyManager;
+import nl.altindag.sslcontext.exception.GenericSecurityException;
+import nl.altindag.sslcontext.keymanager.CompositeX509KeyManager;
 
 public class KeyManagerUtils {
 
     public static X509KeyManager combine(X509KeyManager... keyManagers) {
         return CompositeX509KeyManager.builder()
-                                      .withKeyManagers(Arrays.asList(keyManagers))
+                                      .withKeyManagers(keyManagers)
                                       .build();
     }
 
@@ -36,7 +37,7 @@ public class KeyManagerUtils {
                          .orElseThrow(() -> new GenericKeyStoreException("Could not create a KeyManager with the provided keyStore and password"));
 
         } catch (KeyStoreException | NoSuchAlgorithmException | UnrecoverableKeyException e) {
-            throw new GenericKeyStoreException(e);
+            throw new GenericSecurityException(e);
         }
     }
 
