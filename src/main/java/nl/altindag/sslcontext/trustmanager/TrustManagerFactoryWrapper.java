@@ -16,10 +16,14 @@ public final class TrustManagerFactoryWrapper extends SimpleTrustManagerFactory 
     }
 
     @Override
-    protected void engineInit(KeyStore keyStore) throws Exception { }
+    protected void engineInit(KeyStore keyStore) throws Exception {
+        // Does not initialize engine with the provided keystore
+    }
 
     @Override
-    protected void engineInit(ManagerFactoryParameters managerFactoryParameters) throws Exception {}
+    protected void engineInit(ManagerFactoryParameters managerFactoryParameters) throws Exception {
+        // Does not initialize engine with the provided managerFactoryParameters
+    }
 
     @Override
     protected TrustManager[] engineGetTrustManagers() {

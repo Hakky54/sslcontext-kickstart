@@ -16,10 +16,14 @@ public final class KeyManagerFactoryWrapper extends SimpleKeyManagerFactory {
     }
 
     @Override
-    protected void engineInit(KeyStore keyStore, char[] password) throws Exception {}
+    protected void engineInit(KeyStore keyStore, char[] password) throws Exception {
+        // Does not initialize engine with the provided keystore
+    }
 
     @Override
-    protected void engineInit(ManagerFactoryParameters managerFactoryParameters) throws Exception {}
+    protected void engineInit(ManagerFactoryParameters managerFactoryParameters) throws Exception {
+        // Does not initialize engine with the provided managerFactoryParameters
+    }
 
     @Override
     protected KeyManager[] engineGetKeyManagers() {
