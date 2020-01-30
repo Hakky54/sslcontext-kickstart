@@ -7,23 +7,27 @@ import javax.net.ssl.TrustManager;
 
 import io.netty.handler.ssl.util.SimpleTrustManagerFactory;
 
-public class TrustManagerFactoryWrapper extends SimpleTrustManagerFactory {
+public final class TrustManagerFactoryWrapper extends SimpleTrustManagerFactory {
 
-    private TrustManager trustManager;
+    private final TrustManager[] trustManagers;
 
     public TrustManagerFactoryWrapper(final TrustManager trustManager) {
-        this.trustManager = trustManager;
+        this.trustManagers = new TrustManager[] {trustManager};
     }
 
     @Override
-    protected void engineInit(KeyStore keyStore) throws Exception { }
+    protected void engineInit(KeyStore keyStore) throws Exception {
+        // Does not initialize engine with the provided keystore
+    }
 
     @Override
-    protected void engineInit(ManagerFactoryParameters managerFactoryParameters) throws Exception {}
+    protected void engineInit(ManagerFactoryParameters managerFactoryParameters) throws Exception {
+        // Does not initialize engine with the provided managerFactoryParameters
+    }
 
     @Override
     protected TrustManager[] engineGetTrustManagers() {
-        return new TrustManager[] {trustManager};
+        return trustManagers;
     }
 
 }
