@@ -189,6 +189,8 @@ public class SSLContextHelper {
         private boolean includeDefaultJdkTrustStore = false;
         private boolean trustingAllCertificatesWithoutValidationEnabled = false;
 
+        private Builder() {}
+
         public Builder withDefaultJdkTrustStore() {
             this.includeDefaultJdkTrustStore = true;
             this.oneWayAuthenticationEnabled = true;
