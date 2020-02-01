@@ -138,7 +138,7 @@ public class SSLContextHelper {
         return sslContext;
     }
 
-    public X509KeyManager getX509KeyManager() {
+    public X509KeyManager getKeyManager() {
         return keyManager;
     }
 
@@ -146,7 +146,7 @@ public class SSLContextHelper {
         return keyManagerFactory;
     }
 
-    public X509TrustManager getX509TrustManager() {
+    public X509TrustManager getTrustManager() {
         return trustManager;
     }
 
@@ -154,7 +154,7 @@ public class SSLContextHelper {
         return trustManagerFactory;
     }
 
-    public X509Certificate[] getTrustedX509Certificate() {
+    public X509Certificate[] getTrustedCertificate() {
         return Optional.ofNullable(trustManager)
                        .map(X509TrustManager::getAcceptedIssuers)
                        .orElse(new X509Certificate[]{});

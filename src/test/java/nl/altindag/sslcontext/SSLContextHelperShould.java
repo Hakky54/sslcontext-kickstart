@@ -56,12 +56,12 @@ public class SSLContextHelperShould {
         assertThat(sslContextHelper.isTwoWayAuthenticationEnabled()).isFalse();
         assertThat(sslContextHelper.getSslContext()).isNotNull();
 
-        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
-        assertThat(sslContextHelper.getTrustedX509Certificate()).isNotEmpty();
+        assertThat(sslContextHelper.getTrustManager()).isNotNull();
+        assertThat(sslContextHelper.getTrustedCertificate()).isNotEmpty();
         assertThat(sslContextHelper.getTrustStores()).isNotEmpty();
         assertThat(sslContextHelper.getTrustManagerFactory()).isNotNull();
         assertThat(sslContextHelper.getHostnameVerifier()).isNotNull();
-        assertThat(sslContextHelper.getX509KeyManager()).isNull();
+        assertThat(sslContextHelper.getKeyManager()).isNull();
         assertThat(sslContextHelper.getKeyManagerFactory()).isNull();
     }
 
@@ -78,13 +78,13 @@ public class SSLContextHelperShould {
         assertThat(sslContextHelper.isTwoWayAuthenticationEnabled()).isFalse();
         assertThat(sslContextHelper.getSslContext()).isNotNull();
 
-        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
-        assertThat(sslContextHelper.getTrustedX509Certificate()).isNotEmpty();
+        assertThat(sslContextHelper.getTrustManager()).isNotNull();
+        assertThat(sslContextHelper.getTrustedCertificate()).isNotEmpty();
         assertThat(sslContextHelper.getTrustStores()).isNotEmpty();
         assertThat(sslContextHelper.getTrustManagerFactory()).isNotNull();
         assertThat(sslContextHelper.getHostnameVerifier()).isNotNull();
 
-        assertThat(sslContextHelper.getX509KeyManager()).isNull();
+        assertThat(sslContextHelper.getKeyManager()).isNull();
         assertThat(sslContextHelper.getKeyManagerFactory()).isNull();
         assertThat(sslContextHelper.getIdentities()).isEmpty();
 
@@ -104,13 +104,13 @@ public class SSLContextHelperShould {
         assertThat(sslContextHelper.isTwoWayAuthenticationEnabled()).isFalse();
         assertThat(sslContextHelper.getSslContext()).isNotNull();
 
-        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
-        assertThat(sslContextHelper.getTrustedX509Certificate()).isNotEmpty();
+        assertThat(sslContextHelper.getTrustManager()).isNotNull();
+        assertThat(sslContextHelper.getTrustedCertificate()).isNotEmpty();
         assertThat(sslContextHelper.getTrustStores()).isNotEmpty();
         assertThat(sslContextHelper.getTrustManagerFactory()).isNotNull();
         assertThat(sslContextHelper.getHostnameVerifier()).isNotNull();
 
-        assertThat(sslContextHelper.getX509KeyManager()).isNull();
+        assertThat(sslContextHelper.getKeyManager()).isNull();
         assertThat(sslContextHelper.getKeyManagerFactory()).isNull();
         assertThat(sslContextHelper.getIdentities()).isEmpty();
     }
@@ -122,12 +122,12 @@ public class SSLContextHelperShould {
                                                             .build();
 
         assertThat(sslContextHelper.isSecurityEnabled()).isTrue();
-        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
+        assertThat(sslContextHelper.getTrustManager()).isNotNull();
         assertThat(sslContextHelper.getTrustStores()).isEmpty();
         assertThat(sslContextHelper.getTrustManagerFactory()).isNotNull();
-        assertThat(sslContextHelper.getTrustedX509Certificate()).hasSizeGreaterThan(10);
+        assertThat(sslContextHelper.getTrustedCertificate()).hasSizeGreaterThan(10);
 
-        assertThat(sslContextHelper.getX509KeyManager()).isNull();
+        assertThat(sslContextHelper.getKeyManager()).isNull();
         assertThat(sslContextHelper.getKeyManagerFactory()).isNull();
         assertThat(sslContextHelper.getIdentities()).isEmpty();
     }
@@ -140,16 +140,16 @@ public class SSLContextHelperShould {
                                                             .build();
 
         assertThat(sslContextHelper.isSecurityEnabled()).isTrue();
-        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
+        assertThat(sslContextHelper.getTrustManager()).isNotNull();
         assertThat(sslContextHelper.getTrustStores()).isNotEmpty();
         assertThat(sslContextHelper.getTrustStores().get(0).getKeyStorePassword()).isEqualTo(TRUSTSTORE_PASSWORD);
-        assertThat(sslContextHelper.getTrustedX509Certificate()).hasSizeGreaterThan(10);
+        assertThat(sslContextHelper.getTrustedCertificate()).hasSizeGreaterThan(10);
         assertThat(sslContextHelper.getTrustManagerFactory()).isNotNull();
-        assertThat(Arrays.stream(sslContextHelper.getTrustedX509Certificate())
+        assertThat(Arrays.stream(sslContextHelper.getTrustedCertificate())
                          .map(X509Certificate::getSubjectX500Principal)
                          .map(X500Principal::toString)).contains("CN=*.google.com, O=Google LLC, L=Mountain View, ST=California, C=US");
 
-        assertThat(sslContextHelper.getX509KeyManager()).isNull();
+        assertThat(sslContextHelper.getKeyManager()).isNull();
         assertThat(sslContextHelper.getKeyManagerFactory()).isNull();
         assertThat(sslContextHelper.getIdentities()).isEmpty();
     }
@@ -166,17 +166,17 @@ public class SSLContextHelperShould {
         assertThat(sslContextHelper.isTwoWayAuthenticationEnabled()).isTrue();
         assertThat(sslContextHelper.getSslContext()).isNotNull();
 
-        assertThat(sslContextHelper.getX509KeyManager()).isNotNull();
+        assertThat(sslContextHelper.getKeyManager()).isNotNull();
         assertThat(sslContextHelper.getKeyManagerFactory()).isNotNull();
         assertThat(sslContextHelper.getKeyManagerFactory().getKeyManagers()).isNotEmpty();
         assertThat(sslContextHelper.getIdentities()).isNotEmpty();
         assertThat(sslContextHelper.getIdentities().get(0).getKeyStorePassword()).isEqualTo(IDENTITY_PASSWORD);
 
-        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
-        assertThat(sslContextHelper.getTrustedX509Certificate()).isNotEmpty();
+        assertThat(sslContextHelper.getTrustManager()).isNotNull();
+        assertThat(sslContextHelper.getTrustedCertificate()).isNotEmpty();
         assertThat(sslContextHelper.getTrustStores()).isNotEmpty();
         assertThat(sslContextHelper.getTrustStores().get(0).getKeyStorePassword()).isEqualTo(TRUSTSTORE_PASSWORD);
-        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
+        assertThat(sslContextHelper.getTrustManager()).isNotNull();
         assertThat(sslContextHelper.getTrustManagerFactory()).isNotNull();
         assertThat(sslContextHelper.getHostnameVerifier()).isNotNull();
     }
@@ -194,16 +194,16 @@ public class SSLContextHelperShould {
         assertThat(sslContextHelper.isTwoWayAuthenticationEnabled()).isTrue();
         assertThat(sslContextHelper.getSslContext()).isNotNull();
 
-        assertThat(sslContextHelper.getX509KeyManager()).isNotNull();
+        assertThat(sslContextHelper.getKeyManager()).isNotNull();
         assertThat(sslContextHelper.getKeyManagerFactory()).isNotNull();
         assertThat(sslContextHelper.getKeyManagerFactory().getKeyManagers()).isNotEmpty();
         assertThat(sslContextHelper.getIdentities()).isNotEmpty();
         assertThat(sslContextHelper.getIdentities().get(0).getKeyStorePassword()).isEqualTo(IDENTITY_PASSWORD);
 
-        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
-        assertThat(sslContextHelper.getTrustedX509Certificate()).isNotEmpty();
+        assertThat(sslContextHelper.getTrustManager()).isNotNull();
+        assertThat(sslContextHelper.getTrustedCertificate()).isNotEmpty();
         assertThat(sslContextHelper.getTrustStores()).isEmpty();
-        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
+        assertThat(sslContextHelper.getTrustManager()).isNotNull();
         assertThat(sslContextHelper.getTrustManagerFactory()).isNotNull();
         assertThat(sslContextHelper.getHostnameVerifier()).isNotNull();
     }
@@ -223,17 +223,17 @@ public class SSLContextHelperShould {
         assertThat(sslContextHelper.isTwoWayAuthenticationEnabled()).isTrue();
         assertThat(sslContextHelper.getSslContext()).isNotNull();
 
-        assertThat(sslContextHelper.getX509KeyManager()).isNotNull();
+        assertThat(sslContextHelper.getKeyManager()).isNotNull();
         assertThat(sslContextHelper.getKeyManagerFactory()).isNotNull();
         assertThat(sslContextHelper.getKeyManagerFactory().getKeyManagers()).isNotEmpty();
         assertThat(sslContextHelper.getIdentities()).isNotEmpty();
         assertThat(sslContextHelper.getIdentities().get(0).getKeyStorePassword()).isEqualTo(IDENTITY_PASSWORD);
 
-        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
-        assertThat(sslContextHelper.getTrustedX509Certificate()).isNotEmpty();
+        assertThat(sslContextHelper.getTrustManager()).isNotNull();
+        assertThat(sslContextHelper.getTrustedCertificate()).isNotEmpty();
         assertThat(sslContextHelper.getTrustStores()).isNotEmpty();
         assertThat(sslContextHelper.getTrustStores().get(0).getKeyStorePassword()).isEqualTo(TRUSTSTORE_PASSWORD);
-        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
+        assertThat(sslContextHelper.getTrustManager()).isNotNull();
         assertThat(sslContextHelper.getTrustManagerFactory()).isNotNull();
         assertThat(sslContextHelper.getHostnameVerifier()).isNotNull();
 
@@ -256,17 +256,17 @@ public class SSLContextHelperShould {
         assertThat(sslContextHelper.isTwoWayAuthenticationEnabled()).isTrue();
         assertThat(sslContextHelper.getSslContext()).isNotNull();
 
-        assertThat(sslContextHelper.getX509KeyManager()).isNotNull();
+        assertThat(sslContextHelper.getKeyManager()).isNotNull();
         assertThat(sslContextHelper.getKeyManagerFactory()).isNotNull();
         assertThat(sslContextHelper.getKeyManagerFactory().getKeyManagers()).isNotEmpty();
         assertThat(sslContextHelper.getIdentities()).isNotEmpty();
         assertThat(sslContextHelper.getIdentities().get(0).getKeyStorePassword()).isEqualTo(IDENTITY_PASSWORD);
 
-        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
-        assertThat(sslContextHelper.getTrustedX509Certificate()).isNotEmpty();
+        assertThat(sslContextHelper.getTrustManager()).isNotNull();
+        assertThat(sslContextHelper.getTrustedCertificate()).isNotEmpty();
         assertThat(sslContextHelper.getTrustStores()).isNotEmpty();
         assertThat(sslContextHelper.getTrustStores().get(0).getKeyStorePassword()).isEqualTo(TRUSTSTORE_PASSWORD);
-        assertThat(sslContextHelper.getX509TrustManager()).isNotNull();
+        assertThat(sslContextHelper.getTrustManager()).isNotNull();
         assertThat(sslContextHelper.getTrustManagerFactory()).isNotNull();
         assertThat(sslContextHelper.getHostnameVerifier()).isNotNull();
     }
@@ -311,9 +311,9 @@ public class SSLContextHelperShould {
                                                             .build();
 
         assertThat(sslContextHelper.getSslContext()).isNotNull();
-        assertThat(sslContextHelper.getTrustedX509Certificate()).isEmpty();
+        assertThat(sslContextHelper.getTrustedCertificate()).isEmpty();
         assertThat(sslContextHelper.getTrustStores()).isEmpty();
-        assertThat(sslContextHelper.getX509TrustManager()).isInstanceOf(CompositeX509TrustManager.class);
+        assertThat(sslContextHelper.getTrustManager()).isInstanceOf(CompositeX509TrustManager.class);
         assertThat(sslContextHelper.getTrustManagerFactory()).isNotNull();
         assertThat(logCaptor.getLogs(Level.WARN)).hasSize(1);
         assertThat(logCaptor.getLogs(Level.WARN)).containsExactly("UnsafeTrustManager is being used. Client/Server certificates will be accepted without validation. Please don't use this configuration at production.");
@@ -332,9 +332,9 @@ public class SSLContextHelperShould {
         assertThat(sslContextHelper.getIdentities()).isEmpty();
 
         assertThat(sslContextHelper.getSslContext()).isNull();
-        assertThat(sslContextHelper.getTrustedX509Certificate()).isEmpty();
+        assertThat(sslContextHelper.getTrustedCertificate()).isEmpty();
         assertThat(sslContextHelper.getTrustStores()).isEmpty();
-        assertThat(sslContextHelper.getX509TrustManager()).isNull();
+        assertThat(sslContextHelper.getTrustManager()).isNull();
         assertThat(sslContextHelper.getTrustManagerFactory()).isNull();
         assertThat(sslContextHelper.getHostnameVerifier()).isNull();
     }
