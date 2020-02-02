@@ -43,9 +43,9 @@ import nl.altindag.sslcontext.trustmanager.UnsafeTrustManager;
 import nl.altindag.sslcontext.util.KeystoreUtils;
 import nl.altindag.sslcontext.util.TrustManagerUtils;
 
-public class SSLContextHelper {
+public class SSLFactory {
 
-    private static final Logger LOGGER = LogManager.getLogger(SSLContextHelper.class);
+    private static final Logger LOGGER = LogManager.getLogger(SSLFactory.class);
 
     private final List<KeyStoreHolder> identities = new ArrayList<>();
     private final List<KeyStoreHolder> trustStores = new ArrayList<>();
@@ -64,7 +64,7 @@ public class SSLContextHelper {
     private KeyManagerFactory keyManagerFactory;
     private HostnameVerifier hostnameVerifier;
 
-    private SSLContextHelper() {}
+    private SSLFactory() {}
 
     private void createSSLContextWithTrustStore() {
         try {
@@ -318,50 +318,50 @@ public class SSLContextHelper {
             return this;
         }
 
-        public SSLContextHelper build() {
-            SSLContextHelper sslContextHelper = new SSLContextHelper();
+        public SSLFactory build() {
+            SSLFactory sslFactory = new SSLFactory();
             if (!oneWayAuthenticationEnabled && !twoWayAuthenticationEnabled) {
-                return sslContextHelper;
+                return sslFactory;
             }
 
             validateTrustStore();
-            buildHostnameVerifier(sslContextHelper);
-            sslContextHelper.protocol = protocol;
-            sslContextHelper.securityEnabled = true;
-            sslContextHelper.includeDefaultJdkTrustStore = includeDefaultJdkTrustStore;
-            sslContextHelper.trustingAllCertificatesWithoutValidationEnabled = trustingAllCertificatesWithoutValidationEnabled;
+            buildHostnameVerifier(sslFactory);
+            sslFactory.protocol = protocol;
+            sslFactory.securityEnabled = true;
+            sslFactory.includeDefaultJdkTrustStore = includeDefaultJdkTrustStore;
+            sslFactory.trustingAllCertificatesWithoutValidationEnabled = trustingAllCertificatesWithoutValidationEnabled;
 
             if (twoWayAuthenticationEnabled) {
                 oneWayAuthenticationEnabled = false;
             }
 
-            buildSLLContextForOneWayAuthenticationIfEnabled(sslContextHelper);
-            buildSLLContextForTwoWayAuthenticationIfEnabled(sslContextHelper);
-            return sslContextHelper;
+            buildSLLContextForOneWayAuthenticationIfEnabled(sslFactory);
+            buildSLLContextForTwoWayAuthenticationIfEnabled(sslFactory);
+            return sslFactory;
         }
 
-        private void buildHostnameVerifier(SSLContextHelper sslContextHelper) {
+        private void buildHostnameVerifier(SSLFactory sslFactory) {
             if (hostnameVerifierEnabled) {
-                sslContextHelper.hostnameVerifier = new DefaultHostnameVerifier();
+                sslFactory.hostnameVerifier = new DefaultHostnameVerifier();
             } else {
-                sslContextHelper.hostnameVerifier = new NoopHostnameVerifier();
+                sslFactory.hostnameVerifier = new NoopHostnameVerifier();
             }
         }
 
-        private void buildSLLContextForOneWayAuthenticationIfEnabled(SSLContextHelper sslContextHelper) {
+        private void buildSLLContextForOneWayAuthenticationIfEnabled(SSLFactory sslFactory) {
             if (oneWayAuthenticationEnabled) {
-                sslContextHelper.oneWayAuthenticationEnabled = true;
-                sslContextHelper.trustStores.addAll(trustStores);
-                sslContextHelper.createSSLContextWithTrustStore();
+                sslFactory.oneWayAuthenticationEnabled = true;
+                sslFactory.trustStores.addAll(trustStores);
+                sslFactory.createSSLContextWithTrustStore();
             }
         }
 
-        private void buildSLLContextForTwoWayAuthenticationIfEnabled(SSLContextHelper sslContextHelper) {
+        private void buildSLLContextForTwoWayAuthenticationIfEnabled(SSLFactory sslFactory) {
             if (twoWayAuthenticationEnabled) {
-                sslContextHelper.twoWayAuthenticationEnabled = true;
-                sslContextHelper.identities.addAll(identities);
-                sslContextHelper.trustStores.addAll(trustStores);
-                sslContextHelper.createSSLContextWithKeyStoreAndTrustStore();
+                sslFactory.twoWayAuthenticationEnabled = true;
+                sslFactory.identities.addAll(identities);
+                sslFactory.trustStores.addAll(trustStores);
+                sslFactory.createSSLContextWithKeyStoreAndTrustStore();
             }
         }
 

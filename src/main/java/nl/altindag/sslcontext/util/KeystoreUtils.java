@@ -12,8 +12,6 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 
-import nl.altindag.sslcontext.SSLContextHelper;
-
 public final class KeystoreUtils {
 
     private KeystoreUtils() {}
@@ -23,7 +21,7 @@ public final class KeystoreUtils {
     }
 
     public static KeyStore loadKeyStore(String keystorePath, char[] keystorePassword, String keystoreType) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException {
-        try(InputStream keystoreInputStream = SSLContextHelper.class.getClassLoader().getResourceAsStream(keystorePath)) {
+        try(InputStream keystoreInputStream = KeystoreUtils.class.getClassLoader().getResourceAsStream(keystorePath)) {
             return loadKeyStore(keystoreInputStream, keystorePassword, keystoreType);
         }
     }

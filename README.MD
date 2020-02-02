@@ -67,18 +67,19 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import nl.altindag.sslcontext.SSLContextHelper;
+import nl.altindag.sslcontext.SSLFactory;
 
 public class App {
 
     public static void main(String[] args) throws IOException, JSONException {
-        SSLContextHelper sslContextHelper = SSLContextHelper.builder()
-                                                            .withDefaultJdkTrustStore()
-                                                            .build();
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withDefaultJdkTrustStore()
+                .build();
+
         HttpClient httpClient = HttpClients.custom()
-                                           .setSSLContext(sslContextHelper.getSslContext())
-                                           .setSSLHostnameVerifier(sslContextHelper.getHostnameVerifier())
-                                           .build();
+                .setSSLContext(sslFactory.getSslContext())
+                .setSSLHostnameVerifier(sslFactory.getHostnameVerifier())
+                .build();
 
         HttpGet request = new HttpGet("https://api.chucknorris.io/jokes/random");
 
@@ -96,38 +97,38 @@ Response:
 Received the following status code: 200
 Received the following joke: If a black cat crosses your path, you have bad luck. If Chuck Norris crosses your path, it was nice knowing you.
 ```
-### Other possible configurations for SSLContextHelper
+### Other possible configurations for SSLFactory
 One way authentication with custom trustStore 
 ```java
-SSLContextHelper.builder()
-                .withTrustStore(trustStore, trustStorePassword)
-                .build();
+SSLFactory.builder()
+          .withTrustStore(trustStore, trustStorePassword)
+          .build();
 ```
 
 One way authentication while trusting all certificates without validation, not recommended to use at production!
 ```java
-SSLContextHelper.builder()
-                .withTrustingAllCertificatesWithoutValidation()
-                .build();
+SSLFactory.builder()
+          .withTrustingAllCertificatesWithoutValidation()
+          .build();
 ```
 
 One way authentication with specific encryption protocol version and option to validate the hostname within the request against the SAN field of a certificate.
 ```java
-SSLContextHelper.builder()
-                .withTrustStore(trustStore, trustStorePassword)
-                .withHostnameVerifierEnabled(true)
-                .withProtocol("TLSv1.2")
-                .build();
+SSLFactory.builder()
+          .withTrustStore(trustStore, trustStorePassword)
+          .withHostnameVerifierEnabled(true)
+          .withProtocol("TLSv1.2")
+          .build();
 ```
 
 Two way authentication with custom trustStore, hostname verifier and encryption protocol version
 ```java
-SSLContextHelper.builder()
-                .withIdentity(identity, identityPassword)
-                .withTrustStore(trustStore, trustStorePassword)
-                .withHostnameVerifierEnabled(true)
-                .withProtocol("TLSv1.2")
-                .build();
+SSLFactory.builder()
+          .withIdentity(identity, identityPassword)
+          .withTrustStore(trustStore, trustStorePassword)
+          .withHostnameVerifierEnabled(true)
+          .withProtocol("TLSv1.2")
+          .build();
 ```
 
 
