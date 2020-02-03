@@ -11,7 +11,7 @@
 <dependency>
     <groupId>io.github.hakky54</groupId>
     <artifactId>sslcontext-kickstart</artifactId>
-    <version>2.0.0</version>
+    <version>3.0.0</version>
 </dependency>
 ```
 
