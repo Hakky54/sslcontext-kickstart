@@ -119,7 +119,7 @@ public class CompositeX509KeyManager implements X509KeyManager {
      */
     @Override
     public @Nullable String[] getClientAliases(String keyType, Principal[] issuers) {
-        ImmutableList.Builder aliases = ImmutableList.builder();
+        ImmutableList.Builder<String> aliases = ImmutableList.builder();
         for (X509KeyManager keyManager : keyManagers) {
             aliases.add(keyManager.getClientAliases(keyType, issuers));
         }
@@ -132,7 +132,7 @@ public class CompositeX509KeyManager implements X509KeyManager {
      */
     @Override
     public @Nullable String[] getServerAliases(String keyType, Principal[] issuers) {
-        ImmutableList.Builder aliases = ImmutableList.builder();
+        ImmutableList.Builder<String> aliases = ImmutableList.builder();
         for (X509KeyManager keyManager : keyManagers) {
             aliases.add(keyManager.getServerAliases(keyType, issuers));
         }
