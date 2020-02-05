@@ -13,7 +13,9 @@ import nl.altindag.sslcontext.exception.GenericKeyStoreException;
 import nl.altindag.sslcontext.exception.GenericSecurityException;
 import nl.altindag.sslcontext.keymanager.CompositeX509KeyManager;
 
-public class KeyManagerUtils {
+public final class KeyManagerUtils {
+
+    private KeyManagerUtils() {}
 
     public static X509KeyManager combine(X509KeyManager... keyManagers) {
         return CompositeX509KeyManager.builder()
