@@ -24,11 +24,11 @@ import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.junit.Test;
 
 import ch.qos.logback.classic.Level;
+import nl.altindag.log.LogCaptor;
 import nl.altindag.sslcontext.exception.GenericKeyStoreException;
 import nl.altindag.sslcontext.exception.GenericSSLContextException;
 import nl.altindag.sslcontext.trustmanager.CompositeX509TrustManager;
 import nl.altindag.sslcontext.util.KeystoreUtils;
-import nl.altindag.sslcontext.util.LogCaptor;
 
 @SuppressWarnings({ "squid:S1192", "squid:S2068"})
 public class SSLFactoryShould {

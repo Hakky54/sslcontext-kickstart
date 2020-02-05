@@ -15,8 +15,8 @@ import javax.net.ssl.X509TrustManager;
 import org.junit.Test;
 
 import ch.qos.logback.classic.Level;
+import nl.altindag.log.LogCaptor;
 import nl.altindag.sslcontext.util.KeystoreUtils;
-import nl.altindag.sslcontext.util.LogCaptor;
 
 public class UnsafeTrustManagerShould {
 

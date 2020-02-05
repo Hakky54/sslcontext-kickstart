@@ -57,6 +57,7 @@
         <version.commons-lang3>3.9</version.commons-lang3>
         <version.log4j-core>2.13.0</version.log4j-core>
         <version.guava>28.2-jre</version.guava>
+        <version.logcaptor>1.0.0</version.logcaptor>
         <version.jacoco-maven-plugin>0.8.5</version.jacoco-maven-plugin>
         <version.maven-compiler-plugin>3.8.1</version.maven-compiler-plugin>
         <version.maven-javadoc-plugin>3.1.1</version.maven-javadoc-plugin>
@@ -101,6 +102,13 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <version>${version.spring}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.github.hakky54</groupId>
+            <artifactId>logcaptor</artifactId>
+            <version>${version.logcaptor}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
