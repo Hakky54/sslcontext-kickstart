@@ -4,6 +4,7 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,11 +17,15 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.security.auth.x500.X500Principal;
 
 import org.apache.http.conn.ssl.DefaultHostnameVerifier;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.Test;
 
 import ch.qos.logback.classic.Level;
@@ -32,6 +37,8 @@ import nl.altindag.sslcontext.util.KeystoreUtils;
 
 @SuppressWarnings({ "squid:S1192", "squid:S2068"})
 public class SSLFactoryShould {
+
+    private static final Logger LOGGER = LogManager.getLogger(SSLFactoryShould.class);
 
     private static final String GENERIC_IDENTITY_VALIDATION_EXCEPTION_MESSAGE = "Identity details are empty, which are required to be present when SSL/TLS is enabled";
     private static final String GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE = "TrustStore details are empty, which are required to be present when SSL/TLS is enabled";
@@ -337,6 +344,34 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getTrustManager()).isNull();
         assertThat(sslFactory.getTrustManagerFactory()).isNull();
         assertThat(sslFactory.getHostnameVerifier()).isNull();
+    }
+
+    @Test
+    public void buildSSLFactoryWithTLSProtocolVersionOneDotThreeIfJavaVersionIsElevenOrGreater() {
+        Pattern valueBeforeDotPattern = Pattern.compile("^([^.]+)");
+
+        String javaVersion = System.getProperty("java.version");
+        Matcher matcher = valueBeforeDotPattern.matcher(javaVersion);
+        if (!matcher.find()) {
+            fail("Could not find the java version");
+        }
+
+        int javaMajorVersion = Integer.parseInt(matcher.group(0));
+        if (javaMajorVersion < 11) {
+            LOGGER.info("skipping unit test [{}] because TLSv1.3 is not available for this java {} version",
+                        new Object() {}.getClass().getEnclosingMethod().getName(),
+                        javaVersion);
+            return;
+        }
+
+        LOGGER.info("Found java version {}, including testing SSLFactory with TLSv1.3 protocol", javaMajorVersion);
+        SSLFactory sslFactory = SSLFactory.builder()
+                                          .withDefaultJdkTrustStore()
+                                          .withProtocol("TLSv1.3")
+                                          .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.3");
     }
 
     @Test
