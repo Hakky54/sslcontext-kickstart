@@ -133,6 +133,21 @@ SSLFactory.builder()
           .build();
 ```
 
+Support for using multiple identities and trustStores 
+```java
+SSLFactory.builder()
+          .withIdentity(identityA, identityPasswordA)
+          .withIdentity(identityB, identityPasswordB)
+          .withIdentity(identityC, identityPasswordC)
+          .withTrustStore(trustStoreA, trustStorePasswordA)
+          .withTrustStore(trustStoreB, trustStorePasswordB)
+          .withTrustStore(trustStoreC, trustStorePasswordC)
+          .withTrustStore(trustStoreD, trustStorePasswordD)
+          .withHostnameVerifierEnabled(true)
+          .withProtocol("TLSv1.2")
+          .build();
+```
+
 
 ## License
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FHakky54%2Fsslcontext-kickstart.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FHakky54%2Fsslcontext-kickstart?ref=badge_large)
