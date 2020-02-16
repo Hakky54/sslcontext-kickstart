@@ -1,8 +1,13 @@
 package nl.altindag.sslcontext.trustmanager;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import nl.altindag.log.LogCaptor;
+import nl.altindag.sslcontext.util.KeystoreUtils;
+import org.junit.Test;
+import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -10,15 +15,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
-import javax.net.ssl.X509TrustManager;
-
-import org.junit.Test;
-import org.slf4j.LoggerFactory;
-
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
-import nl.altindag.log.LogCaptor;
-import nl.altindag.sslcontext.util.KeystoreUtils;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 public class UnsafeTrustManagerShould {
 
@@ -30,7 +28,7 @@ public class UnsafeTrustManagerShould {
 
     @Test
     public void checkClientTrusted() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        LogCaptor logCaptor = LogCaptor.forClass(UnsafeTrustManager.class);
+        LogCaptor<UnsafeTrustManager> logCaptor = LogCaptor.forClass(UnsafeTrustManager.class);
 
         configureDebugLogging(true);
 
@@ -51,7 +49,7 @@ public class UnsafeTrustManagerShould {
 
     @Test
     public void checkServerTrusted() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        LogCaptor logCaptor = LogCaptor.forClass(UnsafeTrustManager.class);
+        LogCaptor<UnsafeTrustManager> logCaptor = LogCaptor.forClass(UnsafeTrustManager.class);
 
         configureDebugLogging(true);
 
@@ -71,7 +69,7 @@ public class UnsafeTrustManagerShould {
 
     @Test
     public void checkClientTrustedDoesNotLogAnythingWhenDebugLevelIsDisabled() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        LogCaptor logCaptor = LogCaptor.forClass(UnsafeTrustManager.class);
+        LogCaptor<UnsafeTrustManager> logCaptor = LogCaptor.forClass(UnsafeTrustManager.class);
 
         configureDebugLogging(false);
 
@@ -91,7 +89,7 @@ public class UnsafeTrustManagerShould {
 
     @Test
     public void checkServerTrustedDoesNotLogAnythingWhenDebugLevelIsDisabled() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        LogCaptor logCaptor = LogCaptor.forClass(UnsafeTrustManager.class);
+        LogCaptor<UnsafeTrustManager> logCaptor = LogCaptor.forClass(UnsafeTrustManager.class);
 
         configureDebugLogging(false);
 

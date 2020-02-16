@@ -1,9 +1,13 @@
 package nl.altindag.sslcontext.trustmanager;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import ch.qos.logback.classic.Level;
+import nl.altindag.log.LogCaptor;
+import nl.altindag.sslcontext.util.KeystoreUtils;
+import nl.altindag.sslcontext.util.TrustManagerUtils;
+import org.junit.Test;
 
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -14,15 +18,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.X509TrustManager;
-
-import org.junit.Test;
-
-import ch.qos.logback.classic.Level;
-import nl.altindag.log.LogCaptor;
-import nl.altindag.sslcontext.util.KeystoreUtils;
-import nl.altindag.sslcontext.util.TrustManagerUtils;
+import static org.assertj.core.api.Assertions.*;
 
 public class CompositeX509TrustManagerShould {
 
@@ -133,7 +129,7 @@ public class CompositeX509TrustManagerShould {
         KeyStore trustStore = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
-        LogCaptor logCaptor = LogCaptor.forClass(CompositeX509TrustManager.class);
+        LogCaptor<CompositeX509TrustManager> logCaptor = LogCaptor.forClass(CompositeX509TrustManager.class);
 
         CompositeX509TrustManager trustManager = CompositeX509TrustManager.builder()
                                                                           .withTrustManagers(TrustManagerUtils.createTrustManager(trustStore))
@@ -165,7 +161,7 @@ public class CompositeX509TrustManagerShould {
         X509TrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD));
 
-        LogCaptor logCaptor = LogCaptor.forClass(CompositeX509TrustManager.class);
+        LogCaptor<CompositeX509TrustManager> logCaptor = LogCaptor.forClass(CompositeX509TrustManager.class);
 
         CompositeX509TrustManager compositeX509TrustManager = new CompositeX509TrustManager(Collections.singletonList(trustManager));
         assertThat(trustManager).isNotNull();

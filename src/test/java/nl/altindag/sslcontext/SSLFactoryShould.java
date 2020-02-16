@@ -1,11 +1,18 @@
 package nl.altindag.sslcontext;
 
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.fail;
+import ch.qos.logback.classic.Level;
+import nl.altindag.log.LogCaptor;
+import nl.altindag.sslcontext.exception.GenericKeyStoreException;
+import nl.altindag.sslcontext.exception.GenericSSLContextException;
+import nl.altindag.sslcontext.trustmanager.CompositeX509TrustManager;
+import nl.altindag.sslcontext.util.KeystoreUtils;
+import org.apache.http.conn.ssl.DefaultHostnameVerifier;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.junit.Test;
 
+import javax.security.auth.x500.X500Principal;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -17,23 +24,13 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.security.auth.x500.X500Principal;
-
-import org.apache.http.conn.ssl.DefaultHostnameVerifier;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.junit.Test;
-
-import ch.qos.logback.classic.Level;
-import nl.altindag.log.LogCaptor;
-import nl.altindag.sslcontext.exception.GenericKeyStoreException;
-import nl.altindag.sslcontext.exception.GenericSSLContextException;
-import nl.altindag.sslcontext.trustmanager.CompositeX509TrustManager;
-import nl.altindag.sslcontext.util.KeystoreUtils;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.assertj.core.api.Assertions.*;
 
 @SuppressWarnings({ "squid:S1192", "squid:S2068"})
 public class SSLFactoryShould {
@@ -311,7 +308,7 @@ public class SSLFactoryShould {
 
     @Test
     public void buildSSLFactoryWithTrustingAllCertificatesWithoutValidation() {
-        LogCaptor logCaptor = LogCaptor.forClass(SSLFactory.class);
+        LogCaptor<SSLFactory> logCaptor = LogCaptor.forClass(SSLFactory.class);
 
         SSLFactory sslFactory = SSLFactory.builder()
                                           .withTrustingAllCertificatesWithoutValidation()
@@ -577,10 +574,11 @@ public class SSLFactoryShould {
                 .hasMessage("java.security.NoSuchAlgorithmException: ENCRYPTIONv1.1 SSLContext not available");
     }
 
+    @SuppressWarnings("SameParameterValue")
     private Path copyKeystoreToHomeDirectory(String path, String fileName) throws IOException {
         try(InputStream keystoreInputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(path + fileName)) {
             Path destination = Paths.get(TEMPORALLY_KEYSTORE_LOCATION, fileName);
-            Files.copy(keystoreInputStream, destination, REPLACE_EXISTING);
+            Files.copy(Objects.requireNonNull(keystoreInputStream), destination, REPLACE_EXISTING);
             return destination;
         }
     }
