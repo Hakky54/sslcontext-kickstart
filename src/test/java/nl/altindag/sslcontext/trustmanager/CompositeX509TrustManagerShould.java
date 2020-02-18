@@ -1,10 +1,12 @@
 package nl.altindag.sslcontext.trustmanager;
 
 import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
 import nl.altindag.log.LogCaptor;
 import nl.altindag.sslcontext.util.KeystoreUtils;
 import nl.altindag.sslcontext.util.TrustManagerUtils;
 import org.junit.Test;
+import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.X509TrustManager;
@@ -100,6 +102,9 @@ public class CompositeX509TrustManagerShould {
         X509TrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
 
+        LogCaptor<CompositeX509TrustManager> logCaptor = LogCaptor.forClass(CompositeX509TrustManager.class);
+        configureDebugLogging(false);
+
         CompositeX509TrustManager compositeX509TrustManager = new CompositeX509TrustManager(Collections.singletonList(trustManager));
         assertThat(trustManager).isNotNull();
         assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
@@ -107,12 +112,41 @@ public class CompositeX509TrustManagerShould {
 
         assertThatCode(() -> compositeX509TrustManager.checkClientTrusted(trustedCerts, "RSA"))
                 .doesNotThrowAnyException();
+
+        assertThat(logCaptor.getLogs()).isEmpty();
+    }
+
+    @Test
+    public void checkClientTrustedLogsCertificateChainIfDebugIsEnabled() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        KeyStore trustStore = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+        X509TrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
+        X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
+
+        LogCaptor<CompositeX509TrustManager> logCaptor = LogCaptor.forClass(CompositeX509TrustManager.class);
+        configureDebugLogging(true);
+
+        CompositeX509TrustManager compositeX509TrustManager = new CompositeX509TrustManager(Collections.singletonList(trustManager));
+        assertThat(trustManager).isNotNull();
+        assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
+        assertThat(trustedCerts).hasSize(1);
+
+        assertThatCode(() -> compositeX509TrustManager.checkClientTrusted(trustedCerts, "RSA"))
+                .doesNotThrowAnyException();
+
+        assertThat(logCaptor.getLogs(Level.DEBUG)).hasSize(1);
+        assertThat(logCaptor.getLogs(Level.DEBUG).get(0))
+                .contains("Received the following client certificate chain:")
+                .contains("Subject: CN=*.google.com, O=Google LLC, L=Mountain View, ST=California, C=US")
+                .contains("Issuer: CN=GTS CA 1O1, O=Google Trust Services, C=US");
     }
 
     @Test
     public void checkServerTrusted() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore trustStore = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-dummy-client.jks", TRUSTSTORE_PASSWORD);
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
+
+        LogCaptor<CompositeX509TrustManager> logCaptor = LogCaptor.forClass(CompositeX509TrustManager.class);
+        configureDebugLogging(false);
 
         CompositeX509TrustManager trustManager = CompositeX509TrustManager.builder()
                                                                           .withTrustStores(trustStore)
@@ -122,6 +156,32 @@ public class CompositeX509TrustManagerShould {
 
         assertThatCode(() -> trustManager.checkServerTrusted(trustedCerts, "RSA"))
                 .doesNotThrowAnyException();
+
+        assertThat(logCaptor.getLogs()).isEmpty();
+    }
+
+    @Test
+    public void checkServerTrustedLogsCertificateChainIfDebugIsEnabled() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        KeyStore trustStore = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-dummy-client.jks", TRUSTSTORE_PASSWORD);
+        X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
+
+        LogCaptor<CompositeX509TrustManager> logCaptor = LogCaptor.forClass(CompositeX509TrustManager.class);
+        configureDebugLogging(true);
+
+        CompositeX509TrustManager trustManager = CompositeX509TrustManager.builder()
+                .withTrustStores(trustStore)
+                .build();
+        assertThat(trustedCerts).hasSize(1);
+        assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
+
+        assertThatCode(() -> trustManager.checkServerTrusted(trustedCerts, "RSA"))
+                .doesNotThrowAnyException();
+
+        assertThat(logCaptor.getLogs(Level.DEBUG)).hasSize(1);
+        assertThat(logCaptor.getLogs(Level.DEBUG).get(0))
+                .contains("Received the following server certificate chain:")
+                .contains("Subject: CN=Prof Oak, OU=Oak Pokémon Research Lab, O=Oak Pokémon Research Lab, C=Pallet Town")
+                .contains("Issuer: CN=Prof Oak, OU=Oak Pokémon Research Lab, O=Oak Pokémon Research Lab, C=Pallet Town");
     }
 
     @Test
@@ -174,6 +234,15 @@ public class CompositeX509TrustManagerShould {
 
         List<String> logs = logCaptor.getLogs(Level.ERROR);
         assertThat(logs).containsExactly("PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target");
+    }
+
+    private void configureDebugLogging(boolean debugLoggingEnabled) {
+        Logger logger = (Logger) LoggerFactory.getLogger(CompositeX509TrustManager.class.getName());
+        if (debugLoggingEnabled) {
+            logger.setLevel(Level.DEBUG);
+        } else {
+            logger.setLevel(Level.INFO);
+        }
     }
 
 }

@@ -1,7 +1,11 @@
 package nl.altindag.sslcontext.trustmanager;
 
-import static java.util.Objects.isNull;
+import com.google.common.collect.ImmutableList;
+import nl.altindag.sslcontext.util.TrustManagerUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
+import javax.net.ssl.X509TrustManager;
 import java.security.KeyStore;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -9,14 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.net.ssl.X509TrustManager;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import com.google.common.collect.ImmutableList;
-
-import nl.altindag.sslcontext.util.TrustManagerUtils;
+import static java.util.Objects.isNull;
 
 /**
  * {@link CompositeX509TrustManager} is wrapper for a collection of TrustManagers.
@@ -50,6 +47,10 @@ public class CompositeX509TrustManager implements X509TrustManager {
 
     @Override
     public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(String.format("Received the following client certificate chain:\n%s", Arrays.toString(chain)));
+        }
+
         List<CertificateException> certificateExceptions = new ArrayList<>();
         for (X509TrustManager trustManager : trustManagers) {
             try {
@@ -69,6 +70,10 @@ public class CompositeX509TrustManager implements X509TrustManager {
 
     @Override
     public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(String.format("Received the following server certificate chain:\n%s", Arrays.toString(chain)));
+        }
+
         List<CertificateException> certificateExceptions = new ArrayList<>();
         for (X509TrustManager trustManager : trustManagers) {
             try {
