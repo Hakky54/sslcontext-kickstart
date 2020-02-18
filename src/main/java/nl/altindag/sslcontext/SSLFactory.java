@@ -1,9 +1,22 @@
 package nl.altindag.sslcontext;
 
-import static java.util.Objects.isNull;
-import static org.apache.commons.lang3.ArrayUtils.isEmpty;
-import static org.apache.commons.lang3.StringUtils.isBlank;
+import com.google.common.collect.ImmutableList;
+import nl.altindag.sslcontext.exception.GenericKeyStoreException;
+import nl.altindag.sslcontext.exception.GenericSSLContextException;
+import nl.altindag.sslcontext.keymanager.CompositeX509KeyManager;
+import nl.altindag.sslcontext.keymanager.KeyManagerFactoryWrapper;
+import nl.altindag.sslcontext.model.KeyStoreHolder;
+import nl.altindag.sslcontext.trustmanager.CompositeX509TrustManager;
+import nl.altindag.sslcontext.trustmanager.TrustManagerFactoryWrapper;
+import nl.altindag.sslcontext.trustmanager.UnsafeTrustManager;
+import nl.altindag.sslcontext.util.KeystoreUtils;
+import nl.altindag.sslcontext.util.TrustManagerUtils;
+import org.apache.http.conn.ssl.DefaultHostnameVerifier;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
+import javax.net.ssl.*;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.security.KeyManagementException;
@@ -16,32 +29,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509KeyManager;
-import javax.net.ssl.X509TrustManager;
-
-import org.apache.http.conn.ssl.DefaultHostnameVerifier;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import com.google.common.collect.ImmutableList;
-
-import nl.altindag.sslcontext.exception.GenericKeyStoreException;
-import nl.altindag.sslcontext.exception.GenericSSLContextException;
-import nl.altindag.sslcontext.keymanager.CompositeX509KeyManager;
-import nl.altindag.sslcontext.keymanager.KeyManagerFactoryWrapper;
-import nl.altindag.sslcontext.model.KeyStoreHolder;
-import nl.altindag.sslcontext.trustmanager.CompositeX509TrustManager;
-import nl.altindag.sslcontext.trustmanager.TrustManagerFactoryWrapper;
-import nl.altindag.sslcontext.trustmanager.UnsafeTrustManager;
-import nl.altindag.sslcontext.util.KeystoreUtils;
-import nl.altindag.sslcontext.util.TrustManagerUtils;
+import static java.util.Objects.isNull;
+import static org.apache.commons.lang3.ArrayUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 public class SSLFactory {
 
@@ -154,7 +144,7 @@ public class SSLFactory {
         return trustManagerFactory;
     }
 
-    public X509Certificate[] getTrustedCertificate() {
+    public X509Certificate[] getTrustedCertificates() {
         return Optional.ofNullable(trustManager)
                        .map(X509TrustManager::getAcceptedIssuers)
                        .orElse(new X509Certificate[]{});
