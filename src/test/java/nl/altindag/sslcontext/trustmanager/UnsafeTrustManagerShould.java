@@ -44,7 +44,7 @@ public class UnsafeTrustManagerShould {
                 .doesNotThrowAnyException();
 
         assertThat(logCaptor.getLogs(Level.DEBUG)).hasSize(1);
-        assertThat(logCaptor.getLogs(Level.DEBUG)).contains("Accepting a client certificate: CN=*.google.com, O=Google LLC, L=Mountain View, ST=California, C=US");
+        assertThat(logCaptor.getLogs(Level.DEBUG)).contains("Accepting a client certificate: [CN=*.google.com, O=Google LLC, L=Mountain View, ST=California, C=US]");
     }
 
     @Test
@@ -64,7 +64,7 @@ public class UnsafeTrustManagerShould {
                 .doesNotThrowAnyException();
 
         assertThat(logCaptor.getLogs(Level.DEBUG)).hasSize(1);
-        assertThat(logCaptor.getLogs(Level.DEBUG)).contains("Accepting a server certificate: CN=Prof Oak, OU=Oak Pokémon Research Lab, O=Oak Pokémon Research Lab, C=Pallet Town");
+        assertThat(logCaptor.getLogs(Level.DEBUG)).contains("Accepting a server certificate: [CN=Prof Oak, OU=Oak Pokémon Research Lab, O=Oak Pokémon Research Lab, C=Pallet Town]");
     }
 
     @Test

@@ -48,7 +48,7 @@ public class CompositeX509TrustManager implements X509TrustManager {
     @Override
     public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(String.format("Received the following client certificate: [%s]", chain[0].getSubjectDN()));
+            LOGGER.debug("Received the following client certificate: [{}]", chain[0].getSubjectDN());
         }
 
         List<CertificateException> certificateExceptions = new ArrayList<>();
@@ -71,7 +71,7 @@ public class CompositeX509TrustManager implements X509TrustManager {
     @Override
     public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(String.format("Received the following server certificate: [%s]", chain[0].getSubjectDN()));
+            LOGGER.debug("Received the following server certificate: [{}]", chain[0].getSubjectDN());
         }
 
         List<CertificateException> certificateExceptions = new ArrayList<>();
