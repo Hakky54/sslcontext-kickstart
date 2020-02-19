@@ -135,9 +135,7 @@ public class CompositeX509TrustManagerShould {
 
         assertThat(logCaptor.getLogs(Level.DEBUG)).hasSize(1);
         assertThat(logCaptor.getLogs(Level.DEBUG).get(0))
-                .contains("Received the following client certificate chain:")
-                .contains("Subject: CN=*.google.com, O=Google LLC, L=Mountain View, ST=California, C=US")
-                .contains("Issuer: CN=GTS CA 1O1, O=Google Trust Services, C=US");
+                .contains("Received the following client certificate: [CN=*.google.com, O=Google LLC, L=Mountain View, ST=California, C=US]");
     }
 
     @Test
@@ -179,9 +177,7 @@ public class CompositeX509TrustManagerShould {
 
         assertThat(logCaptor.getLogs(Level.DEBUG)).hasSize(1);
         assertThat(logCaptor.getLogs(Level.DEBUG).get(0))
-                .contains("Received the following server certificate chain:")
-                .contains("Subject: CN=Prof Oak, OU=Oak Pokémon Research Lab, O=Oak Pokémon Research Lab, C=Pallet Town")
-                .contains("Issuer: CN=Prof Oak, OU=Oak Pokémon Research Lab, O=Oak Pokémon Research Lab, C=Pallet Town");
+                .contains("Received the following server certificate: [CN=Prof Oak, OU=Oak Pokémon Research Lab, O=Oak Pokémon Research Lab, C=Pallet Town]");
     }
 
     @Test
