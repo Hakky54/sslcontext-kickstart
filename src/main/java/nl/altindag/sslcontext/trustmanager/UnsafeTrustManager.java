@@ -14,9 +14,14 @@ import java.security.cert.X509Certificate;
  * Never use this {@link UnsafeTrustManager} in production.
  * It is purely for testing purposes, and thus it is very insecure.
  * </p>
+ * <br>
+ * Suppressed warning: java:S4830 - "Server certificates should be verified during SSL/TLS connections"
+ *                                  This TrustManager doesn't validate certificates and should not be used at production.
+ *                                  It is just meant to be used for testing purposes and it is designed not to verify server certificates.
  *
  * @see InsecureTrustManagerFactory
  */
+@SuppressWarnings("java:S4830")
 public final class UnsafeTrustManager implements X509TrustManager {
 
     public static final UnsafeTrustManager INSTANCE = new UnsafeTrustManager();
