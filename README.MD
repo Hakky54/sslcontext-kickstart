@@ -22,33 +22,35 @@ SSLContext Kickstart is a library which provides an easy to use Factory class fo
 
 ### Advantages:
 - No need for low-level SSLContext configuration anymore
-- No knowledge needed about TrustManager, TrustManagerFactory, KeyManager, KeyManagerFactory and how to create it.
+- No knowledge needed about SSLContext, TrustManager, TrustManagerFactory, KeyManager, KeyManagerFactory and how to create it.
 - Above classes will all be created with just providing an identity and a trustStore
 
 ### Definition
-- Identity: A KeyStore which holds the key pair also known as private and public key
-- TrustStore: A KeyStore containing one or more certificates also known as public key. This KeyStore contains a list of trusted certificates
-- One way authentication: Https connection where the client validates the certificate of the counter party
-- Two way authentication: Https connection where the client as well as the counter party validates the certificate, also known as mutual authentication
+  - Identity: A KeyStore which holds the key pair also known as private and public key
+  - TrustStore: A KeyStore containing one or more certificates also known as public key. This KeyStore contains a list of trusted certificates
+  - One way authentication (also known as one way tls, one way ssl): Https connection where the client validates the certificate of the counter party
+  - Two way authentication (also known as two way tls, two way ssl, mutual authentication): Https connection where the client as well as the counter party validates the certificate, also known as mutual authentication
 
 ### Tested HTTP Clients
 Below is a list of clients which have already been tested with examples, see in the [ClientConfig class](https://github.com/Hakky54/mutual-tls-ssl/blob/master/client/src/main/java/nl/altindag/client/ClientConfig.java) for detailed configuration
-  - Apache HttpClient
-  - JDK HttpClient
-  - Old JDK HttpClient
+  - [Apache HttpClient](https://github.com/apache/httpcomponents-client)
+  - [JDK HttpClient](https://openjdk.java.net/groups/net/httpclient/intro.html)
+  - [Old JDK HttpClient](https://docs.oracle.com/javase/tutorial/networking/urls/readingWriting.html)
   - Spring RestTemplate
   - Spring WebFlux WebClient Netty
   - Spring WebFlux WebClient Jetty
-  - OkHttp
-  - Jersey Client
+  - [OkHttp](https://github.com/square/okhttp)
+  - [Jersey Client](https://eclipse-ee4j.github.io/jersey/)
   - Old Jersey Client
-  - Google HttpClient
-  - Unirest
-  - Retrofit
-  - Finagle
-  - Akka Http Client
+  - [Google HttpClient](https://github.com/googleapis/google-http-java-client)
+  - [Unirest](https://github.com/Kong/unirest-java)
+  - [Retrofit](https://github.com/square/retrofit)
+  - [Twitter Finagle Http Client](https://github.com/twitter/finagle)
+  - [Akka Http Client](https://github.com/akka/akka-http)
+  - [Dispatch Reboot Http Client](https://github.com/dispatch/reboot)
+  - [Async Http Client](https://github.com/AsyncHttpClient/async-http-client)
   
-There is a github project available named [Mutual-tls-ssl](https://github.com/Hakky54/mutual-tls-ssl) which provides a tutorial an example setup for four scenarios:
+There is a github project available named [Mutual-tls-ssl](https://github.com/Hakky54/mutual-tls-ssl) which provides a tutorial containing steps for setting up these four scenarios:
  - No security
  - One way authentication
  - Two way authentication
@@ -101,21 +103,21 @@ Received the following joke: If a black cat crosses your path, you have bad luck
 ```
 ### Other possible configurations for SSLFactory
 One way authentication with custom trustStore 
-```java
+```text
 SSLFactory.builder()
           .withTrustStore(trustStore, trustStorePassword)
           .build();
 ```
 
 One way authentication while trusting all certificates without validation, not recommended to use at production!
-```java
+```text
 SSLFactory.builder()
           .withTrustingAllCertificatesWithoutValidation()
           .build();
 ```
 
 One way authentication with specific encryption protocol version and option to validate the hostname within the request against the SAN field of a certificate.
-```java
+```text
 SSLFactory.builder()
           .withTrustStore(trustStore, trustStorePassword)
           .withHostnameVerifierEnabled(true)
@@ -124,7 +126,7 @@ SSLFactory.builder()
 ```
 
 Two way authentication with custom trustStore, hostname verifier and encryption protocol version
-```java
+```text
 SSLFactory.builder()
           .withIdentity(identity, identityPassword)
           .withTrustStore(trustStore, trustStorePassword)
@@ -134,7 +136,7 @@ SSLFactory.builder()
 ```
 
 Support for using multiple identities and trustStores 
-```java
+```text
 SSLFactory.builder()
           .withIdentity(identityA, identityPasswordA)
           .withIdentity(identityB, identityPasswordB)
