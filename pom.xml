@@ -50,12 +50,12 @@
 
     <properties>
         <version.java>1.8</version.java>
-        <version.spring>2.2.4.RELEASE</version.spring>
+        <version.spring>2.2.5.RELEASE</version.spring>
         <version.apache.httpclient>4.5.11</version.apache.httpclient>
         <version.netty-handler>4.1.45.Final</version.netty-handler>
         <version.maven-surefire-plugin>2.22.2</version.maven-surefire-plugin>
         <version.commons-lang3>3.9</version.commons-lang3>
-        <version.log4j-core>2.13.0</version.log4j-core>
+        <version.log4j-core>2.13.1</version.log4j-core>
         <version.guava>28.2-jre</version.guava>
         <version.logcaptor>1.0.1</version.logcaptor>
         <version.jacoco-maven-plugin>0.8.5</version.jacoco-maven-plugin>
