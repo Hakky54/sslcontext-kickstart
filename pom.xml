@@ -52,7 +52,7 @@
         <version.java>1.8</version.java>
         <version.spring>2.2.5.RELEASE</version.spring>
         <version.apache.httpclient>4.5.11</version.apache.httpclient>
-        <version.netty-handler>4.1.45.Final</version.netty-handler>
+        <version.netty-handler>4.1.46.Final</version.netty-handler>
         <version.maven-surefire-plugin>2.22.2</version.maven-surefire-plugin>
         <version.commons-lang3>3.9</version.commons-lang3>
         <version.log4j-core>2.13.1</version.log4j-core>
