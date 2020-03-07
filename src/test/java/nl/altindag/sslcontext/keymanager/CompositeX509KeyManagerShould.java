@@ -1,7 +1,12 @@
 package nl.altindag.sslcontext.keymanager;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import nl.altindag.sslcontext.model.KeyStoreHolder;
+import nl.altindag.sslcontext.util.KeyManagerUtils;
+import nl.altindag.sslcontext.util.KeystoreUtils;
+import org.junit.Test;
 
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.X509KeyManager;
 import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -9,14 +14,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.util.Arrays;
 
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.X509KeyManager;
-
-import org.junit.Test;
-
-import nl.altindag.sslcontext.model.KeyStoreHolder;
-import nl.altindag.sslcontext.util.KeyManagerUtils;
-import nl.altindag.sslcontext.util.KeystoreUtils;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class CompositeX509KeyManagerShould {
 
@@ -224,7 +222,6 @@ public class CompositeX509KeyManagerShould {
         assertThat(alias).isEqualTo("dummy-client");
     }
 
-
     @Test
     public void returnNullWhenThereIsNoMatchOfKeyTypeForKeyManagersWhileChoosingClientAlias() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore identityOne = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
@@ -244,6 +241,5 @@ public class CompositeX509KeyManagerShould {
         assertThat(identityTwo.size()).isEqualTo(1);
         assertThat(alias).isNull();
     }
-
 
 }

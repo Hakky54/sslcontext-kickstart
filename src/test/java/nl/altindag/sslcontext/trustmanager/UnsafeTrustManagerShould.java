@@ -1,11 +1,9 @@
 package nl.altindag.sslcontext.trustmanager;
 
 import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
 import nl.altindag.log.LogCaptor;
 import nl.altindag.sslcontext.util.KeystoreUtils;
 import org.junit.Test;
-import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
@@ -30,8 +28,6 @@ public class UnsafeTrustManagerShould {
     public void checkClientTrusted() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         LogCaptor<UnsafeTrustManager> logCaptor = LogCaptor.forClass(UnsafeTrustManager.class);
 
-        configureDebugLogging(true);
-
         KeyStore trustStore = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         X509TrustManager trustManager = UnsafeTrustManager.INSTANCE;
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
@@ -51,8 +47,6 @@ public class UnsafeTrustManagerShould {
     public void checkServerTrusted() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         LogCaptor<UnsafeTrustManager> logCaptor = LogCaptor.forClass(UnsafeTrustManager.class);
 
-        configureDebugLogging(true);
-
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
         X509TrustManager trustManager = UnsafeTrustManager.INSTANCE;
@@ -70,8 +64,7 @@ public class UnsafeTrustManagerShould {
     @Test
     public void checkClientTrustedDoesNotLogAnythingWhenDebugLevelIsDisabled() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         LogCaptor<UnsafeTrustManager> logCaptor = LogCaptor.forClass(UnsafeTrustManager.class);
-
-        configureDebugLogging(false);
+        logCaptor.setLogLevel(Level.INFO);
 
         KeyStore trustStore = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         X509TrustManager trustManager = UnsafeTrustManager.INSTANCE;
@@ -85,13 +78,13 @@ public class UnsafeTrustManagerShould {
                 .doesNotThrowAnyException();
 
         assertThat(logCaptor.getLogs(Level.DEBUG)).isEmpty();
+        logCaptor.resetLogLevel();
     }
 
     @Test
     public void checkServerTrustedDoesNotLogAnythingWhenDebugLevelIsDisabled() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         LogCaptor<UnsafeTrustManager> logCaptor = LogCaptor.forClass(UnsafeTrustManager.class);
-
-        configureDebugLogging(false);
+        logCaptor.setLogLevel(Level.INFO);
 
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
@@ -104,15 +97,7 @@ public class UnsafeTrustManagerShould {
                 .doesNotThrowAnyException();
 
         assertThat(logCaptor.getLogs(Level.DEBUG)).isEmpty();
-    }
-
-    private void configureDebugLogging(boolean debugLoggingEnabled) {
-        Logger logger = (Logger) LoggerFactory.getLogger(UnsafeTrustManager.class.getName());
-        if (debugLoggingEnabled) {
-            logger.setLevel(Level.DEBUG);
-        } else {
-            logger.setLevel(Level.INFO);
-        }
+        logCaptor.resetLogLevel();
     }
 
 }

@@ -1,12 +1,10 @@
 package nl.altindag.sslcontext.trustmanager;
 
 import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
 import nl.altindag.log.LogCaptor;
 import nl.altindag.sslcontext.util.KeystoreUtils;
 import nl.altindag.sslcontext.util.TrustManagerUtils;
 import org.junit.Test;
-import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.X509TrustManager;
@@ -103,7 +101,7 @@ public class CompositeX509TrustManagerShould {
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
 
         LogCaptor<CompositeX509TrustManager> logCaptor = LogCaptor.forClass(CompositeX509TrustManager.class);
-        configureDebugLogging(false);
+        logCaptor.setLogLevel(Level.INFO);
 
         CompositeX509TrustManager compositeX509TrustManager = new CompositeX509TrustManager(Collections.singletonList(trustManager));
         assertThat(trustManager).isNotNull();
@@ -114,6 +112,7 @@ public class CompositeX509TrustManagerShould {
                 .doesNotThrowAnyException();
 
         assertThat(logCaptor.getLogs()).isEmpty();
+        logCaptor.resetLogLevel();
     }
 
     @Test
@@ -123,7 +122,6 @@ public class CompositeX509TrustManagerShould {
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
 
         LogCaptor<CompositeX509TrustManager> logCaptor = LogCaptor.forClass(CompositeX509TrustManager.class);
-        configureDebugLogging(true);
 
         CompositeX509TrustManager compositeX509TrustManager = new CompositeX509TrustManager(Collections.singletonList(trustManager));
         assertThat(trustManager).isNotNull();
@@ -144,7 +142,7 @@ public class CompositeX509TrustManagerShould {
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
         LogCaptor<CompositeX509TrustManager> logCaptor = LogCaptor.forClass(CompositeX509TrustManager.class);
-        configureDebugLogging(false);
+        logCaptor.setLogLevel(Level.INFO);
 
         CompositeX509TrustManager trustManager = CompositeX509TrustManager.builder()
                                                                           .withTrustStores(trustStore)
@@ -156,6 +154,7 @@ public class CompositeX509TrustManagerShould {
                 .doesNotThrowAnyException();
 
         assertThat(logCaptor.getLogs()).isEmpty();
+        logCaptor.resetLogLevel();
     }
 
     @Test
@@ -164,7 +163,6 @@ public class CompositeX509TrustManagerShould {
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
         LogCaptor<CompositeX509TrustManager> logCaptor = LogCaptor.forClass(CompositeX509TrustManager.class);
-        configureDebugLogging(true);
 
         CompositeX509TrustManager trustManager = CompositeX509TrustManager.builder()
                 .withTrustStores(trustStore)
@@ -230,15 +228,6 @@ public class CompositeX509TrustManagerShould {
 
         List<String> logs = logCaptor.getLogs(Level.ERROR);
         assertThat(logs).containsExactly("PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target");
-    }
-
-    private void configureDebugLogging(boolean debugLoggingEnabled) {
-        Logger logger = (Logger) LoggerFactory.getLogger(CompositeX509TrustManager.class.getName());
-        if (debugLoggingEnabled) {
-            logger.setLevel(Level.DEBUG);
-        } else {
-            logger.setLevel(Level.INFO);
-        }
     }
 
 }
