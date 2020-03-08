@@ -52,7 +52,7 @@
     <properties>
         <version.java>1.8</version.java>
         <version.spring>2.2.5.RELEASE</version.spring>
-        <version.apache.httpclient>4.5.11</version.apache.httpclient>
+        <version.apache.httpclient>4.5.12</version.apache.httpclient>
         <version.netty-handler>4.1.46.Final</version.netty-handler>
         <version.maven-surefire-plugin>2.22.2</version.maven-surefire-plugin>
         <version.commons-lang3>3.9</version.commons-lang3>
