@@ -1,5 +1,13 @@
 package nl.altindag.sslcontext.keymanager;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
+import nl.altindag.sslcontext.model.KeyStoreHolder;
+import nl.altindag.sslcontext.util.KeyManagerUtils;
+
+import javax.annotation.Nullable;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.X509KeyManager;
 import java.net.Socket;
 import java.security.KeyStore;
 import java.security.Principal;
@@ -9,22 +17,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.annotation.Nullable;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.X509KeyManager;
-
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
-
-import nl.altindag.sslcontext.model.KeyStoreHolder;
-import nl.altindag.sslcontext.util.KeyManagerUtils;
-
 /**
  * Represents an ordered list of {@link X509KeyManager X509KeyManagers} with most-preferred managers first.
  *
  * This is necessary because of the fine-print on {@link SSLContext#init}:
- *     Only the first instance of a particular key and/or trust manager implementation type in the
- *     array is used. (For example, only the first javax.net.ssl.X509KeyManager in the array will be used.)
+ * Only the first instance of a particular key and/or trust manager implementation type in the
+ * array is used. (For example, only the first javax.net.ssl.X509KeyManager in the array will be used.)
  * The TrustManager can be build from one or more of any combination provided within the {@link Builder CompositeX509KeyManager.Builder}.
  * <br><br>
  * This includes:
