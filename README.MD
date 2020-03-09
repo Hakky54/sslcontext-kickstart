@@ -117,6 +117,7 @@ SSLFactory.builder()
 ```
 
 One way authentication with specific encryption protocol version and option to validate the hostname within the request against the SAN field of a certificate.
+If you are using java 11 or newer, than you are also able to use TLSv1.3 as encryption protocol. Just provide `TLSv1.3` as protocol argument and it will work out-of-the-box.
 ```text
 SSLFactory.builder()
           .withTrustStore(trustStore, trustStorePassword)
