@@ -20,6 +20,12 @@
 # Introduction
 SSLContext Kickstart is a library which provides an easy to use Factory class for configuring a http client to communicate over SSL/TLS for one way authentication or two way authentication.
 
+### Acknowledgement
+I would like to thank [Cody A. Ray](https://github.com/codyaray) for his contribution to the community regarding loading multiple Keystores into the SSLContext. The limitation of the JDK is to only support one keystore for the KeyManagerFactory and only one keystore for the TrustManagerFactory.
+The code snippets which Cody has shared are now available within this library and can be found here: [CompositeX509KeyManager](src/main/java/nl/altindag/sslcontext/keymanager/CompositeX509KeyManager.java) and [CompositeX509TrustManager](src/main/java/nl/altindag/sslcontext/trustmanager/CompositeX509TrustManager.java) 
+
+The original article can be found here: [Codyaray - Java SSL with Multiple KeyStores](http://codyaray.com/2013/04/java-ssl-with-multiple-keystores).
+
 ### Advantages:
 - No need for low-level SSLContext configuration anymore
 - No knowledge needed about SSLContext, TrustManager, TrustManagerFactory, KeyManager, KeyManagerFactory and how to create it.
@@ -150,7 +156,6 @@ SSLFactory.builder()
           .withProtocol("TLSv1.2")
           .build();
 ```
-
 
 ## License
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FHakky54%2Fsslcontext-kickstart.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FHakky54%2Fsslcontext-kickstart?ref=badge_large)
