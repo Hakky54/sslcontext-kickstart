@@ -67,6 +67,7 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
         assertThat(sslFactory.getKeyManager()).isNull();
         assertThat(sslFactory.getKeyManagerFactory()).isNull();
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
     }
 
     @Test
@@ -91,6 +92,7 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getKeyManager()).isNull();
         assertThat(sslFactory.getKeyManagerFactory()).isNull();
         assertThat(sslFactory.getIdentities()).isEmpty();
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
 
         Files.delete(trustStorePath);
     }
@@ -117,6 +119,7 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getKeyManager()).isNull();
         assertThat(sslFactory.getKeyManagerFactory()).isNull();
         assertThat(sslFactory.getIdentities()).isEmpty();
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
     }
 
     @Test
@@ -134,6 +137,7 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getKeyManager()).isNull();
         assertThat(sslFactory.getKeyManagerFactory()).isNull();
         assertThat(sslFactory.getIdentities()).isEmpty();
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
     }
 
     @Test
@@ -156,6 +160,7 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getKeyManager()).isNull();
         assertThat(sslFactory.getKeyManagerFactory()).isNull();
         assertThat(sslFactory.getIdentities()).isEmpty();
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
     }
 
     @Test
@@ -183,6 +188,7 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getTrustManager()).isNotNull();
         assertThat(sslFactory.getTrustManagerFactory()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
     }
 
     @Test
@@ -210,6 +216,7 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getTrustManager()).isNotNull();
         assertThat(sslFactory.getTrustManagerFactory()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
     }
 
     @Test
@@ -240,6 +247,7 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getTrustManager()).isNotNull();
         assertThat(sslFactory.getTrustManagerFactory()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
 
         Files.delete(identityPath);
         Files.delete(trustStorePath);
@@ -273,6 +281,7 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getTrustManager()).isNotNull();
         assertThat(sslFactory.getTrustManagerFactory()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
     }
 
     @Test
