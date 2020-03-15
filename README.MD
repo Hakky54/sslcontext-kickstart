@@ -38,7 +38,7 @@ The original article can be found here: [Codyaray - Java SSL with Multiple KeySt
   - Two way authentication (also known as two way tls, two way ssl, mutual authentication): Https connection where the client as well as the counter party validates the certificate, also known as mutual authentication
 
 ### Tested HTTP Clients
-Below is a list of clients which have already been tested with examples, see in the [ClientConfig class](https://github.com/Hakky54/mutual-tls-ssl/blob/master/client/src/main/java/nl/altindag/client/ClientConfig.java) for detailed configuration
+Below is a list of clients which have already been tested with examples, see in the [ClientConfig class](https://github.com/Hakky54/mutual-tls-ssl/blob/master/client/src/main/java/nl/altindag/client/ClientConfig.java) and [service directory](https://github.com/Hakky54/mutual-tls-ssl/tree/master/client/src/main/java/nl/altindag/client/service) for detailed configuration
   - [Apache HttpClient](https://github.com/apache/httpcomponents-client)
   - [JDK HttpClient](https://openjdk.java.net/groups/net/httpclient/intro.html)
   - [Old JDK HttpClient](https://docs.oracle.com/javase/tutorial/networking/urls/readingWriting.html)
@@ -55,6 +55,7 @@ Below is a list of clients which have already been tested with examples, see in 
   - [Akka Http Client](https://github.com/akka/akka-http)
   - [Dispatch Reboot Http Client](https://github.com/dispatch/reboot)
   - [Async Http Client](https://github.com/AsyncHttpClient/async-http-client)
+  - [ScalaJ Http Client](https://github.com/scalaj/scalaj-http)  
   
 There is a github project available named [Mutual-tls-ssl](https://github.com/Hakky54/mutual-tls-ssl) which provides a tutorial containing steps for setting up these four scenarios:
  - No security
