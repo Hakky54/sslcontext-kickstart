@@ -80,8 +80,8 @@ public class SSLFactory {
 
     private KeyManagerFactory createKeyManagerFactory() {
         keyManager = CompositeX509KeyManager.builder()
-                                            .withIdentities(identities)
-                                            .build();
+                .withIdentities(identities)
+                .build();
         keyManagerFactory = new KeyManagerFactoryWrapper(keyManager);
         return keyManagerFactory;
     }
@@ -98,7 +98,7 @@ public class SSLFactory {
             trustManagerBuilder.withTrustManagers(TrustManagerUtils.createTrustManagerWithJdkTrustedCertificates());
         }
 
-        trustStores.forEach(trustStoreHolder -> trustManagerBuilder.withTrustStore(trustStoreHolder.getKeyStore(),TrustManagerFactory.getDefaultAlgorithm()));
+        trustStores.forEach(trustStoreHolder -> trustManagerBuilder.withTrustStore(trustStoreHolder.getKeyStore(), TrustManagerFactory.getDefaultAlgorithm()));
         trustManager = trustManagerBuilder.build();
         trustManagerFactory = new TrustManagerFactoryWrapper(trustManager);
         return trustManagerFactory;
@@ -146,8 +146,8 @@ public class SSLFactory {
 
     public X509Certificate[] getTrustedCertificates() {
         return Optional.ofNullable(trustManager)
-                       .map(X509TrustManager::getAcceptedIssuers)
-                       .orElse(new X509Certificate[]{});
+                .map(X509TrustManager::getAcceptedIssuers)
+                .orElse(new X509Certificate[]{});
     }
 
     public HostnameVerifier getHostnameVerifier() {

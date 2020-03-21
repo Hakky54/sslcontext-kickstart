@@ -19,8 +19,8 @@ public final class KeyManagerUtils {
 
     public static X509KeyManager combine(X509KeyManager... keyManagers) {
         return CompositeX509KeyManager.builder()
-                                      .withKeyManagers(keyManagers)
-                                      .build();
+                .withKeyManagers(keyManagers)
+                .build();
     }
 
     public static X509KeyManager createKeyManager(KeyStore keyStore, char[] keyStorePassword) {
@@ -33,10 +33,10 @@ public final class KeyManagerUtils {
             keyManagerFactory.init(keyStore, keyStorePassword);
 
             return Arrays.stream(keyManagerFactory.getKeyManagers())
-                         .filter(trustManager -> trustManager instanceof X509KeyManager)
-                         .map(keyManager -> (X509KeyManager) keyManager)
-                         .findFirst()
-                         .orElseThrow(() -> new GenericKeyStoreException("Could not create a KeyManager with the provided keyStore and password"));
+                    .filter(trustManager -> trustManager instanceof X509KeyManager)
+                    .map(keyManager -> (X509KeyManager) keyManager)
+                    .findFirst()
+                    .orElseThrow(() -> new GenericKeyStoreException("Could not create a KeyManager with the provided keyStore and password"));
 
         } catch (KeyStoreException | NoSuchAlgorithmException | UnrecoverableKeyException e) {
             throw new GenericSecurityException(e);
