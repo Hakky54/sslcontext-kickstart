@@ -18,7 +18,7 @@
 ```
 
 # Introduction
-SSLContext Kickstart is a library which provides an easy to use Factory class for configuring a http client to communicate over SSL/TLS for one way authentication or two way authentication.
+SSLContext Kickstart is a library which provides an easy to use [Factory class](#usage) for configuring a http client to communicate over SSL/TLS for one way authentication or two way authentication.
 
 ### Acknowledgement
 I would like to thank [Cody A. Ray](https://github.com/codyaray) for his contribution to the community regarding loading multiple Keystores into the SSLContext. The limitation of the JDK is to only support one keystore for the KeyManagerFactory and only one keystore for the TrustManagerFactory.
