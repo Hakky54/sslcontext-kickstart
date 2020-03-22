@@ -61,7 +61,7 @@ public class CompositeX509TrustManager implements X509TrustManager {
             }
         }
 
-        CertificateException certificateException = new CertificateException("None of the TrustManagers trust this client certificate chain");
+        CertificateException certificateException = new CertificateException("None of the TrustManagers trust this certificate chain");
         certificateExceptions.forEach(certificateException::addSuppressed);
 
         throw certificateException;
@@ -83,7 +83,7 @@ public class CompositeX509TrustManager implements X509TrustManager {
             }
         }
 
-        CertificateException certificateException = new CertificateException("None of the TrustManagers trust this server certificate chain");
+        CertificateException certificateException = new CertificateException("None of the TrustManagers trust this certificate chain");
         certificateExceptions.forEach(certificateException::addSuppressed);
 
         throw certificateException;

@@ -191,7 +191,7 @@ public class CompositeX509TrustManagerShould {
 
         assertThatThrownBy(() -> trustManager.checkServerTrusted(trustedCerts, "RSA"))
                 .isInstanceOf(CertificateException.class)
-                .hasMessage("None of the TrustManagers trust this server certificate chain")
+                .hasMessage("None of the TrustManagers trust this certificate chain")
                 .hasSuppressedException(new ValidatorException("PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target"));
     }
 
@@ -218,7 +218,7 @@ public class CompositeX509TrustManagerShould {
 
         assertThatThrownBy(() -> compositeX509TrustManager.checkClientTrusted(trustedCerts, "RSA"))
                 .isInstanceOf(CertificateException.class)
-                .hasMessage("None of the TrustManagers trust this client certificate chain")
+                .hasMessage("None of the TrustManagers trust this certificate chain")
                 .hasSuppressedException(new ValidatorException("PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target"));
     }
 
