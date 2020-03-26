@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static java.util.Objects.isNull;
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.ArrayUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
@@ -39,6 +40,8 @@ public class SSLFactory {
 
     private final List<KeyStoreHolder> identities = new ArrayList<>();
     private final List<KeyStoreHolder> trustStores = new ArrayList<>();
+    private final List<X509KeyManager> identityManagers = new ArrayList<>();
+    private final List<X509TrustManager> trustManagers = new ArrayList<>();
 
     private boolean securityEnabled;
     private boolean oneWayAuthenticationEnabled;
@@ -80,6 +83,7 @@ public class SSLFactory {
 
     private KeyManagerFactory createKeyManagerFactory() {
         keyManager = CompositeX509KeyManager.builder()
+                .withKeyManagers(identityManagers)
                 .withIdentities(identities)
                 .build();
         keyManagerFactory = new KeyManagerFactoryWrapper(keyManager);
@@ -87,7 +91,12 @@ public class SSLFactory {
     }
 
     private TrustManagerFactory createTrustManagerFactory() {
-        CompositeX509TrustManager.Builder trustManagerBuilder = CompositeX509TrustManager.builder();
+        CompositeX509TrustManager.Builder trustManagerBuilder = CompositeX509TrustManager.builder()
+                .withTrustManagers(trustManagers)
+                .withTrustStores(trustStores.stream()
+                        .map(KeyStoreHolder::getKeyStore)
+                        .collect(toList())
+                );
 
         if (trustingAllCertificatesWithoutValidationEnabled) {
             LOGGER.warn("UnsafeTrustManager is being used. Client/Server certificates will be accepted without validation. Please don't use this configuration at production.");
@@ -98,7 +107,6 @@ public class SSLFactory {
             trustManagerBuilder.withTrustManagers(TrustManagerUtils.createTrustManagerWithJdkTrustedCertificates());
         }
 
-        trustStores.forEach(trustStoreHolder -> trustManagerBuilder.withTrustStore(trustStoreHolder.getKeyStore(), TrustManagerFactory.getDefaultAlgorithm()));
         trustManager = trustManagerBuilder.build();
         trustManagerFactory = new TrustManagerFactoryWrapper(trustManager);
         return trustManagerFactory;
@@ -173,6 +181,8 @@ public class SSLFactory {
 
         private final List<KeyStoreHolder> identities = new ArrayList<>();
         private final List<KeyStoreHolder> trustStores = new ArrayList<>();
+        private final List<X509KeyManager> identityManagers = new ArrayList<>();
+        private final List<X509TrustManager> trustManagers = new ArrayList<>();
 
         private boolean oneWayAuthenticationEnabled;
         private boolean twoWayAuthenticationEnabled;
@@ -183,6 +193,12 @@ public class SSLFactory {
 
         public Builder withDefaultJdkTrustStore() {
             this.includeDefaultJdkTrustStore = true;
+            this.oneWayAuthenticationEnabled = true;
+            return this;
+        }
+
+        public Builder withTrustManager(X509TrustManager trustManager) {
+            trustManagers.add(trustManager);
             this.oneWayAuthenticationEnabled = true;
             return this;
         }
@@ -286,6 +302,12 @@ public class SSLFactory {
             return this;
         }
 
+        public Builder withIdentityManager(X509KeyManager keyManager) {
+            identityManagers.add(keyManager);
+            this.twoWayAuthenticationEnabled = true;
+            return this;
+        }
+
         private void validateKeyStore(KeyStore keyStore, char[] keyStorePassword, String exceptionMessage) {
             if (isNull(keyStore) || isEmpty(keyStorePassword)) {
                 throw new GenericKeyStoreException(exceptionMessage);
@@ -342,6 +364,7 @@ public class SSLFactory {
             if (oneWayAuthenticationEnabled) {
                 sslFactory.oneWayAuthenticationEnabled = true;
                 sslFactory.trustStores.addAll(trustStores);
+                sslFactory.trustManagers.addAll(trustManagers);
                 sslFactory.createSSLContextWithTrustStore();
             }
         }
@@ -351,12 +374,17 @@ public class SSLFactory {
                 sslFactory.twoWayAuthenticationEnabled = true;
                 sslFactory.identities.addAll(identities);
                 sslFactory.trustStores.addAll(trustStores);
+                sslFactory.identityManagers.addAll(identityManagers);
+                sslFactory.trustManagers.addAll(trustManagers);
                 sslFactory.createSSLContextWithKeyStoreAndTrustStore();
             }
         }
 
         private void validateTrustStore() {
-            if (trustStores.isEmpty() && !includeDefaultJdkTrustStore && !trustingAllCertificatesWithoutValidationEnabled) {
+            if (trustStores.isEmpty()
+                    && trustManagers.isEmpty()
+                    && !includeDefaultJdkTrustStore
+                    && !trustingAllCertificatesWithoutValidationEnabled) {
                 throw new GenericKeyStoreException(TRUST_STRATEGY_VALIDATION_EXCEPTION_MESSAGE);
             }
         }

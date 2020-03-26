@@ -59,6 +59,18 @@ public class CompositeX509TrustManagerShould {
     }
 
     @Test
+    public void createCompositeX509TrustManagerWithKeyStore() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        KeyStore trustStore = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+
+        CompositeX509TrustManager trustManager = CompositeX509TrustManager.builder()
+                                                                          .withTrustStore(trustStore)
+                                                                          .build();
+
+        assertThat(trustManager.getTrustManagers()).hasSize(1);
+        assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
+    }
+
+    @Test
     public void createCompositeX509TrustManagerFromKeyStoreWithBuilderPattern() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore trustStoreOne = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         KeyStore trustStoreTwo = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD);

@@ -1,29 +1,48 @@
 package nl.altindag.sslcontext.util;
 
+import nl.altindag.sslcontext.exception.GenericKeyStoreException;
+import nl.altindag.sslcontext.exception.GenericSecurityException;
+import nl.altindag.sslcontext.model.KeyStoreHolder;
+import nl.altindag.sslcontext.trustmanager.CompositeX509TrustManager;
+
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
-
-import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509TrustManager;
-
-import nl.altindag.sslcontext.exception.GenericKeyStoreException;
-import nl.altindag.sslcontext.exception.GenericSecurityException;
-import nl.altindag.sslcontext.trustmanager.CompositeX509TrustManager;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public final class TrustManagerUtils {
 
     private TrustManagerUtils() {}
 
     public static X509TrustManager combine(X509TrustManager... trustManagers) {
+        return combine(Arrays.asList(trustManagers));
+    }
+
+    public static X509TrustManager combine(List<X509TrustManager> trustManagers) {
         return CompositeX509TrustManager.builder()
-                                 .withTrustManagers(Arrays.asList(trustManagers))
-                                 .build();
+                .withTrustManagers(trustManagers)
+                .build();
     }
 
     public static X509TrustManager createTrustManagerWithJdkTrustedCertificates() {
-        return createTrustManager(null);
+        return createTrustManager((KeyStore) null);
+    }
+
+    public static X509TrustManager createTrustManager(KeyStoreHolder... trustStoreHolders) {
+        return Arrays.stream(trustStoreHolders)
+                .map(KeyStoreHolder::getKeyStore)
+                .map(TrustManagerUtils::createTrustManager)
+                .collect(Collectors.collectingAndThen(Collectors.toList(), TrustManagerUtils::combine));
+    }
+
+    public static X509TrustManager createTrustManager(KeyStore... trustStores) {
+        return Arrays.stream(trustStores)
+                .map(TrustManagerUtils::createTrustManager)
+                .collect(Collectors.collectingAndThen(Collectors.toList(), TrustManagerUtils::combine));
     }
 
     public static X509TrustManager createTrustManager(KeyStore trustStore) {

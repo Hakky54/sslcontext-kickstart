@@ -5,13 +5,17 @@ import nl.altindag.log.LogCaptor;
 import nl.altindag.sslcontext.exception.GenericKeyStoreException;
 import nl.altindag.sslcontext.exception.GenericSSLContextException;
 import nl.altindag.sslcontext.trustmanager.CompositeX509TrustManager;
+import nl.altindag.sslcontext.util.KeyManagerUtils;
 import nl.altindag.sslcontext.util.KeystoreUtils;
+import nl.altindag.sslcontext.util.TrustManagerUtils;
 import org.apache.http.conn.ssl.DefaultHostnameVerifier;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.Test;
 
+import javax.net.ssl.X509KeyManager;
+import javax.net.ssl.X509TrustManager;
 import javax.security.auth.x500.X500Principal;
 import java.io.IOException;
 import java.io.InputStream;
@@ -123,6 +127,32 @@ public class SSLFactoryShould {
     }
 
     @Test
+    public void buildSSLFactoryForOneWayAuthenticationTrustManager() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        KeyStore trustStore = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+        X509TrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withTrustManager(trustManager)
+                .build();
+
+        assertThat(sslFactory.isSecurityEnabled()).isTrue();
+        assertThat(sslFactory.isOneWayAuthenticationEnabled()).isTrue();
+        assertThat(sslFactory.isTwoWayAuthenticationEnabled()).isFalse();
+        assertThat(sslFactory.getSslContext()).isNotNull();
+
+        assertThat(sslFactory.getTrustManager()).isNotNull();
+        assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
+        assertThat(sslFactory.getTrustStores()).isEmpty();
+        assertThat(sslFactory.getTrustManagerFactory()).isNotNull();
+        assertThat(sslFactory.getHostnameVerifier()).isNotNull();
+
+        assertThat(sslFactory.getKeyManager()).isNull();
+        assertThat(sslFactory.getKeyManagerFactory()).isNull();
+        assertThat(sslFactory.getIdentities()).isEmpty();
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+    }
+
+    @Test
     public void buildSSLFactoryForOneWayAuthenticationWithOnlyJdkTrustedCertificates() {
         SSLFactory sslFactory = SSLFactory.builder()
                                           .withDefaultJdkTrustStore()
@@ -180,6 +210,36 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getKeyManagerFactory().getKeyManagers()).isNotEmpty();
         assertThat(sslFactory.getIdentities()).isNotEmpty();
         assertThat(sslFactory.getIdentities().get(0).getKeyStorePassword()).isEqualTo(IDENTITY_PASSWORD);
+
+        assertThat(sslFactory.getTrustManager()).isNotNull();
+        assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
+        assertThat(sslFactory.getTrustStores()).isNotEmpty();
+        assertThat(sslFactory.getTrustStores().get(0).getKeyStorePassword()).isEqualTo(TRUSTSTORE_PASSWORD);
+        assertThat(sslFactory.getTrustManager()).isNotNull();
+        assertThat(sslFactory.getTrustManagerFactory()).isNotNull();
+        assertThat(sslFactory.getHostnameVerifier()).isNotNull();
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+    }
+
+    @Test
+    public void buildSSLFactoryForTwoWayAuthenticationWithIdentityManager() throws Exception {
+        KeyStore identity = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        X509KeyManager identityManager = KeyManagerUtils.createKeyManager(identity, IDENTITY_PASSWORD);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityManager(identityManager)
+                .withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
+                .build();
+
+        assertThat(sslFactory.isSecurityEnabled()).isTrue();
+        assertThat(sslFactory.isOneWayAuthenticationEnabled()).isFalse();
+        assertThat(sslFactory.isTwoWayAuthenticationEnabled()).isTrue();
+        assertThat(sslFactory.getSslContext()).isNotNull();
+
+        assertThat(sslFactory.getKeyManager()).isNotNull();
+        assertThat(sslFactory.getKeyManagerFactory()).isNotNull();
+        assertThat(sslFactory.getKeyManagerFactory().getKeyManagers()).isNotEmpty();
+        assertThat(sslFactory.getIdentities()).isEmpty();
 
         assertThat(sslFactory.getTrustManager()).isNotNull();
         assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();

@@ -1,19 +1,18 @@
 package nl.altindag.sslcontext.util;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import nl.altindag.sslcontext.exception.GenericSecurityException;
+import nl.altindag.sslcontext.model.KeyStoreHolder;
+import org.junit.Test;
 
+import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 
-import javax.net.ssl.X509TrustManager;
-
-import org.junit.Test;
-
-import nl.altindag.sslcontext.exception.GenericSecurityException;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class TrustManagerUtilsShould {
 
@@ -34,6 +33,35 @@ public class TrustManagerUtilsShould {
     }
 
     @Test
+    public void combineTrustManagersWithTrustStoreHolders() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        KeyStore trustStoreOne = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+        KeyStore trustStoreTwo = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD);
+
+        KeyStoreHolder trustStoreHolderOne = new KeyStoreHolder(trustStoreOne, TRUSTSTORE_PASSWORD);
+        KeyStoreHolder trustStoreHolderTwo = new KeyStoreHolder(trustStoreTwo, TRUSTSTORE_PASSWORD);
+
+        X509TrustManager trustManager = TrustManagerUtils
+                .combine(TrustManagerUtils.createTrustManager(trustStoreHolderOne, trustStoreHolderTwo));
+
+        assertThat(trustStoreOne.size()).isEqualTo(1);
+        assertThat(trustStoreTwo.size()).isEqualTo(1);
+        assertThat(trustManager.getAcceptedIssuers()).hasSize(2);
+    }
+
+    @Test
+    public void combineTrustManagersWithKeyStores() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        KeyStore trustStoreOne = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+        KeyStore trustStoreTwo = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD);
+
+        X509TrustManager trustManager = TrustManagerUtils
+                .combine(TrustManagerUtils.createTrustManager(trustStoreOne, trustStoreTwo));
+
+        assertThat(trustStoreOne.size()).isEqualTo(1);
+        assertThat(trustStoreTwo.size()).isEqualTo(1);
+        assertThat(trustManager.getAcceptedIssuers()).hasSize(2);
+    }
+
+    @Test
     public void combineTrustManagersWhileFilteringDuplicateCertificates() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore trustStore = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         X509TrustManager trustManager = TrustManagerUtils
@@ -45,7 +73,7 @@ public class TrustManagerUtilsShould {
 
     @Test
     public void createTrustManagerWithJdkTrustedCertificatesWhenProvidingNullAsTrustStore() {
-        X509TrustManager trustManager = TrustManagerUtils.createTrustManager(null);
+        X509TrustManager trustManager = TrustManagerUtils.createTrustManager((KeyStore) null);
 
         assertThat(trustManager).isNotNull();
         assertThat(trustManager.getAcceptedIssuers()).hasSizeGreaterThan(10);

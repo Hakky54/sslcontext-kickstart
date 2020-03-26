@@ -1,21 +1,20 @@
 package nl.altindag.sslcontext.util;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import nl.altindag.sslcontext.exception.GenericSecurityException;
+import nl.altindag.sslcontext.keymanager.CompositeX509KeyManager;
+import nl.altindag.sslcontext.model.KeyStoreHolder;
+import org.junit.Test;
 
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.X509KeyManager;
 import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.X509KeyManager;
-
-import org.junit.Test;
-
-import nl.altindag.sslcontext.exception.GenericSecurityException;
-import nl.altindag.sslcontext.keymanager.CompositeX509KeyManager;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class KeyManagerUtilsShould {
 
@@ -33,13 +32,25 @@ public class KeyManagerUtilsShould {
     }
 
     @Test
+    public void createKeyManagerWithKeyStoreHolders() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        KeyStore identityOne = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore identityTwo = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
+
+        KeyStoreHolder keyStoreHolderOne = new KeyStoreHolder(identityOne, IDENTITY_PASSWORD);
+        KeyStoreHolder keyStoreHolderTwo = new KeyStoreHolder(identityTwo, IDENTITY_PASSWORD);
+
+        X509KeyManager keyManager = KeyManagerUtils.createKeyManager(keyStoreHolderOne, keyStoreHolderTwo);
+
+        assertThat(keyManager).isInstanceOf(CompositeX509KeyManager.class);
+    }
+
+    @Test
     public void throwExceptionWhenCreatingKeyManagerWithInvalidAlgorithm() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore identity = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
 
         assertThatThrownBy(() -> KeyManagerUtils.createKeyManager(identity, IDENTITY_PASSWORD, "NONE"))
                 .isInstanceOf(GenericSecurityException.class)
                 .hasMessage("java.security.NoSuchAlgorithmException: NONE KeyManagerFactory not available");
-
     }
 
     @Test
