@@ -16,13 +16,21 @@ import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import javax.net.ssl.*;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509KeyManager;
+import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -56,6 +64,7 @@ public class SSLFactory {
     private CompositeX509KeyManager keyManager;
     private KeyManagerFactory keyManagerFactory;
     private HostnameVerifier hostnameVerifier;
+    private SecureRandom secureRandom;
 
     private SSLFactory() {}
 
@@ -78,7 +87,7 @@ public class SSLFactory {
 
     private void createSSLContext(KeyManager[] keyManagers, TrustManager[] trustManagers) throws NoSuchAlgorithmException, KeyManagementException {
         sslContext = SSLContext.getInstance(protocol);
-        sslContext.init(keyManagers, trustManagers , null);
+        sslContext.init(keyManagers, trustManagers , secureRandom);
     }
 
     private KeyManagerFactory createKeyManagerFactory() {
@@ -178,6 +187,7 @@ public class SSLFactory {
 
         private String protocol = "TLSv1.2";
         private boolean hostnameVerifierEnabled = true;
+        private SecureRandom secureRandom = null;
 
         private final List<KeyStoreHolder> identities = new ArrayList<>();
         private final List<KeyStoreHolder> trustStores = new ArrayList<>();
@@ -324,6 +334,11 @@ public class SSLFactory {
             return this;
         }
 
+        public Builder withSecureRandom(SecureRandom secureRandom) {
+            this.secureRandom = secureRandom;
+            return this;
+        }
+
         public Builder withTrustingAllCertificatesWithoutValidation() {
             trustingAllCertificatesWithoutValidationEnabled = true;
             oneWayAuthenticationEnabled = true;
@@ -340,6 +355,7 @@ public class SSLFactory {
             buildHostnameVerifier(sslFactory);
             sslFactory.protocol = protocol;
             sslFactory.securityEnabled = true;
+            sslFactory.secureRandom = secureRandom;
             sslFactory.includeDefaultJdkTrustStore = includeDefaultJdkTrustStore;
             sslFactory.trustingAllCertificatesWithoutValidationEnabled = trustingAllCertificatesWithoutValidationEnabled;
 

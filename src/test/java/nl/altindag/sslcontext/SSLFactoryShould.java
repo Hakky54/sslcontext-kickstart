@@ -25,6 +25,7 @@ import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
@@ -159,6 +160,33 @@ public class SSLFactoryShould {
                                           .build();
 
         assertThat(sslFactory.isSecurityEnabled()).isTrue();
+        assertThat(sslFactory.isOneWayAuthenticationEnabled()).isTrue();
+        assertThat(sslFactory.isTwoWayAuthenticationEnabled()).isFalse();
+        assertThat(sslFactory.getSslContext()).isNotNull();
+
+        assertThat(sslFactory.getTrustManager()).isNotNull();
+        assertThat(sslFactory.getTrustStores()).isEmpty();
+        assertThat(sslFactory.getTrustManagerFactory()).isNotNull();
+        assertThat(sslFactory.getTrustedCertificates()).hasSizeGreaterThan(10);
+
+        assertThat(sslFactory.getKeyManager()).isNull();
+        assertThat(sslFactory.getKeyManagerFactory()).isNull();
+        assertThat(sslFactory.getIdentities()).isEmpty();
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+    }
+
+    @Test
+    public void buildSSLFactoryForOneWayAuthenticationWithSecureRandom() throws NoSuchAlgorithmException {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withSecureRandom(SecureRandom.getInstanceStrong())
+                .withDefaultJdkTrustStore()
+                .build();
+
+        assertThat(sslFactory.isSecurityEnabled()).isTrue();
+        assertThat(sslFactory.isOneWayAuthenticationEnabled()).isTrue();
+        assertThat(sslFactory.isTwoWayAuthenticationEnabled()).isFalse();
+        assertThat(sslFactory.getSslContext()).isNotNull();
+
         assertThat(sslFactory.getTrustManager()).isNotNull();
         assertThat(sslFactory.getTrustStores()).isEmpty();
         assertThat(sslFactory.getTrustManagerFactory()).isNotNull();
