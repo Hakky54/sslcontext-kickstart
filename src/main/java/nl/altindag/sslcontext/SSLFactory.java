@@ -302,7 +302,7 @@ public class SSLFactory {
             return this;
         }
 
-        public Builder withIdentityManager(X509KeyManager keyManager) {
+        public Builder withKeyManager(X509KeyManager keyManager) {
             identityManagers.add(keyManager);
             this.twoWayAuthenticationEnabled = true;
             return this;

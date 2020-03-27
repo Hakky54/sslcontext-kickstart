@@ -227,7 +227,7 @@ public class SSLFactoryShould {
         X509KeyManager identityManager = KeyManagerUtils.createKeyManager(identity, IDENTITY_PASSWORD);
 
         SSLFactory sslFactory = SSLFactory.builder()
-                .withIdentityManager(identityManager)
+                .withKeyManager(identityManager)
                 .withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
                 .build();
 
