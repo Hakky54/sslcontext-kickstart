@@ -9,7 +9,7 @@ import nl.altindag.sslcontext.model.KeyStoreHolder;
 import nl.altindag.sslcontext.trustmanager.CompositeX509TrustManager;
 import nl.altindag.sslcontext.trustmanager.TrustManagerFactoryWrapper;
 import nl.altindag.sslcontext.trustmanager.UnsafeTrustManager;
-import nl.altindag.sslcontext.util.KeystoreUtils;
+import nl.altindag.sslcontext.util.KeyStoreUtils;
 import nl.altindag.sslcontext.util.TrustManagerUtils;
 import org.apache.http.conn.ssl.DefaultHostnameVerifier;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
@@ -213,7 +213,7 @@ public class SSLFactory {
             }
 
             try {
-                KeyStore trustStore = KeystoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType);
+                KeyStore trustStore = KeyStoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType);
                 KeyStoreHolder trustStoreHolder = new KeyStoreHolder(trustStore, trustStorePassword);
                 trustStores.add(trustStoreHolder);
             } catch (IOException | KeyStoreException | NoSuchAlgorithmException | CertificateException e) {
@@ -234,7 +234,7 @@ public class SSLFactory {
             }
 
             try {
-                KeyStore trustStore = KeystoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType);
+                KeyStore trustStore = KeyStoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType);
                 KeyStoreHolder trustStoreHolder = new KeyStoreHolder(trustStore, trustStorePassword);
                 trustStores.add(trustStoreHolder);
             } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
@@ -264,7 +264,7 @@ public class SSLFactory {
             }
 
             try {
-                KeyStore identity = KeystoreUtils.loadKeyStore(identityPath, identityPassword, identityType);
+                KeyStore identity = KeyStoreUtils.loadKeyStore(identityPath, identityPassword, identityType);
                 KeyStoreHolder identityHolder = new KeyStoreHolder(identity, identityPassword);
                 identities.add(identityHolder);
                 this.twoWayAuthenticationEnabled = true;
@@ -284,7 +284,7 @@ public class SSLFactory {
             }
 
             try {
-                KeyStore identity = KeystoreUtils.loadKeyStore(identityPath, identityPassword, identityType);
+                KeyStore identity = KeyStoreUtils.loadKeyStore(identityPath, identityPassword, identityType);
                 KeyStoreHolder identityHolder = new KeyStoreHolder(identity, identityPassword);
                 identities.add(identityHolder);
                 this.twoWayAuthenticationEnabled = true;

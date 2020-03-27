@@ -12,16 +12,16 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 
-public final class KeystoreUtils {
+public final class KeyStoreUtils {
 
-    private KeystoreUtils() {}
+    private KeyStoreUtils() {}
 
     public static KeyStore loadKeyStore(String keystorePath, char[] keystorePassword) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException {
         return loadKeyStore(keystorePath, keystorePassword, KeyStore.getDefaultType());
     }
 
     public static KeyStore loadKeyStore(String keystorePath, char[] keystorePassword, String keystoreType) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException {
-        try(InputStream keystoreInputStream = KeystoreUtils.class.getClassLoader().getResourceAsStream(keystorePath)) {
+        try(InputStream keystoreInputStream = KeyStoreUtils.class.getClassLoader().getResourceAsStream(keystorePath)) {
             return loadKeyStore(keystoreInputStream, keystorePassword, keystoreType);
         }
     }
