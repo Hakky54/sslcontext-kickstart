@@ -1,6 +1,7 @@
 package nl.altindag.sslcontext;
 
 import ch.qos.logback.classic.Level;
+import io.netty.handler.ssl.SslContext;
 import nl.altindag.log.LogCaptor;
 import nl.altindag.sslcontext.exception.GenericKeyStoreException;
 import nl.altindag.sslcontext.exception.GenericSSLContextException;
@@ -8,6 +9,7 @@ import nl.altindag.sslcontext.trustmanager.CompositeX509TrustManager;
 import nl.altindag.sslcontext.util.KeyManagerUtils;
 import nl.altindag.sslcontext.util.KeyStoreUtils;
 import nl.altindag.sslcontext.util.TrustManagerUtils;
+import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.conn.ssl.DefaultHostnameVerifier;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.logging.log4j.LogManager;
@@ -44,7 +46,10 @@ public class SSLFactoryShould {
 
     private static final String GENERIC_IDENTITY_VALIDATION_EXCEPTION_MESSAGE = "Identity details are empty, which are required to be present when SSL/TLS is enabled";
     private static final String GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE = "TrustStore details are empty, which are required to be present when SSL/TLS is enabled";
-    private static final String GENERIC_TRUST_STRATEGY_VALIDATION_EXCEPTION_MESSAGE = "Trust strategy is missing. Please validate if the TrustStore is present, or including default JDK trustStore is enabled or trusting all certificates without validation is enabled";
+    private static final String GENERIC_TRUST_STRATEGY_VALIDATION_EXCEPTION_MESSAGE = "Trust strategy is missing. Please validate if the TrustStore is present, " +
+            "or including default JDK TrustStore is enabled, " +
+            "or TrustManager is present, " +
+            "or trusting all certificates without validation is enabled";
 
     private static final String IDENTITY_FILE_NAME = "identity.jks";
     private static final String TRUSTSTORE_FILE_NAME = "truststore.jks";
@@ -73,6 +78,7 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getKeyManager()).isNull();
         assertThat(sslFactory.getKeyManagerFactory()).isNull();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+        assertThat(sslFactory.getLayeredConnectionSocketFactory()).isNotNull();
     }
 
     @Test
@@ -98,6 +104,7 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getKeyManagerFactory()).isNull();
         assertThat(sslFactory.getIdentities()).isEmpty();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+        assertThat(sslFactory.getLayeredConnectionSocketFactory()).isNotNull();
 
         Files.delete(trustStorePath);
     }
@@ -125,6 +132,7 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getKeyManagerFactory()).isNull();
         assertThat(sslFactory.getIdentities()).isEmpty();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+        assertThat(sslFactory.getLayeredConnectionSocketFactory()).isNotNull();
     }
 
     @Test
@@ -151,6 +159,7 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getKeyManagerFactory()).isNull();
         assertThat(sslFactory.getIdentities()).isEmpty();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+        assertThat(sslFactory.getLayeredConnectionSocketFactory()).isNotNull();
     }
 
     @Test
@@ -173,6 +182,7 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getKeyManagerFactory()).isNull();
         assertThat(sslFactory.getIdentities()).isEmpty();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+        assertThat(sslFactory.getLayeredConnectionSocketFactory()).isNotNull();
     }
 
     @Test
@@ -196,6 +206,7 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getKeyManagerFactory()).isNull();
         assertThat(sslFactory.getIdentities()).isEmpty();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+        assertThat(sslFactory.getLayeredConnectionSocketFactory()).isNotNull();
     }
 
     @Test
@@ -219,6 +230,7 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getKeyManagerFactory()).isNull();
         assertThat(sslFactory.getIdentities()).isEmpty();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+        assertThat(sslFactory.getLayeredConnectionSocketFactory()).isNotNull();
     }
 
     @Test
@@ -247,6 +259,7 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getTrustManagerFactory()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+        assertThat(sslFactory.getLayeredConnectionSocketFactory()).isNotNull();
     }
 
     @Test
@@ -277,6 +290,7 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getTrustManagerFactory()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+        assertThat(sslFactory.getLayeredConnectionSocketFactory()).isNotNull();
     }
 
     @Test
@@ -305,6 +319,7 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getTrustManagerFactory()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+        assertThat(sslFactory.getLayeredConnectionSocketFactory()).isNotNull();
     }
 
     @Test
@@ -336,6 +351,7 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getTrustManagerFactory()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+        assertThat(sslFactory.getLayeredConnectionSocketFactory()).isNotNull();
 
         Files.delete(identityPath);
         Files.delete(trustStorePath);
@@ -370,6 +386,126 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getTrustManagerFactory()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+        assertThat(sslFactory.getLayeredConnectionSocketFactory()).isNotNull();
+    }
+
+    @Test
+    public void createNettySslContextBuilderForClientForOneWayAuthentication() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withTrustStore(trustStore, TRUSTSTORE_PASSWORD)
+                .build();
+
+        assertThat(sslFactory.isSecurityEnabled()).isTrue();
+        assertThat(sslFactory.isOneWayAuthenticationEnabled()).isTrue();
+        assertThat(sslFactory.isTwoWayAuthenticationEnabled()).isFalse();
+        assertThat(sslFactory.getSslContext()).isNotNull();
+
+        assertThat(sslFactory.getKeyManager()).isNull();
+        assertThat(sslFactory.getKeyManagerFactory()).isNull();
+        assertThat(sslFactory.getIdentities()).isEmpty();
+
+        assertThat(sslFactory.getTrustManager()).isNotNull();
+        assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
+        assertThat(sslFactory.getTrustStores()).isNotEmpty();
+        assertThat(sslFactory.getTrustStores().get(0).getKeyStorePassword()).isEqualTo(TRUSTSTORE_PASSWORD);
+        assertThat(sslFactory.getTrustManager()).isNotNull();
+        assertThat(sslFactory.getTrustManagerFactory()).isNotNull();
+        assertThat(sslFactory.getHostnameVerifier()).isNotNull();
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+        assertThat(sslFactory.getLayeredConnectionSocketFactory()).isNotNull();
+
+        SslContext sslContext = sslFactory.toNettySslContextBuilderForClient().build();
+        assertThat(sslContext.isClient()).isTrue();
+        assertThat(sslContext.isServer()).isFalse();
+        assertThat(sslContext.cipherSuites()).containsExactlyInAnyOrder(sslFactory.getSslContext().getDefaultSSLParameters().getCipherSuites());
+    }
+
+    @Test
+    public void createNettySslContextBuilderForClientForTwoWayAuthentication() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
+        KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentity(identity, IDENTITY_PASSWORD)
+                .withTrustStore(trustStore, TRUSTSTORE_PASSWORD)
+                .build();
+
+        assertThat(sslFactory.isSecurityEnabled()).isTrue();
+        assertThat(sslFactory.isOneWayAuthenticationEnabled()).isFalse();
+        assertThat(sslFactory.isTwoWayAuthenticationEnabled()).isTrue();
+        assertThat(sslFactory.getSslContext()).isNotNull();
+
+        assertThat(sslFactory.getKeyManager()).isNotNull();
+        assertThat(sslFactory.getKeyManagerFactory()).isNotNull();
+        assertThat(sslFactory.getKeyManagerFactory().getKeyManagers()).isNotEmpty();
+        assertThat(sslFactory.getIdentities()).isNotEmpty();
+        assertThat(sslFactory.getIdentities().get(0).getKeyStorePassword()).isEqualTo(IDENTITY_PASSWORD);
+
+        assertThat(sslFactory.getTrustManager()).isNotNull();
+        assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
+        assertThat(sslFactory.getTrustStores()).isNotEmpty();
+        assertThat(sslFactory.getTrustStores().get(0).getKeyStorePassword()).isEqualTo(TRUSTSTORE_PASSWORD);
+        assertThat(sslFactory.getTrustManager()).isNotNull();
+        assertThat(sslFactory.getTrustManagerFactory()).isNotNull();
+        assertThat(sslFactory.getHostnameVerifier()).isNotNull();
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+        assertThat(sslFactory.getLayeredConnectionSocketFactory()).isNotNull();
+
+        SslContext sslContext = sslFactory.toNettySslContextBuilderForClient().build();
+        assertThat(sslContext.isClient()).isTrue();
+        assertThat(sslContext.isServer()).isFalse();
+        assertThat(sslContext.cipherSuites()).containsExactlyInAnyOrder(sslFactory.getSslContext().getDefaultSSLParameters().getCipherSuites());
+    }
+
+    @Test
+    public void createNettySslContextBuilderForServerForTwoWayAuthentication() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
+        KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentity(identity, IDENTITY_PASSWORD)
+                .withTrustStore(trustStore, TRUSTSTORE_PASSWORD)
+                .build();
+
+        assertThat(sslFactory.isSecurityEnabled()).isTrue();
+        assertThat(sslFactory.isOneWayAuthenticationEnabled()).isFalse();
+        assertThat(sslFactory.isTwoWayAuthenticationEnabled()).isTrue();
+        assertThat(sslFactory.getSslContext()).isNotNull();
+
+        assertThat(sslFactory.getKeyManager()).isNotNull();
+        assertThat(sslFactory.getKeyManagerFactory()).isNotNull();
+        assertThat(sslFactory.getKeyManagerFactory().getKeyManagers()).isNotEmpty();
+        assertThat(sslFactory.getIdentities()).isNotEmpty();
+        assertThat(sslFactory.getIdentities().get(0).getKeyStorePassword()).isEqualTo(IDENTITY_PASSWORD);
+
+        assertThat(sslFactory.getTrustManager()).isNotNull();
+        assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
+        assertThat(sslFactory.getTrustStores()).isNotEmpty();
+        assertThat(sslFactory.getTrustStores().get(0).getKeyStorePassword()).isEqualTo(TRUSTSTORE_PASSWORD);
+        assertThat(sslFactory.getTrustManager()).isNotNull();
+        assertThat(sslFactory.getTrustManagerFactory()).isNotNull();
+        assertThat(sslFactory.getHostnameVerifier()).isNotNull();
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+        assertThat(sslFactory.getLayeredConnectionSocketFactory()).isNotNull();
+
+        SslContext sslContext = sslFactory.toNettySslContextBuilderForServer().build();
+        assertThat(sslContext.isClient()).isFalse();
+        assertThat(sslContext.isServer()).isTrue();
+        assertThat(sslContext.cipherSuites()).containsExactlyInAnyOrder(sslFactory.getSslContext().getDefaultSSLParameters().getCipherSuites());
+    }
+
+    @Test
+    public void buildSSLFactoryReturnsSameInstanceOfLayeredConnectionSocketFactoryWhenRequestingMoreThanOnce() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withDefaultJdkTrustStore()
+                .build();
+
+        LayeredConnectionSocketFactory socketFactoryOne = sslFactory.getLayeredConnectionSocketFactory();
+        LayeredConnectionSocketFactory socketFactoryTwo = sslFactory.getLayeredConnectionSocketFactory();
+
+        assertThat(socketFactoryOne).isEqualTo(socketFactoryTwo);
     }
 
     @Test
@@ -669,6 +805,41 @@ public class SSLFactoryShould {
                                            .build())
                 .isInstanceOf(GenericSSLContextException.class)
                 .hasMessage("java.security.NoSuchAlgorithmException: ENCRYPTIONv1.1 SSLContext not available");
+    }
+
+    @Test
+    public void throwExceptionWhenCreatingNettySslContextBuilderForClientWithoutTrustStore() {
+        assertThatThrownBy(() -> SSLFactory.builder()
+                .build()
+                .toNettySslContextBuilderForClient())
+                .isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    public void throwExceptionWhenCreatingNettySslContextBuilderForServerWithoutIdentityAndWithoutTrustStore() {
+        assertThatThrownBy(() -> SSLFactory.builder()
+                .build()
+                .toNettySslContextBuilderForServer())
+                .isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    public void throwExceptionWhenCreatingNettySslContextBuilderForServerWithoutIdentity() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+
+        assertThatThrownBy(() -> SSLFactory.builder()
+                .withTrustStore(trustStore, TRUSTSTORE_PASSWORD)
+                .build()
+                .toNettySslContextBuilderForServer())
+                .isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    public void throwExceptionWhenSecurityIsNotEnabledWhileGetingLayeredConnectionSocketFactory() {
+        assertThatThrownBy(() -> SSLFactory.builder()
+                .build()
+                .getLayeredConnectionSocketFactory())
+                .isInstanceOf(NullPointerException.class);
     }
 
     @SuppressWarnings("SameParameterValue")

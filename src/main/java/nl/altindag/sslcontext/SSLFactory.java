@@ -1,6 +1,7 @@
 package nl.altindag.sslcontext;
 
 import com.google.common.collect.ImmutableList;
+import io.netty.handler.ssl.SslContextBuilder;
 import nl.altindag.sslcontext.exception.GenericKeyStoreException;
 import nl.altindag.sslcontext.exception.GenericSSLContextException;
 import nl.altindag.sslcontext.keymanager.CompositeX509KeyManager;
@@ -10,9 +11,12 @@ import nl.altindag.sslcontext.trustmanager.CompositeX509TrustManager;
 import nl.altindag.sslcontext.trustmanager.TrustManagerFactoryWrapper;
 import nl.altindag.sslcontext.trustmanager.UnsafeTrustManager;
 import nl.altindag.sslcontext.util.KeyStoreUtils;
+import nl.altindag.sslcontext.util.NettySslContextUtils;
 import nl.altindag.sslcontext.util.TrustManagerUtils;
+import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.conn.ssl.DefaultHostnameVerifier;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -34,7 +38,10 @@ import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import static java.util.Objects.isNull;
@@ -66,6 +73,9 @@ public class SSLFactory {
     private HostnameVerifier hostnameVerifier;
     private SecureRandom secureRandom;
 
+    private Map<String, SslContextBuilder> nettySslContextBuilders = new HashMap<>();
+    private SSLConnectionSocketFactory sslConnectionSocketFactory;
+
     private SSLFactory() {}
 
     private void createSSLContextWithTrustStore() {
@@ -87,7 +97,7 @@ public class SSLFactory {
 
     private void createSSLContext(KeyManager[] keyManagers, TrustManager[] trustManagers) throws NoSuchAlgorithmException, KeyManagementException {
         sslContext = SSLContext.getInstance(protocol);
-        sslContext.init(keyManagers, trustManagers , secureRandom);
+        sslContext.init(keyManagers, trustManagers, secureRandom);
     }
 
     private KeyManagerFactory createKeyManagerFactory() {
@@ -171,6 +181,26 @@ public class SSLFactory {
         return hostnameVerifier;
     }
 
+    public SslContextBuilder toNettySslContextBuilderForClient() {
+        return nettySslContextBuilders.computeIfAbsent("client", key -> NettySslContextUtils.forClient(this));
+    }
+
+    public SslContextBuilder toNettySslContextBuilderForServer() {
+        return nettySslContextBuilders.computeIfAbsent("server", key -> NettySslContextUtils.forServer(this));
+    }
+
+    public LayeredConnectionSocketFactory getLayeredConnectionSocketFactory() {
+        if (isNull(sslConnectionSocketFactory)) {
+            sslConnectionSocketFactory = new SSLConnectionSocketFactory(
+                    Objects.requireNonNull(sslContext),
+                    sslContext.getSupportedSSLParameters().getProtocols(),
+                    sslContext.getDefaultSSLParameters().getCipherSuites(),
+                    hostnameVerifier
+            );
+        }
+        return sslConnectionSocketFactory;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -179,8 +209,9 @@ public class SSLFactory {
 
         private static final String TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE = "TrustStore details are empty, which are required to be present when SSL/TLS is enabled";
         private static final String TRUST_STRATEGY_VALIDATION_EXCEPTION_MESSAGE = "Trust strategy is missing. Please validate if the TrustStore is present, "
-                + "or including default JDK trustStore is enabled or "
-                + "trusting all certificates without validation is enabled";
+                + "or including default JDK TrustStore is enabled, "
+                + "or TrustManager is present, "
+                + "or trusting all certificates without validation is enabled";
 
         private static final String IDENTITY_VALIDATION_EXCEPTION_MESSAGE = "Identity details are empty, which are required to be present when SSL/TLS is enabled";
         private static final String KEY_STORE_LOADING_EXCEPTION = "Failed to load the keystore";
