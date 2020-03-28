@@ -126,10 +126,15 @@ public class CompositeX509TrustManager implements X509TrustManager {
             return withTrustStores(Arrays.asList(trustStores));
         }
 
-        public Builder withTrustStores(List<? extends KeyStore>trustStores) {
+        public Builder withTrustStores(List<? extends KeyStore> trustStores) {
             for (KeyStore trustStore : trustStores) {
                 this.trustManagers.add(TrustManagerUtils.createTrustManager(trustStore));
             }
+            return this;
+        }
+
+        public <T extends KeyStore> Builder withTrustStore(T trustStore) {
+            this.trustManagers.add(TrustManagerUtils.createTrustManager(trustStore));
             return this;
         }
 

@@ -16,7 +16,7 @@ import java.security.cert.CertificateException;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 
-public class KeystoreUtilsShould {
+public class KeyStoreUtilsShould {
 
     private static final String KEYSTORE_FILE_NAME = "identity.jks";
     private static final String JCEKS_KEYSTORE_FILE_NAME = "identity.jceks";
@@ -28,13 +28,13 @@ public class KeystoreUtilsShould {
 
     @Test
     public void loadKeyStoreFromClasspath() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        KeyStore keyStore = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD.toCharArray());
+        KeyStore keyStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD.toCharArray());
         assertThat(keyStore).isNotNull();
     }
 
     @Test
     public void loadJCEKSKeyStoreFromClasspath() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        KeyStore keyStore = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + JCEKS_KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD.toCharArray(), "JCEKS");
+        KeyStore keyStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + JCEKS_KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD.toCharArray(), "JCEKS");
         assertThat(keyStore).isNotNull();
     }
 
@@ -42,7 +42,7 @@ public class KeystoreUtilsShould {
     public void loadKeyStoreWithPathFromDirectory() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         Path keystorePath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, KEYSTORE_FILE_NAME);
 
-        KeyStore keyStore = KeystoreUtils.loadKeyStore(keystorePath, KEYSTORE_PASSWORD.toCharArray());
+        KeyStore keyStore = KeyStoreUtils.loadKeyStore(keystorePath, KEYSTORE_PASSWORD.toCharArray());
         assertThat(keyStore).isNotNull();
 
         Files.delete(keystorePath);
@@ -50,7 +50,7 @@ public class KeystoreUtilsShould {
 
     @Test
     public void throwExceptionWhenLoadingNonExistingKeystore() {
-        Assertions.assertThatThrownBy(() -> KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + NON_EXISTING_KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD.toCharArray()))
+        Assertions.assertThatThrownBy(() -> KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + NON_EXISTING_KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD.toCharArray()))
                   .isInstanceOf(IOException.class)
                   .hasMessage("Could not find the keystore file");
     }

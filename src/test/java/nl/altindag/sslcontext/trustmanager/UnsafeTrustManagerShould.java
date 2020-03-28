@@ -2,7 +2,7 @@ package nl.altindag.sslcontext.trustmanager;
 
 import ch.qos.logback.classic.Level;
 import nl.altindag.log.LogCaptor;
-import nl.altindag.sslcontext.util.KeystoreUtils;
+import nl.altindag.sslcontext.util.KeyStoreUtils;
 import org.junit.Test;
 
 import javax.net.ssl.X509TrustManager;
@@ -28,7 +28,7 @@ public class UnsafeTrustManagerShould {
     public void checkClientTrusted() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         LogCaptor<UnsafeTrustManager> logCaptor = LogCaptor.forClass(UnsafeTrustManager.class);
 
-        KeyStore trustStore = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         X509TrustManager trustManager = UnsafeTrustManager.INSTANCE;
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
 
@@ -47,7 +47,7 @@ public class UnsafeTrustManagerShould {
     public void checkServerTrusted() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         LogCaptor<UnsafeTrustManager> logCaptor = LogCaptor.forClass(UnsafeTrustManager.class);
 
-        X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
+        X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
         X509TrustManager trustManager = UnsafeTrustManager.INSTANCE;
 
@@ -66,7 +66,7 @@ public class UnsafeTrustManagerShould {
         LogCaptor<UnsafeTrustManager> logCaptor = LogCaptor.forClass(UnsafeTrustManager.class);
         logCaptor.setLogLevel(Level.INFO);
 
-        KeyStore trustStore = KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         X509TrustManager trustManager = UnsafeTrustManager.INSTANCE;
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
 
@@ -86,7 +86,7 @@ public class UnsafeTrustManagerShould {
         LogCaptor<UnsafeTrustManager> logCaptor = LogCaptor.forClass(UnsafeTrustManager.class);
         logCaptor.setLogLevel(Level.INFO);
 
-        X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeystoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
+        X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
         X509TrustManager trustManager = UnsafeTrustManager.INSTANCE;
 
