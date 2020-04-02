@@ -13,7 +13,7 @@
 <dependency>
     <groupId>io.github.hakky54</groupId>
     <artifactId>sslcontext-kickstart</artifactId>
-    <version>3.0.3</version>
+    <version>3.0.4</version>
 </dependency>
 ```
 
