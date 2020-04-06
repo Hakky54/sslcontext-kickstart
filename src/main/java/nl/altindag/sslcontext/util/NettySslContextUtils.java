@@ -11,6 +11,15 @@ public final class NettySslContextUtils {
 
     private NettySslContextUtils() {}
 
+    /**
+     * Creates a basic {@link SslContextBuilder Client SslContextBuilder}
+     * with the available properties from {@link SSLFactory}.
+     *
+     * The returned object can be enriched with additional configuration for your needs
+     *
+     * @param sslFactory {@link SSLFactory}
+     * @return {@link SslContextBuilder}
+     */
     public static SslContextBuilder forClient(SSLFactory sslFactory) {
         Objects.requireNonNull(sslFactory.getSslContext());
 
@@ -29,6 +38,15 @@ public final class NettySslContextUtils {
         return sslContextBuilder;
     }
 
+    /**
+     * Creates a basic {@link SslContextBuilder Server SslContextBuilder}
+     * with the available properties from {@link SSLFactory}.
+     *
+     * The returned object can be enriched with additional configuration for your needs
+     *
+     * @param sslFactory {@link SSLFactory}
+     * @return {@link SslContextBuilder}
+     */
     public static SslContextBuilder forServer(SSLFactory sslFactory) {
         Objects.requireNonNull(sslFactory.getSslContext());
         Objects.requireNonNull(sslFactory.getKeyManagerFactory());

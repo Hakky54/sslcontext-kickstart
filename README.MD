@@ -13,7 +13,7 @@
 <dependency>
     <groupId>io.github.hakky54</groupId>
     <artifactId>sslcontext-kickstart</artifactId>
-    <version>3.0.4</version>
+    <version>3.0.5</version>
 </dependency>
 ```
 
@@ -156,6 +156,18 @@ SSLFactory.builder()
           .withHostnameVerifierEnabled(true)
           .withProtocol("TLSv1.2")
           .build();
+```
+
+Convert SSLFactory instance to Netty SslContextBuilder or Jetty SslContextFactory
+```
+SSLFactory sslFactory = SSLFactory.builder()
+        .withTrustStore(trustStore, trustStorePassword)
+        .withHostnameVerifierEnabled(true)
+        .withProtocol("TLSv1.2")
+        .build();
+
+SslContextBuilder sslContextBuilder = NettySslContextUtils.forClient(sslFactory);
+SslContextFactory.Client sslContextFactory = JettySslContextUtils.forClient(sslFactory);
 ```
 
 ## License

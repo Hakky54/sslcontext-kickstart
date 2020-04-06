@@ -1,7 +1,6 @@
 package nl.altindag.sslcontext;
 
 import com.google.common.collect.ImmutableList;
-import io.netty.handler.ssl.SslContextBuilder;
 import nl.altindag.sslcontext.exception.GenericKeyStoreException;
 import nl.altindag.sslcontext.exception.GenericSSLContextException;
 import nl.altindag.sslcontext.keymanager.CompositeX509KeyManager;
@@ -11,7 +10,6 @@ import nl.altindag.sslcontext.trustmanager.CompositeX509TrustManager;
 import nl.altindag.sslcontext.trustmanager.TrustManagerFactoryWrapper;
 import nl.altindag.sslcontext.trustmanager.UnsafeTrustManager;
 import nl.altindag.sslcontext.util.KeyStoreUtils;
-import nl.altindag.sslcontext.util.NettySslContextUtils;
 import nl.altindag.sslcontext.util.TrustManagerUtils;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.conn.ssl.DefaultHostnameVerifier;
@@ -38,9 +36,7 @@ import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -73,7 +69,6 @@ public class SSLFactory {
     private HostnameVerifier hostnameVerifier;
     private SecureRandom secureRandom;
 
-    private Map<String, SslContextBuilder> nettySslContextBuilders = new HashMap<>();
     private SSLConnectionSocketFactory sslConnectionSocketFactory;
 
     private SSLFactory() {}
@@ -179,14 +174,6 @@ public class SSLFactory {
 
     public HostnameVerifier getHostnameVerifier() {
         return hostnameVerifier;
-    }
-
-    public SslContextBuilder toNettySslContextBuilderForClient() {
-        return nettySslContextBuilders.computeIfAbsent("client", key -> NettySslContextUtils.forClient(this));
-    }
-
-    public SslContextBuilder toNettySslContextBuilderForServer() {
-        return nettySslContextBuilders.computeIfAbsent("server", key -> NettySslContextUtils.forServer(this));
     }
 
     public LayeredConnectionSocketFactory getLayeredConnectionSocketFactory() {
