@@ -229,6 +229,7 @@
                         <artifactId>maven-gpg-plugin</artifactId>
                         <version>${version.maven-gpg-plugin}</version>
                         <configuration>
+                            <executable>gpg</executable>
                             <keyname>${gpg.keyname}</keyname>
                             <passphraseServerId>${gpg.keyname}</passphraseServerId>
                         </configuration>
