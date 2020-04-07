@@ -54,6 +54,7 @@
         <version.netty-handler>4.1.48.Final</version.netty-handler>
         <version.commons-lang3>3.10</version.commons-lang3>
         <version.log4j-core>2.13.1</version.log4j-core>
+        <version.logback-classic>1.2.3</version.logback-classic>
         <version.junit>4.13</version.junit>
         <version.assertj-core>3.15.0</version.assertj-core>
         <version.logcaptor>1.1.0</version.logcaptor>
@@ -88,7 +89,11 @@
             <artifactId>log4j-core</artifactId>
             <version>${version.log4j-core}</version>
         </dependency>
-
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${version.logback-classic}</version>
+        </dependency>
 
         <!--    libraries used for testing    -->
         <dependency>
