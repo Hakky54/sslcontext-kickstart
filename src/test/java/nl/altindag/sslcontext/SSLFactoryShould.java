@@ -44,7 +44,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
 
-@SuppressWarnings({ "squid:S1192", "squid:S2068"})
+@SuppressWarnings({"squid:S1192", "squid:S2068"})
 public class SSLFactoryShould {
 
     private static final Logger LOGGER = LogManager.getLogger(SSLFactoryShould.class);
@@ -59,8 +59,8 @@ public class SSLFactoryShould {
     @Test
     public void buildSSLFactoryForOneWayAuthentication() {
         SSLFactory sslFactory = SSLFactory.builder()
-                                          .withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
-                                          .build();
+                .withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
+                .build();
 
         assertThat(sslFactory.isSecurityEnabled()).isTrue();
         assertThat(sslFactory.isOneWayAuthenticationEnabled()).isTrue();
@@ -82,8 +82,8 @@ public class SSLFactoryShould {
         Path trustStorePath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
 
         SSLFactory sslFactory = SSLFactory.builder()
-                                          .withTrustStore(trustStorePath, TRUSTSTORE_PASSWORD)
-                                          .build();
+                .withTrustStore(trustStorePath, TRUSTSTORE_PASSWORD)
+                .build();
 
         assertThat(sslFactory.isSecurityEnabled()).isTrue();
         assertThat(sslFactory.isOneWayAuthenticationEnabled()).isTrue();
@@ -109,8 +109,8 @@ public class SSLFactoryShould {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 
         SSLFactory sslFactory = SSLFactory.builder()
-                                          .withTrustStore(trustStore, TRUSTSTORE_PASSWORD)
-                                          .build();
+                .withTrustStore(trustStore, TRUSTSTORE_PASSWORD)
+                .build();
 
         assertThat(sslFactory.isSecurityEnabled()).isTrue();
         assertThat(sslFactory.isOneWayAuthenticationEnabled()).isTrue();
@@ -158,8 +158,8 @@ public class SSLFactoryShould {
     @Test
     public void buildSSLFactoryForOneWayAuthenticationWithOnlyJdkTrustedCertificates() {
         SSLFactory sslFactory = SSLFactory.builder()
-                                          .withDefaultJdkTrustStore()
-                                          .build();
+                .withDefaultJdkTrustStore()
+                .build();
 
         assertThat(sslFactory.isSecurityEnabled()).isTrue();
         assertThat(sslFactory.isOneWayAuthenticationEnabled()).isTrue();
@@ -203,9 +203,9 @@ public class SSLFactoryShould {
     @Test
     public void buildSSLFactoryForOneWayAuthenticationWithJdkTrustedCertificatesAndCustomTrustStore() {
         SSLFactory sslFactory = SSLFactory.builder()
-                                          .withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
-                                          .withDefaultJdkTrustStore()
-                                          .build();
+                .withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
+                .withDefaultJdkTrustStore()
+                .build();
 
         assertThat(sslFactory.isSecurityEnabled()).isTrue();
         assertThat(sslFactory.getTrustManager()).isNotNull();
@@ -214,8 +214,8 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getTrustedCertificates()).hasSizeGreaterThan(10);
         assertThat(sslFactory.getTrustManagerFactory()).isNotNull();
         assertThat(Arrays.stream(sslFactory.getTrustedCertificates())
-                         .map(X509Certificate::getSubjectX500Principal)
-                         .map(X500Principal::toString)).contains("CN=*.google.com, O=Google LLC, L=Mountain View, ST=California, C=US");
+                .map(X509Certificate::getSubjectX500Principal)
+                .map(X500Principal::toString)).contains("CN=*.google.com, O=Google LLC, L=Mountain View, ST=California, C=US");
 
         assertThat(sslFactory.getKeyManager()).isNull();
         assertThat(sslFactory.getKeyManagerFactory()).isNull();
@@ -226,9 +226,9 @@ public class SSLFactoryShould {
     @Test
     public void buildSSLFactoryForTwoWayAuthentication() {
         SSLFactory sslFactory = SSLFactory.builder()
-                                          .withIdentity(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD)
-                                          .withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
-                                          .build();
+                .withIdentity(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD)
+                .withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
+                .build();
 
         assertThat(sslFactory.isSecurityEnabled()).isTrue();
         assertThat(sslFactory.isOneWayAuthenticationEnabled()).isFalse();
@@ -285,9 +285,9 @@ public class SSLFactoryShould {
     public void buildSSLFactoryForTwoWayAuthenticationWithOnlyJdkTrustedCertificates() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         SSLFactory sslFactory = SSLFactory.builder()
-                                          .withIdentity(identity, IDENTITY_PASSWORD)
-                                          .withDefaultJdkTrustStore()
-                                          .build();
+                .withIdentity(identity, IDENTITY_PASSWORD)
+                .withDefaultJdkTrustStore()
+                .build();
 
         assertThat(sslFactory.isSecurityEnabled()).isTrue();
         assertThat(sslFactory.isOneWayAuthenticationEnabled()).isFalse();
@@ -315,9 +315,9 @@ public class SSLFactoryShould {
         Path trustStorePath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
 
         SSLFactory sslFactory = SSLFactory.builder()
-                                          .withIdentity(identityPath, IDENTITY_PASSWORD)
-                                          .withTrustStore(trustStorePath, TRUSTSTORE_PASSWORD)
-                                          .build();
+                .withIdentity(identityPath, IDENTITY_PASSWORD)
+                .withTrustStore(trustStorePath, TRUSTSTORE_PASSWORD)
+                .build();
 
         assertThat(sslFactory.isSecurityEnabled()).isTrue();
         assertThat(sslFactory.isOneWayAuthenticationEnabled()).isFalse();
@@ -349,9 +349,9 @@ public class SSLFactoryShould {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 
         SSLFactory sslFactory = SSLFactory.builder()
-                                          .withIdentity(identity, IDENTITY_PASSWORD)
-                                          .withTrustStore(trustStore, TRUSTSTORE_PASSWORD)
-                                          .build();
+                .withIdentity(identity, IDENTITY_PASSWORD)
+                .withTrustStore(trustStore, TRUSTSTORE_PASSWORD)
+                .build();
 
         assertThat(sslFactory.isSecurityEnabled()).isTrue();
         assertThat(sslFactory.isOneWayAuthenticationEnabled()).isFalse();
@@ -402,9 +402,9 @@ public class SSLFactoryShould {
     @Test
     public void buildSSLFactoryWithTlsProtocolVersionOneDotOne() {
         SSLFactory sslFactory = SSLFactory.builder()
-                                          .withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
-                                          .withProtocol("TLSv1.1")
-                                          .build();
+                .withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
+                .withProtocol("TLSv1.1")
+                .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.1");
@@ -415,8 +415,8 @@ public class SSLFactoryShould {
         LogCaptor<SSLFactory> logCaptor = LogCaptor.forClass(SSLFactory.class);
 
         SSLFactory sslFactory = SSLFactory.builder()
-                                          .withTrustingAllCertificatesWithoutValidation()
-                                          .build();
+                .withTrustingAllCertificatesWithoutValidation()
+                .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
         assertThat(sslFactory.getTrustedCertificates()).isEmpty();
@@ -429,7 +429,7 @@ public class SSLFactoryShould {
     @Test
     public void buildSSLFactoryWithSecurityDisabled() {
         SSLFactory sslFactory = SSLFactory.builder()
-                                          .build();
+                .build();
 
         assertThat(sslFactory.isSecurityEnabled()).isFalse();
         assertThat(sslFactory.isOneWayAuthenticationEnabled()).isFalse();
@@ -466,9 +466,9 @@ public class SSLFactoryShould {
 
         LOGGER.info("Found java version {}, including testing SSLFactory with TLSv1.3 protocol", javaMajorVersion);
         SSLFactory sslFactory = SSLFactory.builder()
-                                          .withDefaultJdkTrustStore()
-                                          .withProtocol("TLSv1.3")
-                                          .build();
+                .withDefaultJdkTrustStore()
+                .withProtocol("TLSv1.3")
+                .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.3");
@@ -648,8 +648,8 @@ public class SSLFactoryShould {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
 
         assertThatThrownBy(() -> SSLFactory.builder()
-                                           .withIdentity(identity, IDENTITY_PASSWORD)
-                                           .build())
+                .withIdentity(identity, IDENTITY_PASSWORD)
+                .build())
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_TRUST_STRATEGY_VALIDATION_EXCEPTION_MESSAGE);
     }
@@ -679,7 +679,7 @@ public class SSLFactoryShould {
 
     @SuppressWarnings("SameParameterValue")
     private Path copyKeystoreToHomeDirectory(String path, String fileName) throws IOException {
-        try(InputStream keystoreInputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(path + fileName)) {
+        try (InputStream keystoreInputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(path + fileName)) {
             Path destination = Paths.get(TEMPORALLY_KEYSTORE_LOCATION, fileName);
             Files.copy(Objects.requireNonNull(keystoreInputStream), destination, REPLACE_EXISTING);
             return destination;
