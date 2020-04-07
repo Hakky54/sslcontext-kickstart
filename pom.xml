@@ -51,9 +51,7 @@
 
     <properties>
         <version.java>1.8</version.java>
-        <version.apache.httpclient>4.5.12</version.apache.httpclient>
         <version.netty-handler>4.1.48.Final</version.netty-handler>
-        <version.jetty-reactive-httpclient>1.1.2</version.jetty-reactive-httpclient>
         <version.commons-lang3>3.10</version.commons-lang3>
         <version.log4j-core>2.13.1</version.log4j-core>
         <version.junit>4.13</version.junit>
@@ -77,11 +75,6 @@
             <groupId>io.netty</groupId>
             <artifactId>netty-handler</artifactId>
             <version>${version.netty-handler}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-reactive-httpclient</artifactId>
-            <version>${version.jetty-reactive-httpclient}</version>
         </dependency>
 
         <dependency>
