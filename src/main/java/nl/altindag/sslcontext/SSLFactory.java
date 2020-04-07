@@ -3,10 +3,8 @@ package nl.altindag.sslcontext;
 import nl.altindag.sslcontext.exception.GenericKeyStoreException;
 import nl.altindag.sslcontext.exception.GenericSSLContextException;
 import nl.altindag.sslcontext.keymanager.CompositeX509KeyManager;
-import nl.altindag.sslcontext.keymanager.KeyManagerFactoryWrapper;
 import nl.altindag.sslcontext.model.KeyStoreHolder;
 import nl.altindag.sslcontext.trustmanager.CompositeX509TrustManager;
-import nl.altindag.sslcontext.trustmanager.TrustManagerFactoryWrapper;
 import nl.altindag.sslcontext.trustmanager.UnsafeTrustManager;
 import nl.altindag.sslcontext.util.KeyStoreUtils;
 import nl.altindag.sslcontext.util.TrustManagerUtils;
@@ -15,10 +13,8 @@ import org.apache.logging.log4j.Logger;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
@@ -58,9 +54,7 @@ public class SSLFactory {
     private String protocol;
     private SSLContext sslContext;
     private CompositeX509TrustManager trustManager;
-    private TrustManagerFactory trustManagerFactory;
     private CompositeX509KeyManager keyManager;
-    private KeyManagerFactory keyManagerFactory;
     private HostnameVerifier hostnameVerifier;
     private SecureRandom secureRandom;
 
@@ -68,7 +62,7 @@ public class SSLFactory {
 
     private void createSSLContextWithTrustStore() {
         try {
-            createSSLContext(null, createTrustManagerFactory().getTrustManagers());
+            createSSLContext(null, createTrustManagers());
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
             throw new GenericSSLContextException(e);
         }
@@ -76,8 +70,7 @@ public class SSLFactory {
 
     private void createSSLContextWithKeyStoreAndTrustStore() {
         try {
-            createSSLContext(createKeyManagerFactory().getKeyManagers(),
-                             createTrustManagerFactory().getTrustManagers());
+            createSSLContext(createKeyManager(), createTrustManagers());
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
             throw new GenericSSLContextException(e);
         }
@@ -88,16 +81,16 @@ public class SSLFactory {
         sslContext.init(keyManagers, trustManagers, secureRandom);
     }
 
-    private KeyManagerFactory createKeyManagerFactory() {
+    private KeyManager[] createKeyManager() {
         keyManager = CompositeX509KeyManager.builder()
                 .withKeyManagers(identityManagers)
                 .withIdentities(identities)
                 .build();
-        keyManagerFactory = new KeyManagerFactoryWrapper(keyManager);
-        return keyManagerFactory;
+
+        return keyManager.getKeyManagers();
     }
 
-    private TrustManagerFactory createTrustManagerFactory() {
+    private TrustManager[] createTrustManagers() {
         CompositeX509TrustManager.Builder trustManagerBuilder = CompositeX509TrustManager.builder()
                 .withTrustManagers(trustManagers)
                 .withTrustStores(trustStores.stream()
@@ -115,8 +108,7 @@ public class SSLFactory {
         }
 
         trustManager = trustManagerBuilder.build();
-        trustManagerFactory = new TrustManagerFactoryWrapper(trustManager);
-        return trustManagerFactory;
+        return trustManager.getTrustManagers();
     }
 
     public List<KeyStoreHolder> getIdentities() {
@@ -147,16 +139,8 @@ public class SSLFactory {
         return keyManager;
     }
 
-    public KeyManagerFactory getKeyManagerFactory() {
-        return keyManagerFactory;
-    }
-
     public X509TrustManager getTrustManager() {
         return trustManager;
-    }
-
-    public TrustManagerFactory getTrustManagerFactory() {
-        return trustManagerFactory;
     }
 
     public X509Certificate[] getTrustedCertificates() {
@@ -185,7 +169,7 @@ public class SSLFactory {
         private static final String KEY_STORE_LOADING_EXCEPTION = "Failed to load the keystore";
 
         private String protocol = "TLSv1.2";
-        private SecureRandom secureRandom = null;
+        private SecureRandom secureRandom = new SecureRandom();
         private HostnameVerifier hostnameVerifier;
 
         private final List<KeyStoreHolder> identities = new ArrayList<>();
@@ -369,10 +353,7 @@ public class SSLFactory {
 
         private void buildHostnameVerifier(SSLFactory sslFactory) {
             if (isNull(hostnameVerifier)) {
-                if (LOGGER.isWarnEnabled()) {
-                    LOGGER.warn("No HostnameVerifier has been provided, switching back to default which disables hostname verification");
-                }
-
+                LOGGER.info("No HostnameVerifier has been provided, switching back to default which disables hostname verification");
                 sslFactory.hostnameVerifier = (host, sslSession) -> true;
             } else {
                 sslFactory.hostnameVerifier = hostnameVerifier;

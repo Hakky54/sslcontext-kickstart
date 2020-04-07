@@ -24,20 +24,21 @@ public class CompositeX509KeyManagerShould {
     private static final String KEYSTORE_LOCATION = "keystores-for-unit-tests/";
 
     @Test
-    public void createCompositeX509TrustManagerFromKeyStore() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    public void createCompositeX509KeyManagerFromKeyStore() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
         CompositeX509KeyManager keyManager = CompositeX509KeyManager.builder()
-                                                                          .withIdentities(
-                                                                                  new KeyStoreHolder(identityOne, IDENTITY_PASSWORD),
-                                                                                  new KeyStoreHolder(identityTwo, IDENTITY_PASSWORD))
-                                                                          .build();
+                .withIdentities(
+                        new KeyStoreHolder(identityOne, IDENTITY_PASSWORD),
+                        new KeyStoreHolder(identityTwo, IDENTITY_PASSWORD))
+                .build();
 
         assertThat(keyManager).isNotNull();
 
         assertThat(identityOne.size()).isEqualTo(1);
         assertThat(identityTwo.size()).isEqualTo(1);
+        assertThat(keyManager.getKeyManagers()).hasSize(2);
         assertThat(keyManager.getPrivateKey("dummy-client")).isNotNull();
         assertThat(keyManager.getPrivateKey("another-server")).isNotNull();
     }
@@ -48,10 +49,10 @@ public class CompositeX509KeyManagerShould {
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
         CompositeX509KeyManager keyManager = CompositeX509KeyManager.builder()
-                                                                    .withIdentities(
-                                                                            new KeyStoreHolder(identityOne, IDENTITY_PASSWORD),
-                                                                            new KeyStoreHolder(identityTwo, IDENTITY_PASSWORD))
-                                                                    .build();
+                .withIdentities(
+                        new KeyStoreHolder(identityOne, IDENTITY_PASSWORD),
+                        new KeyStoreHolder(identityTwo, IDENTITY_PASSWORD))
+                .build();
 
         assertThat(keyManager).isNotNull();
 
@@ -66,9 +67,9 @@ public class CompositeX509KeyManagerShould {
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
         CompositeX509KeyManager keyManager = CompositeX509KeyManager.builder()
-                                                                    .withIdentity(identityOne, IDENTITY_PASSWORD, KeyManagerFactory.getDefaultAlgorithm())
-                                                                    .withIdentity(identityTwo, IDENTITY_PASSWORD, KeyManagerFactory.getDefaultAlgorithm())
-                                                                    .build();
+                .withIdentity(identityOne, IDENTITY_PASSWORD, KeyManagerFactory.getDefaultAlgorithm())
+                .withIdentity(identityTwo, IDENTITY_PASSWORD, KeyManagerFactory.getDefaultAlgorithm())
+                .build();
 
         assertThat(keyManager).isNotNull();
 
@@ -90,10 +91,10 @@ public class CompositeX509KeyManagerShould {
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
         CompositeX509KeyManager keyManager = CompositeX509KeyManager.builder()
-                                                                    .withIdentities(
-                                                                            new KeyStoreHolder(identityOne, IDENTITY_PASSWORD),
-                                                                            new KeyStoreHolder(identityTwo, IDENTITY_PASSWORD))
-                                                                    .build();
+                .withIdentities(
+                        new KeyStoreHolder(identityOne, IDENTITY_PASSWORD),
+                        new KeyStoreHolder(identityTwo, IDENTITY_PASSWORD))
+                .build();
 
         assertThat(keyManager).isNotNull();
 
@@ -111,8 +112,8 @@ public class CompositeX509KeyManagerShould {
         X509KeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
         CompositeX509KeyManager keyManager = CompositeX509KeyManager.builder()
-                                                                    .withKeyManagers(Arrays.asList(keyManagerOne, keyManagerTwo))
-                                                                    .build();
+                .withKeyManagers(Arrays.asList(keyManagerOne, keyManagerTwo))
+                .build();
 
         String[] aliases = keyManager.getServerAliases("RSA", null);
 
@@ -131,8 +132,8 @@ public class CompositeX509KeyManagerShould {
         X509KeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
         CompositeX509KeyManager keyManager = CompositeX509KeyManager.builder()
-                                                                    .withKeyManagers(keyManagerOne, keyManagerTwo)
-                                                                    .build();
+                .withKeyManagers(keyManagerOne, keyManagerTwo)
+                .build();
 
         String[] aliases = keyManager.getClientAliases("RSA", null);
 
@@ -151,8 +152,8 @@ public class CompositeX509KeyManagerShould {
         X509KeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
         CompositeX509KeyManager keyManager = CompositeX509KeyManager.builder()
-                                                                    .withKeyManagers(keyManagerOne, keyManagerTwo)
-                                                                    .build();
+                .withKeyManagers(keyManagerOne, keyManagerTwo)
+                .build();
 
         String alias = keyManager.chooseServerAlias("RSA", null, null);
 
@@ -171,8 +172,8 @@ public class CompositeX509KeyManagerShould {
         X509KeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
         CompositeX509KeyManager keyManager = CompositeX509KeyManager.builder()
-                                                                    .withKeyManagers(keyManagerTwo, keyManagerOne)
-                                                                    .build();
+                .withKeyManagers(keyManagerTwo, keyManagerOne)
+                .build();
 
         String alias = keyManager.chooseServerAlias("RSA", null, null);
 
@@ -191,8 +192,8 @@ public class CompositeX509KeyManagerShould {
         X509KeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
         CompositeX509KeyManager keyManager = CompositeX509KeyManager.builder()
-                                                                    .withKeyManagers(keyManagerTwo, keyManagerOne)
-                                                                    .build();
+                .withKeyManagers(keyManagerTwo, keyManagerOne)
+                .build();
 
         String alias = keyManager.chooseServerAlias("ECDSA", null, null);
 
@@ -211,8 +212,8 @@ public class CompositeX509KeyManagerShould {
         X509KeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
         CompositeX509KeyManager keyManager = CompositeX509KeyManager.builder()
-                                                                    .withKeyManagers(keyManagerOne, keyManagerTwo)
-                                                                    .build();
+                .withKeyManagers(keyManagerOne, keyManagerTwo)
+                .build();
 
         String alias = keyManager.chooseClientAlias(new String[]{"RSA"}, null, null);
 
@@ -231,8 +232,8 @@ public class CompositeX509KeyManagerShould {
         X509KeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
         CompositeX509KeyManager keyManager = CompositeX509KeyManager.builder()
-                                                                    .withKeyManagers(keyManagerTwo, keyManagerOne)
-                                                                    .build();
+                .withKeyManagers(keyManagerTwo, keyManagerOne)
+                .build();
 
         String alias = keyManager.chooseClientAlias(new String[]{"ECDSA"}, null, null);
 

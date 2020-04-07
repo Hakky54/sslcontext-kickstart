@@ -1,6 +1,5 @@
 package nl.altindag.sslcontext.trustmanager;
 
-import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -18,8 +17,6 @@ import java.security.cert.X509Certificate;
  * Suppressed warning: java:S4830 - "Server certificates should be verified during SSL/TLS connections"
  *                                  This TrustManager doesn't validate certificates and should not be used at production.
  *                                  It is just meant to be used for testing purposes and it is designed not to verify server certificates.
- *
- * @see InsecureTrustManagerFactory
  */
 @SuppressWarnings("java:S4830")
 public final class UnsafeTrustManager implements X509TrustManager {

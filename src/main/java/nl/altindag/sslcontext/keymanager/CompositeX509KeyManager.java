@@ -135,6 +135,10 @@ public class CompositeX509KeyManager implements X509KeyManager {
         return emptyToNull(aliases.toArray(new String[]{}));
     }
 
+    public X509KeyManager[] getKeyManagers() {
+        return keyManagers.stream().toArray(X509KeyManager[]::new);
+    }
+
     private <T> T[] emptyToNull(T[] arr) {
         return (arr.length == 0) ? null : arr;
     }
