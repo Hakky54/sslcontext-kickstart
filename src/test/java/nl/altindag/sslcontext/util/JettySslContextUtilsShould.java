@@ -45,7 +45,6 @@ public class JettySslContextUtilsShould {
         assertThat(sslFactory.getTrustManagerFactory()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
-        assertThat(sslFactory.getLayeredConnectionSocketFactory()).isNotNull();
 
         SslContextFactory.Client sslContextFactory = JettySslContextUtils.forClient(sslFactory);
         assertThat(sslContextFactory.getSslContext()).isEqualTo(sslFactory.getSslContext());
@@ -86,7 +85,6 @@ public class JettySslContextUtilsShould {
         assertThat(sslFactory.getTrustManagerFactory()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
-        assertThat(sslFactory.getLayeredConnectionSocketFactory()).isNotNull();
 
         SslContextFactory.Client sslContextFactory = JettySslContextUtils.forClient(sslFactory);
         assertThat(sslContextFactory.getSslContext()).isEqualTo(sslFactory.getSslContext());
@@ -127,7 +125,6 @@ public class JettySslContextUtilsShould {
         assertThat(sslFactory.getTrustManagerFactory()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
-        assertThat(sslFactory.getLayeredConnectionSocketFactory()).isNotNull();
 
         SslContextFactory.Server sslContextFactory = JettySslContextUtils.forServer(sslFactory);
         assertThat(sslContextFactory.getSslContext()).isEqualTo(sslFactory.getSslContext());

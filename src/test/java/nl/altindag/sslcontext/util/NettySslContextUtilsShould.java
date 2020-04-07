@@ -45,7 +45,6 @@ public class NettySslContextUtilsShould {
         assertThat(sslFactory.getTrustManagerFactory()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
-        assertThat(sslFactory.getLayeredConnectionSocketFactory()).isNotNull();
 
         SslContext sslContext = NettySslContextUtils.forClient(sslFactory).build();
         assertThat(sslContext.isClient()).isTrue();
@@ -82,7 +81,6 @@ public class NettySslContextUtilsShould {
         assertThat(sslFactory.getTrustManagerFactory()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
-        assertThat(sslFactory.getLayeredConnectionSocketFactory()).isNotNull();
 
         SslContext sslContext = NettySslContextUtils.forClient(sslFactory).build();
         assertThat(sslContext.isClient()).isTrue();
@@ -119,7 +117,6 @@ public class NettySslContextUtilsShould {
         assertThat(sslFactory.getTrustManagerFactory()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
-        assertThat(sslFactory.getLayeredConnectionSocketFactory()).isNotNull();
 
         SslContext sslContext = NettySslContextUtils.forServer(sslFactory).build();
         assertThat(sslContext.isClient()).isFalse();

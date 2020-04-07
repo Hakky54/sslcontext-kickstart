@@ -8,13 +8,11 @@ import nl.altindag.sslcontext.trustmanager.CompositeX509TrustManager;
 import nl.altindag.sslcontext.util.KeyManagerUtils;
 import nl.altindag.sslcontext.util.KeyStoreUtils;
 import nl.altindag.sslcontext.util.TrustManagerUtils;
-import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
-import org.apache.http.conn.ssl.DefaultHostnameVerifier;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.Test;
 
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
 import javax.security.auth.x500.X500Principal;
@@ -77,7 +75,6 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getKeyManager()).isNull();
         assertThat(sslFactory.getKeyManagerFactory()).isNull();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
-        assertThat(sslFactory.getLayeredConnectionSocketFactory()).isNotNull();
     }
 
     @Test
@@ -103,7 +100,6 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getKeyManagerFactory()).isNull();
         assertThat(sslFactory.getIdentities()).isEmpty();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
-        assertThat(sslFactory.getLayeredConnectionSocketFactory()).isNotNull();
 
         Files.delete(trustStorePath);
     }
@@ -131,7 +127,6 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getKeyManagerFactory()).isNull();
         assertThat(sslFactory.getIdentities()).isEmpty();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
-        assertThat(sslFactory.getLayeredConnectionSocketFactory()).isNotNull();
     }
 
     @Test
@@ -158,7 +153,6 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getKeyManagerFactory()).isNull();
         assertThat(sslFactory.getIdentities()).isEmpty();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
-        assertThat(sslFactory.getLayeredConnectionSocketFactory()).isNotNull();
     }
 
     @Test
@@ -181,7 +175,6 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getKeyManagerFactory()).isNull();
         assertThat(sslFactory.getIdentities()).isEmpty();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
-        assertThat(sslFactory.getLayeredConnectionSocketFactory()).isNotNull();
     }
 
     @Test
@@ -205,7 +198,6 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getKeyManagerFactory()).isNull();
         assertThat(sslFactory.getIdentities()).isEmpty();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
-        assertThat(sslFactory.getLayeredConnectionSocketFactory()).isNotNull();
     }
 
     @Test
@@ -229,7 +221,6 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getKeyManagerFactory()).isNull();
         assertThat(sslFactory.getIdentities()).isEmpty();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
-        assertThat(sslFactory.getLayeredConnectionSocketFactory()).isNotNull();
     }
 
     @Test
@@ -258,7 +249,6 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getTrustManagerFactory()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
-        assertThat(sslFactory.getLayeredConnectionSocketFactory()).isNotNull();
     }
 
     @Test
@@ -289,7 +279,6 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getTrustManagerFactory()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
-        assertThat(sslFactory.getLayeredConnectionSocketFactory()).isNotNull();
     }
 
     @Test
@@ -318,7 +307,6 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getTrustManagerFactory()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
-        assertThat(sslFactory.getLayeredConnectionSocketFactory()).isNotNull();
     }
 
     @Test
@@ -350,7 +338,6 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getTrustManagerFactory()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
-        assertThat(sslFactory.getLayeredConnectionSocketFactory()).isNotNull();
 
         Files.delete(identityPath);
         Files.delete(trustStorePath);
@@ -385,39 +372,31 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getTrustManagerFactory()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
-        assertThat(sslFactory.getLayeredConnectionSocketFactory()).isNotNull();
     }
 
     @Test
-    public void buildSSLFactoryReturnsSameInstanceOfLayeredConnectionSocketFactoryWhenRequestingMoreThanOnce() {
+    public void buildSSLFactoryWithCustomHostnameVerifier() {
         SSLFactory sslFactory = SSLFactory.builder()
-                .withDefaultJdkTrustStore()
+                .withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
+                .withHostnameVerifier((host, sslSession) -> false)
                 .build();
 
-        LayeredConnectionSocketFactory socketFactoryOne = sslFactory.getLayeredConnectionSocketFactory();
-        LayeredConnectionSocketFactory socketFactoryTwo = sslFactory.getLayeredConnectionSocketFactory();
-
-        assertThat(socketFactoryOne).isEqualTo(socketFactoryTwo);
+        HostnameVerifier hostnameVerifier = sslFactory.getHostnameVerifier();
+        assertThat(hostnameVerifier.verify("qwerty", null)).isFalse();
     }
 
     @Test
-    public void buildSSLFactoryWithHostnameVerifier() {
+    public void buildSSLFactoryWithoutHostnameVerifierProvidesHostnameVerifierWhichAllowsAllHostNames() {
+        LogCaptor<SSLFactory> logCaptor = LogCaptor.forClass(SSLFactory.class);
+
         SSLFactory sslFactory = SSLFactory.builder()
-                                          .withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
-                                          .withHostnameVerifierEnabled(true)
-                                          .build();
+                .withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
+                .build();
 
-        assertThat(sslFactory.getHostnameVerifier()).isInstanceOf(DefaultHostnameVerifier.class);
-    }
+        HostnameVerifier hostnameVerifier = sslFactory.getHostnameVerifier();
+        assertThat(hostnameVerifier.verify("qwerty", null)).isTrue();
 
-    @Test
-    public void buildSSLFactoryWithoutHostnameVerifier() {
-        SSLFactory sslFactory = SSLFactory.builder()
-                                          .withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
-                                          .withHostnameVerifierEnabled(false)
-                                          .build();
-
-        assertThat(sslFactory.getHostnameVerifier()).isInstanceOf(NoopHostnameVerifier.class);
+        assertThat(logCaptor.getLogs(Level.WARN)).containsExactly("No HostnameVerifier has been provided, switching back to default which disables hostname verification");
     }
 
     @Test
@@ -444,8 +423,7 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getTrustStores()).isEmpty();
         assertThat(sslFactory.getTrustManager()).isInstanceOf(CompositeX509TrustManager.class);
         assertThat(sslFactory.getTrustManagerFactory()).isNotNull();
-        assertThat(logCaptor.getLogs(Level.WARN)).hasSize(1);
-        assertThat(logCaptor.getLogs(Level.WARN)).containsExactly("UnsafeTrustManager is being used. Client/Server certificates will be accepted without validation. Please don't use this configuration at production.");
+        assertThat(logCaptor.getLogs(Level.WARN)).contains("UnsafeTrustManager is being used. Client/Server certificates will be accepted without validation. Please don't use this configuration at production.");
     }
 
     @Test
@@ -697,14 +675,6 @@ public class SSLFactoryShould {
                                            .build())
                 .isInstanceOf(GenericSSLContextException.class)
                 .hasMessage("java.security.NoSuchAlgorithmException: ENCRYPTIONv1.1 SSLContext not available");
-    }
-
-    @Test
-    public void throwExceptionWhenSecurityIsNotEnabledWhileGetingLayeredConnectionSocketFactory() {
-        assertThatThrownBy(() -> SSLFactory.builder()
-                .build()
-                .getLayeredConnectionSocketFactory())
-                .isInstanceOf(NullPointerException.class);
     }
 
     @SuppressWarnings("SameParameterValue")

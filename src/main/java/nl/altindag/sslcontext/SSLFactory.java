@@ -10,10 +10,6 @@ import nl.altindag.sslcontext.trustmanager.TrustManagerFactoryWrapper;
 import nl.altindag.sslcontext.trustmanager.UnsafeTrustManager;
 import nl.altindag.sslcontext.util.KeyStoreUtils;
 import nl.altindag.sslcontext.util.TrustManagerUtils;
-import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
-import org.apache.http.conn.ssl.DefaultHostnameVerifier;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -37,7 +33,6 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 import static java.util.Objects.isNull;
@@ -68,8 +63,6 @@ public class SSLFactory {
     private KeyManagerFactory keyManagerFactory;
     private HostnameVerifier hostnameVerifier;
     private SecureRandom secureRandom;
-
-    private SSLConnectionSocketFactory sslConnectionSocketFactory;
 
     private SSLFactory() {}
 
@@ -176,18 +169,6 @@ public class SSLFactory {
         return hostnameVerifier;
     }
 
-    public LayeredConnectionSocketFactory getLayeredConnectionSocketFactory() {
-        if (isNull(sslConnectionSocketFactory)) {
-            sslConnectionSocketFactory = new SSLConnectionSocketFactory(
-                    Objects.requireNonNull(sslContext),
-                    sslContext.getSupportedSSLParameters().getProtocols(),
-                    sslContext.getDefaultSSLParameters().getCipherSuites(),
-                    hostnameVerifier
-            );
-        }
-        return sslConnectionSocketFactory;
-    }
-
     public static Builder builder() {
         return new Builder();
     }
@@ -204,8 +185,8 @@ public class SSLFactory {
         private static final String KEY_STORE_LOADING_EXCEPTION = "Failed to load the keystore";
 
         private String protocol = "TLSv1.2";
-        private boolean hostnameVerifierEnabled = true;
         private SecureRandom secureRandom = null;
+        private HostnameVerifier hostnameVerifier;
 
         private final List<KeyStoreHolder> identities = new ArrayList<>();
         private final List<KeyStoreHolder> trustStores = new ArrayList<>();
@@ -342,8 +323,8 @@ public class SSLFactory {
             }
         }
 
-        public Builder withHostnameVerifierEnabled(boolean hostnameVerifierEnabled) {
-            this.hostnameVerifierEnabled = hostnameVerifierEnabled;
+        public Builder withHostnameVerifier(HostnameVerifier hostnameVerifier) {
+            this.hostnameVerifier = hostnameVerifier;
             return this;
         }
 
@@ -387,10 +368,14 @@ public class SSLFactory {
         }
 
         private void buildHostnameVerifier(SSLFactory sslFactory) {
-            if (hostnameVerifierEnabled) {
-                sslFactory.hostnameVerifier = new DefaultHostnameVerifier();
+            if (isNull(hostnameVerifier)) {
+                if (LOGGER.isWarnEnabled()) {
+                    LOGGER.warn("No HostnameVerifier has been provided, switching back to default which disables hostname verification");
+                }
+
+                sslFactory.hostnameVerifier = (host, sslSession) -> true;
             } else {
-                sslFactory.hostnameVerifier = new NoopHostnameVerifier();
+                sslFactory.hostnameVerifier = hostnameVerifier;
             }
         }
 

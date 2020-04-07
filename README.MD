@@ -128,7 +128,7 @@ If you are using java 11 or newer, than you are also able to use TLSv1.3 as encr
 ```text
 SSLFactory.builder()
           .withTrustStore(trustStore, trustStorePassword)
-          .withHostnameVerifierEnabled(true)
+          .withHostnameVerifier(new DefaultHostnameVerifier())
           .withProtocol("TLSv1.2")
           .build();
 ```
@@ -138,7 +138,6 @@ Two way authentication with custom trustStore, hostname verifier and encryption 
 SSLFactory.builder()
           .withIdentity(identity, identityPassword)
           .withTrustStore(trustStore, trustStorePassword)
-          .withHostnameVerifierEnabled(true)
           .withProtocol("TLSv1.2")
           .build();
 ```
@@ -153,7 +152,6 @@ SSLFactory.builder()
           .withTrustStore(trustStoreB, trustStorePasswordB)
           .withTrustStore(trustStoreC, trustStorePasswordC)
           .withTrustStore(trustStoreD, trustStorePasswordD)
-          .withHostnameVerifierEnabled(true)
           .withProtocol("TLSv1.2")
           .build();
 ```
@@ -162,7 +160,6 @@ Convert SSLFactory instance to Netty SslContextBuilder or Jetty SslContextFactor
 ```
 SSLFactory sslFactory = SSLFactory.builder()
         .withTrustStore(trustStore, trustStorePassword)
-        .withHostnameVerifierEnabled(true)
         .withProtocol("TLSv1.2")
         .build();
 
