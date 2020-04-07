@@ -51,15 +51,17 @@
 
     <properties>
         <version.java>1.8</version.java>
-        <version.spring>2.2.6.RELEASE</version.spring>
         <version.apache.httpclient>4.5.12</version.apache.httpclient>
         <version.netty-handler>4.1.48.Final</version.netty-handler>
         <version.jetty-reactive-httpclient>1.1.2</version.jetty-reactive-httpclient>
-        <version.maven-surefire-plugin>2.22.2</version.maven-surefire-plugin>
         <version.commons-lang3>3.10</version.commons-lang3>
         <version.log4j-core>2.13.1</version.log4j-core>
+        <version.junit>4.13</version.junit>
+        <version.assertj-core>3.15.0</version.assertj-core>
         <version.logcaptor>1.1.0</version.logcaptor>
+        <version.apache.log4j-to-slf4j>2.13.1</version.apache.log4j-to-slf4j>
         <version.jacoco-maven-plugin>0.8.5</version.jacoco-maven-plugin>
+        <version.maven-surefire-plugin>2.22.2</version.maven-surefire-plugin>
         <version.maven-compiler-plugin>3.8.1</version.maven-compiler-plugin>
         <version.maven-javadoc-plugin>3.1.1</version.maven-javadoc-plugin>
         <version.maven-source-plugin>3.2.1</version.maven-source-plugin>
@@ -92,23 +94,37 @@
             <artifactId>commons-lang3</artifactId>
             <version>${version.commons-lang3}</version>
         </dependency>
+
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
             <version>${version.log4j-core}</version>
         </dependency>
 
+
+        <!--    libraries used for testing    -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <version>${version.spring}</version>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${version.junit}</version>
             <scope>test</scope>
         </dependency>
-
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>${version.assertj-core}</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>io.github.hakky54</groupId>
             <artifactId>logcaptor</artifactId>
             <version>${version.logcaptor}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-to-slf4j</artifactId>
+            <version>${version.apache.log4j-to-slf4j}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -208,7 +224,6 @@
                     <autoReleaseAfterClose>true</autoReleaseAfterClose>
                 </configuration>
             </plugin>
-
         </plugins>
     </build>
 
