@@ -1,6 +1,5 @@
 package nl.altindag.sslcontext;
 
-import com.google.common.collect.ImmutableList;
 import nl.altindag.sslcontext.exception.GenericKeyStoreException;
 import nl.altindag.sslcontext.exception.GenericSSLContextException;
 import nl.altindag.sslcontext.keymanager.CompositeX509KeyManager;
@@ -36,6 +35,7 @@ import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -127,11 +127,11 @@ public class SSLFactory {
     }
 
     public List<KeyStoreHolder> getIdentities() {
-        return ImmutableList.copyOf(identities);
+        return Collections.unmodifiableList(identities);
     }
 
     public List<KeyStoreHolder> getTrustStores() {
-        return ImmutableList.copyOf(trustStores);
+        return Collections.unmodifiableList(trustStores);
     }
 
     public boolean isSecurityEnabled() {

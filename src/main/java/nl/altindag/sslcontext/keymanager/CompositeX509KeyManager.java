@@ -1,11 +1,8 @@
 package nl.altindag.sslcontext.keymanager;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import nl.altindag.sslcontext.model.KeyStoreHolder;
 import nl.altindag.sslcontext.util.KeyManagerUtils;
 
-import javax.annotation.Nullable;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.X509KeyManager;
 import java.net.Socket;
@@ -15,6 +12,7 @@ import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -48,7 +46,7 @@ public class CompositeX509KeyManager implements X509KeyManager {
      * @param keyManagers the {@link X509KeyManager X509KeyManagers}, ordered with the most-preferred managers first.
      */
     public CompositeX509KeyManager(List<? extends X509KeyManager> keyManagers) {
-        this.keyManagers = ImmutableList.copyOf(keyManagers);
+        this.keyManagers = Collections.unmodifiableList(keyManagers);
     }
 
     /**
@@ -56,7 +54,7 @@ public class CompositeX509KeyManager implements X509KeyManager {
      * {@link X509KeyManager X509KeyManagers}, or {@code null} if there are no matches.
      */
     @Override
-    public @Nullable String chooseClientAlias(String[] keyType, Principal[] issuers, Socket socket) {
+    public String chooseClientAlias(String[] keyType, Principal[] issuers, Socket socket) {
         for (X509KeyManager keyManager : keyManagers) {
             String alias = keyManager.chooseClientAlias(keyType, issuers, socket);
             if (alias != null) {
@@ -71,7 +69,7 @@ public class CompositeX509KeyManager implements X509KeyManager {
      * {@link X509KeyManager X509KeyManagers}, or {@code null} if there are no matches.
      */
     @Override
-    public @Nullable String chooseServerAlias(String keyType, Principal[] issuers, Socket socket) {
+    public String chooseServerAlias(String keyType, Principal[] issuers, Socket socket) {
         for (X509KeyManager keyManager : keyManagers) {
             String alias = keyManager.chooseServerAlias(keyType, issuers, socket);
             if (alias != null) {
@@ -86,7 +84,7 @@ public class CompositeX509KeyManager implements X509KeyManager {
      * given alias, or {@code null} if the alias can't be found.
      */
     @Override
-    public @Nullable PrivateKey getPrivateKey(String alias) {
+    public PrivateKey getPrivateKey(String alias) {
         for (X509KeyManager keyManager : keyManagers) {
             PrivateKey privateKey = keyManager.getPrivateKey(alias);
             if (privateKey != null) {
@@ -101,7 +99,7 @@ public class CompositeX509KeyManager implements X509KeyManager {
      * given alias, or {@code null} if the alias can't be found.
      */
     @Override
-    public @Nullable X509Certificate[] getCertificateChain(String alias) {
+    public X509Certificate[] getCertificateChain(String alias) {
         for (X509KeyManager keyManager : keyManagers) {
             X509Certificate[] chain = keyManager.getCertificateChain(alias);
             if (chain != null && chain.length > 0) {
@@ -116,12 +114,12 @@ public class CompositeX509KeyManager implements X509KeyManager {
      * secure socket, or {@code null} if there are no matches.
      */
     @Override
-    public @Nullable String[] getClientAliases(String keyType, Principal[] issuers) {
-        ImmutableList.Builder<String> aliases = ImmutableList.builder();
+    public String[] getClientAliases(String keyType, Principal[] issuers) {
+        List<String> aliases = new ArrayList<>();
         for (X509KeyManager keyManager : keyManagers) {
-            aliases.add(keyManager.getClientAliases(keyType, issuers));
+            aliases.addAll(Arrays.asList(keyManager.getClientAliases(keyType, issuers)));
         }
-        return emptyToNull(Iterables.toArray(aliases.build(), String.class));
+        return emptyToNull(aliases.toArray(new String[]{}));
     }
 
     /**
@@ -129,15 +127,15 @@ public class CompositeX509KeyManager implements X509KeyManager {
      * secure socket, or {@code null} if there are no matches.
      */
     @Override
-    public @Nullable String[] getServerAliases(String keyType, Principal[] issuers) {
-        ImmutableList.Builder<String> aliases = ImmutableList.builder();
+    public String[] getServerAliases(String keyType, Principal[] issuers) {
+        List<String> aliases = new ArrayList<>();
         for (X509KeyManager keyManager : keyManagers) {
-            aliases.add(keyManager.getServerAliases(keyType, issuers));
+            aliases.addAll(Arrays.asList(keyManager.getServerAliases(keyType, issuers)));
         }
-        return emptyToNull(Iterables.toArray(aliases.build(), String.class));
+        return emptyToNull(aliases.toArray(new String[]{}));
     }
 
-    private @Nullable <T> T[] emptyToNull(T[] arr) {
+    private <T> T[] emptyToNull(T[] arr) {
         return (arr.length == 0) ? null : arr;
     }
 

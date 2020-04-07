@@ -1,6 +1,5 @@
 package nl.altindag.sslcontext.trustmanager;
 
-import com.google.common.collect.ImmutableList;
 import nl.altindag.sslcontext.util.TrustManagerUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -11,6 +10,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static java.util.Objects.isNull;
@@ -42,7 +42,7 @@ public class CompositeX509TrustManager implements X509TrustManager {
     private X509Certificate[] acceptedIssuers;
 
     public CompositeX509TrustManager(List<? extends X509TrustManager> trustManagers) {
-        this.trustManagers = ImmutableList.copyOf(trustManagers);
+        this.trustManagers = Collections.unmodifiableList(trustManagers);
     }
 
     @Override
@@ -93,10 +93,10 @@ public class CompositeX509TrustManager implements X509TrustManager {
     public X509Certificate[] getAcceptedIssuers() {
         if (isNull(acceptedIssuers)) {
             acceptedIssuers = trustManagers.stream()
-                                           .map(X509TrustManager::getAcceptedIssuers)
-                                           .flatMap(Arrays::stream)
-                                           .distinct()
-                                           .toArray(X509Certificate[]::new);
+                    .map(X509TrustManager::getAcceptedIssuers)
+                    .flatMap(Arrays::stream)
+                    .distinct()
+                    .toArray(X509Certificate[]::new);
         }
         return acceptedIssuers;
     }
