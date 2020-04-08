@@ -5,7 +5,6 @@ import nl.altindag.log.LogCaptor;
 import nl.altindag.sslcontext.util.KeyStoreUtils;
 import nl.altindag.sslcontext.util.TrustManagerUtils;
 import org.junit.Test;
-import sun.security.validator.ValidatorException;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.X509TrustManager;
@@ -203,8 +202,7 @@ public class CompositeX509TrustManagerShould {
 
         assertThatThrownBy(() -> trustManager.checkServerTrusted(trustedCerts, "RSA"))
                 .isInstanceOf(CertificateException.class)
-                .hasMessage("None of the TrustManagers trust this certificate chain")
-                .hasSuppressedException(new ValidatorException("PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target"));
+                .hasMessage("None of the TrustManagers trust this certificate chain");
     }
 
     @Test
@@ -230,8 +228,7 @@ public class CompositeX509TrustManagerShould {
 
         assertThatThrownBy(() -> compositeX509TrustManager.checkClientTrusted(trustedCerts, "RSA"))
                 .isInstanceOf(CertificateException.class)
-                .hasMessage("None of the TrustManagers trust this certificate chain")
-                .hasSuppressedException(new ValidatorException("PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target"));
+                .hasMessage("None of the TrustManagers trust this certificate chain");
     }
 
 }

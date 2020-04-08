@@ -3,13 +3,19 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.github.hakky54</groupId>
-    <artifactId>sslcontext-kickstart</artifactId>
+    <artifactId>sslcontext-kickstart-parent</artifactId>
     <version>3.0.6-SNAPSHOT</version>
-    <packaging>jar</packaging>
+    <packaging>pom</packaging>
 
-    <name>sslcontext-kickstart</name>
     <description>easy to use library to configure a SSLContext and other properties to enable SSL/TLS connection</description>
     <url>https://github.com/Hakky54/sslcontext-kickstart</url>
+
+    <modules>
+        <module>sslcontext-kickstart</module>
+        <module>sslcontext-kickstart-for-netty</module>
+        <module>sslcontext-kickstart-for-jetty</module>
+        <module>sslcontext-kickstart-for-apache</module>
+    </modules>
 
     <licenses>
         <license>
@@ -72,49 +78,51 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>${version.commons-lang3}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-        </dependency>
-
-        <!--    libraries used for testing    -->
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>${version.junit}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.assertj</groupId>
-            <artifactId>assertj-core</artifactId>
-            <version>${version.assertj-core}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.github.hakky54</groupId>
-            <artifactId>logcaptor</artifactId>
-            <version>${version.logcaptor}</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
-
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${version.commons-lang3}</version>
+            </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
                 <version>${version.slf4j}</version>
             </dependency>
+
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>${version.junit}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.assertj</groupId>
+                <artifactId>assertj-core</artifactId>
+                <version>${version.assertj-core}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.github.hakky54</groupId>
+                <artifactId>logcaptor</artifactId>
+                <version>${version.logcaptor}</version>
+                <scope>test</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
     <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>${version.maven-jar-plugin}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -142,19 +150,6 @@
                     <rules>
                         <dependencyConvergence/>
                     </rules>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>${version.maven-jar-plugin}</version>
-                <configuration>
-                    <archive>
-                        <manifestEntries>
-                            <Automatic-Module-Name>io.github.hakky54.sslcontext.kickstart</Automatic-Module-Name>
-                        </manifestEntries>
-                    </archive>
                 </configuration>
             </plugin>
 
