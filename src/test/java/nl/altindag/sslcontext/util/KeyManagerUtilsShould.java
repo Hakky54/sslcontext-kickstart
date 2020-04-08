@@ -1,11 +1,12 @@
 package nl.altindag.sslcontext.util;
 
 import nl.altindag.sslcontext.exception.GenericSecurityException;
-import nl.altindag.sslcontext.keymanager.CompositeX509KeyManager;
+import nl.altindag.sslcontext.keymanager.CompositeX509ExtendedKeyManager;
 import nl.altindag.sslcontext.model.KeyStoreHolder;
 import org.junit.Test;
 
 import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509KeyManager;
 import java.io.IOException;
 import java.security.KeyStore;
@@ -41,7 +42,7 @@ public class KeyManagerUtilsShould {
 
         X509KeyManager keyManager = KeyManagerUtils.createKeyManager(keyStoreHolderOne, keyStoreHolderTwo);
 
-        assertThat(keyManager).isInstanceOf(CompositeX509KeyManager.class);
+        assertThat(keyManager).isInstanceOf(CompositeX509ExtendedKeyManager.class);
     }
 
     @Test
@@ -58,12 +59,12 @@ public class KeyManagerUtilsShould {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
-        X509KeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
-        X509KeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
-        X509KeyManager combinedKeyManager = KeyManagerUtils.combine(keyManagerOne, keyManagerTwo);
+        X509ExtendedKeyManager combinedKeyManager = KeyManagerUtils.combine(keyManagerOne, keyManagerTwo);
 
-        assertThat(combinedKeyManager).isInstanceOf(CompositeX509KeyManager.class);
+        assertThat(combinedKeyManager).isInstanceOf(CompositeX509ExtendedKeyManager.class);
     }
 
 }

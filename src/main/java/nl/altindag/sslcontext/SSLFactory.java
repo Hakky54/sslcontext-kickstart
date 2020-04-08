@@ -2,7 +2,7 @@ package nl.altindag.sslcontext;
 
 import nl.altindag.sslcontext.exception.GenericKeyStoreException;
 import nl.altindag.sslcontext.exception.GenericSSLContextException;
-import nl.altindag.sslcontext.keymanager.CompositeX509KeyManager;
+import nl.altindag.sslcontext.keymanager.CompositeX509ExtendedKeyManager;
 import nl.altindag.sslcontext.model.KeyStoreHolder;
 import nl.altindag.sslcontext.trustmanager.CompositeX509TrustManager;
 import nl.altindag.sslcontext.trustmanager.UnsafeTrustManager;
@@ -15,6 +15,7 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
@@ -42,7 +43,7 @@ public class SSLFactory {
 
     private final List<KeyStoreHolder> identities = new ArrayList<>();
     private final List<KeyStoreHolder> trustStores = new ArrayList<>();
-    private final List<X509KeyManager> identityManagers = new ArrayList<>();
+    private final List<X509ExtendedKeyManager> identityManagers = new ArrayList<>();
     private final List<X509TrustManager> trustManagers = new ArrayList<>();
 
     private boolean securityEnabled;
@@ -54,7 +55,7 @@ public class SSLFactory {
     private String protocol;
     private SSLContext sslContext;
     private CompositeX509TrustManager trustManager;
-    private CompositeX509KeyManager keyManager;
+    private CompositeX509ExtendedKeyManager keyManager;
     private HostnameVerifier hostnameVerifier;
     private SecureRandom secureRandom;
 
@@ -82,12 +83,12 @@ public class SSLFactory {
     }
 
     private KeyManager[] createKeyManager() {
-        keyManager = CompositeX509KeyManager.builder()
+        keyManager = CompositeX509ExtendedKeyManager.builder()
                 .withKeyManagers(identityManagers)
                 .withIdentities(identities)
                 .build();
 
-        return keyManager.getKeyManagers();
+        return new X509ExtendedKeyManager[] {keyManager};
     }
 
     private TrustManager[] createTrustManagers() {
@@ -108,7 +109,7 @@ public class SSLFactory {
         }
 
         trustManager = trustManagerBuilder.build();
-        return trustManager.getTrustManagers();
+        return new TrustManager[] {trustManager};
     }
 
     public List<KeyStoreHolder> getIdentities() {
@@ -174,7 +175,7 @@ public class SSLFactory {
 
         private final List<KeyStoreHolder> identities = new ArrayList<>();
         private final List<KeyStoreHolder> trustStores = new ArrayList<>();
-        private final List<X509KeyManager> identityManagers = new ArrayList<>();
+        private final List<X509ExtendedKeyManager> identityManagers = new ArrayList<>();
         private final List<X509TrustManager> trustManagers = new ArrayList<>();
 
         private boolean oneWayAuthenticationEnabled;
@@ -295,7 +296,7 @@ public class SSLFactory {
             return this;
         }
 
-        public Builder withKeyManager(X509KeyManager keyManager) {
+        public Builder withKeyManager(X509ExtendedKeyManager keyManager) {
             identityManagers.add(keyManager);
             this.twoWayAuthenticationEnabled = true;
             return this;

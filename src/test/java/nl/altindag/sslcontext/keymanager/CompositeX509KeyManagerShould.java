@@ -6,7 +6,7 @@ import nl.altindag.sslcontext.util.KeyStoreUtils;
 import org.junit.Test;
 
 import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.X509KeyManager;
+import javax.net.ssl.X509ExtendedKeyManager;
 import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -28,7 +28,7 @@ public class CompositeX509KeyManagerShould {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
-        CompositeX509KeyManager keyManager = CompositeX509KeyManager.builder()
+        CompositeX509ExtendedKeyManager keyManager = CompositeX509ExtendedKeyManager.builder()
                 .withIdentities(
                         new KeyStoreHolder(identityOne, IDENTITY_PASSWORD),
                         new KeyStoreHolder(identityTwo, IDENTITY_PASSWORD))
@@ -38,7 +38,7 @@ public class CompositeX509KeyManagerShould {
 
         assertThat(identityOne.size()).isEqualTo(1);
         assertThat(identityTwo.size()).isEqualTo(1);
-        assertThat(keyManager.getKeyManagers()).hasSize(2);
+        assertThat(keyManager.size()).isEqualTo(2);
         assertThat(keyManager.getPrivateKey("dummy-client")).isNotNull();
         assertThat(keyManager.getPrivateKey("another-server")).isNotNull();
     }
@@ -48,7 +48,7 @@ public class CompositeX509KeyManagerShould {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
-        CompositeX509KeyManager keyManager = CompositeX509KeyManager.builder()
+        CompositeX509ExtendedKeyManager keyManager = CompositeX509ExtendedKeyManager.builder()
                 .withIdentities(
                         new KeyStoreHolder(identityOne, IDENTITY_PASSWORD),
                         new KeyStoreHolder(identityTwo, IDENTITY_PASSWORD))
@@ -66,7 +66,7 @@ public class CompositeX509KeyManagerShould {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
-        CompositeX509KeyManager keyManager = CompositeX509KeyManager.builder()
+        CompositeX509ExtendedKeyManager keyManager = CompositeX509ExtendedKeyManager.builder()
                 .withIdentity(identityOne, IDENTITY_PASSWORD, KeyManagerFactory.getDefaultAlgorithm())
                 .withIdentity(identityTwo, IDENTITY_PASSWORD, KeyManagerFactory.getDefaultAlgorithm())
                 .build();
@@ -90,7 +90,7 @@ public class CompositeX509KeyManagerShould {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
-        CompositeX509KeyManager keyManager = CompositeX509KeyManager.builder()
+        CompositeX509ExtendedKeyManager keyManager = CompositeX509ExtendedKeyManager.builder()
                 .withIdentities(
                         new KeyStoreHolder(identityOne, IDENTITY_PASSWORD),
                         new KeyStoreHolder(identityTwo, IDENTITY_PASSWORD))
@@ -108,10 +108,10 @@ public class CompositeX509KeyManagerShould {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
-        X509KeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
-        X509KeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
-        CompositeX509KeyManager keyManager = CompositeX509KeyManager.builder()
+        CompositeX509ExtendedKeyManager keyManager = CompositeX509ExtendedKeyManager.builder()
                 .withKeyManagers(Arrays.asList(keyManagerOne, keyManagerTwo))
                 .build();
 
@@ -128,10 +128,10 @@ public class CompositeX509KeyManagerShould {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
-        X509KeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
-        X509KeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
-        CompositeX509KeyManager keyManager = CompositeX509KeyManager.builder()
+        CompositeX509ExtendedKeyManager keyManager = CompositeX509ExtendedKeyManager.builder()
                 .withKeyManagers(keyManagerOne, keyManagerTwo)
                 .build();
 
@@ -148,10 +148,10 @@ public class CompositeX509KeyManagerShould {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
-        X509KeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
-        X509KeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
-        CompositeX509KeyManager keyManager = CompositeX509KeyManager.builder()
+        CompositeX509ExtendedKeyManager keyManager = CompositeX509ExtendedKeyManager.builder()
                 .withKeyManagers(keyManagerOne, keyManagerTwo)
                 .build();
 
@@ -168,10 +168,10 @@ public class CompositeX509KeyManagerShould {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
-        X509KeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
-        X509KeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
-        CompositeX509KeyManager keyManager = CompositeX509KeyManager.builder()
+        CompositeX509ExtendedKeyManager keyManager = CompositeX509ExtendedKeyManager.builder()
                 .withKeyManagers(keyManagerTwo, keyManagerOne)
                 .build();
 
@@ -188,10 +188,10 @@ public class CompositeX509KeyManagerShould {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
-        X509KeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
-        X509KeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
-        CompositeX509KeyManager keyManager = CompositeX509KeyManager.builder()
+        CompositeX509ExtendedKeyManager keyManager = CompositeX509ExtendedKeyManager.builder()
                 .withKeyManagers(keyManagerTwo, keyManagerOne)
                 .build();
 
@@ -208,10 +208,10 @@ public class CompositeX509KeyManagerShould {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
-        X509KeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
-        X509KeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
-        CompositeX509KeyManager keyManager = CompositeX509KeyManager.builder()
+        CompositeX509ExtendedKeyManager keyManager = CompositeX509ExtendedKeyManager.builder()
                 .withKeyManagers(keyManagerOne, keyManagerTwo)
                 .build();
 
@@ -228,10 +228,10 @@ public class CompositeX509KeyManagerShould {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
-        X509KeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
-        X509KeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
-        CompositeX509KeyManager keyManager = CompositeX509KeyManager.builder()
+        CompositeX509ExtendedKeyManager keyManager = CompositeX509ExtendedKeyManager.builder()
                 .withKeyManagers(keyManagerTwo, keyManagerOne)
                 .build();
 

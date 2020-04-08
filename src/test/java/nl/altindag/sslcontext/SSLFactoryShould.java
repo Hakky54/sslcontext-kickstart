@@ -13,7 +13,7 @@ import org.apache.logging.log4j.Logger;
 import org.junit.Test;
 
 import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.X509KeyManager;
+import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509TrustManager;
 import javax.security.auth.x500.X500Principal;
 import java.io.IOException;
@@ -237,7 +237,7 @@ public class SSLFactoryShould {
     @Test
     public void buildSSLFactoryForTwoWayAuthenticationWithIdentityManager() throws Exception {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
-        X509KeyManager identityManager = KeyManagerUtils.createKeyManager(identity, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager identityManager = KeyManagerUtils.createKeyManager(identity, IDENTITY_PASSWORD);
 
         SSLFactory sslFactory = SSLFactory.builder()
                 .withKeyManager(identityManager)

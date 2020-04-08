@@ -101,8 +101,8 @@ public class CompositeX509TrustManager implements X509TrustManager {
         return acceptedIssuers;
     }
 
-    public X509TrustManager[] getTrustManagers() {
-        return trustManagers.stream().toArray(X509TrustManager[]::new);
+    public int size() {
+        return trustManagers.size();
     }
 
     public static Builder builder() {
