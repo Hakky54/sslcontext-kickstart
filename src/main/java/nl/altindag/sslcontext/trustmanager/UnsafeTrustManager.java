@@ -1,7 +1,7 @@
 package nl.altindag.sslcontext.trustmanager;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.X509TrustManager;
 import java.security.cert.X509Certificate;
@@ -22,7 +22,7 @@ import java.security.cert.X509Certificate;
 public final class UnsafeTrustManager implements X509TrustManager {
 
     public static final UnsafeTrustManager INSTANCE = new UnsafeTrustManager();
-    private static final Logger LOGGER = LogManager.getLogger(UnsafeTrustManager.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(UnsafeTrustManager.class);
     private static final X509Certificate[] EMPTY_X509_CERTIFICATES = new X509Certificate[0];
 
     private UnsafeTrustManager() {}

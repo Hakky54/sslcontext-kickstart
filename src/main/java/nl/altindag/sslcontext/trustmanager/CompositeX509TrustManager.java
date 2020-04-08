@@ -1,8 +1,8 @@
 package nl.altindag.sslcontext.trustmanager;
 
 import nl.altindag.sslcontext.util.TrustManagerUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.X509TrustManager;
 import java.security.KeyStore;
@@ -36,7 +36,7 @@ import static java.util.Objects.isNull;
  */
 public class CompositeX509TrustManager implements X509TrustManager {
 
-    private static final Logger LOGGER = LogManager.getLogger(CompositeX509TrustManager.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CompositeX509TrustManager.class);
 
     private final List<? extends X509TrustManager> trustManagers;
     private X509Certificate[] acceptedIssuers;

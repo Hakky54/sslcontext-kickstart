@@ -8,9 +8,9 @@ import nl.altindag.sslcontext.trustmanager.CompositeX509TrustManager;
 import nl.altindag.sslcontext.util.KeyManagerUtils;
 import nl.altindag.sslcontext.util.KeyStoreUtils;
 import nl.altindag.sslcontext.util.TrustManagerUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.X509ExtendedKeyManager;
@@ -47,7 +47,7 @@ import static org.assertj.core.api.Assertions.fail;
 @SuppressWarnings({"squid:S1192", "squid:S2068"})
 public class SSLFactoryShould {
 
-    private static final Logger LOGGER = LogManager.getLogger(SSLFactoryShould.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SSLFactoryShould.class);
 
     private static final String GENERIC_IDENTITY_VALIDATION_EXCEPTION_MESSAGE = "Identity details are empty, which are required to be present when SSL/TLS is enabled";
     private static final String GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE = "TrustStore details are empty, which are required to be present when SSL/TLS is enabled";

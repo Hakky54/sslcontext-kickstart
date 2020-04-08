@@ -53,8 +53,7 @@
         <version.java>1.8</version.java>
         <version.netty-handler>4.1.48.Final</version.netty-handler>
         <version.commons-lang3>3.10</version.commons-lang3>
-        <version.log4j-core>2.13.1</version.log4j-core>
-        <version.logback-classic>1.2.3</version.logback-classic>
+        <version.slf4j>1.7.30</version.slf4j>
         <version.junit>4.13</version.junit>
         <version.assertj-core>3.15.0</version.assertj-core>
         <version.logcaptor>1.1.0</version.logcaptor>
@@ -77,22 +76,10 @@
             <artifactId>commons-lang3</artifactId>
             <version>${version.commons-lang3}</version>
         </dependency>
-
         <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-core</artifactId>
-            <version>${version.log4j-core}</version>
-        </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>${version.logback-classic}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
-            </exclusions>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${version.slf4j}</version>
         </dependency>
 
         <!--    libraries used for testing    -->
@@ -112,12 +99,6 @@
             <groupId>io.github.hakky54</groupId>
             <artifactId>logcaptor</artifactId>
             <version>${version.logcaptor}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-to-slf4j</artifactId>
-            <version>${version.apache.log4j-to-slf4j}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

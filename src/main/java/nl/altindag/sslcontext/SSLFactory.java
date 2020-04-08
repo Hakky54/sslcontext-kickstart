@@ -8,8 +8,8 @@ import nl.altindag.sslcontext.trustmanager.CompositeX509TrustManager;
 import nl.altindag.sslcontext.trustmanager.UnsafeTrustManager;
 import nl.altindag.sslcontext.util.KeyStoreUtils;
 import nl.altindag.sslcontext.util.TrustManagerUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManager;
@@ -39,7 +39,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 
 public class SSLFactory {
 
-    private static final Logger LOGGER = LogManager.getLogger(SSLFactory.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SSLFactory.class);
 
     private final List<KeyStoreHolder> identities = new ArrayList<>();
     private final List<KeyStoreHolder> trustStores = new ArrayList<>();
