@@ -1,6 +1,6 @@
 package nl.altindag.sslcontext.exception;
 
-public class GenericKeyStoreException extends GenericSecurityException {
+public final class GenericKeyStoreException extends GenericSecurityException {
 
     public GenericKeyStoreException(String message) {
         super(message);

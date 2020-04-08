@@ -37,7 +37,7 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.ArrayUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
-public class SSLFactory {
+public final class SSLFactory {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SSLFactory.class);
 

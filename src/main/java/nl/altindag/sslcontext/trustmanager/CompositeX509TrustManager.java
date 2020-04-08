@@ -34,7 +34,7 @@ import static java.util.Objects.isNull;
  *     http://codyaray.com/2013/04/java-ssl-with-multiple-keystores
  *     </a>
  */
-public class CompositeX509TrustManager implements X509TrustManager {
+public final class CompositeX509TrustManager implements X509TrustManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CompositeX509TrustManager.class);
 
@@ -109,7 +109,7 @@ public class CompositeX509TrustManager implements X509TrustManager {
         return new Builder();
     }
 
-    public static class Builder {
+    public static final class Builder {
 
         private final List<X509TrustManager> trustManagers = new ArrayList<>();
 

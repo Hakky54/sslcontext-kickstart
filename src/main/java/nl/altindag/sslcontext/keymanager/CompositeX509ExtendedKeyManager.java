@@ -37,7 +37,7 @@ import java.util.List;
  *     http://codyaray.com/2013/04/java-ssl-with-multiple-keystores
  *     </a>
  */
-public class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManager {
+public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManager {
 
     private final List<X509ExtendedKeyManager> keyManagers;
 
@@ -178,7 +178,7 @@ public class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManager {
         return new Builder();
     }
 
-    public static class Builder {
+    public static final class Builder {
 
         private final List<X509ExtendedKeyManager> keyManagers = new ArrayList<>();
 

@@ -2,7 +2,7 @@ package nl.altindag.sslcontext.model;
 
 import java.security.KeyStore;
 
-public class KeyStoreHolder {
+public final class KeyStoreHolder {
 
     private final KeyStore keyStore;
     private final char[] keyStorePassword;
