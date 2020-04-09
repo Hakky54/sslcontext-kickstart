@@ -25,10 +25,6 @@ jobs:
       - name: Build with Maven
         run: mvn clean verify
 
-      - uses: codecov/codecov-action@v1.0.3
-        with:
-          token: ${{secrets.CODECOV_TOKEN}}
-
   build-on-linux-with-jdk-11:
     runs-on: ubuntu-latest
     steps:

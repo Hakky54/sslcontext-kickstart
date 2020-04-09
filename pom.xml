@@ -3,13 +3,19 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.github.hakky54</groupId>
-    <artifactId>sslcontext-kickstart</artifactId>
+    <artifactId>sslcontext-kickstart-parent</artifactId>
     <version>3.0.6-SNAPSHOT</version>
-    <packaging>jar</packaging>
+    <packaging>pom</packaging>
 
-    <name>sslcontext-kickstart</name>
     <description>easy to use library to configure a SSLContext and other properties to enable SSL/TLS connection</description>
     <url>https://github.com/Hakky54/sslcontext-kickstart</url>
+
+    <modules>
+        <module>sslcontext-kickstart</module>
+        <module>sslcontext-kickstart-for-netty</module>
+        <module>sslcontext-kickstart-for-jetty</module>
+        <module>sslcontext-kickstart-for-apache</module>
+    </modules>
 
     <licenses>
         <license>
@@ -51,17 +57,16 @@
 
     <properties>
         <version.java>1.8</version.java>
-        <version.spring>2.2.6.RELEASE</version.spring>
-        <version.apache.httpclient>4.5.12</version.apache.httpclient>
-        <version.netty-handler>4.1.48.Final</version.netty-handler>
-        <version.jetty-reactive-httpclient>1.1.2</version.jetty-reactive-httpclient>
-        <version.maven-surefire-plugin>2.22.2</version.maven-surefire-plugin>
         <version.commons-lang3>3.10</version.commons-lang3>
-        <version.log4j-core>2.13.1</version.log4j-core>
-        <version.guava>28.2-jre</version.guava>
+        <version.slf4j>1.7.30</version.slf4j>
+        <version.junit>4.13</version.junit>
+        <version.assertj-core>3.15.0</version.assertj-core>
         <version.logcaptor>1.1.0</version.logcaptor>
         <version.jacoco-maven-plugin>0.8.5</version.jacoco-maven-plugin>
+        <version.maven-surefire-plugin>2.22.2</version.maven-surefire-plugin>
         <version.maven-compiler-plugin>3.8.1</version.maven-compiler-plugin>
+        <version.maven-enforcer-plugin>3.0.0-M3</version.maven-enforcer-plugin>
+        <version.maven-jar-plugin>3.2.0</version.maven-jar-plugin>
         <version.maven-javadoc-plugin>3.1.1</version.maven-javadoc-plugin>
         <version.maven-source-plugin>3.2.1</version.maven-source-plugin>
         <version.maven-gpg-plugin>1.6</version.maven-gpg-plugin>
@@ -71,56 +76,51 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>${version.apache.httpclient}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-handler</artifactId>
-            <version>${version.netty-handler}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-reactive-httpclient</artifactId>
-            <version>${version.jetty-reactive-httpclient}</version>
-        </dependency>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${version.commons-lang3}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${version.slf4j}</version>
+            </dependency>
 
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>${version.commons-lang3}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-core</artifactId>
-            <version>${version.log4j-core}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>${version.guava}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <version>${version.spring}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>io.github.hakky54</groupId>
-            <artifactId>logcaptor</artifactId>
-            <version>${version.logcaptor}</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>${version.junit}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.assertj</groupId>
+                <artifactId>assertj-core</artifactId>
+                <version>${version.assertj-core}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.github.hakky54</groupId>
+                <artifactId>logcaptor</artifactId>
+                <version>${version.logcaptor}</version>
+                <scope>test</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>${version.maven-jar-plugin}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -129,6 +129,25 @@
                 <configuration>
                     <source>${version.java}</source>
                     <target>${version.java}</target>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>${version.maven-enforcer-plugin}</version>
+                <executions>
+                    <execution>
+                        <id>enforce</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <rules>
+                        <dependencyConvergence/>
+                    </rules>
                 </configuration>
             </plugin>
 
@@ -215,7 +234,6 @@
                     <autoReleaseAfterClose>true</autoReleaseAfterClose>
                 </configuration>
             </plugin>
-
         </plugins>
     </build>
 
