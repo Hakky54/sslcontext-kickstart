@@ -1,8 +1,0 @@
-coverage:
-  precision: 2
-  round: down
-  range: "90...100"
-
-ignore:
-  - "src/main/java/nl/altindag/sslcontext/exception/GenericKeyStoreException.java"
-  - "src/main/java/nl/altindag/sslcontext/exception/GenericSSLContextException.java"
