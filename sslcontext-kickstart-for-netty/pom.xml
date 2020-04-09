@@ -5,18 +5,18 @@
     <parent>
         <groupId>io.github.hakky54</groupId>
         <artifactId>sslcontext-kickstart-parent</artifactId>
-        <version>3.0.6</version>
+        <version>3.0.7-SNAPSHOT</version>
     </parent>
 
     <artifactId>sslcontext-kickstart-for-netty</artifactId>
-    <version>3.0.6</version>
+    <version>3.0.7-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>${project.artifactId}</name>
 
     <properties>
         <version.netty-handler>4.1.48.Final</version.netty-handler>
-        <version.sslcontext-kickstart>3.0.6</version.sslcontext-kickstart>
+        <version.sslcontext-kickstart>3.0.7-SNAPSHOT</version.sslcontext-kickstart>
     </properties>
 
     <dependencies>
