@@ -5,11 +5,11 @@
     <parent>
         <groupId>io.github.hakky54</groupId>
         <artifactId>sslcontext-kickstart-parent</artifactId>
-        <version>3.0.7-SNAPSHOT</version>
+        <version>3.0.7</version>
     </parent>
 
     <artifactId>sslcontext-kickstart</artifactId>
-    <version>3.0.7-SNAPSHOT</version>
+    <version>3.0.7</version>
     <packaging>jar</packaging>
 
     <name>${project.artifactId}</name>
