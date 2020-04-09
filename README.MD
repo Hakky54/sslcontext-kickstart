@@ -21,7 +21,7 @@
 1. [Introduction](#introduction)
 2. [Acknowledgement](#acknowledgement)
 3. [Advantages](#advantages)
-4. [Definition](#definition)
+4. [Definitions](#definitions)
 5. [Tested HTTP Clients](#tested-http-clients)
 6. [Usage](#usage)
    - [Example configuration](#example-configuration)
@@ -41,11 +41,11 @@ The code snippets which Cody has shared are now available within this library an
 The original article can be found here: [Codyaray - Java SSL with Multiple KeyStores](http://codyaray.com/2013/04/java-ssl-with-multiple-keystores).
 
 ## Advantages:
-- No need for low-level SSLContext configuration anymore
-- No knowledge needed about SSLContext, TrustManager, TrustManagerFactory, KeyManager, KeyManagerFactory and how to create it.
-- Above classes will all be created with just providing an identity and a trustStore
+  - No need for low-level SSLContext configuration anymore
+  - No knowledge needed about SSLContext, TrustManager, TrustManagerFactory, KeyManager, KeyManagerFactory and how to create it.
+  - Above classes will all be created with just providing an identity and a trustStore
 
-## Definition
+## Definitions
   - Identity: A KeyStore which holds the key pair also known as private and public key
   - TrustStore: A KeyStore containing one or more certificates also known as public key. This KeyStore contains a list of trusted certificates
   - One way authentication (also known as one way tls, one way ssl): Https connection where the client validates the certificate of the counter party
@@ -72,10 +72,10 @@ Below is a list of clients which have already been tested with examples, see in 
   - [ScalaJ Http Client](https://github.com/scalaj/scalaj-http)  
   
 There is a github project available named [Mutual-tls-ssl](https://github.com/Hakky54/mutual-tls-ssl) which provides a tutorial containing steps for setting up these four scenarios:
- - No security
- - One way authentication
- - Two way authentication
- - Two way authentication with trusting the Certificate Authority
+  - No security
+  - One way authentication
+  - Two way authentication
+  - Two way authentication with trusting the Certificate Authority
 
 It will also explain how to create KeyStores, Certificates, Certificate Signing Requests and how to implement it.
 
@@ -95,7 +95,7 @@ import nl.altindag.sslcontext.SSLFactory;
 
 public class App {
 
-    public static void main(String[] args) throws  JSONException {
+    public static void main(String[] args) throws IOException, JSONException {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withDefaultJdkTrustStore()
                 .build();

@@ -22,7 +22,7 @@ import java.util.List;
  * This is necessary because of the fine-print on {@link SSLContext#init}:
  * Only the first instance of a particular key and/or key manager implementation type in the
  * array is used. (For example, only the first javax.net.ssl.X509KeyManager in the array will be used.)
- * The KeyManager can be build from one or more of any combination provided within the {@link Builder CompositeX509KeyManager.Builder}.
+ * The KeyManager can be build from one or more of any combination provided within the {@link Builder CompositeX509ExtendedKeyManager.Builder}.
  * <br><br>
  * This includes:
  * <pre>

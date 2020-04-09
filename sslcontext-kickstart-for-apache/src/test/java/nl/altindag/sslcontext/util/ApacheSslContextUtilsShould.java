@@ -15,12 +15,12 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class ApacheSslContextUtilsShould {
 
-    public static final String IDENTITY_FILE_NAME = "identity.jks";
-    public static final String TRUSTSTORE_FILE_NAME = "truststore.jks";
+    private static final String IDENTITY_FILE_NAME = "identity.jks";
+    private static final String TRUSTSTORE_FILE_NAME = "truststore.jks";
 
-    public static final char[] IDENTITY_PASSWORD = "secret".toCharArray();
-    public static final char[] TRUSTSTORE_PASSWORD = "secret".toCharArray();
-    public static final String KEYSTORE_LOCATION = "keystores-for-unit-tests/";
+    private static final char[] IDENTITY_PASSWORD = "secret".toCharArray();
+    private static final char[] TRUSTSTORE_PASSWORD = "secret".toCharArray();
+    private static final String KEYSTORE_LOCATION = "keystores-for-unit-tests/";
 
     @Test
     public void createLayeredConnectionSocketFactoryForOneWayAuthentication() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
