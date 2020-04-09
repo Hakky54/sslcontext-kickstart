@@ -4,7 +4,7 @@ import ch.qos.logback.classic.Level;
 import nl.altindag.log.LogCaptor;
 import nl.altindag.sslcontext.exception.GenericKeyStoreException;
 import nl.altindag.sslcontext.exception.GenericSSLContextException;
-import nl.altindag.sslcontext.trustmanager.CompositeX509TrustManager;
+import nl.altindag.sslcontext.trustmanager.CompositeX509ExtendedTrustManager;
 import nl.altindag.sslcontext.util.KeyManagerUtils;
 import nl.altindag.sslcontext.util.KeyStoreUtils;
 import nl.altindag.sslcontext.util.TrustManagerUtils;
@@ -16,7 +16,7 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSessionContext;
-import javax.net.ssl.X509ExtendedKeyManager;
+import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
 import javax.security.auth.x500.X500Principal;
 import java.io.IOException;
@@ -242,7 +242,7 @@ public class SSLFactoryShould {
     @Test
     public void buildSSLFactoryForTwoWayAuthenticationWithIdentityManager() throws Exception {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
-        X509ExtendedKeyManager identityManager = KeyManagerUtils.createKeyManager(identity, IDENTITY_PASSWORD);
+        X509KeyManager identityManager = KeyManagerUtils.createKeyManager(identity, IDENTITY_PASSWORD);
 
         SSLFactory sslFactory = SSLFactory.builder()
                 .withKeyManager(identityManager)
@@ -500,7 +500,7 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getSslContext()).isNotNull();
         assertThat(sslFactory.getTrustedCertificates()).isEmpty();
         assertThat(sslFactory.getTrustStores()).isEmpty();
-        assertThat(sslFactory.getTrustManager()).isInstanceOf(CompositeX509TrustManager.class);
+        assertThat(sslFactory.getTrustManager()).isInstanceOf(CompositeX509ExtendedTrustManager.class);
         assertThat(logCaptor.getLogs(Level.WARN)).contains("UnsafeTrustManager is being used. Client/Server certificates will be accepted without validation. Please don't use this configuration at production.");
     }
 

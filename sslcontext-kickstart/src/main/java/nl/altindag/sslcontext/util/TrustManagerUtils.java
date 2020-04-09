@@ -3,9 +3,10 @@ package nl.altindag.sslcontext.util;
 import nl.altindag.sslcontext.exception.GenericKeyStoreException;
 import nl.altindag.sslcontext.exception.GenericSecurityException;
 import nl.altindag.sslcontext.model.KeyStoreHolder;
-import nl.altindag.sslcontext.trustmanager.CompositeX509TrustManager;
+import nl.altindag.sslcontext.trustmanager.CompositeX509ExtendedTrustManager;
 
 import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509ExtendedTrustManager;
 import javax.net.ssl.X509TrustManager;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -18,12 +19,12 @@ public final class TrustManagerUtils {
 
     private TrustManagerUtils() {}
 
-    public static X509TrustManager combine(X509TrustManager... trustManagers) {
+    public static X509ExtendedTrustManager combine(X509TrustManager... trustManagers) {
         return combine(Arrays.asList(trustManagers));
     }
 
-    public static X509TrustManager combine(List<X509TrustManager> trustManagers) {
-        return CompositeX509TrustManager.builder()
+    public static X509ExtendedTrustManager combine(List<? extends X509TrustManager> trustManagers) {
+        return CompositeX509ExtendedTrustManager.builder()
                 .withTrustManagers(trustManagers)
                 .build();
     }
@@ -32,14 +33,14 @@ public final class TrustManagerUtils {
         return createTrustManager((KeyStore) null);
     }
 
-    public static X509TrustManager createTrustManager(KeyStoreHolder... trustStoreHolders) {
+    public static X509ExtendedTrustManager createTrustManager(KeyStoreHolder... trustStoreHolders) {
         return Arrays.stream(trustStoreHolders)
                 .map(KeyStoreHolder::getKeyStore)
                 .map(TrustManagerUtils::createTrustManager)
                 .collect(Collectors.collectingAndThen(Collectors.toList(), TrustManagerUtils::combine));
     }
 
-    public static X509TrustManager createTrustManager(KeyStore... trustStores) {
+    public static X509ExtendedTrustManager createTrustManager(KeyStore... trustStores) {
         return Arrays.stream(trustStores)
                 .map(TrustManagerUtils::createTrustManager)
                 .collect(Collectors.collectingAndThen(Collectors.toList(), TrustManagerUtils::combine));

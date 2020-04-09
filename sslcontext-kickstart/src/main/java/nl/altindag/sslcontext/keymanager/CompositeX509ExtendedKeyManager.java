@@ -6,6 +6,7 @@ import nl.altindag.sslcontext.util.KeyManagerUtils;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedKeyManager;
+import javax.net.ssl.X509KeyManager;
 import java.net.Socket;
 import java.security.KeyStore;
 import java.security.Principal;
@@ -39,14 +40,14 @@ import java.util.List;
  */
 public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManager {
 
-    private final List<X509ExtendedKeyManager> keyManagers;
+    private final List<? extends X509KeyManager> keyManagers;
 
     /**
      * Creates a new {@link CompositeX509ExtendedKeyManager}.
      *
      * @param keyManagers the {@link X509ExtendedKeyManager}, ordered with the most-preferred managers first.
      */
-    public CompositeX509ExtendedKeyManager(List<? extends X509ExtendedKeyManager> keyManagers) {
+    public CompositeX509ExtendedKeyManager(List<? extends X509KeyManager> keyManagers) {
         this.keyManagers = Collections.unmodifiableList(keyManagers);
     }
 
@@ -56,7 +57,7 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
      */
     @Override
     public String chooseClientAlias(String[] keyType, Principal[] issuers, Socket socket) {
-        for (X509ExtendedKeyManager keyManager : keyManagers) {
+        for (X509KeyManager keyManager : keyManagers) {
             String alias = keyManager.chooseClientAlias(keyType, issuers, socket);
             if (alias != null) {
                 return alias;
@@ -71,10 +72,12 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
      */
     @Override
     public String chooseEngineClientAlias(String[] keyTypes, Principal[] issuers, SSLEngine sslEngine) {
-        for (X509ExtendedKeyManager keyManager : keyManagers) {
-            String alias = keyManager.chooseEngineClientAlias(keyTypes, issuers, sslEngine);
-            if (alias != null) {
-                return alias;
+        for (X509KeyManager keyManager : keyManagers) {
+            if (keyManager instanceof X509ExtendedKeyManager) {
+                String alias = ((X509ExtendedKeyManager) keyManager).chooseEngineClientAlias(keyTypes, issuers, sslEngine);
+                if (alias != null) {
+                    return alias;
+                }
             }
         }
         return null;
@@ -86,7 +89,7 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
      */
     @Override
     public String chooseServerAlias(String keyType, Principal[] issuers, Socket socket) {
-        for (X509ExtendedKeyManager keyManager : keyManagers) {
+        for (X509KeyManager keyManager : keyManagers) {
             String alias = keyManager.chooseServerAlias(keyType, issuers, socket);
             if (alias != null) {
                 return alias;
@@ -101,10 +104,12 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
      */
     @Override
     public String chooseEngineServerAlias(String keyType, Principal[] issuers, SSLEngine sslEngine) {
-        for (X509ExtendedKeyManager keyManager : keyManagers) {
-            String alias = keyManager.chooseEngineServerAlias(keyType, issuers, sslEngine);
-            if (alias != null) {
-                return alias;
+        for (X509KeyManager keyManager : keyManagers) {
+            if (keyManager instanceof X509ExtendedKeyManager) {
+                String alias = ((X509ExtendedKeyManager) keyManager).chooseEngineServerAlias(keyType, issuers, sslEngine);
+                if (alias != null) {
+                    return alias;
+                }
             }
         }
         return null;
@@ -116,7 +121,7 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
      */
     @Override
     public PrivateKey getPrivateKey(String alias) {
-        for (X509ExtendedKeyManager keyManager : keyManagers) {
+        for (X509KeyManager keyManager : keyManagers) {
             PrivateKey privateKey = keyManager.getPrivateKey(alias);
             if (privateKey != null) {
                 return privateKey;
@@ -131,7 +136,7 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
      */
     @Override
     public X509Certificate[] getCertificateChain(String alias) {
-        for (X509ExtendedKeyManager keyManager : keyManagers) {
+        for (X509KeyManager keyManager : keyManagers) {
             X509Certificate[] chain = keyManager.getCertificateChain(alias);
             if (chain != null && chain.length > 0) {
                 return chain;
@@ -147,7 +152,7 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
     @Override
     public String[] getClientAliases(String keyType, Principal[] issuers) {
         List<String> aliases = new ArrayList<>();
-        for (X509ExtendedKeyManager keyManager : keyManagers) {
+        for (X509KeyManager keyManager : keyManagers) {
             aliases.addAll(Arrays.asList(keyManager.getClientAliases(keyType, issuers)));
         }
         return emptyToNull(aliases.toArray(new String[]{}));
@@ -160,7 +165,7 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
     @Override
     public String[] getServerAliases(String keyType, Principal[] issuers) {
         List<String> aliases = new ArrayList<>();
-        for (X509ExtendedKeyManager keyManager : keyManagers) {
+        for (X509KeyManager keyManager : keyManagers) {
             aliases.addAll(Arrays.asList(keyManager.getServerAliases(keyType, issuers)));
         }
         return emptyToNull(aliases.toArray(new String[]{}));
@@ -180,13 +185,13 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
 
     public static final class Builder {
 
-        private final List<X509ExtendedKeyManager> keyManagers = new ArrayList<>();
+        private final List<X509KeyManager> keyManagers = new ArrayList<>();
 
-        public <T extends X509ExtendedKeyManager> Builder withKeyManagers(T... keyManagers) {
+        public <T extends X509KeyManager> Builder withKeyManagers(T... keyManagers) {
             return withKeyManagers(Arrays.asList(keyManagers));
         }
 
-        public Builder withKeyManagers(List<? extends X509ExtendedKeyManager> keyManagers) {
+        public Builder withKeyManagers(List<? extends X509KeyManager> keyManagers) {
             this.keyManagers.addAll(keyManagers);
             return this;
         }

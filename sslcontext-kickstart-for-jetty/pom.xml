@@ -14,6 +14,26 @@
 
     <name>${project.artifactId}</name>
 
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>Hakky54</id>
+            <name>Hakan Altindag</name>
+            <organization>Thunderberry</organization>
+            <url>https://github.com/Hakky54</url>
+            <roles>
+                <role>Maintainer</role>
+            </roles>
+        </developer>
+    </developers>
+
     <properties>
         <version.sslcontext-kickstart>3.0.7-SNAPSHOT</version.sslcontext-kickstart>
         <version.jetty-reactive-httpclient>1.1.2</version.jetty-reactive-httpclient>

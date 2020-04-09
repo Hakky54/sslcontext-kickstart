@@ -4,8 +4,8 @@ import nl.altindag.sslcontext.exception.GenericKeyStoreException;
 import nl.altindag.sslcontext.exception.GenericSSLContextException;
 import nl.altindag.sslcontext.keymanager.CompositeX509ExtendedKeyManager;
 import nl.altindag.sslcontext.model.KeyStoreHolder;
-import nl.altindag.sslcontext.trustmanager.CompositeX509TrustManager;
-import nl.altindag.sslcontext.trustmanager.UnsafeTrustManager;
+import nl.altindag.sslcontext.trustmanager.CompositeX509ExtendedTrustManager;
+import nl.altindag.sslcontext.trustmanager.UnsafeX509ExtendedTrustManager;
 import nl.altindag.sslcontext.util.KeyStoreUtils;
 import nl.altindag.sslcontext.util.TrustManagerUtils;
 import org.slf4j.Logger;
@@ -16,6 +16,7 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509ExtendedKeyManager;
+import javax.net.ssl.X509ExtendedTrustManager;
 import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
@@ -43,7 +44,7 @@ public final class SSLFactory {
 
     private final List<KeyStoreHolder> identities = new ArrayList<>();
     private final List<KeyStoreHolder> trustStores = new ArrayList<>();
-    private final List<X509ExtendedKeyManager> identityManagers = new ArrayList<>();
+    private final List<X509KeyManager> identityManagers = new ArrayList<>();
     private final List<X509TrustManager> trustManagers = new ArrayList<>();
 
     private boolean securityEnabled;
@@ -54,7 +55,7 @@ public final class SSLFactory {
 
     private String protocol;
     private SSLContext sslContext;
-    private CompositeX509TrustManager trustManager;
+    private CompositeX509ExtendedTrustManager trustManager;
     private CompositeX509ExtendedKeyManager keyManager;
     private HostnameVerifier hostnameVerifier;
     private SecureRandom secureRandom;
@@ -92,7 +93,7 @@ public final class SSLFactory {
     }
 
     private TrustManager[] createTrustManagers() {
-        CompositeX509TrustManager.Builder trustManagerBuilder = CompositeX509TrustManager.builder()
+        CompositeX509ExtendedTrustManager.Builder trustManagerBuilder = CompositeX509ExtendedTrustManager.builder()
                 .withTrustManagers(trustManagers)
                 .withTrustStores(trustStores.stream()
                         .map(KeyStoreHolder::getKeyStore)
@@ -101,7 +102,7 @@ public final class SSLFactory {
 
         if (trustingAllCertificatesWithoutValidationEnabled) {
             LOGGER.warn("UnsafeTrustManager is being used. Client/Server certificates will be accepted without validation. Please don't use this configuration at production.");
-            trustManagerBuilder.withTrustManagers(UnsafeTrustManager.INSTANCE);
+            trustManagerBuilder.withTrustManagers(UnsafeX509ExtendedTrustManager.INSTANCE);
         }
 
         if (includeDefaultJdkTrustStore) {
@@ -136,11 +137,11 @@ public final class SSLFactory {
         return sslContext;
     }
 
-    public X509KeyManager getKeyManager() {
+    public X509ExtendedKeyManager getKeyManager() {
         return keyManager;
     }
 
-    public X509TrustManager getTrustManager() {
+    public X509ExtendedTrustManager getTrustManager() {
         return trustManager;
     }
 
@@ -175,7 +176,7 @@ public final class SSLFactory {
 
         private final List<KeyStoreHolder> identities = new ArrayList<>();
         private final List<KeyStoreHolder> trustStores = new ArrayList<>();
-        private final List<X509ExtendedKeyManager> identityManagers = new ArrayList<>();
+        private final List<X509KeyManager> identityManagers = new ArrayList<>();
         private final List<X509TrustManager> trustManagers = new ArrayList<>();
 
         private boolean oneWayAuthenticationEnabled;
@@ -296,7 +297,7 @@ public final class SSLFactory {
             return this;
         }
 
-        public Builder withKeyManager(X509ExtendedKeyManager keyManager) {
+        public Builder withKeyManager(X509KeyManager keyManager) {
             identityManagers.add(keyManager);
             this.twoWayAuthenticationEnabled = true;
             return this;
