@@ -16,7 +16,7 @@ import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class CompositeX509KeyManagerShould {
+public class CompositeX509ExtendedKeyManagerShould {
 
     private static final String IDENTITY_FILE_NAME = "identity.jks";
     private static final String IDENTITY_TWO_FILE_NAME = "identity-two.jks";
@@ -164,7 +164,47 @@ public class CompositeX509KeyManagerShould {
     }
 
     @Test
+    public void chooseFirstEngineServerAliasWithMatchingKeyType() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
+
+        CompositeX509ExtendedKeyManager keyManager = CompositeX509ExtendedKeyManager.builder()
+                .withKeyManagers(keyManagerOne, keyManagerTwo)
+                .build();
+
+        String alias = keyManager.chooseEngineServerAlias("RSA", null, null);
+
+        assertThat(keyManager).isNotNull();
+        assertThat(identityOne.size()).isEqualTo(1);
+        assertThat(identityTwo.size()).isEqualTo(1);
+        assertThat(alias).isEqualTo("dummy-client");
+    }
+
+    @Test
     public void chooseFirstServerAliasWithMatchingKeyTypeWithDifferentOrderOfInitializationOfTheKeyManager() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
+
+        CompositeX509ExtendedKeyManager keyManager = CompositeX509ExtendedKeyManager.builder()
+                .withKeyManagers(keyManagerTwo, keyManagerOne)
+                .build();
+
+        String alias = keyManager.chooseServerAlias("RSA", null, null);
+
+        assertThat(keyManager).isNotNull();
+        assertThat(identityOne.size()).isEqualTo(1);
+        assertThat(identityTwo.size()).isEqualTo(1);
+        assertThat(alias).isEqualTo("another-server");
+    }
+
+    @Test
+    public void chooseFirstEngineServerAliasWithMatchingKeyTypeWithDifferentOrderOfInitializationOfTheKeyManager() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
@@ -204,6 +244,26 @@ public class CompositeX509KeyManagerShould {
     }
 
     @Test
+    public void returnNullWhenThereIsNoMatchOfKeyTypeForKeyManagersWhileChoosingEngineServerAlias() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
+
+        CompositeX509ExtendedKeyManager keyManager = CompositeX509ExtendedKeyManager.builder()
+                .withKeyManagers(keyManagerTwo, keyManagerOne)
+                .build();
+
+        String alias = keyManager.chooseEngineServerAlias("ECDSA", null, null);
+
+        assertThat(keyManager).isNotNull();
+        assertThat(identityOne.size()).isEqualTo(1);
+        assertThat(identityTwo.size()).isEqualTo(1);
+        assertThat(alias).isNull();
+    }
+
+    @Test
     public void chooseFirstClientAliasWithMatchingKeyType() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
@@ -224,6 +284,26 @@ public class CompositeX509KeyManagerShould {
     }
 
     @Test
+    public void chooseFirstEngineClientAliasWithMatchingKeyType() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
+
+        CompositeX509ExtendedKeyManager keyManager = CompositeX509ExtendedKeyManager.builder()
+                .withKeyManagers(keyManagerOne, keyManagerTwo)
+                .build();
+
+        String alias = keyManager.chooseEngineClientAlias(new String[]{"RSA"}, null, null);
+
+        assertThat(keyManager).isNotNull();
+        assertThat(identityOne.size()).isEqualTo(1);
+        assertThat(identityTwo.size()).isEqualTo(1);
+        assertThat(alias).isEqualTo("dummy-client");
+    }
+
+    @Test
     public void returnNullWhenThereIsNoMatchOfKeyTypeForKeyManagersWhileChoosingClientAlias() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
@@ -236,6 +316,26 @@ public class CompositeX509KeyManagerShould {
                 .build();
 
         String alias = keyManager.chooseClientAlias(new String[]{"ECDSA"}, null, null);
+
+        assertThat(keyManager).isNotNull();
+        assertThat(identityOne.size()).isEqualTo(1);
+        assertThat(identityTwo.size()).isEqualTo(1);
+        assertThat(alias).isNull();
+    }
+
+    @Test
+    public void returnNullWhenThereIsNoMatchOfKeyTypeForKeyManagersWhileChoosingEngineClientAlias() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
+
+        CompositeX509ExtendedKeyManager keyManager = CompositeX509ExtendedKeyManager.builder()
+                .withKeyManagers(keyManagerTwo, keyManagerOne)
+                .build();
+
+        String alias = keyManager.chooseEngineClientAlias(new String[]{"ECDSA"}, null, null);
 
         assertThat(keyManager).isNotNull();
         assertThat(identityOne.size()).isEqualTo(1);

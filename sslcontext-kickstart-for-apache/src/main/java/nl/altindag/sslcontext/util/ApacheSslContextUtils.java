@@ -8,6 +8,8 @@ import java.util.Objects;
 
 public final class ApacheSslContextUtils {
 
+    private ApacheSslContextUtils() {}
+
     public static LayeredConnectionSocketFactory toLayeredConnectionSocketFactory(SSLFactory sslFactory) {
         Objects.requireNonNull(sslFactory.getSslContext());
 

@@ -171,7 +171,7 @@ public final class SSLFactory {
 
         private String protocol = "TLSv1.2";
         private SecureRandom secureRandom = new SecureRandom();
-        private HostnameVerifier hostnameVerifier;
+        private HostnameVerifier hostnameVerifier = (host, sslSession) -> host.equalsIgnoreCase(sslSession.getPeerHost());
 
         private final List<KeyStoreHolder> identities = new ArrayList<>();
         private final List<KeyStoreHolder> trustStores = new ArrayList<>();
@@ -336,10 +336,10 @@ public final class SSLFactory {
             }
 
             validateTrustStore();
-            buildHostnameVerifier(sslFactory);
             sslFactory.protocol = protocol;
             sslFactory.securityEnabled = true;
             sslFactory.secureRandom = secureRandom;
+            sslFactory.hostnameVerifier = hostnameVerifier;
             sslFactory.includeDefaultJdkTrustStore = includeDefaultJdkTrustStore;
             sslFactory.trustingAllCertificatesWithoutValidationEnabled = trustingAllCertificatesWithoutValidationEnabled;
 
@@ -350,15 +350,6 @@ public final class SSLFactory {
             buildSLLContextForOneWayAuthenticationIfEnabled(sslFactory);
             buildSLLContextForTwoWayAuthenticationIfEnabled(sslFactory);
             return sslFactory;
-        }
-
-        private void buildHostnameVerifier(SSLFactory sslFactory) {
-            if (isNull(hostnameVerifier)) {
-                LOGGER.info("No HostnameVerifier has been provided, switching back to default which disables hostname verification");
-                sslFactory.hostnameVerifier = (host, sslSession) -> true;
-            } else {
-                sslFactory.hostnameVerifier = hostnameVerifier;
-            }
         }
 
         private void buildSLLContextForOneWayAuthenticationIfEnabled(SSLFactory sslFactory) {
