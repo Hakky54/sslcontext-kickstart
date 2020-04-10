@@ -2,7 +2,7 @@ package nl.altindag.sslcontext.util;
 
 import io.netty.handler.ssl.SslContext;
 import nl.altindag.sslcontext.SSLFactory;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.security.KeyStore;

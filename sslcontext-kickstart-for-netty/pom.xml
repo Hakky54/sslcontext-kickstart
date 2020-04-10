@@ -13,6 +13,8 @@
     <packaging>jar</packaging>
 
     <name>${project.artifactId}</name>
+    <description>easy to use library to configure a SSLContext and other properties to enable SSL/TLS connection</description>
+    <url>https://github.com/Hakky54/sslcontext-kickstart</url>
 
     <licenses>
         <license>
@@ -51,8 +53,12 @@
         </dependency>
 
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
         </dependency>
         <dependency>
             <groupId>org.assertj</groupId>
