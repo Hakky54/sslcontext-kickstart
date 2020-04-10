@@ -19,7 +19,7 @@ import java.util.List;
 import static java.util.Objects.isNull;
 
 /**
- * {@link CompositeX509ExtendedTrustManager} is wrapper for a collection of TrustManagers.
+ * {@link CompositeX509ExtendedTrustManager} is a wrapper for a collection of TrustManagers.
  * It has the ability to validate a certificate chain against multiple TrustManagers.
  * If any one of the composed managers trusts a certificate chain, then it is trusted by the composite manager.
  * The TrustManager can be build from one or more of any combination provided within the {@link Builder CompositeX509ExtendedTrustManager.Builder}.
@@ -41,8 +41,6 @@ public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustMa
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CompositeX509ExtendedTrustManager.class);
     private static final String CERTIFICATE_EXCEPTION_MESSAGE = "None of the TrustManagers trust this certificate chain";
-    private static final String NOT_X509_EXTENDED_TRUST_MANAGER_EXCEPTION_MESSAGE =
-            "Couldn't validate certificate because TrustManager is not an instance of X509ExtendedTrustManager";
     private static final String CLIENT_CERTIFICATE_LOG_MESSAGE = "Received the following client certificate: [{}]";
     private static final String SERVER_CERTIFICATE_LOG_MESSAGE = "Received the following server certificate: [{}]";
 
@@ -88,7 +86,8 @@ public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustMa
                     ((X509ExtendedTrustManager) trustManager).checkClientTrusted(chain, authType, socket);
                     return;
                 } else {
-                    certificateExceptions.add(new CertificateException(NOT_X509_EXTENDED_TRUST_MANAGER_EXCEPTION_MESSAGE));
+                    trustManager.checkClientTrusted(chain, authType);
+                    return;
                 }
             } catch (CertificateException e) {
                 certificateExceptions.add(e);
@@ -114,7 +113,8 @@ public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustMa
                     ((X509ExtendedTrustManager) trustManager).checkClientTrusted(chain, authType, sslEngine);
                     return;
                 } else {
-                    certificateExceptions.add(new CertificateException(NOT_X509_EXTENDED_TRUST_MANAGER_EXCEPTION_MESSAGE));
+                    trustManager.checkClientTrusted(chain, authType);
+                    return;
                 }
             } catch (CertificateException e) {
                 certificateExceptions.add(e);
@@ -162,7 +162,8 @@ public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustMa
                     ((X509ExtendedTrustManager) trustManager).checkServerTrusted(chain, authType, socket);
                     return;
                 } else {
-                    certificateExceptions.add(new CertificateException(NOT_X509_EXTENDED_TRUST_MANAGER_EXCEPTION_MESSAGE));
+                    trustManager.checkServerTrusted(chain, authType);
+                    return;
                 }
             } catch (CertificateException e) {
                 certificateExceptions.add(e);
@@ -188,7 +189,8 @@ public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustMa
                     ((X509ExtendedTrustManager) trustManager).checkServerTrusted(chain, authType, sslEngine);
                     return;
                 } else {
-                    certificateExceptions.add(new CertificateException(NOT_X509_EXTENDED_TRUST_MANAGER_EXCEPTION_MESSAGE));
+                    trustManager.checkServerTrusted(chain, authType);
+                    return;
                 }
             } catch (CertificateException e) {
                 certificateExceptions.add(e);
