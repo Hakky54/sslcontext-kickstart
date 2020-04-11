@@ -12,7 +12,7 @@
     <version>3.0.8-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>${project.artifactId}</name>
+    <name>SSLContext Kickstart</name>
     <description>easy to use library to configure a SSLContext and other properties to enable SSL/TLS connection</description>
     <url>https://github.com/Hakky54/sslcontext-kickstart</url>
 
@@ -35,6 +35,11 @@
             </roles>
         </developer>
     </developers>
+
+    <properties>
+        <version.maven-site-plugin>3.9.0</version.maven-site-plugin>
+        <version.maven-project-info-reports-plugin>3.0.0</version.maven-project-info-reports-plugin>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -77,7 +82,47 @@
                     </archive>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <version>${version.maven-site-plugin}</version>
+            </plugin>
         </plugins>
     </build>
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>${version.maven-project-info-reports-plugin}</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>javadoc</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>report</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+        </plugins>
+    </reporting>
     
 </project>

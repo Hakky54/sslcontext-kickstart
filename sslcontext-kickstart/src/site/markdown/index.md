@@ -1,0 +1,1 @@
+SSLContext Kickstart is a library which provides an easy to use factory for configuring a http client to communicate over SSL/TLS for one way authentication or two way authentication.
