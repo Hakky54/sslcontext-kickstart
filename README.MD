@@ -51,13 +51,13 @@ The original article can be found here: [Codyaray - Java SSL with Multiple KeySt
   - Two way authentication (also known as two way tls, two way ssl, mutual authentication): Https connection where the client as well as the counter party validates the certificate, also known as mutual authentication
 
 ## Tested HTTP Clients
-Below is a list of clients which have already been tested with examples, see in the [ClientConfig class](https://github.com/Hakky54/mutual-tls-ssl/blob/master/client/src/main/java/nl/altindag/client/ClientConfig.java) and [service directory](https://github.com/Hakky54/mutual-tls-ssl/tree/master/client/src/main/java/nl/altindag/client/service) for detailed configuration
+Below is a list of clients which have already been tested with examples, see in the [ClientConfig class](https://github.com/Hakky54/mutual-tls-ssl/blob/master/client/src/main/java/nl/altindag/client/ClientConfig.java) and the [service directory](https://github.com/Hakky54/mutual-tls-ssl/tree/master/client/src/main/java/nl/altindag/client/service) for detailed configuration
   - [Apache HttpClient](https://github.com/apache/httpcomponents-client)
   - [JDK HttpClient](https://openjdk.java.net/groups/net/httpclient/intro.html)
   - [Old JDK HttpClient](https://docs.oracle.com/javase/tutorial/networking/urls/readingWriting.html)
-  - Spring RestTemplate
-  - Spring WebFlux WebClient Netty
-  - Spring WebFlux WebClient Jetty
+  - [Spring RestTemplate](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/client/RestTemplate.html)
+  - [Spring WebFlux WebClient Netty](https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html)
+  - [Spring WebFlux WebClient Jetty](https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html)
   - [OkHttp](https://github.com/square/okhttp)
   - [Jersey Client](https://eclipse-ee4j.github.io/jersey/)
   - Old Jersey Client
@@ -170,12 +170,20 @@ SSLFactory.builder()
           .build();
 ```
 
+Support for using X509KeyManager and X509TrustManager
+```text
+SSLFactory.builder()
+          .withKeyManager(keyManager)
+          .withTrustManager(trustManager)
+          .build();
+```
+
 ### Additional mappers for specific libraries
 Some http clients relay on different ssl classes from third parties and require mapping from SSLFactory to those libraries.
 Below you will find the maven dependency which will provide the mapping and also the SSLFactory library.
 When using one of the below libraries, it is not required to also explicitly include [sslcontext-kickstart](#install-with-mavenhttpsmvnrepositorycomartifactiogithubhakky54sslcontext-kickstart).
 #### Netty
-Some know http clients which relay on netty libraries are: Spring WebFlux WebClient Netty, [Async Http Client](https://github.com/AsyncHttpClient/async-http-client) and [Dispatch Reboot Http Client](https://github.com/dispatch/reboot).
+Some know http clients which relay on netty libraries are: [Spring WebFlux WebClient Netty](https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html), [Async Http Client](https://github.com/AsyncHttpClient/async-http-client) and [Dispatch Reboot Http Client](https://github.com/dispatch/reboot).
 ```xml
 <dependency>
     <groupId>io.github.hakky54</groupId>
@@ -221,7 +229,7 @@ public class App {
     <version>3.0.7</version>
 </dependency>
 ```
-Example setup for Spring WebClient with Jetty:
+Example setup for [Spring WebFlux WebClient Jetty](https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html):
 ```java
 import nl.altindag.sslcontext.SSLFactory;
 import nl.altindag.sslcontext.util.JettySslContextUtils;

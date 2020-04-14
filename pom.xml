@@ -8,7 +8,7 @@
     <packaging>pom</packaging>
 
     <name>${project.artifactId}</name>
-    <url>https://github.com/Hakky54/sslcontext-kickstart</url>
+    <url>https://sslcontext-kickstart.com/</url>
 
     <modules>
         <module>sslcontext-kickstart</module>
