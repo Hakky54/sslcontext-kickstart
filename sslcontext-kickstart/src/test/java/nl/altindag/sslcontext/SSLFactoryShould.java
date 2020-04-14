@@ -49,7 +49,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
 
-@SuppressWarnings({"squid:S1192", "squid:S2068"})
 public class SSLFactoryShould {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SSLFactoryShould.class);
