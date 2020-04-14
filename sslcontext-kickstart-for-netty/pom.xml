@@ -14,7 +14,7 @@
 
     <name>${project.artifactId}</name>
     <description>High level library to configure a SSLContext and other properties to enable SSL/TLS connection</description>
-    <url>https://github.com/Hakky54/sslcontext-kickstart</url>
+    <url>https://sslcontext-kickstart.com/</url>
 
     <licenses>
         <license>
