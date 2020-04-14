@@ -13,7 +13,7 @@
     <packaging>jar</packaging>
 
     <name>${project.artifactId}</name>
-    <description>easy to use library to configure a SSLContext and other properties to enable SSL/TLS connection</description>
+    <description>High level library to configure a SSLContext and other properties to enable SSL/TLS connection</description>
     <url>https://github.com/Hakky54/sslcontext-kickstart</url>
 
     <licenses>
