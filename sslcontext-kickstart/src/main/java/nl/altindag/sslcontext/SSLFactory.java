@@ -2,6 +2,7 @@ package nl.altindag.sslcontext;
 
 import nl.altindag.sslcontext.exception.GenericKeyStoreException;
 import nl.altindag.sslcontext.exception.GenericSSLContextException;
+import nl.altindag.sslcontext.exception.GenericSecurityException;
 import nl.altindag.sslcontext.keymanager.CompositeX509ExtendedKeyManager;
 import nl.altindag.sslcontext.model.KeyStoreHolder;
 import nl.altindag.sslcontext.trustmanager.CompositeX509ExtendedTrustManager;
@@ -42,45 +43,59 @@ public final class SSLFactory {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SSLFactory.class);
 
+    private final String protocol;
+    private final SecureRandom secureRandom;
+    private final HostnameVerifier hostnameVerifier;
+
     private final List<KeyStoreHolder> identities = new ArrayList<>();
-    private final List<KeyStoreHolder> trustStores = new ArrayList<>();
     private final List<X509KeyManager> identityManagers = new ArrayList<>();
+
+    private final List<KeyStoreHolder> trustStores = new ArrayList<>();
     private final List<X509TrustManager> trustManagers = new ArrayList<>();
+    private final boolean includeDefaultJdkTrustStore;
+    private final boolean trustingAllCertificatesWithoutValidationEnabled;
 
-    private boolean securityEnabled;
-    private boolean oneWayAuthenticationEnabled;
-    private boolean twoWayAuthenticationEnabled;
-    private boolean includeDefaultJdkTrustStore;
-    private boolean trustingAllCertificatesWithoutValidationEnabled;
-
-    private String protocol;
     private SSLContext sslContext;
     private CompositeX509ExtendedTrustManager trustManager;
     private CompositeX509ExtendedKeyManager keyManager;
-    private HostnameVerifier hostnameVerifier;
-    private SecureRandom secureRandom;
 
-    private SSLFactory() {}
+    @SuppressWarnings("java:S107")
+    private SSLFactory(String protocol,
+                       SecureRandom secureRandom,
+                       HostnameVerifier hostnameVerifier,
+                       List<KeyStoreHolder> identities,
+                       List<X509KeyManager> identityManagers,
+                       List<KeyStoreHolder> trustStores,
+                       List<X509TrustManager> trustManagers,
+                       boolean includeDefaultJdkTrustStore,
+                       boolean trustingAllCertificatesWithoutValidationEnabled) {
 
-    private void createSSLContextWithTrustStore() {
+        this.protocol = protocol;
+        this.secureRandom = secureRandom;
+        this.hostnameVerifier = hostnameVerifier;
+        this.identities.addAll(identities);
+        this.identityManagers.addAll(identityManagers);
+        this.trustStores.addAll(trustStores);
+        this.trustManagers.addAll(trustManagers);
+        this.includeDefaultJdkTrustStore = includeDefaultJdkTrustStore;
+        this.trustingAllCertificatesWithoutValidationEnabled = trustingAllCertificatesWithoutValidationEnabled;
+    }
+
+    private void createSSLContextWithTrustMaterial() {
+        createSSLContext(null, createTrustManagers());
+    }
+
+    private void createSSLContextWithKeyMaterialAndTrustMaterial() {
+        createSSLContext(createKeyManager(), createTrustManagers());
+    }
+
+    private void createSSLContext(KeyManager[] keyManagers, TrustManager[] trustManagers)  {
         try {
-            createSSLContext(null, createTrustManagers());
+            sslContext = SSLContext.getInstance(protocol);
+            sslContext.init(keyManagers, trustManagers, secureRandom);
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
             throw new GenericSSLContextException(e);
         }
-    }
-
-    private void createSSLContextWithKeyStoreAndTrustStore() {
-        try {
-            createSSLContext(createKeyManager(), createTrustManagers());
-        } catch (NoSuchAlgorithmException | KeyManagementException e) {
-            throw new GenericSSLContextException(e);
-        }
-    }
-
-    private void createSSLContext(KeyManager[] keyManagers, TrustManager[] trustManagers) throws NoSuchAlgorithmException, KeyManagementException {
-        sslContext = SSLContext.getInstance(protocol);
-        sslContext.init(keyManagers, trustManagers, secureRandom);
     }
 
     private KeyManager[] createKeyManager() {
@@ -121,24 +136,12 @@ public final class SSLFactory {
         return Collections.unmodifiableList(trustStores);
     }
 
-    public boolean isSecurityEnabled() {
-        return securityEnabled;
-    }
-
-    public boolean isOneWayAuthenticationEnabled() {
-        return oneWayAuthenticationEnabled;
-    }
-
-    public boolean isTwoWayAuthenticationEnabled() {
-        return twoWayAuthenticationEnabled;
-    }
-
     public SSLContext getSslContext() {
         return sslContext;
     }
 
-    public X509ExtendedKeyManager getKeyManager() {
-        return keyManager;
+    public Optional<X509ExtendedKeyManager> getKeyManager() {
+        return Optional.ofNullable(keyManager);
     }
 
     public X509ExtendedTrustManager getTrustManager() {
@@ -146,9 +149,7 @@ public final class SSLFactory {
     }
 
     public X509Certificate[] getTrustedCertificates() {
-        return Optional.ofNullable(trustManager)
-                .map(X509TrustManager::getAcceptedIssuers)
-                .orElse(new X509Certificate[]{});
+        return trustManager.getAcceptedIssuers();
     }
 
     public HostnameVerifier getHostnameVerifier() {
@@ -169,6 +170,8 @@ public final class SSLFactory {
 
         private static final String IDENTITY_VALIDATION_EXCEPTION_MESSAGE = "Identity details are empty, which are required to be present when SSL/TLS is enabled";
         private static final String KEY_STORE_LOADING_EXCEPTION = "Failed to load the keystore";
+        public static final String IDENTITY_AND_TRUST_MATERIAL_VALIDATION_EXCEPTION_MESSAGE = "Could not create instance of SSLFactory because Identity " +
+                "and Trust material are not present. Please provide at least a Trust material.";
 
         private String protocol = "TLSv1.2";
         private SecureRandom secureRandom = new SecureRandom();
@@ -179,8 +182,6 @@ public final class SSLFactory {
         private final List<X509KeyManager> identityManagers = new ArrayList<>();
         private final List<X509TrustManager> trustManagers = new ArrayList<>();
 
-        private boolean oneWayAuthenticationEnabled;
-        private boolean twoWayAuthenticationEnabled;
         private boolean includeDefaultJdkTrustStore = false;
         private boolean trustingAllCertificatesWithoutValidationEnabled = false;
 
@@ -188,13 +189,11 @@ public final class SSLFactory {
 
         public Builder withDefaultJdkTrustStore() {
             this.includeDefaultJdkTrustStore = true;
-            this.oneWayAuthenticationEnabled = true;
             return this;
         }
 
         public Builder withTrustManager(X509TrustManager trustManager) {
             trustManagers.add(trustManager);
-            this.oneWayAuthenticationEnabled = true;
             return this;
         }
 
@@ -215,7 +214,6 @@ public final class SSLFactory {
                 throw new GenericKeyStoreException(KEY_STORE_LOADING_EXCEPTION, e);
             }
 
-            this.oneWayAuthenticationEnabled = true;
             return this;
         }
 
@@ -236,7 +234,6 @@ public final class SSLFactory {
                 throw new GenericKeyStoreException(KEY_STORE_LOADING_EXCEPTION, e);
             }
 
-            this.oneWayAuthenticationEnabled = true;
             return this;
         }
 
@@ -245,7 +242,6 @@ public final class SSLFactory {
             KeyStoreHolder trustStoreHolder = new KeyStoreHolder(trustStore, trustStorePassword);
             trustStores.add(trustStoreHolder);
 
-            this.oneWayAuthenticationEnabled = true;
             return this;
         }
 
@@ -262,7 +258,6 @@ public final class SSLFactory {
                 KeyStore identity = KeyStoreUtils.loadKeyStore(identityPath, identityPassword, identityType);
                 KeyStoreHolder identityHolder = new KeyStoreHolder(identity, identityPassword);
                 identities.add(identityHolder);
-                this.twoWayAuthenticationEnabled = true;
             } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
                 throw new GenericKeyStoreException(KEY_STORE_LOADING_EXCEPTION, e);
             }
@@ -282,7 +277,6 @@ public final class SSLFactory {
                 KeyStore identity = KeyStoreUtils.loadKeyStore(identityPath, identityPassword, identityType);
                 KeyStoreHolder identityHolder = new KeyStoreHolder(identity, identityPassword);
                 identities.add(identityHolder);
-                this.twoWayAuthenticationEnabled = true;
             } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
                 throw new GenericKeyStoreException(KEY_STORE_LOADING_EXCEPTION, e);
             }
@@ -293,13 +287,11 @@ public final class SSLFactory {
             validateKeyStore(identity, identityPassword, IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
             KeyStoreHolder identityHolder = new KeyStoreHolder(identity, identityPassword);
             identities.add(identityHolder);
-            this.twoWayAuthenticationEnabled = true;
             return this;
         }
 
         public Builder withKeyManager(X509KeyManager keyManager) {
             identityManagers.add(keyManager);
-            this.twoWayAuthenticationEnabled = true;
             return this;
         }
 
@@ -326,60 +318,58 @@ public final class SSLFactory {
 
         public Builder withTrustingAllCertificatesWithoutValidation() {
             trustingAllCertificatesWithoutValidationEnabled = true;
-            oneWayAuthenticationEnabled = true;
             return this;
         }
 
         public SSLFactory build() {
-            SSLFactory sslFactory = new SSLFactory();
-            if (!oneWayAuthenticationEnabled && !twoWayAuthenticationEnabled) {
-                return sslFactory;
+            if (isIdentityMaterialNotPresent() && isTrustMaterialNotPresent()) {
+                throw new GenericSecurityException(IDENTITY_AND_TRUST_MATERIAL_VALIDATION_EXCEPTION_MESSAGE);
             }
 
-            validateTrustStore();
-            sslFactory.protocol = protocol;
-            sslFactory.securityEnabled = true;
-            sslFactory.secureRandom = secureRandom;
-            sslFactory.hostnameVerifier = hostnameVerifier;
-            sslFactory.includeDefaultJdkTrustStore = includeDefaultJdkTrustStore;
-            sslFactory.trustingAllCertificatesWithoutValidationEnabled = trustingAllCertificatesWithoutValidationEnabled;
-
-            if (twoWayAuthenticationEnabled) {
-                oneWayAuthenticationEnabled = false;
+            if (isTrustMaterialNotPresent()) {
+                throw new GenericKeyStoreException(TRUST_STRATEGY_VALIDATION_EXCEPTION_MESSAGE);
             }
 
-            buildSLLContextForOneWayAuthenticationIfEnabled(sslFactory);
-            buildSLLContextForTwoWayAuthenticationIfEnabled(sslFactory);
+            SSLFactory sslFactory = new SSLFactory(
+                    protocol,
+                    secureRandom,
+                    hostnameVerifier,
+                    identities,
+                    identityManagers,
+                    trustStores,
+                    trustManagers,
+                    includeDefaultJdkTrustStore,
+                    trustingAllCertificatesWithoutValidationEnabled);
+
+            if (isIdentityMaterialPresent() && isTrustMaterialPresent()) {
+                sslFactory.createSSLContextWithKeyMaterialAndTrustMaterial();
+            }
+
+            if (isIdentityMaterialNotPresent() && isTrustMaterialPresent()) {
+                sslFactory.createSSLContextWithTrustMaterial();
+            }
+
             return sslFactory;
         }
 
-        private void buildSLLContextForOneWayAuthenticationIfEnabled(SSLFactory sslFactory) {
-            if (oneWayAuthenticationEnabled) {
-                sslFactory.oneWayAuthenticationEnabled = true;
-                sslFactory.trustStores.addAll(trustStores);
-                sslFactory.trustManagers.addAll(trustManagers);
-                sslFactory.createSSLContextWithTrustStore();
-            }
+        private boolean isTrustMaterialPresent() {
+            return !trustStores.isEmpty()
+                    || !trustManagers.isEmpty()
+                    || includeDefaultJdkTrustStore
+                    || trustingAllCertificatesWithoutValidationEnabled;
         }
 
-        private void buildSLLContextForTwoWayAuthenticationIfEnabled(SSLFactory sslFactory) {
-            if (twoWayAuthenticationEnabled) {
-                sslFactory.twoWayAuthenticationEnabled = true;
-                sslFactory.identities.addAll(identities);
-                sslFactory.trustStores.addAll(trustStores);
-                sslFactory.identityManagers.addAll(identityManagers);
-                sslFactory.trustManagers.addAll(trustManagers);
-                sslFactory.createSSLContextWithKeyStoreAndTrustStore();
-            }
+        private boolean isTrustMaterialNotPresent() {
+            return !isTrustMaterialPresent();
         }
 
-        private void validateTrustStore() {
-            if (trustStores.isEmpty()
-                    && trustManagers.isEmpty()
-                    && !includeDefaultJdkTrustStore
-                    && !trustingAllCertificatesWithoutValidationEnabled) {
-                throw new GenericKeyStoreException(TRUST_STRATEGY_VALIDATION_EXCEPTION_MESSAGE);
-            }
+        private boolean isIdentityMaterialPresent() {
+            return !identities.isEmpty()
+                    || !identityManagers.isEmpty();
+        }
+
+        private boolean isIdentityMaterialNotPresent() {
+            return !isIdentityMaterialPresent();
         }
     }
 }

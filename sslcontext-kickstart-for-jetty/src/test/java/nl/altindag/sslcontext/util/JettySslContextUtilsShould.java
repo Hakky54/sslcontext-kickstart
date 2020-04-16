@@ -11,7 +11,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class JettySslContextUtilsShould {
 
@@ -23,19 +22,16 @@ public class JettySslContextUtilsShould {
     private static final String KEYSTORE_LOCATION = "keystores-for-unit-tests/";
 
     @Test
-    public void createJettySslContextFactoryForClientForOneWayAuthentication() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
+    public void createJettySslContextFactoryForClientWithTrustMaterial() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 
         SSLFactory sslFactory = SSLFactory.builder()
                 .withTrustStore(trustStore, TRUSTSTORE_PASSWORD)
                 .build();
 
-        assertThat(sslFactory.isSecurityEnabled()).isTrue();
-        assertThat(sslFactory.isOneWayAuthenticationEnabled()).isTrue();
-        assertThat(sslFactory.isTwoWayAuthenticationEnabled()).isFalse();
         assertThat(sslFactory.getSslContext()).isNotNull();
 
-        assertThat(sslFactory.getKeyManager()).isNull();
+        assertThat(sslFactory.getKeyManager()).isNotPresent();
         assertThat(sslFactory.getIdentities()).isEmpty();
 
         assertThat(sslFactory.getTrustManager()).isNotNull();
@@ -57,7 +53,7 @@ public class JettySslContextUtilsShould {
     }
 
     @Test
-    public void createJettySslContextFactoryForClientForTwoWayAuthentication() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
+    public void createJettySslContextFactoryForClientWithIdentityMaterialAndTrustMaterial() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 
@@ -66,12 +62,9 @@ public class JettySslContextUtilsShould {
                 .withTrustStore(trustStore, TRUSTSTORE_PASSWORD)
                 .build();
 
-        assertThat(sslFactory.isSecurityEnabled()).isTrue();
-        assertThat(sslFactory.isOneWayAuthenticationEnabled()).isFalse();
-        assertThat(sslFactory.isTwoWayAuthenticationEnabled()).isTrue();
         assertThat(sslFactory.getSslContext()).isNotNull();
 
-        assertThat(sslFactory.getKeyManager()).isNotNull();
+        assertThat(sslFactory.getKeyManager()).isPresent();
         assertThat(sslFactory.getIdentities()).isNotEmpty();
         assertThat(sslFactory.getIdentities().get(0).getKeyStorePassword()).isEqualTo(IDENTITY_PASSWORD);
 
@@ -94,7 +87,7 @@ public class JettySslContextUtilsShould {
     }
 
     @Test
-    public void createJettySslContextFactoryForServerForTwoWayAuthentication() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
+    public void createJettySslContextFactoryForServerWithIdentityMaterialAndTrustMaterial() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 
@@ -103,12 +96,9 @@ public class JettySslContextUtilsShould {
                 .withTrustStore(trustStore, TRUSTSTORE_PASSWORD)
                 .build();
 
-        assertThat(sslFactory.isSecurityEnabled()).isTrue();
-        assertThat(sslFactory.isOneWayAuthenticationEnabled()).isFalse();
-        assertThat(sslFactory.isTwoWayAuthenticationEnabled()).isTrue();
         assertThat(sslFactory.getSslContext()).isNotNull();
 
-        assertThat(sslFactory.getKeyManager()).isNotNull();
+        assertThat(sslFactory.getKeyManager()).isPresent();
         assertThat(sslFactory.getIdentities()).isNotEmpty();
         assertThat(sslFactory.getIdentities().get(0).getKeyStorePassword()).isEqualTo(IDENTITY_PASSWORD);
 
@@ -128,18 +118,6 @@ public class JettySslContextUtilsShould {
                 .containsExactlyInAnyOrder(sslFactory.getSslContext().getDefaultSSLParameters().getCipherSuites());
         assertThat(sslContextFactory.getIncludeProtocols())
                 .containsExactlyInAnyOrder(sslFactory.getSslContext().getDefaultSSLParameters().getProtocols());
-    }
-
-    @Test
-    public void throwExceptionWhenCreatingJettySslContextFactoryForClientWithoutSslContext() {
-        assertThatThrownBy(() -> JettySslContextUtils.forClient(SSLFactory.builder().build()))
-                .isInstanceOf(NullPointerException.class);
-    }
-
-    @Test
-    public void throwExceptionWhenCreatingJettySslContextFactoryForServerWithoutSslContext() {
-        assertThatThrownBy(() -> JettySslContextUtils.forServer(SSLFactory.builder().build()))
-                .isInstanceOf(NullPointerException.class);
     }
 
 }

@@ -23,19 +23,16 @@ public class NettySslContextUtilsShould {
     private static final String KEYSTORE_LOCATION = "keystores-for-unit-tests/";
 
     @Test
-    public void createNettySslContextBuilderForClientForOneWayAuthentication() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
+    public void createNettySslContextBuilderForClientWithTrustMaterial() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 
         SSLFactory sslFactory = SSLFactory.builder()
                 .withTrustStore(trustStore, TRUSTSTORE_PASSWORD)
                 .build();
 
-        assertThat(sslFactory.isSecurityEnabled()).isTrue();
-        assertThat(sslFactory.isOneWayAuthenticationEnabled()).isTrue();
-        assertThat(sslFactory.isTwoWayAuthenticationEnabled()).isFalse();
         assertThat(sslFactory.getSslContext()).isNotNull();
 
-        assertThat(sslFactory.getKeyManager()).isNull();
+        assertThat(sslFactory.getKeyManager()).isNotPresent();
         assertThat(sslFactory.getIdentities()).isEmpty();
 
         assertThat(sslFactory.getTrustManager()).isNotNull();
@@ -53,7 +50,7 @@ public class NettySslContextUtilsShould {
     }
 
     @Test
-    public void createNettySslContextBuilderForClientForTwoWayAuthentication() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
+    public void createNettySslContextBuilderForClientWithIdentityMaterialAndTrustMaterial() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 
@@ -62,12 +59,9 @@ public class NettySslContextUtilsShould {
                 .withTrustStore(trustStore, TRUSTSTORE_PASSWORD)
                 .build();
 
-        assertThat(sslFactory.isSecurityEnabled()).isTrue();
-        assertThat(sslFactory.isOneWayAuthenticationEnabled()).isFalse();
-        assertThat(sslFactory.isTwoWayAuthenticationEnabled()).isTrue();
         assertThat(sslFactory.getSslContext()).isNotNull();
 
-        assertThat(sslFactory.getKeyManager()).isNotNull();
+        assertThat(sslFactory.getKeyManager()).isPresent();
         assertThat(sslFactory.getIdentities()).isNotEmpty();
         assertThat(sslFactory.getIdentities().get(0).getKeyStorePassword()).isEqualTo(IDENTITY_PASSWORD);
 
@@ -86,7 +80,7 @@ public class NettySslContextUtilsShould {
     }
 
     @Test
-    public void createNettySslContextBuilderForServerForTwoWayAuthentication() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
+    public void createNettySslContextBuilderForServerWithIdentityMaterialAndTrustMaterial() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 
@@ -95,12 +89,9 @@ public class NettySslContextUtilsShould {
                 .withTrustStore(trustStore, TRUSTSTORE_PASSWORD)
                 .build();
 
-        assertThat(sslFactory.isSecurityEnabled()).isTrue();
-        assertThat(sslFactory.isOneWayAuthenticationEnabled()).isFalse();
-        assertThat(sslFactory.isTwoWayAuthenticationEnabled()).isTrue();
         assertThat(sslFactory.getSslContext()).isNotNull();
 
-        assertThat(sslFactory.getKeyManager()).isNotNull();
+        assertThat(sslFactory.getKeyManager()).isPresent();
         assertThat(sslFactory.getIdentities()).isNotEmpty();
         assertThat(sslFactory.getIdentities().get(0).getKeyStorePassword()).isEqualTo(IDENTITY_PASSWORD);
 
@@ -116,18 +107,6 @@ public class NettySslContextUtilsShould {
         assertThat(sslContext.isClient()).isFalse();
         assertThat(sslContext.isServer()).isTrue();
         assertThat(sslContext.cipherSuites()).containsExactlyInAnyOrder(sslFactory.getSslContext().getDefaultSSLParameters().getCipherSuites());
-    }
-
-    @Test
-    public void throwExceptionWhenCreatingNettySslContextBuilderForClientWithoutTrustStore() {
-        assertThatThrownBy(() -> NettySslContextUtils.forClient(SSLFactory.builder().build()))
-                .isInstanceOf(NullPointerException.class);
-    }
-
-    @Test
-    public void throwExceptionWhenCreatingNettySslContextBuilderForServerWithoutIdentityAndWithoutTrustStore() {
-        assertThatThrownBy(() -> NettySslContextUtils.forServer(SSLFactory.builder().build()))
-                .isInstanceOf(NullPointerException.class);
     }
 
     @Test

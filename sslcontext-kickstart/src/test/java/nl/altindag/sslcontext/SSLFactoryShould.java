@@ -4,6 +4,7 @@ import ch.qos.logback.classic.Level;
 import nl.altindag.log.LogCaptor;
 import nl.altindag.sslcontext.exception.GenericKeyStoreException;
 import nl.altindag.sslcontext.exception.GenericSSLContextException;
+import nl.altindag.sslcontext.exception.GenericSecurityException;
 import nl.altindag.sslcontext.trustmanager.CompositeX509ExtendedTrustManager;
 import nl.altindag.sslcontext.util.KeyManagerUtils;
 import nl.altindag.sslcontext.util.KeyStoreUtils;
@@ -61,35 +62,29 @@ public class SSLFactoryShould {
             "or trusting all certificates without validation is enabled";
 
     @Test
-    public void buildSSLFactoryForOneWayAuthentication() {
+    public void buildSSLFactoryWithTrustMaterial() {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
                 .build();
 
-        assertThat(sslFactory.isSecurityEnabled()).isTrue();
-        assertThat(sslFactory.isOneWayAuthenticationEnabled()).isTrue();
-        assertThat(sslFactory.isTwoWayAuthenticationEnabled()).isFalse();
         assertThat(sslFactory.getSslContext()).isNotNull();
 
         assertThat(sslFactory.getTrustManager()).isNotNull();
         assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
         assertThat(sslFactory.getTrustStores()).isNotEmpty();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
-        assertThat(sslFactory.getKeyManager()).isNull();
+        assertThat(sslFactory.getKeyManager()).isNotPresent();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
     }
 
     @Test
-    public void buildSSLFactoryForOneWayAuthenticationWithPath() throws IOException {
+    public void buildSSLFactoryWithTrustMaterialFromPath() throws IOException {
         Path trustStorePath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
 
         SSLFactory sslFactory = SSLFactory.builder()
                 .withTrustStore(trustStorePath, TRUSTSTORE_PASSWORD)
                 .build();
 
-        assertThat(sslFactory.isSecurityEnabled()).isTrue();
-        assertThat(sslFactory.isOneWayAuthenticationEnabled()).isTrue();
-        assertThat(sslFactory.isTwoWayAuthenticationEnabled()).isFalse();
         assertThat(sslFactory.getSslContext()).isNotNull();
 
         assertThat(sslFactory.getTrustManager()).isNotNull();
@@ -97,7 +92,7 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getTrustStores()).isNotEmpty();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
 
-        assertThat(sslFactory.getKeyManager()).isNull();
+        assertThat(sslFactory.getKeyManager()).isNotPresent();
         assertThat(sslFactory.getIdentities()).isEmpty();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
 
@@ -105,16 +100,13 @@ public class SSLFactoryShould {
     }
 
     @Test
-    public void buildSSLFactoryForOneWayAuthenticationWithKeyStore() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    public void buildSSLFactoryWithTrustMaterialFromKeyStore() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 
         SSLFactory sslFactory = SSLFactory.builder()
                 .withTrustStore(trustStore, TRUSTSTORE_PASSWORD)
                 .build();
 
-        assertThat(sslFactory.isSecurityEnabled()).isTrue();
-        assertThat(sslFactory.isOneWayAuthenticationEnabled()).isTrue();
-        assertThat(sslFactory.isTwoWayAuthenticationEnabled()).isFalse();
         assertThat(sslFactory.getSslContext()).isNotNull();
 
         assertThat(sslFactory.getTrustManager()).isNotNull();
@@ -122,13 +114,13 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getTrustStores()).isNotEmpty();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
 
-        assertThat(sslFactory.getKeyManager()).isNull();
+        assertThat(sslFactory.getKeyManager()).isNotPresent();
         assertThat(sslFactory.getIdentities()).isEmpty();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
     }
 
     @Test
-    public void buildSSLFactoryForOneWayAuthenticationTrustManager() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    public void buildSSLFactoryWithTrustMaterialFromTrustManager() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         X509TrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
 
@@ -136,9 +128,6 @@ public class SSLFactoryShould {
                 .withTrustManager(trustManager)
                 .build();
 
-        assertThat(sslFactory.isSecurityEnabled()).isTrue();
-        assertThat(sslFactory.isOneWayAuthenticationEnabled()).isTrue();
-        assertThat(sslFactory.isTwoWayAuthenticationEnabled()).isFalse();
         assertThat(sslFactory.getSslContext()).isNotNull();
 
         assertThat(sslFactory.getTrustManager()).isNotNull();
@@ -146,60 +135,53 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getTrustStores()).isEmpty();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
 
-        assertThat(sslFactory.getKeyManager()).isNull();
+        assertThat(sslFactory.getKeyManager()).isNotPresent();
         assertThat(sslFactory.getIdentities()).isEmpty();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
     }
 
     @Test
-    public void buildSSLFactoryForOneWayAuthenticationWithOnlyJdkTrustedCertificates() {
+    public void buildSSLFactoryWithTrustMaterialFromOnlyJdkTrustedCertificates() {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withDefaultJdkTrustStore()
                 .build();
 
-        assertThat(sslFactory.isSecurityEnabled()).isTrue();
-        assertThat(sslFactory.isOneWayAuthenticationEnabled()).isTrue();
-        assertThat(sslFactory.isTwoWayAuthenticationEnabled()).isFalse();
         assertThat(sslFactory.getSslContext()).isNotNull();
 
         assertThat(sslFactory.getTrustManager()).isNotNull();
         assertThat(sslFactory.getTrustStores()).isEmpty();
         assertThat(sslFactory.getTrustedCertificates()).hasSizeGreaterThan(10);
 
-        assertThat(sslFactory.getKeyManager()).isNull();
+        assertThat(sslFactory.getKeyManager()).isNotPresent();
         assertThat(sslFactory.getIdentities()).isEmpty();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
     }
 
     @Test
-    public void buildSSLFactoryForOneWayAuthenticationWithSecureRandom() throws NoSuchAlgorithmException {
+    public void buildSSLFactoryWithSecureRandom() throws NoSuchAlgorithmException {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withSecureRandom(SecureRandom.getInstanceStrong())
                 .withDefaultJdkTrustStore()
                 .build();
 
-        assertThat(sslFactory.isSecurityEnabled()).isTrue();
-        assertThat(sslFactory.isOneWayAuthenticationEnabled()).isTrue();
-        assertThat(sslFactory.isTwoWayAuthenticationEnabled()).isFalse();
         assertThat(sslFactory.getSslContext()).isNotNull();
 
         assertThat(sslFactory.getTrustManager()).isNotNull();
         assertThat(sslFactory.getTrustStores()).isEmpty();
         assertThat(sslFactory.getTrustedCertificates()).hasSizeGreaterThan(10);
 
-        assertThat(sslFactory.getKeyManager()).isNull();
+        assertThat(sslFactory.getKeyManager()).isNotPresent();
         assertThat(sslFactory.getIdentities()).isEmpty();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
     }
 
     @Test
-    public void buildSSLFactoryForOneWayAuthenticationWithJdkTrustedCertificatesAndCustomTrustStore() {
+    public void buildSSLFactoryWithTrustMaterialFromJdkTrustedCertificatesAndCustomTrustStore() {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
                 .withDefaultJdkTrustStore()
                 .build();
 
-        assertThat(sslFactory.isSecurityEnabled()).isTrue();
         assertThat(sslFactory.getTrustManager()).isNotNull();
         assertThat(sslFactory.getTrustStores()).isNotEmpty();
         assertThat(sslFactory.getTrustStores().get(0).getKeyStorePassword()).isEqualTo(TRUSTSTORE_PASSWORD);
@@ -208,24 +190,21 @@ public class SSLFactoryShould {
                 .map(X509Certificate::getSubjectX500Principal)
                 .map(X500Principal::toString)).contains("CN=*.google.com, O=Google LLC, L=Mountain View, ST=California, C=US");
 
-        assertThat(sslFactory.getKeyManager()).isNull();
+        assertThat(sslFactory.getKeyManager()).isNotPresent();
         assertThat(sslFactory.getIdentities()).isEmpty();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
     }
 
     @Test
-    public void buildSSLFactoryForTwoWayAuthentication() {
+    public void buildSSLFactoryWithIdentityMaterialAndTrustMaterial() {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withIdentity(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD)
                 .withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
                 .build();
 
-        assertThat(sslFactory.isSecurityEnabled()).isTrue();
-        assertThat(sslFactory.isOneWayAuthenticationEnabled()).isFalse();
-        assertThat(sslFactory.isTwoWayAuthenticationEnabled()).isTrue();
         assertThat(sslFactory.getSslContext()).isNotNull();
 
-        assertThat(sslFactory.getKeyManager()).isNotNull();
+        assertThat(sslFactory.getKeyManager()).isPresent();
         assertThat(sslFactory.getIdentities()).isNotEmpty();
         assertThat(sslFactory.getIdentities().get(0).getKeyStorePassword()).isEqualTo(IDENTITY_PASSWORD);
 
@@ -239,7 +218,7 @@ public class SSLFactoryShould {
     }
 
     @Test
-    public void buildSSLFactoryForTwoWayAuthenticationWithIdentityManager() throws Exception {
+    public void buildSSLFactoryWithIdentityMaterialAndTrustMaterialFromIdentityManagerAndTrustStore() throws Exception {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         X509KeyManager identityManager = KeyManagerUtils.createKeyManager(identity, IDENTITY_PASSWORD);
 
@@ -248,12 +227,9 @@ public class SSLFactoryShould {
                 .withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
                 .build();
 
-        assertThat(sslFactory.isSecurityEnabled()).isTrue();
-        assertThat(sslFactory.isOneWayAuthenticationEnabled()).isFalse();
-        assertThat(sslFactory.isTwoWayAuthenticationEnabled()).isTrue();
         assertThat(sslFactory.getSslContext()).isNotNull();
 
-        assertThat(sslFactory.getKeyManager()).isNotNull();
+        assertThat(sslFactory.getKeyManager()).isPresent();
         assertThat(sslFactory.getIdentities()).isEmpty();
 
         assertThat(sslFactory.getTrustManager()).isNotNull();
@@ -266,19 +242,16 @@ public class SSLFactoryShould {
     }
 
     @Test
-    public void buildSSLFactoryForTwoWayAuthenticationWithOnlyJdkTrustedCertificates() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    public void buildSSLFactoryWithIdentityMaterialAndTrustMaterialFromKeyStoreAndOnlyJdkTrustedCertificates() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         SSLFactory sslFactory = SSLFactory.builder()
                 .withIdentity(identity, IDENTITY_PASSWORD)
                 .withDefaultJdkTrustStore()
                 .build();
 
-        assertThat(sslFactory.isSecurityEnabled()).isTrue();
-        assertThat(sslFactory.isOneWayAuthenticationEnabled()).isFalse();
-        assertThat(sslFactory.isTwoWayAuthenticationEnabled()).isTrue();
         assertThat(sslFactory.getSslContext()).isNotNull();
 
-        assertThat(sslFactory.getKeyManager()).isNotNull();
+        assertThat(sslFactory.getKeyManager()).isPresent();
         assertThat(sslFactory.getIdentities()).isNotEmpty();
         assertThat(sslFactory.getIdentities().get(0).getKeyStorePassword()).isEqualTo(IDENTITY_PASSWORD);
 
@@ -291,7 +264,7 @@ public class SSLFactoryShould {
     }
 
     @Test
-    public void buildSSLFactoryForTwoWayAuthenticationWithPath() throws IOException {
+    public void buildSSLFactoryWithIdentityMaterialAndTrustMaterialFromKeyStoreAndTrustStoreWithPath() throws IOException {
         Path identityPath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, IDENTITY_FILE_NAME);
         Path trustStorePath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
 
@@ -300,12 +273,9 @@ public class SSLFactoryShould {
                 .withTrustStore(trustStorePath, TRUSTSTORE_PASSWORD)
                 .build();
 
-        assertThat(sslFactory.isSecurityEnabled()).isTrue();
-        assertThat(sslFactory.isOneWayAuthenticationEnabled()).isFalse();
-        assertThat(sslFactory.isTwoWayAuthenticationEnabled()).isTrue();
         assertThat(sslFactory.getSslContext()).isNotNull();
 
-        assertThat(sslFactory.getKeyManager()).isNotNull();
+        assertThat(sslFactory.getKeyManager()).isPresent();
         assertThat(sslFactory.getIdentities()).isNotEmpty();
         assertThat(sslFactory.getIdentities().get(0).getKeyStorePassword()).isEqualTo(IDENTITY_PASSWORD);
 
@@ -322,7 +292,7 @@ public class SSLFactoryShould {
     }
 
     @Test
-    public void buildSSLFactoryForTwoWayAuthenticationWithKeyStore() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
+    public void buildSSLFactoryWithIdentityMaterialAndTrustMaterialFromKeyStoreAndTrustStore() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 
@@ -331,12 +301,9 @@ public class SSLFactoryShould {
                 .withTrustStore(trustStore, TRUSTSTORE_PASSWORD)
                 .build();
 
-        assertThat(sslFactory.isSecurityEnabled()).isTrue();
-        assertThat(sslFactory.isOneWayAuthenticationEnabled()).isFalse();
-        assertThat(sslFactory.isTwoWayAuthenticationEnabled()).isTrue();
         assertThat(sslFactory.getSslContext()).isNotNull();
 
-        assertThat(sslFactory.getKeyManager()).isNotNull();
+        assertThat(sslFactory.getKeyManager()).isPresent();
         assertThat(sslFactory.getIdentities()).isNotEmpty();
         assertThat(sslFactory.getIdentities().get(0).getKeyStorePassword()).isEqualTo(IDENTITY_PASSWORD);
 
@@ -504,21 +471,10 @@ public class SSLFactoryShould {
     }
 
     @Test
-    public void buildSSLFactoryWithSecurityDisabled() {
-        SSLFactory sslFactory = SSLFactory.builder()
-                .build();
-
-        assertThat(sslFactory.isSecurityEnabled()).isFalse();
-        assertThat(sslFactory.isOneWayAuthenticationEnabled()).isFalse();
-        assertThat(sslFactory.isTwoWayAuthenticationEnabled()).isFalse();
-
-        assertThat(sslFactory.getIdentities()).isEmpty();
-
-        assertThat(sslFactory.getSslContext()).isNull();
-        assertThat(sslFactory.getTrustedCertificates()).isEmpty();
-        assertThat(sslFactory.getTrustStores()).isEmpty();
-        assertThat(sslFactory.getTrustManager()).isNull();
-        assertThat(sslFactory.getHostnameVerifier()).isNull();
+    public void throwExceptionWhenSSLFactoryIsBuildWithoutIdentityAndTrustMaterial() {
+        assertThatThrownBy(() -> SSLFactory.builder().build())
+                .isInstanceOf(GenericSecurityException.class)
+                .hasMessage("Could not create instance of SSLFactory because Identity and Trust material are not present. Please provide at least a Trust material.");
     }
 
     @Test
@@ -550,14 +506,14 @@ public class SSLFactoryShould {
     }
 
     @Test
-    public void throwExceptionWhenBuildingSSLFactoryForOneWayAuthenticationWhileProvidingWrongPassword() {
+    public void throwExceptionWhenBuildingSSLFactoryWithTrustStoreWhileProvidingWrongPassword() {
         assertThatThrownBy(() -> SSLFactory.builder().withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, "password".toCharArray()))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage("Failed to load the keystore");
     }
 
     @Test
-    public void throwExceptionWhenBuildingSSLFactoryForOneWayAuthenticationWithPathWhileProvidingWrongPassword() throws IOException {
+    public void throwExceptionWhenBuildingSSLFactoryWithTrustStoreFromPathWhileProvidingWrongPassword() throws IOException {
         Path trustStorePath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
 
         assertThatThrownBy(() -> SSLFactory.builder().withTrustStore(trustStorePath, "password".toCharArray()))
@@ -568,14 +524,14 @@ public class SSLFactoryShould {
     }
 
     @Test
-    public void throwExceptionWhenBuildingSSLFactoryForTwoWayAuthenticationWhileProvidingWrongPassword() {
+    public void throwExceptionWhenBuildingSSLFactoryWithIdentityWhileProvidingWrongPassword() {
         assertThatThrownBy(() -> SSLFactory.builder().withIdentity(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, "password".toCharArray()))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage("Failed to load the keystore");
     }
 
     @Test
-    public void throwExceptionWhenBuildingSSLFactoryForTwoWayAuthenticationWithPathWhileProvidingWrongPassword() throws IOException {
+    public void throwExceptionWhenBuildingSSLFactoryWithIdentityFromPathWhileProvidingWrongPassword() throws IOException {
         Path identityPath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, IDENTITY_FILE_NAME);
 
         assertThatThrownBy(() -> SSLFactory.builder().withIdentity(identityPath, "password".toCharArray()))
@@ -586,14 +542,14 @@ public class SSLFactoryShould {
     }
 
     @Test
-    public void throwExceptionWhenBuildingSSLFactoryForOneWayAuthenticationWithNullAsTrustStorePath() {
+    public void throwExceptionWhenBuildingSSLFactoryWithNullAsTrustStorePath() {
         assertThatThrownBy(() -> SSLFactory.builder().withTrustStore((Path) null, "secret".toCharArray()))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE);
     }
 
     @Test
-    public void throwExceptionWhenBuildingSSLFactoryForOneWayAuthenticationWithEmptyTrustStorePassword() throws IOException {
+    public void throwExceptionWhenBuildingSSLFactoryWithEmptyTrustStorePassword() throws IOException {
         Path trustStorePath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
 
         assertThatThrownBy(() -> SSLFactory.builder().withTrustStore(trustStorePath, EMPTY.toCharArray()))
@@ -604,7 +560,7 @@ public class SSLFactoryShould {
     }
 
     @Test
-    public void throwExceptionWhenBuildingSSLFactoryForOneWayAuthenticationWithEmptyTrustStoreType() throws IOException {
+    public void throwExceptionWhenBuildingSSLFactoryWithEmptyTrustStoreType() throws IOException {
         Path trustStorePath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
 
         assertThatThrownBy(() -> SSLFactory.builder().withTrustStore(trustStorePath, TRUSTSTORE_PASSWORD, EMPTY))
@@ -615,14 +571,14 @@ public class SSLFactoryShould {
     }
 
     @Test
-    public void throwExceptionWhenBuildingSSLFactoryForOneWayAuthenticationWithNullAsTrustStore() {
+    public void throwExceptionWhenBuildingSSLFactoryWithTrustStoreAsNull() {
         assertThatThrownBy(() -> SSLFactory.builder().withTrustStore((KeyStore) null, TRUSTSTORE_PASSWORD))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE);
     }
 
     @Test
-    public void throwExceptionWhenBuildingSSLFactoryForOneWayAuthenticationWithEmptyTrustStorePasswordWhileUsingKeyStoreObject() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    public void throwExceptionWhenBuildingSSLFactoryWithEmptyTrustStorePasswordWhileUsingKeyStoreObject() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 
         assertThatThrownBy(() -> SSLFactory.builder().withTrustStore(trustStore, EMPTY.toCharArray()))
@@ -639,49 +595,49 @@ public class SSLFactoryShould {
     }
 
     @Test
-    public void throwExceptionOneWayAuthenticationIsEnabledWhileTrustStorePathIsNotProvided() {
+    public void throwExceptionWhenTrustStorePathIsNotProvided() {
         assertThatThrownBy(() -> SSLFactory.builder().withTrustStore(EMPTY, TRUSTSTORE_PASSWORD))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE);
     }
 
     @Test
-    public void throwExceptionOneWayAuthenticationIsEnabledWhileTrustStorePasswordIsNotProvided() {
+    public void throwExceptionWhenTrustStorePasswordIsNotProvided() {
         assertThatThrownBy(() -> SSLFactory.builder().withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, EMPTY.toCharArray()))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE);
     }
 
     @Test
-    public void throwExceptionTwoWayAuthenticationEnabledWhileIdentityPathIsNotProvided() {
+    public void throwExceptionWhenIdentityPathIsNotProvided() {
         assertThatThrownBy(() -> SSLFactory.builder().withIdentity(EMPTY, IDENTITY_PASSWORD))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
     }
 
     @Test
-    public void throwExceptionTwoWayAuthenticationEnabledWhileIdentityPasswordIsNotProvided() {
+    public void throwExceptionWhenIdentityPasswordIsNotProvided() {
         assertThatThrownBy(() -> SSLFactory.builder().withIdentity(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, EMPTY.toCharArray()))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
     }
 
     @Test
-    public void throwExceptionTwoWayAuthenticationEnabledWhileIdentityTypeIsNotProvided() {
+    public void throwExceptionWhenIdentityTypeIsNotProvided() {
         assertThatThrownBy(() -> SSLFactory.builder().withIdentity(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD, EMPTY))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
     }
 
     @Test
-    public void throwExceptionTwoWayAuthenticationEnabledWhileIdentityPathIsNull() {
+    public void throwExceptionWhenIdentityPathIsNull() {
         assertThatThrownBy(() -> SSLFactory.builder().withIdentity((Path) null, IDENTITY_PASSWORD))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
     }
 
     @Test
-    public void throwExceptionTwoWayAuthenticationEnabledWhileIdentityPasswordIsNotProvidedWhileUsingPath() throws IOException {
+    public void throwExceptionWhenIdentityPasswordIsNotProvidedWhileUsingPath() throws IOException {
         Path identityPath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, IDENTITY_FILE_NAME);
 
         assertThatThrownBy(() -> SSLFactory.builder().withIdentity(identityPath, EMPTY.toCharArray()))
@@ -692,14 +648,14 @@ public class SSLFactoryShould {
     }
 
     @Test
-    public void throwExceptionTwoWayAuthenticationEnabledWhileIdentityIsNull() {
+    public void throwExceptionWhenIdentityIsNull() {
         assertThatThrownBy(() -> SSLFactory.builder().withIdentity((KeyStore) null, IDENTITY_PASSWORD))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
     }
 
     @Test
-    public void throwExceptionTwoWayAuthenticationEnabledWhileIdentityPasswordIsEmptyWhileUsingKeyStoreAsObject() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    public void throwExceptionWhenIdentityPasswordIsEmptyWhileUsingKeyStoreAsObject() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
 
         assertThatThrownBy(() -> SSLFactory.builder().withIdentity(identity, EMPTY.toCharArray()))
@@ -708,7 +664,7 @@ public class SSLFactoryShould {
     }
 
     @Test
-    public void throwExceptionTwoWayAuthenticationEnabledWhileIdentityTypeIsNotProvidedWhileUsingPath() throws IOException {
+    public void throwExceptionWhenIdentityTypeIsNotProvidedWhileUsingPath() throws IOException {
         Path identityPath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, IDENTITY_FILE_NAME);
 
         assertThatThrownBy(() -> SSLFactory.builder().withIdentity(identityPath, IDENTITY_PASSWORD, EMPTY))
@@ -719,7 +675,7 @@ public class SSLFactoryShould {
     }
 
     @Test
-    public void throwExceptionWhenBuildingSSLFactoryForTwoWayAuthenticationNotTrustingAllCertificatesWhileCustomTrustStoreAndJdkTrustStoreNotPresent() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    public void throwExceptionWhenTrustMaterialIsMissingAlthoughIdentityMaterialIsPresent() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
 
         assertThatThrownBy(() -> SSLFactory.builder()
@@ -730,21 +686,8 @@ public class SSLFactoryShould {
     }
 
     @Test
-    public void throwExceptionWhenProvidingAnInvalidEncryptionProtocolForOneWayAuthentication() {
+    public void throwExceptionWhenProvidingAnInvalidEncryptionProtocol() {
         assertThatThrownBy(() -> SSLFactory.builder()
-                                           .withTrustingAllCertificatesWithoutValidation()
-                                           .withProtocol("ENCRYPTIONv1.1")
-                                           .build())
-                .isInstanceOf(GenericSSLContextException.class)
-                .hasMessage("java.security.NoSuchAlgorithmException: ENCRYPTIONv1.1 SSLContext not available");
-    }
-
-    @Test
-    public void throwExceptionWhenProvidingAnInvalidEncryptionProtocolForTwoWayAuthentication() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
-
-        assertThatThrownBy(() -> SSLFactory.builder()
-                                           .withIdentity(identity, IDENTITY_PASSWORD)
                                            .withTrustingAllCertificatesWithoutValidation()
                                            .withProtocol("ENCRYPTIONv1.1")
                                            .build())

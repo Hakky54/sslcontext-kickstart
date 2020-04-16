@@ -3,8 +3,6 @@ package nl.altindag.sslcontext.util;
 import nl.altindag.sslcontext.SSLFactory;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
-import java.util.Objects;
-
 public final class JettySslContextUtils {
 
     private JettySslContextUtils() {}
@@ -36,8 +34,6 @@ public final class JettySslContextUtils {
     }
 
     private static <T extends SslContextFactory> T createSslContextFactory(SSLFactory sslFactory, T sslContextFactory) {
-        Objects.requireNonNull(sslFactory.getSslContext());
-
         sslContextFactory.setSslContext(sslFactory.getSslContext());
         sslContextFactory.setIncludeProtocols(sslFactory.getSslContext().getDefaultSSLParameters().getProtocols());
         sslContextFactory.setIncludeCipherSuites(sslFactory.getSslContext().getDefaultSSLParameters().getCipherSuites());

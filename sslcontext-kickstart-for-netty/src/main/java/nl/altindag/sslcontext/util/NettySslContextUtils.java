@@ -4,8 +4,8 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SupportedCipherSuiteFilter;
 import nl.altindag.sslcontext.SSLFactory;
 
+import javax.net.ssl.X509ExtendedKeyManager;
 import java.util.Arrays;
-import java.util.Objects;
 
 public final class NettySslContextUtils {
 
@@ -21,20 +21,12 @@ public final class NettySslContextUtils {
      * @return {@link SslContextBuilder}
      */
     public static SslContextBuilder forClient(SSLFactory sslFactory) {
-        Objects.requireNonNull(sslFactory.getSslContext());
-
         SslContextBuilder sslContextBuilder = SslContextBuilder.forClient()
+                .trustManager(sslFactory.getTrustManager())
                 .ciphers(Arrays.asList(sslFactory.getSslContext().getDefaultSSLParameters().getCipherSuites()), SupportedCipherSuiteFilter.INSTANCE)
                 .protocols(sslFactory.getSslContext().getDefaultSSLParameters().getProtocols());
+        sslFactory.getKeyManager().ifPresent(sslContextBuilder::keyManager);
 
-        if (sslFactory.isOneWayAuthenticationEnabled()) {
-            sslContextBuilder.trustManager(sslFactory.getTrustManager());
-        }
-
-        if (sslFactory.isTwoWayAuthenticationEnabled()) {
-            sslContextBuilder.keyManager(sslFactory.getKeyManager())
-                    .trustManager(sslFactory.getTrustManager());
-        }
         return sslContextBuilder;
     }
 
@@ -48,13 +40,13 @@ public final class NettySslContextUtils {
      * @return {@link SslContextBuilder}
      */
     public static SslContextBuilder forServer(SSLFactory sslFactory) {
-        Objects.requireNonNull(sslFactory.getSslContext());
-        Objects.requireNonNull(sslFactory.getKeyManager());
+        X509ExtendedKeyManager keyManager = sslFactory.getKeyManager()
+                .orElseThrow(NullPointerException::new);
 
-        return SslContextBuilder.forServer(sslFactory.getKeyManager())
+        return SslContextBuilder.forServer(keyManager)
+                .trustManager(sslFactory.getTrustManager())
                 .ciphers(Arrays.asList(sslFactory.getSslContext().getDefaultSSLParameters().getCipherSuites()), SupportedCipherSuiteFilter.INSTANCE)
-                .protocols(sslFactory.getSslContext().getDefaultSSLParameters().getProtocols())
-                .trustManager(sslFactory.getTrustManager());
+                .protocols(sslFactory.getSslContext().getDefaultSSLParameters().getProtocols());
     }
 
 }

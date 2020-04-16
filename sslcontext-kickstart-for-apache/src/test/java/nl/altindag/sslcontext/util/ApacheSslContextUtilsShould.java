@@ -11,7 +11,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class ApacheSslContextUtilsShould {
 
@@ -23,19 +22,16 @@ public class ApacheSslContextUtilsShould {
     private static final String KEYSTORE_LOCATION = "keystores-for-unit-tests/";
 
     @Test
-    public void createLayeredConnectionSocketFactoryForOneWayAuthentication() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
+    public void createLayeredConnectionSocketFactoryWithTrustMaterial() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 
         SSLFactory sslFactory = SSLFactory.builder()
                 .withTrustStore(trustStore, TRUSTSTORE_PASSWORD)
                 .build();
 
-        assertThat(sslFactory.isSecurityEnabled()).isTrue();
-        assertThat(sslFactory.isOneWayAuthenticationEnabled()).isTrue();
-        assertThat(sslFactory.isTwoWayAuthenticationEnabled()).isFalse();
         assertThat(sslFactory.getSslContext()).isNotNull();
 
-        assertThat(sslFactory.getKeyManager()).isNull();
+        assertThat(sslFactory.getKeyManager()).isNotPresent();
         assertThat(sslFactory.getIdentities()).isEmpty();
 
         assertThat(sslFactory.getTrustManager()).isNotNull();
@@ -51,7 +47,7 @@ public class ApacheSslContextUtilsShould {
     }
 
     @Test
-    public void createLayeredConnectionSocketFactoryForTwoWayAuthentication() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
+    public void createLayeredConnectionSocketFactoryWithIdentityMaterialAndTrustMaterial() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 
@@ -60,12 +56,9 @@ public class ApacheSslContextUtilsShould {
                 .withTrustStore(trustStore, TRUSTSTORE_PASSWORD)
                 .build();
 
-        assertThat(sslFactory.isSecurityEnabled()).isTrue();
-        assertThat(sslFactory.isOneWayAuthenticationEnabled()).isFalse();
-        assertThat(sslFactory.isTwoWayAuthenticationEnabled()).isTrue();
         assertThat(sslFactory.getSslContext()).isNotNull();
 
-        assertThat(sslFactory.getKeyManager()).isNotNull();
+        assertThat(sslFactory.getKeyManager()).isPresent();
         assertThat(sslFactory.getIdentities()).isNotEmpty();
         assertThat(sslFactory.getIdentities().get(0).getKeyStorePassword()).isEqualTo(IDENTITY_PASSWORD);
 
@@ -79,12 +72,6 @@ public class ApacheSslContextUtilsShould {
 
         LayeredConnectionSocketFactory socketFactory = ApacheSslContextUtils.toLayeredConnectionSocketFactory(sslFactory);
         assertThat(socketFactory).isNotNull();
-    }
-
-    @Test
-    public void throwExceptionWhenCreatingLayeredConnectionSocketFactoryWithoutSslContext() {
-        assertThatThrownBy(() -> ApacheSslContextUtils.toLayeredConnectionSocketFactory(SSLFactory.builder().build()))
-                .isInstanceOf(NullPointerException.class);
     }
 
 }
