@@ -8,6 +8,7 @@
     <packaging>pom</packaging>
 
     <name>${project.artifactId}</name>
+    <description>High level library to configure a SSLContext and other properties to enable SSL/TLS connection</description>
     <url>https://sslcontext-kickstart.com/</url>
 
     <modules>
