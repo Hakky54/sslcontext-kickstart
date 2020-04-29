@@ -4,7 +4,7 @@ import nl.altindag.sslcontext.exception.GenericSecurityException;
 import nl.altindag.sslcontext.model.KeyStoreHolder;
 import org.junit.jupiter.api.Test;
 
-import javax.net.ssl.X509TrustManager;
+import javax.net.ssl.X509ExtendedTrustManager;
 import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -24,7 +24,7 @@ public class TrustManagerUtilsShould {
     public void combineTrustManagers() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore trustStoreOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         KeyStore trustStoreTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD);
-        X509TrustManager trustManager = TrustManagerUtils
+        X509ExtendedTrustManager trustManager = TrustManagerUtils
                 .combine(TrustManagerUtils.createTrustManager(trustStoreOne), TrustManagerUtils.createTrustManager(trustStoreTwo));
 
         assertThat(trustStoreOne.size()).isEqualTo(1);
@@ -40,7 +40,7 @@ public class TrustManagerUtilsShould {
         KeyStoreHolder trustStoreHolderOne = new KeyStoreHolder(trustStoreOne, TRUSTSTORE_PASSWORD);
         KeyStoreHolder trustStoreHolderTwo = new KeyStoreHolder(trustStoreTwo, TRUSTSTORE_PASSWORD);
 
-        X509TrustManager trustManager = TrustManagerUtils
+        X509ExtendedTrustManager trustManager = TrustManagerUtils
                 .combine(TrustManagerUtils.createTrustManager(trustStoreHolderOne, trustStoreHolderTwo));
 
         assertThat(trustStoreOne.size()).isEqualTo(1);
@@ -53,7 +53,7 @@ public class TrustManagerUtilsShould {
         KeyStore trustStoreOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         KeyStore trustStoreTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD);
 
-        X509TrustManager trustManager = TrustManagerUtils
+        X509ExtendedTrustManager trustManager = TrustManagerUtils
                 .combine(TrustManagerUtils.createTrustManager(trustStoreOne, trustStoreTwo));
 
         assertThat(trustStoreOne.size()).isEqualTo(1);
@@ -64,7 +64,7 @@ public class TrustManagerUtilsShould {
     @Test
     public void combineTrustManagersWhileFilteringDuplicateCertificates() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
-        X509TrustManager trustManager = TrustManagerUtils
+        X509ExtendedTrustManager trustManager = TrustManagerUtils
                 .combine(TrustManagerUtils.createTrustManager(trustStore), TrustManagerUtils.createTrustManager(trustStore));
 
         assertThat(trustStore.size()).isEqualTo(1);
@@ -73,7 +73,7 @@ public class TrustManagerUtilsShould {
 
     @Test
     public void createTrustManagerWithJdkTrustedCertificatesWhenProvidingNullAsTrustStore() {
-        X509TrustManager trustManager = TrustManagerUtils.createTrustManager((KeyStore) null);
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager((KeyStore) null);
 
         assertThat(trustManager).isNotNull();
         assertThat(trustManager.getAcceptedIssuers()).hasSizeGreaterThan(10);
@@ -81,7 +81,7 @@ public class TrustManagerUtilsShould {
 
     @Test
     public void createTrustManagerWithJdkTrustedCertificatesWhenCallingCreateTrustManagerWithJdkTrustedCertificates() {
-        X509TrustManager trustManager = TrustManagerUtils.createTrustManagerWithJdkTrustedCertificates();
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManagerWithJdkTrustedCertificates();
 
         assertThat(trustManager).isNotNull();
         assertThat((trustManager).getAcceptedIssuers()).hasSizeGreaterThan(10);
@@ -90,7 +90,7 @@ public class TrustManagerUtilsShould {
     @Test
     public void createTrustManagerWhenProvidingACustomTrustStore() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
-        X509TrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
 
         assertThat(trustManager).isNotNull();
         assertThat((trustManager).getAcceptedIssuers()).hasSize(1);

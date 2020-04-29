@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedTrustManager;
-import javax.net.ssl.X509TrustManager;
 import java.net.Socket;
 import java.security.KeyStore;
 import java.security.cert.CertificateException;
@@ -44,10 +43,10 @@ public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustMa
     private static final String CLIENT_CERTIFICATE_LOG_MESSAGE = "Received the following client certificate: [{}]";
     private static final String SERVER_CERTIFICATE_LOG_MESSAGE = "Received the following server certificate: [{}]";
 
-    private final List<? extends X509TrustManager> trustManagers;
+    private final List<? extends X509ExtendedTrustManager> trustManagers;
     private X509Certificate[] acceptedIssuers;
 
-    public CompositeX509ExtendedTrustManager(List<? extends X509TrustManager> trustManagers) {
+    public CompositeX509ExtendedTrustManager(List<? extends X509ExtendedTrustManager> trustManagers) {
         this.trustManagers = Collections.unmodifiableList(trustManagers);
     }
 
@@ -58,7 +57,7 @@ public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustMa
         }
 
         List<CertificateException> certificateExceptions = new ArrayList<>();
-        for (X509TrustManager trustManager : trustManagers) {
+        for (X509ExtendedTrustManager trustManager : trustManagers) {
             try {
                 trustManager.checkClientTrusted(chain, authType);
                 return;
@@ -80,15 +79,10 @@ public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustMa
         }
 
         List<CertificateException> certificateExceptions = new ArrayList<>();
-        for (X509TrustManager trustManager : trustManagers) {
+        for (X509ExtendedTrustManager trustManager : trustManagers) {
             try {
-                if (trustManager instanceof X509ExtendedTrustManager) {
-                    ((X509ExtendedTrustManager) trustManager).checkClientTrusted(chain, authType, socket);
-                    return;
-                } else {
-                    trustManager.checkClientTrusted(chain, authType);
-                    return;
-                }
+                trustManager.checkClientTrusted(chain, authType, socket);
+                return;
             } catch (CertificateException e) {
                 certificateExceptions.add(e);
             }
@@ -107,15 +101,10 @@ public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustMa
         }
 
         List<CertificateException> certificateExceptions = new ArrayList<>();
-        for (X509TrustManager trustManager : trustManagers) {
+        for (X509ExtendedTrustManager trustManager : trustManagers) {
             try {
-                if (trustManager instanceof X509ExtendedTrustManager) {
-                    ((X509ExtendedTrustManager) trustManager).checkClientTrusted(chain, authType, sslEngine);
-                    return;
-                } else {
-                    trustManager.checkClientTrusted(chain, authType);
-                    return;
-                }
+                trustManager.checkClientTrusted(chain, authType, sslEngine);
+                return;
             } catch (CertificateException e) {
                 certificateExceptions.add(e);
             }
@@ -134,7 +123,7 @@ public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustMa
         }
 
         List<CertificateException> certificateExceptions = new ArrayList<>();
-        for (X509TrustManager trustManager : trustManagers) {
+        for (X509ExtendedTrustManager trustManager : trustManagers) {
             try {
                 trustManager.checkServerTrusted(chain, authType);
                 return;
@@ -156,15 +145,10 @@ public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustMa
         }
 
         List<CertificateException> certificateExceptions = new ArrayList<>();
-        for (X509TrustManager trustManager : trustManagers) {
+        for (X509ExtendedTrustManager trustManager : trustManagers) {
             try {
-                if (trustManager instanceof X509ExtendedTrustManager) {
-                    ((X509ExtendedTrustManager) trustManager).checkServerTrusted(chain, authType, socket);
-                    return;
-                } else {
-                    trustManager.checkServerTrusted(chain, authType);
-                    return;
-                }
+                trustManager.checkServerTrusted(chain, authType, socket);
+                return;
             } catch (CertificateException e) {
                 certificateExceptions.add(e);
             }
@@ -183,15 +167,10 @@ public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustMa
         }
 
         List<CertificateException> certificateExceptions = new ArrayList<>();
-        for (X509TrustManager trustManager : trustManagers) {
+        for (X509ExtendedTrustManager trustManager : trustManagers) {
             try {
-                if (trustManager instanceof X509ExtendedTrustManager) {
-                    ((X509ExtendedTrustManager) trustManager).checkServerTrusted(chain, authType, sslEngine);
-                    return;
-                } else {
-                    trustManager.checkServerTrusted(chain, authType);
-                    return;
-                }
+                trustManager.checkServerTrusted(chain, authType, sslEngine);
+                return;
             } catch (CertificateException e) {
                 certificateExceptions.add(e);
             }
@@ -207,7 +186,7 @@ public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustMa
     public X509Certificate[] getAcceptedIssuers() {
         if (isNull(acceptedIssuers)) {
             acceptedIssuers = trustManagers.stream()
-                    .map(X509TrustManager::getAcceptedIssuers)
+                    .map(X509ExtendedTrustManager::getAcceptedIssuers)
                     .flatMap(Arrays::stream)
                     .distinct()
                     .toArray(X509Certificate[]::new);
@@ -225,13 +204,13 @@ public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustMa
 
     public static final class Builder {
 
-        private final List<X509TrustManager> trustManagers = new ArrayList<>();
+        private final List<X509ExtendedTrustManager> trustManagers = new ArrayList<>();
 
-        public <T extends X509TrustManager> Builder withTrustManagers(T... trustManagers) {
+        public <T extends X509ExtendedTrustManager> Builder withTrustManagers(T... trustManagers) {
             return withTrustManagers(Arrays.asList(trustManagers));
         }
 
-        public Builder withTrustManagers(List<? extends X509TrustManager> trustManagers) {
+        public Builder withTrustManagers(List<? extends X509ExtendedTrustManager> trustManagers) {
             this.trustManagers.addAll(trustManagers);
             return this;
         }

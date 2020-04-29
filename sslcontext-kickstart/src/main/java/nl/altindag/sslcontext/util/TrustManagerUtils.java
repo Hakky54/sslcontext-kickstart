@@ -19,17 +19,17 @@ public final class TrustManagerUtils {
 
     private TrustManagerUtils() {}
 
-    public static X509ExtendedTrustManager combine(X509TrustManager... trustManagers) {
+    public static X509ExtendedTrustManager combine(X509ExtendedTrustManager... trustManagers) {
         return combine(Arrays.asList(trustManagers));
     }
 
-    public static X509ExtendedTrustManager combine(List<? extends X509TrustManager> trustManagers) {
+    public static X509ExtendedTrustManager combine(List<? extends X509ExtendedTrustManager> trustManagers) {
         return CompositeX509ExtendedTrustManager.builder()
                 .withTrustManagers(trustManagers)
                 .build();
     }
 
-    public static X509TrustManager createTrustManagerWithJdkTrustedCertificates() {
+    public static X509ExtendedTrustManager createTrustManagerWithJdkTrustedCertificates() {
         return createTrustManager((KeyStore) null);
     }
 
@@ -46,20 +46,20 @@ public final class TrustManagerUtils {
                 .collect(Collectors.collectingAndThen(Collectors.toList(), TrustManagerUtils::combine));
     }
 
-    public static X509TrustManager createTrustManager(KeyStore trustStore) {
+    public static X509ExtendedTrustManager createTrustManager(KeyStore trustStore) {
         return createTrustManager(trustStore, TrustManagerFactory.getDefaultAlgorithm());
     }
 
-    public static X509TrustManager createTrustManager(KeyStore trustStore, String algorithm) {
+    public static X509ExtendedTrustManager createTrustManager(KeyStore trustStore, String algorithm) {
         try {
             TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(algorithm);
             trustManagerFactory.init(trustStore);
 
             return Arrays.stream(trustManagerFactory.getTrustManagers())
-                    .filter(trustManager -> trustManager instanceof X509TrustManager)
-                    .map(trustManager -> (X509TrustManager) trustManager)
+                    .filter(trustManager -> trustManager instanceof X509ExtendedTrustManager)
+                    .map(trustManager -> (X509ExtendedTrustManager) trustManager)
                     .findFirst()
-                    .orElseThrow(() -> new GenericKeyStoreException("Could not create a TrustManager with the provided trustStore"));
+                    .orElseThrow(() -> new GenericKeyStoreException("Could not create a TrustManager with the provided TrustStore and TrustManager algorithm"));
 
         } catch (KeyStoreException | NoSuchAlgorithmException e) {
             throw new GenericSecurityException(e);

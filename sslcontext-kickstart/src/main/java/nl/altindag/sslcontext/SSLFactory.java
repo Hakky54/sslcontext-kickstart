@@ -18,8 +18,6 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509ExtendedTrustManager;
-import javax.net.ssl.X509KeyManager;
-import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.security.KeyManagementException;
@@ -48,10 +46,10 @@ public final class SSLFactory {
     private final HostnameVerifier hostnameVerifier;
 
     private final List<KeyStoreHolder> identities = new ArrayList<>();
-    private final List<X509KeyManager> identityManagers = new ArrayList<>();
+    private final List<X509ExtendedKeyManager> identityManagers = new ArrayList<>();
 
     private final List<KeyStoreHolder> trustStores = new ArrayList<>();
-    private final List<X509TrustManager> trustManagers = new ArrayList<>();
+    private final List<X509ExtendedTrustManager> trustManagers = new ArrayList<>();
     private final boolean includeDefaultJdkTrustStore;
     private final boolean trustingAllCertificatesWithoutValidationEnabled;
 
@@ -64,9 +62,9 @@ public final class SSLFactory {
                        SecureRandom secureRandom,
                        HostnameVerifier hostnameVerifier,
                        List<KeyStoreHolder> identities,
-                       List<X509KeyManager> identityManagers,
+                       List<X509ExtendedKeyManager> identityManagers,
                        List<KeyStoreHolder> trustStores,
-                       List<X509TrustManager> trustManagers,
+                       List<X509ExtendedTrustManager> trustManagers,
                        boolean includeDefaultJdkTrustStore,
                        boolean trustingAllCertificatesWithoutValidationEnabled) {
 
@@ -179,8 +177,8 @@ public final class SSLFactory {
 
         private final List<KeyStoreHolder> identities = new ArrayList<>();
         private final List<KeyStoreHolder> trustStores = new ArrayList<>();
-        private final List<X509KeyManager> identityManagers = new ArrayList<>();
-        private final List<X509TrustManager> trustManagers = new ArrayList<>();
+        private final List<X509ExtendedKeyManager> identityManagers = new ArrayList<>();
+        private final List<X509ExtendedTrustManager> trustManagers = new ArrayList<>();
 
         private boolean includeDefaultJdkTrustStore = false;
         private boolean trustingAllCertificatesWithoutValidationEnabled = false;
@@ -192,7 +190,7 @@ public final class SSLFactory {
             return this;
         }
 
-        public Builder withTrustManager(X509TrustManager trustManager) {
+        public Builder withTrustManager(X509ExtendedTrustManager trustManager) {
             trustManagers.add(trustManager);
             return this;
         }
@@ -290,7 +288,7 @@ public final class SSLFactory {
             return this;
         }
 
-        public Builder withKeyManager(X509KeyManager keyManager) {
+        public Builder withKeyManager(X509ExtendedKeyManager keyManager) {
             identityManagers.add(keyManager);
             return this;
         }

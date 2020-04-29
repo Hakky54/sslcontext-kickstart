@@ -17,8 +17,8 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSessionContext;
-import javax.net.ssl.X509KeyManager;
-import javax.net.ssl.X509TrustManager;
+import javax.net.ssl.X509ExtendedKeyManager;
+import javax.net.ssl.X509ExtendedTrustManager;
 import javax.security.auth.x500.X500Principal;
 import java.io.IOException;
 import java.io.InputStream;
@@ -122,7 +122,7 @@ public class SSLFactoryShould {
     @Test
     public void buildSSLFactoryWithTrustMaterialFromTrustManager() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
-        X509TrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
 
         SSLFactory sslFactory = SSLFactory.builder()
                 .withTrustManager(trustManager)
@@ -220,7 +220,7 @@ public class SSLFactoryShould {
     @Test
     public void buildSSLFactoryWithIdentityMaterialAndTrustMaterialFromIdentityManagerAndTrustStore() throws Exception {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
-        X509KeyManager identityManager = KeyManagerUtils.createKeyManager(identity, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager identityManager = KeyManagerUtils.createKeyManager(identity, IDENTITY_PASSWORD);
 
         SSLFactory sslFactory = SSLFactory.builder()
                 .withKeyManager(identityManager)

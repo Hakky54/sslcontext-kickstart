@@ -22,11 +22,11 @@ public final class KeyManagerUtils {
 
     private KeyManagerUtils() {}
 
-    public static X509ExtendedKeyManager combine(X509KeyManager... keyManagers) {
+    public static X509ExtendedKeyManager combine(X509ExtendedKeyManager... keyManagers) {
         return combine(Arrays.asList(keyManagers));
     }
 
-    public static X509ExtendedKeyManager combine(List<? extends X509KeyManager> keyManagers) {
+    public static X509ExtendedKeyManager combine(List<? extends X509ExtendedKeyManager> keyManagers) {
         return CompositeX509ExtendedKeyManager.builder()
                 .withKeyManagers(keyManagers)
                 .build();
@@ -38,20 +38,20 @@ public final class KeyManagerUtils {
                 .collect(collectingAndThen(toList(), KeyManagerUtils::combine));
     }
 
-    public static X509KeyManager createKeyManager(KeyStore keyStore, char[] keyStorePassword) {
+    public static X509ExtendedKeyManager createKeyManager(KeyStore keyStore, char[] keyStorePassword) {
         return createKeyManager(keyStore, keyStorePassword, KeyManagerFactory.getDefaultAlgorithm());
     }
 
-    public static X509KeyManager createKeyManager(KeyStore keyStore, char[] keyStorePassword, String algorithm) {
+    public static X509ExtendedKeyManager createKeyManager(KeyStore keyStore, char[] keyStorePassword, String algorithm) {
         try {
             KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(algorithm);
             keyManagerFactory.init(keyStore, keyStorePassword);
 
             return Arrays.stream(keyManagerFactory.getKeyManagers())
-                    .filter(keyManager -> keyManager instanceof X509KeyManager)
-                    .map(keyManager -> (X509KeyManager) keyManager)
+                    .filter(keyManager -> keyManager instanceof X509ExtendedKeyManager)
+                    .map(keyManager -> (X509ExtendedKeyManager) keyManager)
                     .findFirst()
-                    .orElseThrow(() -> new GenericKeyStoreException("Could not create a KeyManager with the provided keyStore and password"));
+                    .orElseThrow(() -> new GenericKeyStoreException("Could not create a KeyManager with the provided KeyStore, password and KeyManager algorithm"));
 
         } catch (KeyStoreException | NoSuchAlgorithmException | UnrecoverableKeyException e) {
             throw new GenericSecurityException(e);

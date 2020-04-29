@@ -31,7 +31,7 @@
    - [Apache](#apache)
 
 ## Introduction
-SSLContext Kickstart is a library which provides an easy to use [Factory class](#usage) for configuring a http client to communicate over SSL/TLS for one way authentication or two way authentication.
+SSLContext Kickstart is a library which provides a High-Level [Factory class](#usage) for configuring a http client to communicate over SSL/TLS for one way authentication or two way authentication.
 
 ## Acknowledgement
 I would like to thank [Cody A. Ray](https://github.com/codyaray) for his contribution to the community regarding loading multiple Keystores into the SSLContext. The limitation of the JDK is to only support one keystore for the KeyManagerFactory and only one keystore for the TrustManagerFactory.
@@ -55,6 +55,8 @@ Below is a list of clients which have already been tested with examples, see in 
 * [Apache HttpClient](https://github.com/apache/httpcomponents-client)
 * [JDK HttpClient](https://openjdk.java.net/groups/net/httpclient/intro.html)
 * [Old JDK HttpClient](https://docs.oracle.com/javase/tutorial/networking/urls/readingWriting.html)
+* [Netty Reactor](https://github.com/reactor/reactor-netty)
+* [Jetty Reactive HttpClient](https://github.com/jetty-project/jetty-reactive-httpclient)
 * [Spring RestTemplate](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/client/RestTemplate.html)
 * [Spring WebFlux WebClient Netty](https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html)
 * [Spring WebFlux WebClient Jetty](https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html)
