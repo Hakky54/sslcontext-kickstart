@@ -54,7 +54,7 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.Objects;
 
-class App {
+public class App {
     
     public static void main(String[] args) throws KeyStoreException, NoSuchAlgorithmException, 
             KeyManagementException, IOException, CertificateException, UnrecoverableKeyException {
@@ -101,7 +101,7 @@ import nl.altindag.sslcontext.SSLFactory;
 
 import javax.net.ssl.SSLContext;
 
-class App {
+public class App {
 
     public static void main(String[] args) {
         SSLFactory sslFactory = SSLFactory.builder()

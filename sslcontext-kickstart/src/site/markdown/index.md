@@ -34,12 +34,16 @@ public class App {
 }
 ```
 
-#### Tested HTTP Clients
+### Tested HTTP Clients
 Below is a list of clients which have already been tested with examples, see in the [ClientConfig class](https://github.com/Hakky54/mutual-tls-ssl/blob/master/client/src/main/java/nl/altindag/client/ClientConfig.java) and the [service directory](https://github.com/Hakky54/mutual-tls-ssl/tree/master/client/src/main/java/nl/altindag/client/service) for detailed configuration.
+
+**Java**
 
 * [Apache HttpClient](https://github.com/apache/httpcomponents-client)
 * [JDK HttpClient](https://openjdk.java.net/groups/net/httpclient/intro.html)
 * [Old JDK HttpClient](https://docs.oracle.com/javase/tutorial/networking/urls/readingWriting.html)
+* [Netty Reactor](https://github.com/reactor/reactor-netty)
+* [Jetty Reactive HttpClient](https://github.com/jetty-project/jetty-reactive-httpclient)
 * [Spring RestTemplate](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/client/RestTemplate.html)
 * [Spring WebFlux WebClient Netty](https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html)
 * [Spring WebFlux WebClient Jetty](https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html)
@@ -49,8 +53,17 @@ Below is a list of clients which have already been tested with examples, see in 
 * [Google HttpClient](https://github.com/googleapis/google-http-java-client)
 * [Unirest](https://github.com/Kong/unirest-java)
 * [Retrofit](https://github.com/square/retrofit)
-* [Twitter Finagle Http Client](https://github.com/twitter/finagle)
-* [Akka Http Client](https://github.com/akka/akka-http)
-* [Dispatch Reboot Http Client](https://github.com/dispatch/reboot)
 * [Async Http Client](https://github.com/AsyncHttpClient/async-http-client)
-* [ScalaJ Http Client](https://github.com/scalaj/scalaj-http)  
+
+**Kotlin**
+
+* [Fuel](https://github.com/kittinunf/fuel)
+
+**Scala**
+
+* [Twitter Finagle](https://github.com/twitter/finagle)
+* [Twitter Finagle Featherbed](https://github.com/finagle/featherbed)
+* [Akka Http Client](https://github.com/akka/akka-http)
+* [Dispatch Reboot](https://github.com/dispatch/reboot)
+* [ScalaJ Http Client](https://github.com/scalaj/scalaj-http)
+* [Sttp](https://github.com/softwaremill/sttp)
