@@ -50,29 +50,32 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.util.Objects;
 
 class App {
-    
-    public static void main(String[] args) throws KeyStoreException, NoSuchAlgorithmException, 
+
+    public static void main(String[] args) throws KeyStoreException, NoSuchAlgorithmException,
             KeyManagementException, IOException, CertificateException, UnrecoverableKeyException {
-        
+
         String keyStorePath = "keystore.p12";
         String trustStorePath = "truststore.p12";
-        
+
         char[] keyStorePassword = "secret".toCharArray();
         char[] trustStorePassword = "secret".toCharArray();
 
         KeyStore keyStore = KeyStore.getInstance("PKCS12");
         KeyStore trustStore = KeyStore.getInstance("PKCS12");
-        
-        
+
         try(InputStream keyStoreInputStream = App.class.getClassLoader().getResourceAsStream(keyStorePath);
             InputStream trustStoreInputStream = App.class.getClassLoader().getResourceAsStream(trustStorePath)) {
-            
+
+            Objects.requireNonNull(keyStoreInputStream);
+            Objects.requireNonNull(trustStoreInputStream);
+
             keyStore.load(keyStoreInputStream, keyStorePassword);
             trustStore.load(trustStoreInputStream, trustStorePassword);
         }
-        
+
         KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
         keyManagerFactory.init(keyStore, keyStorePassword);
 
@@ -82,7 +85,7 @@ class App {
         SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
         sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), new SecureRandom());
     }
-    
+
 }
 ```
 The above snippet is an example for creating a SSLContext with a key and a trust material. I am not only considering the amount of lines which needed to be written to create the SSLContext but it requires also a lot knowledge of the developer to just write this.
