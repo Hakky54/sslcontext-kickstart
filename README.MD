@@ -281,7 +281,7 @@ Some know http clients which relay on netty libraries are: [Spring WebFlux WebCl
 <dependency>
     <groupId>io.github.hakky54</groupId>
     <artifactId>sslcontext-kickstart-for-netty</artifactId>
-    <version>3.0.8</version>
+    <version>3.0.9</version>
 </dependency>
 ```
 Example setup for Spring WebClient with Netty:
@@ -319,7 +319,7 @@ public class App {
 <dependency>
     <groupId>io.github.hakky54</groupId>
     <artifactId>sslcontext-kickstart-for-jetty</artifactId>
-    <version>3.0.8</version>
+    <version>3.0.9</version>
 </dependency>
 ```
 Example setup for [Spring WebFlux WebClient Jetty](https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html):
@@ -356,7 +356,7 @@ However it is still possible to configure the http client with their custom conf
 <dependency>
     <groupId>io.github.hakky54</groupId>
     <artifactId>sslcontext-kickstart-for-apache</artifactId>
-    <version>3.0.8</version>
+    <version>3.0.9</version>
 </dependency>
 ```
 ```java
