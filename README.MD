@@ -18,14 +18,15 @@
 
 ## Table of contents
 1. [Introduction](#introduction)
-2. [Acknowledgement](#acknowledgement)
-3. [Advantages](#advantages)
-4. [Definitions](#definitions)
-5. [Tested HTTP Clients](#tested-http-clients)
-6. [Usage](#usage)
+   - [History](#history)
+   - [Acknowledgement](#acknowledgement)
+   - [Advantages](#advantages)
+   - [Definitions](#definitions)
+2. [Tested HTTP Clients](#tested-http-clients)
+3. [Usage](#usage)
    - [Example configuration](#example-configuration)
    - [Other possible configurations](#other-possible-configurations)
-7. [Additional mappers for specific libraries](#additional-mappers-for-specific-libraries)
+4. [Additional mappers for specific libraries](#additional-mappers-for-specific-libraries)
    - [Netty](#netty)
    - [Jetty](#jetty)
    - [Apache](#apache)
@@ -33,18 +34,96 @@
 ## Introduction
 SSLContext Kickstart is a library which provides a High-Level [Factory class](#usage) for configuring a http client to communicate over SSL/TLS for one way authentication or two way authentication.
 
-## Acknowledgement
+### History
+As a Java developer I worked for different kinds of clients. Most of the time the application required to call other microservices within the organization or some other http servers. 
+It was required to be HTTPS configured and so I began writing the code which was needed to configure the Http Client to communicate over ssl/tls. And every time I needed to write almost the same code over and over again which is in my opinion very verbose and hard to unit test. See below for an example:
+```java
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
+
+class App {
+    
+    public static void main(String[] args) throws KeyStoreException, NoSuchAlgorithmException, 
+            KeyManagementException, IOException, CertificateException, UnrecoverableKeyException {
+        
+        String keyStorePath = "keystore.p12";
+        String trustStorePath = "truststore.p12";
+        
+        char[] keyStorePassword = "secret".toCharArray();
+        char[] trustStorePassword = "secret".toCharArray();
+
+        KeyStore keyStore = KeyStore.getInstance("PKCS12");
+        KeyStore trustStore = KeyStore.getInstance("PKCS12");
+        
+        
+        try(InputStream keyStoreInputStream = App.class.getClassLoader().getResourceAsStream(keyStorePath);
+            InputStream trustStoreInputStream = App.class.getClassLoader().getResourceAsStream(trustStorePath)) {
+            
+            keyStore.load(keyStoreInputStream, keyStorePassword);
+            trustStore.load(trustStoreInputStream, trustStorePassword);
+        }
+        
+        KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+        keyManagerFactory.init(keyStore, keyStorePassword);
+
+        TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        trustManagerFactory.init(trustStore);
+
+        SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
+        sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), new SecureRandom());
+    }
+    
+}
+```
+The above snippet is an example for creating a SSLContext with a key and a trust material. I am not only considering the amount of lines which needed to be written to create the SSLContext but it requires also a lot knowledge of the developer to just write this.
+You need to know how to properly load your file into your application and consume it as a KeyStore instance. Therefor you also need to learn how to properly create a KeyManagerFactory, TrustManagerFactory and SSLContext. 
+The above snippet needs to be rewritten if you use a Http Client which relies on libraries of Jetty or Netty and therefor it makes it even more complex. The code above can be rewritten with the snippet below:
+```java
+import nl.altindag.sslcontext.SSLFactory;
+
+import javax.net.ssl.SSLContext;
+
+class App {
+
+    public static void main(String[] args) {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentity("keystore.p12", "secret".toCharArray(), "PKCS12")
+                .withTrustStore("truststore.p12", "secret".toCharArray(), "PKCS12")
+                .build();
+        
+        SSLContext sslContext = sslFactory.getSslContext();
+    }
+
+}
+```
+The sslcontext-kickstart library is taking the responsibility of creating an instance of SSLContext from the provided arguments. I wanted to be as easy as possible to use to give every developer a kickstart when configuring their Http Client. So feel free to provide feedback or feature requests.
+The library also provide other utilities such as [KeyStoreUtils](sslcontext-kickstart/src/main/java/nl/altindag/sslcontext/util/KeyStoreUtils.java), [KeyManagerUtils](sslcontext-kickstart/src/main/java/nl/altindag/sslcontext/util/KeyManagerUtils.java) and [TrustManagerUtils](sslcontext-kickstart/src/main/java/nl/altindag/sslcontext/util/TrustManagerUtils.java). See the [javadoc](https://sslcontext-kickstart.com/apidocs/index.html) for all the options.
+
+Other libraries also provide the same kind of factories/builders such as [Apache SSLContextBuilder](https://hc.apache.org/httpcomponents-core-4.4.x/httpcore/apidocs/org/apache/http/ssl/SSLContextBuilder.html) or [Netty SslContextBuilder](https://netty.io/4.0/api/io/netty/handler/ssl/SslContextBuilder.html) or [Jetty SslContextFactory](https://www.eclipse.org/jetty/javadoc/9.4.26.v20200117/org/eclipse/jetty/util/ssl/SslContextFactory.html) but the downside of using those libraries is that you also pull in their Http Client, transitive dependencies and other heavy not required classes.
+It will therefor make your executable fat jar even more fatter. Therefor most of the developer prefer to write the code by themselves to instantiate an SSLContext instead of using the libraries of Apache, Netty and Jetty.
+
+### Acknowledgement
 I would like to thank [Cody A. Ray](https://github.com/codyaray) for his contribution to the community regarding loading multiple Keystores into the SSLContext. The limitation of the JDK is to only support one keystore for the KeyManagerFactory and only one keystore for the TrustManagerFactory.
 The code snippets which Cody has shared are now available within this library and can be found here: [CompositeX509KeyManager](sslcontext-kickstart/src/main/java/nl/altindag/sslcontext/keymanager/CompositeX509ExtendedKeyManager.java) and [CompositeX509TrustManager](sslcontext-kickstart/src/main/java/nl/altindag/sslcontext/trustmanager/CompositeX509ExtendedTrustManager.java) 
 
 The original article can be found here: [Codyaray - Java SSL with Multiple KeyStores](http://codyaray.com/2013/04/java-ssl-with-multiple-keystores).
 
-## Advantages:
+### Advantages:
 * No need for low-level SSLContext configuration anymore
 * No knowledge needed about SSLContext, TrustManager, TrustManagerFactory, KeyManager, KeyManagerFactory and how to create it.
 * Above classes will all be created with just providing an identity and a trustStore
 
-## Definitions
+### Definitions
 * Identity: A KeyStore which holds the key pair also known as private and public key
 * TrustStore: A KeyStore containing one or more certificates also known as public key. This KeyStore contains a list of trusted certificates
 * One way authentication (also known as one way tls, one way ssl): Https connection where the client validates the certificate of the counter party
