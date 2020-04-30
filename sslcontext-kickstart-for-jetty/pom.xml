@@ -5,11 +5,11 @@
     <parent>
         <groupId>io.github.hakky54</groupId>
         <artifactId>sslcontext-kickstart-parent</artifactId>
-        <version>3.0.9-SNAPSHOT</version>
+        <version>3.0.9</version>
     </parent>
 
     <artifactId>sslcontext-kickstart-for-jetty</artifactId>
-    <version>3.0.9-SNAPSHOT</version>
+    <version>3.0.9</version>
     <packaging>jar</packaging>
 
     <name>${project.artifactId}</name>
@@ -37,7 +37,7 @@
     </developers>
 
     <properties>
-        <version.sslcontext-kickstart>3.0.9-SNAPSHOT</version.sslcontext-kickstart>
+        <version.sslcontext-kickstart>3.0.9</version.sslcontext-kickstart>
         <version.jetty-reactive-httpclient>1.1.2</version.jetty-reactive-httpclient>
     </properties>
 
