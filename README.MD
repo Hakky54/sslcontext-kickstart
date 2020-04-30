@@ -52,6 +52,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.util.Objects;
 
 class App {
     
@@ -70,6 +71,9 @@ class App {
         
         try(InputStream keyStoreInputStream = App.class.getClassLoader().getResourceAsStream(keyStorePath);
             InputStream trustStoreInputStream = App.class.getClassLoader().getResourceAsStream(trustStorePath)) {
+
+            Objects.requireNonNull(keyStoreInputStream);
+            Objects.requireNonNull(trustStoreInputStream);
             
             keyStore.load(keyStoreInputStream, keyStorePassword);
             trustStore.load(trustStoreInputStream, trustStorePassword);
