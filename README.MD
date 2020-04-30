@@ -38,8 +38,10 @@ SSLContext Kickstart is a library which provides a High-Level [Factory class](#u
 As a Java developer I worked for different kinds of clients. Most of the time the application required to call other microservices within the organization or some other http servers. 
 It was required to be HTTPS configured and so I began writing the code which was needed to configure the Http Client to communicate over ssl/tls. And every time I needed to write almost the same code over and over again which is in my opinion very verbose and hard to unit test. See below for an example:
 ```java
+import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,42 +52,41 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
-import java.util.Objects;
 
 class App {
-
-    public static void main(String[] args) throws KeyStoreException, NoSuchAlgorithmException,
+    
+    public static void main(String[] args) throws KeyStoreException, NoSuchAlgorithmException, 
             KeyManagementException, IOException, CertificateException, UnrecoverableKeyException {
-
+        
         String keyStorePath = "keystore.p12";
         String trustStorePath = "truststore.p12";
-
+        
         char[] keyStorePassword = "secret".toCharArray();
         char[] trustStorePassword = "secret".toCharArray();
 
         KeyStore keyStore = KeyStore.getInstance("PKCS12");
         KeyStore trustStore = KeyStore.getInstance("PKCS12");
-
+        
+        
         try(InputStream keyStoreInputStream = App.class.getClassLoader().getResourceAsStream(keyStorePath);
             InputStream trustStoreInputStream = App.class.getClassLoader().getResourceAsStream(trustStorePath)) {
-
-            Objects.requireNonNull(keyStoreInputStream);
-            Objects.requireNonNull(trustStoreInputStream);
-
+            
             keyStore.load(keyStoreInputStream, keyStorePassword);
             trustStore.load(trustStoreInputStream, trustStorePassword);
         }
-
+        
         KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
         keyManagerFactory.init(keyStore, keyStorePassword);
+        KeyManager[] keyManagers = keyManagerFactory.getKeyManagers();
 
         TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
         trustManagerFactory.init(trustStore);
+        TrustManager[] trustManagers = trustManagerFactory.getTrustManagers();
 
         SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
-        sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), new SecureRandom());
+        sslContext.init(keyManagers, trustManagers, new SecureRandom());
     }
-
+    
 }
 ```
 The above snippet is an example for creating a SSLContext with a key and a trust material. I am not only considering the amount of lines which needed to be written to create the SSLContext but it requires also a lot knowledge of the developer to just write this.
