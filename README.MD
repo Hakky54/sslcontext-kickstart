@@ -68,7 +68,6 @@ public class App {
         KeyStore keyStore = KeyStore.getInstance("PKCS12");
         KeyStore trustStore = KeyStore.getInstance("PKCS12");
         
-        
         try(InputStream keyStoreInputStream = App.class.getClassLoader().getResourceAsStream(keyStorePath);
             InputStream trustStoreInputStream = App.class.getClassLoader().getResourceAsStream(trustStorePath)) {
 
@@ -116,9 +115,6 @@ public class App {
 ```
 The sslcontext-kickstart library is taking the responsibility of creating an instance of SSLContext from the provided arguments. I wanted to be as easy as possible to use to give every developer a kickstart when configuring their Http Client. So feel free to provide feedback or feature requests.
 The library also provide other utilities such as [KeyStoreUtils](sslcontext-kickstart/src/main/java/nl/altindag/sslcontext/util/KeyStoreUtils.java), [KeyManagerUtils](sslcontext-kickstart/src/main/java/nl/altindag/sslcontext/util/KeyManagerUtils.java) and [TrustManagerUtils](sslcontext-kickstart/src/main/java/nl/altindag/sslcontext/util/TrustManagerUtils.java). See the [javadoc](https://sslcontext-kickstart.com/apidocs/index.html) for all the options.
-
-Other libraries also provide the same kind of factories/builders such as [Apache SSLContextBuilder](https://hc.apache.org/httpcomponents-core-4.4.x/httpcore/apidocs/org/apache/http/ssl/SSLContextBuilder.html) or [Netty SslContextBuilder](https://netty.io/4.0/api/io/netty/handler/ssl/SslContextBuilder.html) or [Jetty SslContextFactory](https://www.eclipse.org/jetty/javadoc/9.4.26.v20200117/org/eclipse/jetty/util/ssl/SslContextFactory.html) but the downside of using those libraries is that you also pull in their Http Client, transitive dependencies and other heavy not required classes.
-It will therefor make your executable fat jar even more fatter. Therefor most of the developer prefer to write the code by themselves to instantiate an SSLContext instead of using the libraries of Apache, Netty and Jetty.
 
 ### Acknowledgement
 I would like to thank [Cody A. Ray](https://github.com/codyaray) for his contribution to the community regarding loading multiple Keystores into the SSLContext. The limitation of the JDK is to only support one keystore for the KeyManagerFactory and only one keystore for the TrustManagerFactory.
