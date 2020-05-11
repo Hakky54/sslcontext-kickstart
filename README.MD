@@ -22,14 +22,14 @@
    - [Acknowledgement](#acknowledgement)
    - [Advantages](#advantages)
    - [Definitions](#definitions)
-2. [Tested HTTP Clients](#tested-http-clients)
-3. [Usage](#usage)
+2. [Usage](#usage)
    - [Example configuration](#example-configuration)
    - [Other possible configurations](#other-possible-configurations)
-4. [Additional mappers for specific libraries](#additional-mappers-for-specific-libraries)
+3. [Additional mappers for specific libraries](#additional-mappers-for-specific-libraries)
    - [Netty](#netty)
    - [Jetty](#jetty)
    - [Apache](#apache)
+4. [Tested HTTP Clients](#tested-http-clients)
 
 ## Introduction
 SSLContext Kickstart is a library which provides a High-Level [Factory class](#usage) for configuring a http client to communicate over SSL/TLS for one way authentication or two way authentication.
@@ -125,7 +125,7 @@ The code snippets which Cody has shared are now available within this library an
 The original article can be found here: [Codyaray - Java SSL with Multiple KeyStores](http://codyaray.com/2013/04/java-ssl-with-multiple-keystores).
 
 ### Advantages:
-* No need for low-level SSLContext configuration anymore
+* 3.0.9 low-level SSLContext configuration anymore
 * No knowledge needed about SSLContext, TrustManager, TrustManagerFactory, KeyManager, KeyManagerFactory and how to create it.
 * Above classes will all be created with just providing an identity and a trustStore
 * Load multiple identities/trustStores/keyManagers/trustManagers
@@ -135,45 +135,6 @@ The original article can be found here: [Codyaray - Java SSL with Multiple KeySt
 * TrustStore: A KeyStore containing one or more certificates also known as public key. This KeyStore contains a list of trusted certificates
 * One way authentication (also known as one way tls, one way ssl): Https connection where the client validates the certificate of the counter party
 * Two way authentication (also known as two way tls, two way ssl, mutual authentication): Https connection where the client as well as the counter party validates the certificate, also known as mutual authentication
-
-## Tested HTTP Clients
-Below is a list of clients which have already been tested with examples, see in the [ClientConfig class](https://github.com/Hakky54/mutual-tls-ssl/blob/master/client/src/main/java/nl/altindag/client/ClientConfig.java) and the [service directory](https://github.com/Hakky54/mutual-tls-ssl/tree/master/client/src/main/java/nl/altindag/client/service) for detailed configuration
-
-**Java**
-* [Apache HttpClient](https://github.com/apache/httpcomponents-client)
-* [JDK HttpClient](https://openjdk.java.net/groups/net/httpclient/intro.html)
-* [Old JDK HttpClient](https://docs.oracle.com/javase/tutorial/networking/urls/readingWriting.html)
-* [Netty Reactor](https://github.com/reactor/reactor-netty)
-* [Jetty Reactive HttpClient](https://github.com/jetty-project/jetty-reactive-httpclient)
-* [Spring RestTemplate](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/client/RestTemplate.html)
-* [Spring WebFlux WebClient Netty](https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html)
-* [Spring WebFlux WebClient Jetty](https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html)
-* [OkHttp](https://github.com/square/okhttp)
-* [Jersey Client](https://eclipse-ee4j.github.io/jersey/)
-* Old Jersey Client
-* [Google HttpClient](https://github.com/googleapis/google-http-java-client)
-* [Unirest](https://github.com/Kong/unirest-java)
-* [Retrofit](https://github.com/square/retrofit)
-* [Async Http Client](https://github.com/AsyncHttpClient/async-http-client)
-
-**Kotlin**
-* [Fuel](https://github.com/kittinunf/fuel)
-
-**Scala**
-* [Twitter Finagle](https://github.com/twitter/finagle)
-* [Twitter Finagle Featherbed](https://github.com/finagle/featherbed)
-* [Akka Http Client](https://github.com/akka/akka-http)
-* [Dispatch Reboot](https://github.com/dispatch/reboot)
-* [ScalaJ Http Client](https://github.com/scalaj/scalaj-http)
-* [Sttp](https://github.com/softwaremill/sttp)
-  
-There is a github project available named [Mutual-tls-ssl](https://github.com/Hakky54/mutual-tls-ssl) which provides a tutorial containing steps for setting up these four scenarios:
-* No security
-* One way authentication
-* Two way authentication
-* Two way authentication with trusting the Certificate Authority
-
-It will also explain how to create KeyStores, Certificates, Certificate Signing Requests and how to implement it.
 
 ## Usage
 ### Example configuration
@@ -218,7 +179,7 @@ Received the following status code: 200
 Received the following joke: If a black cat crosses your path, you have bad luck. If Chuck Norris crosses your path, it was nice knowing you.
 ```
 
-The SSLFactory provides other useful option, see below for all the returnable values:
+The SSLFactory provides other useful options, see below for all the returnable values:
 ```java
 import nl.altindag.sslcontext.SSLFactory;
 
@@ -415,3 +376,42 @@ public class App {
 
 }
 ```
+
+## Tested HTTP Clients
+Below is a list of clients which have already been tested with examples, see in the [ClientConfig class](https://github.com/Hakky54/mutual-tls-ssl/blob/master/client/src/main/java/nl/altindag/client/ClientConfig.java) and the [service directory](https://github.com/Hakky54/mutual-tls-ssl/tree/master/client/src/main/java/nl/altindag/client/service) for detailed configuration
+
+**Java**
+* [Apache HttpClient](https://github.com/apache/httpcomponents-client)
+* [JDK HttpClient](https://openjdk.java.net/groups/net/httpclient/intro.html)
+* [Old JDK HttpClient](https://docs.oracle.com/javase/tutorial/networking/urls/readingWriting.html)
+* [Netty Reactor](https://github.com/reactor/reactor-netty)
+* [Jetty Reactive HttpClient](https://github.com/jetty-project/jetty-reactive-httpclient)
+* [Spring RestTemplate](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/client/RestTemplate.html)
+* [Spring WebFlux WebClient Netty](https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html)
+* [Spring WebFlux WebClient Jetty](https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html)
+* [OkHttp](https://github.com/square/okhttp)
+* [Jersey Client](https://eclipse-ee4j.github.io/jersey/)
+* Old Jersey Client
+* [Google HttpClient](https://github.com/googleapis/google-http-java-client)
+* [Unirest](https://github.com/Kong/unirest-java)
+* [Retrofit](https://github.com/square/retrofit)
+* [Async Http Client](https://github.com/AsyncHttpClient/async-http-client)
+
+**Kotlin**
+* [Fuel](https://github.com/kittinunf/fuel)
+
+**Scala**
+* [Twitter Finagle](https://github.com/twitter/finagle)
+* [Twitter Finagle Featherbed](https://github.com/finagle/featherbed)
+* [Akka Http Client](https://github.com/akka/akka-http)
+* [Dispatch Reboot](https://github.com/dispatch/reboot)
+* [ScalaJ Http Client](https://github.com/scalaj/scalaj-http)
+* [Sttp](https://github.com/softwaremill/sttp)
+  
+There is a github project available named [Mutual-tls-ssl](https://github.com/Hakky54/mutual-tls-ssl) which provides a tutorial containing steps for setting up these four scenarios:
+* No security
+* One way authentication
+* Two way authentication
+* Two way authentication with trusting the Certificate Authority
+
+It will also explain how to create KeyStores, Certificates, Certificate Signing Requests and how to implement it.

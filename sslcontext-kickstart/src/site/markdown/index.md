@@ -34,7 +34,7 @@ public class App {
 }
 ```
 
-The SSLFactory provides other useful option, see below for all the returnable values:
+The SSLFactory provides other useful options, see below for all the returnable values:
 ```java
 import nl.altindag.sslcontext.SSLFactory;
 
