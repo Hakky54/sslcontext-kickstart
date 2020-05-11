@@ -125,7 +125,7 @@ The code snippets which Cody has shared are now available within this library an
 The original article can be found here: [Codyaray - Java SSL with Multiple KeyStores](http://codyaray.com/2013/04/java-ssl-with-multiple-keystores).
 
 ### Advantages:
-* 3.0.9 low-level SSLContext configuration anymore
+* No need for low-level SSLContext configuration anymore
 * No knowledge needed about SSLContext, TrustManager, TrustManagerFactory, KeyManager, KeyManagerFactory and how to create it.
 * Above classes will all be created with just providing an identity and a trustStore
 * Load multiple identities/trustStores/keyManagers/trustManagers
