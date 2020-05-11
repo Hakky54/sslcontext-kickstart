@@ -34,6 +34,34 @@ public class App {
 }
 ```
 
+The SSLFactory provides other useful option, see below for all the returnable values:
+```java
+import nl.altindag.sslcontext.SSLFactory;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.X509ExtendedKeyManager;
+import javax.net.ssl.X509ExtendedTrustManager;
+import java.security.cert.X509Certificate;
+import java.util.Optional;
+
+public class App {
+
+    public static void main(String[] args) {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentity("keystore.p12", "secret".toCharArray(), "PKCS12")
+                .withTrustStore("truststore.p12", "secret".toCharArray(), "PKCS12")
+                .build();
+        
+        SSLContext sslContext = sslFactory.getSslContext();
+        HostnameVerifier hostnameVerifier = sslFactory.getHostnameVerifier();
+        Optional<X509ExtendedKeyManager> keyManager = sslFactory.getKeyManager();
+        X509ExtendedTrustManager trustManager = sslFactory.getTrustManager();
+        X509Certificate[] trustedCertificates = sslFactory.getTrustedCertificates();
+    }
+
+}
+
 ### Tested HTTP Clients
 Below is a list of clients which have already been tested with examples, see in the [ClientConfig class](https://github.com/Hakky54/mutual-tls-ssl/blob/master/client/src/main/java/nl/altindag/client/ClientConfig.java) and the [service directory](https://github.com/Hakky54/mutual-tls-ssl/tree/master/client/src/main/java/nl/altindag/client/service) for detailed configuration.
 

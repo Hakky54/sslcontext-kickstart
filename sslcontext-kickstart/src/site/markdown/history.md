@@ -1,6 +1,8 @@
 ### History
 As a Java developer I worked for different kinds of clients. Most of the time the application required to call other microservices within the organization or some other http servers. 
 It was required to be HTTPS configured and so I began writing the code which was needed to configure the Http Client to communicate over ssl/tls. And every time I needed to write almost the same code over and over again which is in my opinion very verbose and hard to unit test. See below for an example:
+
+**Traditional SSLContext initialization**
 ```java
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;

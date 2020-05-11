@@ -37,6 +37,8 @@ SSLContext Kickstart is a library which provides a High-Level [Factory class](#u
 ### History
 As a Java developer I worked for different kinds of clients. Most of the time the application required to call other microservices within the organization or some other http servers. 
 It was required to be HTTPS configured and so I began writing the code which was needed to configure the Http Client to communicate over ssl/tls. And every time I needed to write almost the same code over and over again which is in my opinion very verbose and hard to unit test. See below for an example:
+
+**Traditional SSLContext initialization**
 ```java
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
@@ -126,6 +128,7 @@ The original article can be found here: [Codyaray - Java SSL with Multiple KeySt
 * No need for low-level SSLContext configuration anymore
 * No knowledge needed about SSLContext, TrustManager, TrustManagerFactory, KeyManager, KeyManagerFactory and how to create it.
 * Above classes will all be created with just providing an identity and a trustStore
+* Load multiple identities/trustStores/keyManagers/trustManagers
 
 ### Definitions
 * Identity: A KeyStore which holds the key pair also known as private and public key
@@ -213,6 +216,35 @@ Response:
 ```text
 Received the following status code: 200
 Received the following joke: If a black cat crosses your path, you have bad luck. If Chuck Norris crosses your path, it was nice knowing you.
+```
+
+The SSLFactory provides other useful option, see below for all the returnable values:
+```java
+import nl.altindag.sslcontext.SSLFactory;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.X509ExtendedKeyManager;
+import javax.net.ssl.X509ExtendedTrustManager;
+import java.security.cert.X509Certificate;
+import java.util.Optional;
+
+public class App {
+
+    public static void main(String[] args) {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentity("keystore.p12", "secret".toCharArray(), "PKCS12")
+                .withTrustStore("truststore.p12", "secret".toCharArray(), "PKCS12")
+                .build();
+        
+        SSLContext sslContext = sslFactory.getSslContext();
+        HostnameVerifier hostnameVerifier = sslFactory.getHostnameVerifier();
+        Optional<X509ExtendedKeyManager> keyManager = sslFactory.getKeyManager();
+        X509ExtendedTrustManager trustManager = sslFactory.getTrustManager();
+        X509Certificate[] trustedCertificates = sslFactory.getTrustedCertificates();
+    }
+
+}
 ```
 #### Other possible configurations
 One way authentication with custom trustStore 
