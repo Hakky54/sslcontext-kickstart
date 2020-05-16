@@ -1,6 +1,5 @@
 package nl.altindag.sslcontext.trustmanager;
 
-import ch.qos.logback.classic.Level;
 import nl.altindag.log.LogCaptor;
 import nl.altindag.sslcontext.util.KeyStoreUtils;
 import org.junit.jupiter.api.Test;
@@ -41,8 +40,9 @@ public class UnsafeX509ExtendedTrustManagerShould {
         assertThatCode(() -> trustManager.checkClientTrusted(trustedCerts, "RSA"))
                 .doesNotThrowAnyException();
 
-        assertThat(logCaptor.getLogs(Level.DEBUG)).hasSize(1);
-        assertThat(logCaptor.getLogs(Level.DEBUG)).contains("Accepting a client certificate: [CN=*.google.com, O=Google LLC, L=Mountain View, ST=California, C=US]");
+        assertThat(logCaptor.getDebugLogs())
+                .hasSize(1)
+                .containsExactly("Accepting a client certificate: [CN=*.google.com, O=Google LLC, L=Mountain View, ST=California, C=US]");
     }
 
     @Test
@@ -60,8 +60,9 @@ public class UnsafeX509ExtendedTrustManagerShould {
         assertThatCode(() -> trustManager.checkClientTrusted(trustedCerts, "RSA", (SSLEngine) null))
                 .doesNotThrowAnyException();
 
-        assertThat(logCaptor.getLogs(Level.DEBUG)).hasSize(1);
-        assertThat(logCaptor.getLogs(Level.DEBUG)).contains("Accepting a client certificate: [CN=*.google.com, O=Google LLC, L=Mountain View, ST=California, C=US]");
+        assertThat(logCaptor.getDebugLogs())
+                .hasSize(1)
+                .contains("Accepting a client certificate: [CN=*.google.com, O=Google LLC, L=Mountain View, ST=California, C=US]");
     }
 
     @Test
@@ -79,8 +80,9 @@ public class UnsafeX509ExtendedTrustManagerShould {
         assertThatCode(() -> trustManager.checkClientTrusted(trustedCerts, "RSA", (Socket) null))
                 .doesNotThrowAnyException();
 
-        assertThat(logCaptor.getLogs(Level.DEBUG)).hasSize(1);
-        assertThat(logCaptor.getLogs(Level.DEBUG)).contains("Accepting a client certificate: [CN=*.google.com, O=Google LLC, L=Mountain View, ST=California, C=US]");
+        assertThat(logCaptor.getDebugLogs())
+                .hasSize(1)
+                .contains("Accepting a client certificate: [CN=*.google.com, O=Google LLC, L=Mountain View, ST=California, C=US]");
     }
 
     @Test
@@ -97,8 +99,9 @@ public class UnsafeX509ExtendedTrustManagerShould {
         assertThatCode(() -> trustManager.checkServerTrusted(trustedCerts, "RSA"))
                 .doesNotThrowAnyException();
 
-        assertThat(logCaptor.getLogs(Level.DEBUG)).hasSize(1);
-        assertThat(logCaptor.getLogs(Level.DEBUG)).contains("Accepting a server certificate: [CN=Prof Oak, OU=Oak Pokémon Research Lab, O=Oak Pokémon Research Lab, C=Pallet Town]");
+        assertThat(logCaptor.getDebugLogs())
+                .hasSize(1)
+                .contains("Accepting a server certificate: [CN=Prof Oak, OU=Oak Pokémon Research Lab, O=Oak Pokémon Research Lab, C=Pallet Town]");
     }
 
     @Test
@@ -115,8 +118,9 @@ public class UnsafeX509ExtendedTrustManagerShould {
         assertThatCode(() -> trustManager.checkServerTrusted(trustedCerts, "RSA", (SSLEngine) null))
                 .doesNotThrowAnyException();
 
-        assertThat(logCaptor.getLogs(Level.DEBUG)).hasSize(1);
-        assertThat(logCaptor.getLogs(Level.DEBUG)).contains("Accepting a server certificate: [CN=Prof Oak, OU=Oak Pokémon Research Lab, O=Oak Pokémon Research Lab, C=Pallet Town]");
+        assertThat(logCaptor.getDebugLogs())
+                .hasSize(1)
+                .contains("Accepting a server certificate: [CN=Prof Oak, OU=Oak Pokémon Research Lab, O=Oak Pokémon Research Lab, C=Pallet Town]");
     }
 
     @Test
@@ -133,14 +137,15 @@ public class UnsafeX509ExtendedTrustManagerShould {
         assertThatCode(() -> trustManager.checkServerTrusted(trustedCerts, "RSA", (Socket) null))
                 .doesNotThrowAnyException();
 
-        assertThat(logCaptor.getLogs(Level.DEBUG)).hasSize(1);
-        assertThat(logCaptor.getLogs(Level.DEBUG)).contains("Accepting a server certificate: [CN=Prof Oak, OU=Oak Pokémon Research Lab, O=Oak Pokémon Research Lab, C=Pallet Town]");
+        assertThat(logCaptor.getDebugLogs())
+                .hasSize(1)
+                .contains("Accepting a server certificate: [CN=Prof Oak, OU=Oak Pokémon Research Lab, O=Oak Pokémon Research Lab, C=Pallet Town]");
     }
 
     @Test
     public void checkClientTrustedDoesNotLogAnythingWhenDebugLevelIsDisabled() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         LogCaptor<UnsafeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
-        logCaptor.setLogLevel(Level.INFO);
+        logCaptor.setLogLevelToInfo();
 
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         X509ExtendedTrustManager trustManager = UnsafeX509ExtendedTrustManager.INSTANCE;
@@ -153,14 +158,14 @@ public class UnsafeX509ExtendedTrustManagerShould {
         assertThatCode(() -> trustManager.checkClientTrusted(trustedCerts, "RSA"))
                 .doesNotThrowAnyException();
 
-        assertThat(logCaptor.getLogs(Level.DEBUG)).isEmpty();
+        assertThat(logCaptor.getDebugLogs()).isEmpty();
         logCaptor.resetLogLevel();
     }
 
     @Test
     public void checkClientTrustedWithSslEngineDoesNotLogAnythingWhenDebugLevelIsDisabled() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         LogCaptor<UnsafeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
-        logCaptor.setLogLevel(Level.INFO);
+        logCaptor.setLogLevelToInfo();
 
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         X509ExtendedTrustManager trustManager = UnsafeX509ExtendedTrustManager.INSTANCE;
@@ -173,14 +178,14 @@ public class UnsafeX509ExtendedTrustManagerShould {
         assertThatCode(() -> trustManager.checkClientTrusted(trustedCerts, "RSA", (SSLEngine) null))
                 .doesNotThrowAnyException();
 
-        assertThat(logCaptor.getLogs(Level.DEBUG)).isEmpty();
+        assertThat(logCaptor.getDebugLogs()).isEmpty();
         logCaptor.resetLogLevel();
     }
 
     @Test
     public void checkClientTrustedWithSocketDoesNotLogAnythingWhenDebugLevelIsDisabled() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         LogCaptor<UnsafeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
-        logCaptor.setLogLevel(Level.INFO);
+        logCaptor.setLogLevelToInfo();
 
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         X509ExtendedTrustManager trustManager = UnsafeX509ExtendedTrustManager.INSTANCE;
@@ -193,14 +198,14 @@ public class UnsafeX509ExtendedTrustManagerShould {
         assertThatCode(() -> trustManager.checkClientTrusted(trustedCerts, "RSA", (Socket) null))
                 .doesNotThrowAnyException();
 
-        assertThat(logCaptor.getLogs(Level.DEBUG)).isEmpty();
+        assertThat(logCaptor.getDebugLogs()).isEmpty();
         logCaptor.resetLogLevel();
     }
 
     @Test
     public void checkServerTrustedDoesNotLogAnythingWhenDebugLevelIsDisabled() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         LogCaptor<UnsafeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
-        logCaptor.setLogLevel(Level.INFO);
+        logCaptor.setLogLevelToInfo();
 
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
@@ -212,14 +217,14 @@ public class UnsafeX509ExtendedTrustManagerShould {
         assertThatCode(() -> trustManager.checkServerTrusted(trustedCerts, "RSA"))
                 .doesNotThrowAnyException();
 
-        assertThat(logCaptor.getLogs(Level.DEBUG)).isEmpty();
+        assertThat(logCaptor.getDebugLogs()).isEmpty();
         logCaptor.resetLogLevel();
     }
 
     @Test
     public void checkServerTrustedWithSslEngineDoesNotLogAnythingWhenDebugLevelIsDisabled() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         LogCaptor<UnsafeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
-        logCaptor.setLogLevel(Level.INFO);
+        logCaptor.setLogLevelToInfo();
 
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
@@ -231,14 +236,14 @@ public class UnsafeX509ExtendedTrustManagerShould {
         assertThatCode(() -> trustManager.checkServerTrusted(trustedCerts, "RSA", (SSLEngine) null))
                 .doesNotThrowAnyException();
 
-        assertThat(logCaptor.getLogs(Level.DEBUG)).isEmpty();
+        assertThat(logCaptor.getDebugLogs()).isEmpty();
         logCaptor.resetLogLevel();
     }
 
     @Test
     public void checkServerTrustedWithSocketDoesNotLogAnythingWhenDebugLevelIsDisabled() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         LogCaptor<UnsafeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
-        logCaptor.setLogLevel(Level.INFO);
+        logCaptor.setLogLevelToInfo();
 
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
@@ -250,7 +255,7 @@ public class UnsafeX509ExtendedTrustManagerShould {
         assertThatCode(() -> trustManager.checkServerTrusted(trustedCerts, "RSA", (Socket) null))
                 .doesNotThrowAnyException();
 
-        assertThat(logCaptor.getLogs(Level.DEBUG)).isEmpty();
+        assertThat(logCaptor.getDebugLogs()).isEmpty();
         logCaptor.resetLogLevel();
     }
 

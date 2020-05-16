@@ -1,6 +1,5 @@
 package nl.altindag.sslcontext.trustmanager;
 
-import ch.qos.logback.classic.Level;
 import nl.altindag.log.LogCaptor;
 import nl.altindag.sslcontext.util.KeyStoreUtils;
 import nl.altindag.sslcontext.util.TrustManagerUtils;
@@ -127,7 +126,7 @@ public class CompositeX509ExtendedTrustManagerShould {
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
 
         LogCaptor<CompositeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
-        logCaptor.setLogLevel(Level.INFO);
+        logCaptor.setLogLevelToInfo();
 
         CompositeX509ExtendedTrustManager compositeX509ExtendedTrustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(trustManager));
         assertThat(trustManager).isNotNull();
@@ -148,7 +147,7 @@ public class CompositeX509ExtendedTrustManagerShould {
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
 
         LogCaptor<CompositeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
-        logCaptor.setLogLevel(Level.INFO);
+        logCaptor.setLogLevelToInfo();
 
         CompositeX509ExtendedTrustManager compositeX509ExtendedTrustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(trustManager));
         assertThat(trustManager).isNotNull();
@@ -169,7 +168,7 @@ public class CompositeX509ExtendedTrustManagerShould {
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
 
         LogCaptor<CompositeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
-        logCaptor.setLogLevel(Level.INFO);
+        logCaptor.setLogLevelToInfo();
 
         CompositeX509ExtendedTrustManager compositeX509ExtendedTrustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(trustManager));
         assertThat(trustManager).isNotNull();
@@ -199,8 +198,8 @@ public class CompositeX509ExtendedTrustManagerShould {
         assertThatCode(() -> compositeX509ExtendedTrustManager.checkClientTrusted(trustedCerts, "RSA"))
                 .doesNotThrowAnyException();
 
-        assertThat(logCaptor.getLogs(Level.DEBUG)).hasSize(1);
-        assertThat(logCaptor.getLogs(Level.DEBUG).get(0))
+        assertThat(logCaptor.getDebugLogs())
+                .hasSize(1)
                 .contains("Received the following client certificate: [CN=*.google.com, O=Google LLC, L=Mountain View, ST=California, C=US]");
     }
 
@@ -220,8 +219,8 @@ public class CompositeX509ExtendedTrustManagerShould {
         assertThatCode(() -> compositeX509ExtendedTrustManager.checkClientTrusted(trustedCerts, "RSA", SSL_ENGINE))
                 .doesNotThrowAnyException();
 
-        assertThat(logCaptor.getLogs(Level.DEBUG)).hasSize(1);
-        assertThat(logCaptor.getLogs(Level.DEBUG).get(0))
+        assertThat(logCaptor.getDebugLogs())
+                .hasSize(1)
                 .contains("Received the following client certificate: [CN=*.google.com, O=Google LLC, L=Mountain View, ST=California, C=US]");
     }
 
@@ -241,8 +240,8 @@ public class CompositeX509ExtendedTrustManagerShould {
         assertThatCode(() -> compositeX509ExtendedTrustManager.checkClientTrusted(trustedCerts, "RSA", SOCKET))
                 .doesNotThrowAnyException();
 
-        assertThat(logCaptor.getLogs(Level.DEBUG)).hasSize(1);
-        assertThat(logCaptor.getLogs(Level.DEBUG).get(0))
+        assertThat(logCaptor.getDebugLogs())
+                .hasSize(1)
                 .contains("Received the following client certificate: [CN=*.google.com, O=Google LLC, L=Mountain View, ST=California, C=US]");
     }
 
@@ -252,7 +251,7 @@ public class CompositeX509ExtendedTrustManagerShould {
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
         LogCaptor<CompositeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
-        logCaptor.setLogLevel(Level.INFO);
+        logCaptor.setLogLevelToInfo();
 
         CompositeX509ExtendedTrustManager trustManager = CompositeX509ExtendedTrustManager.builder()
                 .withTrustStores(trustStore)
@@ -273,7 +272,7 @@ public class CompositeX509ExtendedTrustManagerShould {
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
         LogCaptor<CompositeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
-        logCaptor.setLogLevel(Level.INFO);
+        logCaptor.setLogLevelToInfo();
 
         CompositeX509ExtendedTrustManager trustManager = CompositeX509ExtendedTrustManager.builder()
                 .withTrustStores(trustStore)
@@ -294,7 +293,7 @@ public class CompositeX509ExtendedTrustManagerShould {
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
         LogCaptor<CompositeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
-        logCaptor.setLogLevel(Level.INFO);
+        logCaptor.setLogLevelToInfo();
 
         CompositeX509ExtendedTrustManager trustManager = CompositeX509ExtendedTrustManager.builder()
                 .withTrustStores(trustStore)
@@ -325,8 +324,8 @@ public class CompositeX509ExtendedTrustManagerShould {
         assertThatCode(() -> trustManager.checkServerTrusted(trustedCerts, "RSA"))
                 .doesNotThrowAnyException();
 
-        assertThat(logCaptor.getLogs(Level.DEBUG)).hasSize(1);
-        assertThat(logCaptor.getLogs(Level.DEBUG).get(0))
+        assertThat(logCaptor.getDebugLogs())
+                .hasSize(1)
                 .contains("Received the following server certificate: [CN=Prof Oak, OU=Oak Pokémon Research Lab, O=Oak Pokémon Research Lab, C=Pallet Town]");
     }
 
@@ -346,8 +345,8 @@ public class CompositeX509ExtendedTrustManagerShould {
         assertThatCode(() -> trustManager.checkServerTrusted(trustedCerts, "RSA", SSL_ENGINE))
                 .doesNotThrowAnyException();
 
-        assertThat(logCaptor.getLogs(Level.DEBUG)).hasSize(1);
-        assertThat(logCaptor.getLogs(Level.DEBUG).get(0))
+        assertThat(logCaptor.getDebugLogs())
+                .hasSize(1)
                 .contains("Received the following server certificate: [CN=Prof Oak, OU=Oak Pokémon Research Lab, O=Oak Pokémon Research Lab, C=Pallet Town]");
     }
 
@@ -367,8 +366,8 @@ public class CompositeX509ExtendedTrustManagerShould {
         assertThatCode(() -> trustManager.checkServerTrusted(trustedCerts, "RSA", SOCKET))
                 .doesNotThrowAnyException();
 
-        assertThat(logCaptor.getLogs(Level.DEBUG)).hasSize(1);
-        assertThat(logCaptor.getLogs(Level.DEBUG).get(0))
+        assertThat(logCaptor.getDebugLogs())
+                .hasSize(1)
                 .contains("Received the following server certificate: [CN=Prof Oak, OU=Oak Pokémon Research Lab, O=Oak Pokémon Research Lab, C=Pallet Town]");
     }
 

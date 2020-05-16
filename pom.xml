@@ -62,7 +62,7 @@
         <version.slf4j>1.7.30</version.slf4j>
         <version.junit>5.6.2</version.junit>
         <version.assertj-core>3.15.0</version.assertj-core>
-        <version.logcaptor>1.1.1</version.logcaptor>
+        <version.logcaptor>2.0.0</version.logcaptor>
         <version.jacoco-maven-plugin>0.8.5</version.jacoco-maven-plugin>
         <version.maven-surefire-plugin>2.22.2</version.maven-surefire-plugin>
         <version.maven-compiler-plugin>3.8.1</version.maven-compiler-plugin>

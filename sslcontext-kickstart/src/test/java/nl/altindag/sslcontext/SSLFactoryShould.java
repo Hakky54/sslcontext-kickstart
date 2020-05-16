@@ -1,6 +1,5 @@
 package nl.altindag.sslcontext;
 
-import ch.qos.logback.classic.Level;
 import nl.altindag.log.LogCaptor;
 import nl.altindag.sslcontext.exception.GenericKeyStoreException;
 import nl.altindag.sslcontext.exception.GenericSSLContextException;
@@ -467,7 +466,7 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getTrustedCertificates()).isEmpty();
         assertThat(sslFactory.getTrustStores()).isEmpty();
         assertThat(sslFactory.getTrustManager()).isInstanceOf(CompositeX509ExtendedTrustManager.class);
-        assertThat(logCaptor.getLogs(Level.WARN)).contains("UnsafeTrustManager is being used. Client/Server certificates will be accepted without validation. Please don't use this configuration at production.");
+        assertThat(logCaptor.getWarnLogs()).contains("UnsafeTrustManager is being used. Client/Server certificates will be accepted without validation. Please don't use this configuration at production.");
     }
 
     @Test
