@@ -61,6 +61,7 @@ public class App {
     }
 
 }
+```
 
 ### Tested HTTP Clients
 Below is a list of clients which have already been tested with examples, see in the [ClientConfig class](https://github.com/Hakky54/mutual-tls-ssl/blob/master/client/src/main/java/nl/altindag/client/ClientConfig.java) and the [service directory](https://github.com/Hakky54/mutual-tls-ssl/tree/master/client/src/main/java/nl/altindag/client/service) for detailed configuration.
@@ -86,6 +87,7 @@ Below is a list of clients which have already been tested with examples, see in 
 **Kotlin**
 
 * [Fuel](https://github.com/kittinunf/fuel)
+* [Kohttp](https://github.com/rybalkinsd/kohttp)
 
 **Scala**
 
@@ -93,5 +95,8 @@ Below is a list of clients which have already been tested with examples, see in 
 * [Twitter Finagle Featherbed](https://github.com/finagle/featherbed)
 * [Akka Http Client](https://github.com/akka/akka-http)
 * [Dispatch Reboot](https://github.com/dispatch/reboot)
-* [ScalaJ Http Client](https://github.com/scalaj/scalaj-http)
+* [ScalaJ / Simplified Http Client](https://github.com/scalaj/scalaj-http)
 * [Sttp](https://github.com/softwaremill/sttp)
+* [Requests-Scala](https://github.com/lihaoyi/requests-scala)
+* [Http4s Blaze Client](https://github.com/http4s/http4s)
+* [Http4s Java Net Client](https://github.com/http4s/http4s)

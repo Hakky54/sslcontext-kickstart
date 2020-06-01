@@ -8,13 +8,26 @@
 
 [![SonarCloud](https://sonarcloud.io/images/project_badges/sonarcloud-white.svg)](https://sonarcloud.io/dashboard?id=io.github.hakky54%3Asslcontext-kickstart-parent)
 
-# Install with [maven](https://mvnrepository.com/artifact/io.github.hakky54/sslcontext-kickstart)
+# Install library with:
+### Install with [Maven](https://mvnrepository.com/artifact/io.github.hakky54/sslcontext-kickstart)
 ```xml
 <dependency>
     <groupId>io.github.hakky54</groupId>
     <artifactId>sslcontext-kickstart</artifactId>
     <version>3.0.9</version>
 </dependency>
+```
+### Install with Gradle
+```groovy
+implementation 'io.github.hakky54:sslcontext-kickstart:3.0.9'
+```
+### Install with Scala SBT
+```
+libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "3.0.9"
+```
+### Install with Apache Ivy
+```xml
+<dependency org="io.github.hakky54" name="sslcontext-kickstart" rev="3.0.9" />
 ```
 
 ## Table of contents
@@ -311,6 +324,7 @@ public class App {
 Below is a list of clients which have already been tested with examples, see in the [ClientConfig class](https://github.com/Hakky54/mutual-tls-ssl/blob/master/client/src/main/java/nl/altindag/client/ClientConfig.java) and the [service directory](https://github.com/Hakky54/mutual-tls-ssl/tree/master/client/src/main/java/nl/altindag/client/service) for detailed configuration
 
 **Java**
+**Java**
 * [Apache HttpClient](https://github.com/apache/httpcomponents-client)
 * [JDK HttpClient](https://openjdk.java.net/groups/net/httpclient/intro.html)
 * [Old JDK HttpClient](https://docs.oracle.com/javase/tutorial/networking/urls/readingWriting.html)
@@ -329,14 +343,18 @@ Below is a list of clients which have already been tested with examples, see in 
 
 **Kotlin**
 * [Fuel](https://github.com/kittinunf/fuel)
+* [Kohttp](https://github.com/rybalkinsd/kohttp)
 
 **Scala**
 * [Twitter Finagle](https://github.com/twitter/finagle)
 * [Twitter Finagle Featherbed](https://github.com/finagle/featherbed)
 * [Akka Http Client](https://github.com/akka/akka-http)
 * [Dispatch Reboot](https://github.com/dispatch/reboot)
-* [ScalaJ Http Client](https://github.com/scalaj/scalaj-http)
+* [ScalaJ / Simplified Http Client](https://github.com/scalaj/scalaj-http)
 * [Sttp](https://github.com/softwaremill/sttp)
+* [Requests-Scala](https://github.com/lihaoyi/requests-scala)
+* [Http4s Blaze Client](https://github.com/http4s/http4s)
+* [Http4s Java Net Client](https://github.com/http4s/http4s)
   
 There is a github project available named [Mutual-tls-ssl](https://github.com/Hakky54/mutual-tls-ssl) which provides a tutorial containing steps for setting up these four scenarios:
 * No security
