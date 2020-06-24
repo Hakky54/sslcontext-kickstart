@@ -197,7 +197,7 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
 
         public Builder withIdentities(List<? extends KeyStoreHolder> identities) {
             for (KeyStoreHolder identity : identities) {
-                this.keyManagers.add(KeyManagerUtils.createKeyManager(identity.getKeyStore(), identity.getKeyStorePassword()));
+                this.keyManagers.add(KeyManagerUtils.createKeyManager(identity.getKeyStore(), identity.getKeyPassword()));
             }
             return this;
         }

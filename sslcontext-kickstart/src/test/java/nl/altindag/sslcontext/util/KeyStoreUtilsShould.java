@@ -16,7 +16,7 @@ import java.security.cert.CertificateException;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class KeyStoreUtilsShould {
+class KeyStoreUtilsShould {
 
     private static final String KEYSTORE_FILE_NAME = "identity.jks";
     private static final String JCEKS_KEYSTORE_FILE_NAME = "identity.jceks";
@@ -28,25 +28,25 @@ public class KeyStoreUtilsShould {
     private static final String TEMPORALLY_KEYSTORE_LOCATION = System.getProperty("user.home");
 
     @Test
-    public void loadKeyStoreFromClasspath() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void loadKeyStoreFromClasspath() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore keyStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD);
         assertThat(keyStore).isNotNull();
     }
 
     @Test
-    public void loadJCEKSKeyStoreFromClasspath() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void loadJCEKSKeyStoreFromClasspath() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore keyStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + JCEKS_KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD, "JCEKS");
         assertThat(keyStore).isNotNull();
     }
 
     @Test
-    public void loadPKCS12KeyStoreFromClasspath() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void loadPKCS12KeyStoreFromClasspath() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore keyStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + PKCS12_KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD, "PKCS12");
         assertThat(keyStore).isNotNull();
     }
 
     @Test
-    public void loadKeyStoreWithPathFromDirectory() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void loadKeyStoreWithPathFromDirectory() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         Path keystorePath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, KEYSTORE_FILE_NAME);
 
         KeyStore keyStore = KeyStoreUtils.loadKeyStore(keystorePath, KEYSTORE_PASSWORD);
@@ -56,7 +56,7 @@ public class KeyStoreUtilsShould {
     }
 
     @Test
-    public void throwExceptionWhenLoadingNonExistingKeystore() {
+    void throwExceptionWhenLoadingNonExistingKeystore() {
         Assertions.assertThatThrownBy(() -> KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + NON_EXISTING_KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD))
                   .isInstanceOf(IOException.class)
                   .hasMessage("Could not find the keystore file");

@@ -7,7 +7,6 @@ import nl.altindag.sslcontext.model.KeyStoreHolder;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.X509ExtendedKeyManager;
-import javax.net.ssl.X509KeyManager;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -34,18 +33,18 @@ public final class KeyManagerUtils {
 
     public static X509ExtendedKeyManager createKeyManager(KeyStoreHolder... keyStoreHolders) {
         return Arrays.stream(keyStoreHolders)
-                .map(keyStoreHolder -> createKeyManager(keyStoreHolder.getKeyStore(), keyStoreHolder.getKeyStorePassword()))
+                .map(keyStoreHolder -> createKeyManager(keyStoreHolder.getKeyStore(), keyStoreHolder.getKeyPassword()))
                 .collect(collectingAndThen(toList(), KeyManagerUtils::combine));
     }
 
-    public static X509ExtendedKeyManager createKeyManager(KeyStore keyStore, char[] keyStorePassword) {
-        return createKeyManager(keyStore, keyStorePassword, KeyManagerFactory.getDefaultAlgorithm());
+    public static X509ExtendedKeyManager createKeyManager(KeyStore keyStore, char[] keyPassword) {
+        return createKeyManager(keyStore, keyPassword, KeyManagerFactory.getDefaultAlgorithm());
     }
 
-    public static X509ExtendedKeyManager createKeyManager(KeyStore keyStore, char[] keyStorePassword, String algorithm) {
+    public static X509ExtendedKeyManager createKeyManager(KeyStore keyStore, char[] keyPassword, String keyManagerFactoryAlgorithm) {
         try {
-            KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(algorithm);
-            keyManagerFactory.init(keyStore, keyStorePassword);
+            KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(keyManagerFactoryAlgorithm);
+            keyManagerFactory.init(keyStore, keyPassword);
 
             return Arrays.stream(keyManagerFactory.getKeyManagers())
                     .filter(keyManager -> keyManager instanceof X509ExtendedKeyManager)

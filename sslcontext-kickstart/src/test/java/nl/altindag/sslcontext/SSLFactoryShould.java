@@ -49,7 +49,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
 
-public class SSLFactoryShould {
+class SSLFactoryShould {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SSLFactoryShould.class);
 
@@ -61,7 +61,7 @@ public class SSLFactoryShould {
             "or trusting all certificates without validation is enabled";
 
     @Test
-    public void buildSSLFactoryWithTrustMaterial() {
+    void buildSSLFactoryWithTrustMaterial() {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
                 .build();
@@ -77,7 +77,7 @@ public class SSLFactoryShould {
     }
 
     @Test
-    public void buildSSLFactoryWithTrustMaterialFromPath() throws IOException {
+    void buildSSLFactoryWithTrustMaterialFromPath() throws IOException {
         Path trustStorePath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
 
         SSLFactory sslFactory = SSLFactory.builder()
@@ -99,7 +99,7 @@ public class SSLFactoryShould {
     }
 
     @Test
-    public void buildSSLFactoryWithTrustMaterialFromKeyStore() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void buildSSLFactoryWithTrustMaterialFromKeyStore() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 
         SSLFactory sslFactory = SSLFactory.builder()
@@ -119,7 +119,7 @@ public class SSLFactoryShould {
     }
 
     @Test
-    public void buildSSLFactoryWithTrustMaterialFromTrustManager() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void buildSSLFactoryWithTrustMaterialFromTrustManager() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
 
@@ -140,7 +140,7 @@ public class SSLFactoryShould {
     }
 
     @Test
-    public void buildSSLFactoryWithTrustMaterialFromOnlyJdkTrustedCertificates() {
+    void buildSSLFactoryWithTrustMaterialFromOnlyJdkTrustedCertificates() {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withDefaultJdkTrustStore()
                 .build();
@@ -157,7 +157,7 @@ public class SSLFactoryShould {
     }
 
     @Test
-    public void buildSSLFactoryWithSecureRandom() throws NoSuchAlgorithmException {
+    void buildSSLFactoryWithSecureRandom() throws NoSuchAlgorithmException {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withSecureRandom(SecureRandom.getInstanceStrong())
                 .withDefaultJdkTrustStore()
@@ -175,10 +175,11 @@ public class SSLFactoryShould {
     }
 
     @Test
-    public void buildSSLFactoryWithTrustMaterialFromJdkTrustedCertificatesAndCustomTrustStore() {
+    void buildSSLFactoryWithTrustMaterialFromJdkTrustedCertificatesAndCustomTrustStore() {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
                 .withDefaultJdkTrustStore()
+                .withPasswordCaching()
                 .build();
 
         assertThat(sslFactory.getTrustManager()).isNotNull();
@@ -195,10 +196,11 @@ public class SSLFactoryShould {
     }
 
     @Test
-    public void buildSSLFactoryWithIdentityMaterialAndTrustMaterial() {
+    void buildSSLFactoryWithIdentityMaterialAndTrustMaterial() {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withIdentity(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD)
                 .withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
+                .withPasswordCaching()
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
@@ -217,7 +219,30 @@ public class SSLFactoryShould {
     }
 
     @Test
-    public void buildSSLFactoryWithIdentityMaterialAndTrustMaterialFromIdentityManagerAndTrustStore() throws Exception {
+    void buildSSLFactoryWithIdentityMaterialAndTrustMaterialWithKeyStoreTypesIncluded() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentity(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD, KeyStore.getDefaultType())
+                .withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD, KeyStore.getDefaultType())
+                .withPasswordCaching()
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+
+        assertThat(sslFactory.getKeyManager()).isPresent();
+        assertThat(sslFactory.getIdentities()).isNotEmpty();
+        assertThat(sslFactory.getIdentities().get(0).getKeyStorePassword()).isEqualTo(IDENTITY_PASSWORD);
+
+        assertThat(sslFactory.getTrustManager()).isNotNull();
+        assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
+        assertThat(sslFactory.getTrustStores()).isNotEmpty();
+        assertThat(sslFactory.getTrustStores().get(0).getKeyStorePassword()).isEqualTo(TRUSTSTORE_PASSWORD);
+        assertThat(sslFactory.getTrustManager()).isNotNull();
+        assertThat(sslFactory.getHostnameVerifier()).isNotNull();
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+    }
+
+    @Test
+    void buildSSLFactoryWithIdentityMaterialAndTrustMaterialFromIdentityManagerAndTrustStore() throws Exception {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         X509ExtendedKeyManager identityManager = KeyManagerUtils.createKeyManager(identity, IDENTITY_PASSWORD);
 
@@ -234,14 +259,14 @@ public class SSLFactoryShould {
         assertThat(sslFactory.getTrustManager()).isNotNull();
         assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
         assertThat(sslFactory.getTrustStores()).isNotEmpty();
-        assertThat(sslFactory.getTrustStores().get(0).getKeyStorePassword()).isEqualTo(TRUSTSTORE_PASSWORD);
+        assertThat(sslFactory.getTrustStores().get(0).getKeyStorePassword()).isEmpty();
         assertThat(sslFactory.getTrustManager()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
     }
 
     @Test
-    public void buildSSLFactoryWithIdentityMaterialAndTrustMaterialFromKeyStoreAndOnlyJdkTrustedCertificates() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void buildSSLFactoryWithIdentityMaterialAndTrustMaterialFromKeyStoreAndOnlyJdkTrustedCertificates() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         SSLFactory sslFactory = SSLFactory.builder()
                 .withIdentity(identity, IDENTITY_PASSWORD)
@@ -252,7 +277,7 @@ public class SSLFactoryShould {
 
         assertThat(sslFactory.getKeyManager()).isPresent();
         assertThat(sslFactory.getIdentities()).isNotEmpty();
-        assertThat(sslFactory.getIdentities().get(0).getKeyStorePassword()).isEqualTo(IDENTITY_PASSWORD);
+        assertThat(sslFactory.getIdentities().get(0).getKeyStorePassword()).isEmpty();
 
         assertThat(sslFactory.getTrustManager()).isNotNull();
         assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
@@ -263,13 +288,64 @@ public class SSLFactoryShould {
     }
 
     @Test
-    public void buildSSLFactoryWithIdentityMaterialAndTrustMaterialFromKeyStoreAndTrustStoreWithPath() throws IOException {
+    void buildSSLFactoryWithIdentityMaterialAndTrustMaterialFromKeyStoreWithDifferentKeyPasswordAndOnlyJdkTrustedCertificates() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentity(KEYSTORE_LOCATION + "identity-with-different-key-password.jks", IDENTITY_PASSWORD, "my-precious".toCharArray())
+                .withDefaultJdkTrustStore()
+                .withPasswordCaching()
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+
+        assertThat(sslFactory.getKeyManager()).isPresent();
+        assertThat(sslFactory.getIdentities()).isNotEmpty();
+        assertThat(sslFactory.getIdentities().get(0).getKeyStorePassword()).isEqualTo(IDENTITY_PASSWORD);
+        assertThat(sslFactory.getIdentities().get(0).getKeyPassword()).isEqualTo("my-precious".toCharArray());
+
+        assertThat(sslFactory.getTrustManager()).isNotNull();
+        assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
+        assertThat(sslFactory.getTrustStores()).isEmpty();
+        assertThat(sslFactory.getTrustManager()).isNotNull();
+        assertThat(sslFactory.getHostnameVerifier()).isNotNull();
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+    }
+
+    @Test
+    void buildSSLFactoryWithIdentityMaterialAndTrustMaterialFromKeyStorePathWithDifferentKeyPasswordAndOnlyJdkTrustedCertificates() throws IOException {
+        Path identityPath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, "identity-with-different-key-password.jks");
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentity(identityPath, IDENTITY_PASSWORD, "my-precious".toCharArray())
+                .withDefaultJdkTrustStore()
+                .withPasswordCaching()
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+
+        assertThat(sslFactory.getKeyManager()).isPresent();
+        assertThat(sslFactory.getIdentities()).isNotEmpty();
+        assertThat(sslFactory.getIdentities().get(0).getKeyStorePassword()).isEqualTo(IDENTITY_PASSWORD);
+        assertThat(sslFactory.getIdentities().get(0).getKeyPassword()).isEqualTo("my-precious".toCharArray());
+
+        assertThat(sslFactory.getTrustManager()).isNotNull();
+        assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
+        assertThat(sslFactory.getTrustStores()).isEmpty();
+        assertThat(sslFactory.getTrustManager()).isNotNull();
+        assertThat(sslFactory.getHostnameVerifier()).isNotNull();
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+
+        Files.delete(identityPath);
+    }
+
+    @Test
+    void buildSSLFactoryWithIdentityMaterialAndTrustMaterialFromKeyStoreAndTrustStoreWithPath() throws IOException {
         Path identityPath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, IDENTITY_FILE_NAME);
         Path trustStorePath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
 
         SSLFactory sslFactory = SSLFactory.builder()
                 .withIdentity(identityPath, IDENTITY_PASSWORD)
                 .withTrustStore(trustStorePath, TRUSTSTORE_PASSWORD)
+                .withPasswordCaching()
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
@@ -291,13 +367,43 @@ public class SSLFactoryShould {
     }
 
     @Test
-    public void buildSSLFactoryWithIdentityMaterialAndTrustMaterialFromKeyStoreAndTrustStore() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
+    void buildSSLFactoryWithIdentityMaterialAndTrustMaterialFromKeyStoreAndTrustStoreWithPathAndWithKeyStoreTypesIncluded() throws IOException {
+        Path identityPath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, IDENTITY_FILE_NAME);
+        Path trustStorePath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentity(identityPath, IDENTITY_PASSWORD, KeyStore.getDefaultType())
+                .withTrustStore(trustStorePath, TRUSTSTORE_PASSWORD, KeyStore.getDefaultType())
+                .withPasswordCaching()
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+
+        assertThat(sslFactory.getKeyManager()).isPresent();
+        assertThat(sslFactory.getIdentities()).isNotEmpty();
+        assertThat(sslFactory.getIdentities().get(0).getKeyStorePassword()).isEqualTo(IDENTITY_PASSWORD);
+
+        assertThat(sslFactory.getTrustManager()).isNotNull();
+        assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
+        assertThat(sslFactory.getTrustStores()).isNotEmpty();
+        assertThat(sslFactory.getTrustStores().get(0).getKeyStorePassword()).isEqualTo(TRUSTSTORE_PASSWORD);
+        assertThat(sslFactory.getTrustManager()).isNotNull();
+        assertThat(sslFactory.getHostnameVerifier()).isNotNull();
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+
+        Files.delete(identityPath);
+        Files.delete(trustStorePath);
+    }
+
+    @Test
+    void buildSSLFactoryWithIdentityMaterialAndTrustMaterialFromKeyStoreAndTrustStore() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 
         SSLFactory sslFactory = SSLFactory.builder()
                 .withIdentity(identity, IDENTITY_PASSWORD)
                 .withTrustStore(trustStore, TRUSTSTORE_PASSWORD)
+                .withPasswordCaching()
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
@@ -316,7 +422,32 @@ public class SSLFactoryShould {
     }
 
     @Test
-    public void buildSSLFactoryWithCustomHostnameVerifier() {
+    void buildSSLFactoryWithIdentityMaterialAndTrustMaterialFromKeyStoreAndTrustStoreWithoutCachingPasswords() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
+        KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentity(identity, IDENTITY_PASSWORD)
+                .withTrustStore(trustStore, TRUSTSTORE_PASSWORD)
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+
+        assertThat(sslFactory.getKeyManager()).isPresent();
+        assertThat(sslFactory.getIdentities()).isNotEmpty();
+        assertThat(sslFactory.getIdentities().get(0).getKeyStorePassword()).isEmpty();
+
+        assertThat(sslFactory.getTrustManager()).isNotNull();
+        assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
+        assertThat(sslFactory.getTrustStores()).isNotEmpty();
+        assertThat(sslFactory.getTrustStores().get(0).getKeyStorePassword()).isEmpty();
+        assertThat(sslFactory.getTrustManager()).isNotNull();
+        assertThat(sslFactory.getHostnameVerifier()).isNotNull();
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+    }
+
+    @Test
+    void buildSSLFactoryWithCustomHostnameVerifier() {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
                 .withHostnameVerifier((host, sslSession) -> true)
@@ -327,7 +458,7 @@ public class SSLFactoryShould {
     }
 
     @Test
-    public void buildSSLFactoryWithoutHostnameVerifierProvidesDefaultHostnameVerifier() {
+    void buildSSLFactoryWithoutHostnameVerifierProvidesDefaultHostnameVerifier() {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
                 .build();
@@ -444,7 +575,7 @@ public class SSLFactoryShould {
     }
 
     @Test
-    public void buildSSLFactoryWithTlsProtocolVersionOneDotOne() {
+    void buildSSLFactoryWithTlsProtocolVersionOneDotOne() {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
                 .withProtocol("TLSv1.1")
@@ -455,7 +586,7 @@ public class SSLFactoryShould {
     }
 
     @Test
-    public void buildSSLFactoryWithTrustingAllCertificatesWithoutValidation() {
+    void buildSSLFactoryWithTrustingAllCertificatesWithoutValidation() {
         LogCaptor<SSLFactory> logCaptor = LogCaptor.forClass(SSLFactory.class);
 
         SSLFactory sslFactory = SSLFactory.builder()
@@ -470,14 +601,16 @@ public class SSLFactoryShould {
     }
 
     @Test
-    public void throwExceptionWhenSSLFactoryIsBuildWithoutIdentityAndTrustMaterial() {
-        assertThatThrownBy(() -> SSLFactory.builder().build())
+    void throwExceptionWhenSSLFactoryIsBuildWithoutIdentityAndTrustMaterial() {
+        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
+
+        assertThatThrownBy(factoryBuilder::build)
                 .isInstanceOf(GenericSecurityException.class)
                 .hasMessage("Could not create instance of SSLFactory because Identity and Trust material are not present. Please provide at least a Trust material.");
     }
 
     @Test
-    public void buildSSLFactoryWithTLSProtocolVersionOneDotThreeIfJavaVersionIsElevenOrGreater() {
+    void buildSSLFactoryWithTLSProtocolVersionOneDotThreeIfJavaVersionIsElevenOrGreater() {
         Pattern valueBeforeDotPattern = Pattern.compile("^([^.]+)");
 
         String javaVersion = System.getProperty("java.version");
@@ -505,17 +638,22 @@ public class SSLFactoryShould {
     }
 
     @Test
-    public void throwExceptionWhenBuildingSSLFactoryWithTrustStoreWhileProvidingWrongPassword() {
-        assertThatThrownBy(() -> SSLFactory.builder().withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, "password".toCharArray()))
+    void throwExceptionWhenBuildingSSLFactoryWithTrustStoreWhileProvidingWrongPassword() {
+        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
+        char[] trustStorePassword = "password".toCharArray();
+
+        assertThatThrownBy(() -> factoryBuilder.withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, trustStorePassword))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage("Failed to load the keystore");
     }
 
     @Test
-    public void throwExceptionWhenBuildingSSLFactoryWithTrustStoreFromPathWhileProvidingWrongPassword() throws IOException {
+    void throwExceptionWhenBuildingSSLFactoryWithTrustStoreFromPathWhileProvidingWrongPassword() throws IOException {
         Path trustStorePath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
+        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
+        char[] trustStorePassword = "password".toCharArray();
 
-        assertThatThrownBy(() -> SSLFactory.builder().withTrustStore(trustStorePath, "password".toCharArray()))
+        assertThatThrownBy(() -> factoryBuilder.withTrustStore(trustStorePath, trustStorePassword))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage("Failed to load the keystore");
 
@@ -523,17 +661,22 @@ public class SSLFactoryShould {
     }
 
     @Test
-    public void throwExceptionWhenBuildingSSLFactoryWithIdentityWhileProvidingWrongPassword() {
-        assertThatThrownBy(() -> SSLFactory.builder().withIdentity(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, "password".toCharArray()))
+    void throwExceptionWhenBuildingSSLFactoryWithIdentityWhileProvidingWrongPassword() {
+        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
+        char[] identityStorePassword = "password".toCharArray();
+
+        assertThatThrownBy(() -> factoryBuilder.withIdentity(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, identityStorePassword))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage("Failed to load the keystore");
     }
 
     @Test
-    public void throwExceptionWhenBuildingSSLFactoryWithIdentityFromPathWhileProvidingWrongPassword() throws IOException {
+    void throwExceptionWhenBuildingSSLFactoryWithIdentityFromPathWhileProvidingWrongPassword() throws IOException {
         Path identityPath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, IDENTITY_FILE_NAME);
+        char[] identityStorePassword = "password".toCharArray();
+        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
 
-        assertThatThrownBy(() -> SSLFactory.builder().withIdentity(identityPath, "password".toCharArray()))
+        assertThatThrownBy(() -> factoryBuilder.withIdentity(identityPath, identityStorePassword))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage("Failed to load the keystore");
 
@@ -541,17 +684,21 @@ public class SSLFactoryShould {
     }
 
     @Test
-    public void throwExceptionWhenBuildingSSLFactoryWithNullAsTrustStorePath() {
-        assertThatThrownBy(() -> SSLFactory.builder().withTrustStore((Path) null, "secret".toCharArray()))
+    void throwExceptionWhenBuildingSSLFactoryWithNullAsTrustStorePath() {
+        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
+
+        assertThatThrownBy(() -> factoryBuilder.withTrustStore((Path) null, TRUSTSTORE_PASSWORD))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE);
     }
 
     @Test
-    public void throwExceptionWhenBuildingSSLFactoryWithEmptyTrustStorePassword() throws IOException {
+    void throwExceptionWhenBuildingSSLFactoryWithEmptyTrustStorePassword() throws IOException {
         Path trustStorePath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
+        char[] trustStorePassword = EMPTY.toCharArray();
+        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
 
-        assertThatThrownBy(() -> SSLFactory.builder().withTrustStore(trustStorePath, EMPTY.toCharArray()))
+        assertThatThrownBy(() -> factoryBuilder.withTrustStore(trustStorePath, trustStorePassword))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE);
 
@@ -559,10 +706,11 @@ public class SSLFactoryShould {
     }
 
     @Test
-    public void throwExceptionWhenBuildingSSLFactoryWithEmptyTrustStoreType() throws IOException {
+    void throwExceptionWhenBuildingSSLFactoryWithEmptyTrustStoreType() throws IOException {
         Path trustStorePath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
+        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
 
-        assertThatThrownBy(() -> SSLFactory.builder().withTrustStore(trustStorePath, TRUSTSTORE_PASSWORD, EMPTY))
+        assertThatThrownBy(() -> factoryBuilder.withTrustStore(trustStorePath, TRUSTSTORE_PASSWORD, EMPTY))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE);
 
@@ -570,76 +718,98 @@ public class SSLFactoryShould {
     }
 
     @Test
-    public void throwExceptionWhenBuildingSSLFactoryWithTrustStoreAsNull() {
-        assertThatThrownBy(() -> SSLFactory.builder().withTrustStore((KeyStore) null, TRUSTSTORE_PASSWORD))
+    void throwExceptionWhenBuildingSSLFactoryWithTrustStoreAsNull() {
+        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
+
+        assertThatThrownBy(() -> factoryBuilder.withTrustStore((KeyStore) null, TRUSTSTORE_PASSWORD))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE);
     }
 
     @Test
-    public void throwExceptionWhenBuildingSSLFactoryWithEmptyTrustStorePasswordWhileUsingKeyStoreObject() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void throwExceptionWhenBuildingSSLFactoryWithEmptyTrustStorePasswordWhileUsingKeyStoreObject() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+        char[] trustStorePassword = EMPTY.toCharArray();
+        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
 
-        assertThatThrownBy(() -> SSLFactory.builder().withTrustStore(trustStore, EMPTY.toCharArray()))
+        assertThatThrownBy(() -> factoryBuilder.withTrustStore(trustStore, trustStorePassword))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE);
     }
 
 
     @Test
-    public void throwExceptionWhenKeyStoreFileIsNotFound() {
-        assertThatThrownBy(() -> SSLFactory.builder().withTrustStore(KEYSTORE_LOCATION + "not-existing-truststore.jks", TRUSTSTORE_PASSWORD))
+    void throwExceptionWhenKeyStoreFileIsNotFound() {
+        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
+
+        assertThatThrownBy(() -> factoryBuilder.withTrustStore(KEYSTORE_LOCATION + "not-existing-truststore.jks", TRUSTSTORE_PASSWORD))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage("Failed to load the keystore");
     }
 
     @Test
-    public void throwExceptionWhenTrustStorePathIsNotProvided() {
-        assertThatThrownBy(() -> SSLFactory.builder().withTrustStore(EMPTY, TRUSTSTORE_PASSWORD))
+    void throwExceptionWhenTrustStorePathIsNotProvided() {
+        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
+
+        assertThatThrownBy(() -> factoryBuilder.withTrustStore(EMPTY, TRUSTSTORE_PASSWORD))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE);
     }
 
     @Test
-    public void throwExceptionWhenTrustStorePasswordIsNotProvided() {
-        assertThatThrownBy(() -> SSLFactory.builder().withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, EMPTY.toCharArray()))
+    void throwExceptionWhenTrustStorePasswordIsNotProvided() {
+        char[] trustStorePassword = EMPTY.toCharArray();
+        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
+
+        assertThatThrownBy(() -> factoryBuilder.withTrustStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, trustStorePassword))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE);
     }
 
     @Test
-    public void throwExceptionWhenIdentityPathIsNotProvided() {
-        assertThatThrownBy(() -> SSLFactory.builder().withIdentity(EMPTY, IDENTITY_PASSWORD))
+    void throwExceptionWhenIdentityPathIsNotProvided() {
+        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
+
+        assertThatThrownBy(() -> factoryBuilder.withIdentity(EMPTY, IDENTITY_PASSWORD))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
     }
 
     @Test
-    public void throwExceptionWhenIdentityPasswordIsNotProvided() {
-        assertThatThrownBy(() -> SSLFactory.builder().withIdentity(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, EMPTY.toCharArray()))
+    void throwExceptionWhenIdentityPasswordIsNotProvided() {
+        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
+        char[] empty = EMPTY.toCharArray();
+
+        assertThatThrownBy(() -> factoryBuilder.withIdentity(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, empty))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
     }
 
     @Test
-    public void throwExceptionWhenIdentityTypeIsNotProvided() {
-        assertThatThrownBy(() -> SSLFactory.builder().withIdentity(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD, EMPTY))
+    void throwExceptionWhenIdentityTypeIsNotProvided() {
+        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
+
+        assertThatThrownBy(() -> factoryBuilder.withIdentity(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD, EMPTY))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
     }
 
     @Test
-    public void throwExceptionWhenIdentityPathIsNull() {
-        assertThatThrownBy(() -> SSLFactory.builder().withIdentity((Path) null, IDENTITY_PASSWORD))
+    void throwExceptionWhenIdentityPathIsNull() {
+        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
+
+        assertThatThrownBy(() -> factoryBuilder.withIdentity((Path) null, IDENTITY_PASSWORD))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
     }
 
     @Test
-    public void throwExceptionWhenIdentityPasswordIsNotProvidedWhileUsingPath() throws IOException {
+    void throwExceptionWhenIdentityPasswordIsNotProvidedWhileUsingPath() throws IOException {
         Path identityPath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, IDENTITY_FILE_NAME);
+        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
+        char[] empty = EMPTY.toCharArray();
 
-        assertThatThrownBy(() -> SSLFactory.builder().withIdentity(identityPath, EMPTY.toCharArray()))
+        assertThatThrownBy(() -> factoryBuilder.withIdentity(identityPath, empty))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
 
@@ -647,26 +817,31 @@ public class SSLFactoryShould {
     }
 
     @Test
-    public void throwExceptionWhenIdentityIsNull() {
-        assertThatThrownBy(() -> SSLFactory.builder().withIdentity((KeyStore) null, IDENTITY_PASSWORD))
+    void throwExceptionWhenIdentityIsNull() {
+        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
+
+        assertThatThrownBy(() -> factoryBuilder.withIdentity((KeyStore) null, IDENTITY_PASSWORD))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
     }
 
     @Test
-    public void throwExceptionWhenIdentityPasswordIsEmptyWhileUsingKeyStoreAsObject() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void throwExceptionWhenIdentityPasswordIsEmptyWhileUsingKeyStoreAsObject() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        char[] identityStorePassword = EMPTY.toCharArray();
+        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
 
-        assertThatThrownBy(() -> SSLFactory.builder().withIdentity(identity, EMPTY.toCharArray()))
+        assertThatThrownBy(() -> factoryBuilder.withIdentity(identity, identityStorePassword))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
     }
 
     @Test
-    public void throwExceptionWhenIdentityTypeIsNotProvidedWhileUsingPath() throws IOException {
+    void throwExceptionWhenIdentityTypeIsNotProvidedWhileUsingPath() throws IOException {
         Path identityPath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, IDENTITY_FILE_NAME);
+        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
 
-        assertThatThrownBy(() -> SSLFactory.builder().withIdentity(identityPath, IDENTITY_PASSWORD, EMPTY))
+        assertThatThrownBy(() -> factoryBuilder.withIdentity(identityPath, IDENTITY_PASSWORD, EMPTY))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
 
@@ -674,24 +849,39 @@ public class SSLFactoryShould {
     }
 
     @Test
-    public void throwExceptionWhenTrustMaterialIsMissingAlthoughIdentityMaterialIsPresent() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void throwExceptionWhenTrustMaterialIsMissingAlthoughIdentityMaterialIsPresent() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        SSLFactory.Builder factoryBuilder = SSLFactory.builder()
+                .withIdentity(identity, IDENTITY_PASSWORD);
 
-        assertThatThrownBy(() -> SSLFactory.builder()
-                .withIdentity(identity, IDENTITY_PASSWORD)
-                .build())
+        assertThatThrownBy(factoryBuilder::build)
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_TRUST_STRATEGY_VALIDATION_EXCEPTION_MESSAGE);
     }
 
     @Test
-    public void throwExceptionWhenProvidingAnInvalidEncryptionProtocol() {
-        assertThatThrownBy(() -> SSLFactory.builder()
-                                           .withTrustingAllCertificatesWithoutValidation()
-                                           .withProtocol("ENCRYPTIONv1.1")
-                                           .build())
+    void throwExceptionWhenProvidingAnInvalidEncryptionProtocol() {
+        SSLFactory.Builder factoryBuilder = SSLFactory.builder()
+                .withTrustingAllCertificatesWithoutValidation()
+                .withProtocol("ENCRYPTIONv1.1");
+
+        assertThatThrownBy(factoryBuilder::build)
                 .isInstanceOf(GenericSSLContextException.class)
                 .hasMessage("java.security.NoSuchAlgorithmException: ENCRYPTIONv1.1 SSLContext not available");
+    }
+
+    @Test
+    void throwExceptionWhenProvidingWrongKeyPassword() {
+        SSLFactory.Builder factoryBuilder = SSLFactory.builder()
+                .withIdentity(
+                        KEYSTORE_LOCATION + "identity-with-different-key-password.jks",
+                        IDENTITY_PASSWORD,
+                        IDENTITY_PASSWORD)
+                .withDefaultJdkTrustStore();
+
+        assertThatThrownBy(factoryBuilder::build)
+                .isInstanceOf(GenericSecurityException.class)
+                .hasMessage("java.security.UnrecoverableKeyException: Get Key failed: Given final block not properly padded. Such issues can arise if a bad key is used during decryption.");
     }
 
     @SuppressWarnings("SameParameterValue")

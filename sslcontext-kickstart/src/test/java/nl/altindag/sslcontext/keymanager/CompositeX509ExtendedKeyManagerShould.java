@@ -16,7 +16,7 @@ import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class CompositeX509ExtendedKeyManagerShould {
+class CompositeX509ExtendedKeyManagerShould {
 
     private static final String IDENTITY_FILE_NAME = "identity.jks";
     private static final String IDENTITY_TWO_FILE_NAME = "identity-two.jks";
@@ -24,14 +24,14 @@ public class CompositeX509ExtendedKeyManagerShould {
     private static final String KEYSTORE_LOCATION = "keystores-for-unit-tests/";
 
     @Test
-    public void createCompositeX509KeyManagerFromKeyStore() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void createCompositeX509KeyManagerFromKeyStore() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
         CompositeX509ExtendedKeyManager keyManager = CompositeX509ExtendedKeyManager.builder()
                 .withIdentities(
-                        new KeyStoreHolder(identityOne, IDENTITY_PASSWORD),
-                        new KeyStoreHolder(identityTwo, IDENTITY_PASSWORD))
+                        new KeyStoreHolder(identityOne, IDENTITY_PASSWORD, IDENTITY_PASSWORD),
+                        new KeyStoreHolder(identityTwo, IDENTITY_PASSWORD, IDENTITY_PASSWORD))
                 .build();
 
         assertThat(keyManager).isNotNull();
@@ -44,14 +44,14 @@ public class CompositeX509ExtendedKeyManagerShould {
     }
 
     @Test
-    public void returnNullForUnknownAlias() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void returnNullForUnknownAlias() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
         CompositeX509ExtendedKeyManager keyManager = CompositeX509ExtendedKeyManager.builder()
                 .withIdentities(
-                        new KeyStoreHolder(identityOne, IDENTITY_PASSWORD),
-                        new KeyStoreHolder(identityTwo, IDENTITY_PASSWORD))
+                        new KeyStoreHolder(identityOne, IDENTITY_PASSWORD, IDENTITY_PASSWORD),
+                        new KeyStoreHolder(identityTwo, IDENTITY_PASSWORD, IDENTITY_PASSWORD))
                 .build();
 
         assertThat(keyManager).isNotNull();
@@ -62,7 +62,7 @@ public class CompositeX509ExtendedKeyManagerShould {
     }
 
     @Test
-    public void returnCertificateChain() throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
+    void returnCertificateChain() throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
@@ -86,14 +86,14 @@ public class CompositeX509ExtendedKeyManagerShould {
     }
 
     @Test
-    public void returnNullForUnknownAliasWhenGettingCertificateChain() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void returnNullForUnknownAliasWhenGettingCertificateChain() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
         CompositeX509ExtendedKeyManager keyManager = CompositeX509ExtendedKeyManager.builder()
                 .withIdentities(
-                        new KeyStoreHolder(identityOne, IDENTITY_PASSWORD),
-                        new KeyStoreHolder(identityTwo, IDENTITY_PASSWORD))
+                        new KeyStoreHolder(identityOne, IDENTITY_PASSWORD, IDENTITY_PASSWORD),
+                        new KeyStoreHolder(identityTwo, IDENTITY_PASSWORD, IDENTITY_PASSWORD))
                 .build();
 
         assertThat(keyManager).isNotNull();
@@ -104,7 +104,7 @@ public class CompositeX509ExtendedKeyManagerShould {
     }
 
     @Test
-    public void getServerAliases() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void getServerAliases() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
@@ -124,7 +124,7 @@ public class CompositeX509ExtendedKeyManagerShould {
     }
 
     @Test
-    public void getClientAliases() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void getClientAliases() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
@@ -144,7 +144,7 @@ public class CompositeX509ExtendedKeyManagerShould {
     }
 
     @Test
-    public void chooseFirstServerAliasWithMatchingKeyType() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void chooseFirstServerAliasWithMatchingKeyType() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
@@ -164,7 +164,7 @@ public class CompositeX509ExtendedKeyManagerShould {
     }
 
     @Test
-    public void chooseFirstEngineServerAliasWithMatchingKeyType() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void chooseFirstEngineServerAliasWithMatchingKeyType() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
@@ -184,7 +184,7 @@ public class CompositeX509ExtendedKeyManagerShould {
     }
 
     @Test
-    public void chooseFirstServerAliasWithMatchingKeyTypeWithDifferentOrderOfInitializationOfTheKeyManager() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void chooseFirstServerAliasWithMatchingKeyTypeWithDifferentOrderOfInitializationOfTheKeyManager() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
@@ -204,7 +204,7 @@ public class CompositeX509ExtendedKeyManagerShould {
     }
 
     @Test
-    public void chooseFirstEngineServerAliasWithMatchingKeyTypeWithDifferentOrderOfInitializationOfTheKeyManager() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void chooseFirstEngineServerAliasWithMatchingKeyTypeWithDifferentOrderOfInitializationOfTheKeyManager() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
@@ -224,7 +224,7 @@ public class CompositeX509ExtendedKeyManagerShould {
     }
 
     @Test
-    public void returnNullWhenThereIsNoMatchOfKeyTypeForKeyManagersWhileChoosingServerAlias() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void returnNullWhenThereIsNoMatchOfKeyTypeForKeyManagersWhileChoosingServerAlias() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
@@ -244,7 +244,7 @@ public class CompositeX509ExtendedKeyManagerShould {
     }
 
     @Test
-    public void returnNullWhenThereIsNoMatchOfKeyTypeForKeyManagersWhileChoosingEngineServerAlias() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void returnNullWhenThereIsNoMatchOfKeyTypeForKeyManagersWhileChoosingEngineServerAlias() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
@@ -264,7 +264,7 @@ public class CompositeX509ExtendedKeyManagerShould {
     }
 
     @Test
-    public void chooseFirstClientAliasWithMatchingKeyType() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void chooseFirstClientAliasWithMatchingKeyType() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
@@ -284,7 +284,7 @@ public class CompositeX509ExtendedKeyManagerShould {
     }
 
     @Test
-    public void chooseFirstEngineClientAliasWithMatchingKeyType() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void chooseFirstEngineClientAliasWithMatchingKeyType() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
@@ -304,7 +304,7 @@ public class CompositeX509ExtendedKeyManagerShould {
     }
 
     @Test
-    public void returnNullWhenThereIsNoMatchOfKeyTypeForKeyManagersWhileChoosingClientAlias() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void returnNullWhenThereIsNoMatchOfKeyTypeForKeyManagersWhileChoosingClientAlias() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
@@ -324,7 +324,7 @@ public class CompositeX509ExtendedKeyManagerShould {
     }
 
     @Test
-    public void returnNullWhenThereIsNoMatchOfKeyTypeForKeyManagersWhileChoosingEngineClientAlias() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void returnNullWhenThereIsNoMatchOfKeyTypeForKeyManagersWhileChoosingEngineClientAlias() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 

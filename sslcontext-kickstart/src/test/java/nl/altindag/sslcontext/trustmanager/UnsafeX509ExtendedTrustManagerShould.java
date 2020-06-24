@@ -17,7 +17,7 @@ import java.security.cert.X509Certificate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
-public class UnsafeX509ExtendedTrustManagerShould {
+class UnsafeX509ExtendedTrustManagerShould {
 
     private static final String TRUSTSTORE_FILE_NAME = "truststore.jks";
     private static final char[] TRUSTSTORE_PASSWORD = new char[] {'s', 'e', 'c', 'r', 'e', 't'};
@@ -26,7 +26,7 @@ public class UnsafeX509ExtendedTrustManagerShould {
     private static final String KEYSTORE_LOCATION = "keystores-for-unit-tests/";
 
     @Test
-    public void checkClientTrusted() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void checkClientTrusted() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         LogCaptor<UnsafeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
 
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
@@ -34,7 +34,7 @@ public class UnsafeX509ExtendedTrustManagerShould {
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
 
         assertThat(trustManager).isNotNull();
-        assertThat(trustManager.getAcceptedIssuers()).hasSize(0);
+        assertThat(trustManager.getAcceptedIssuers()).isEmpty();
         assertThat(trustedCerts).hasSize(1);
 
         assertThatCode(() -> trustManager.checkClientTrusted(trustedCerts, "RSA"))
@@ -46,7 +46,7 @@ public class UnsafeX509ExtendedTrustManagerShould {
     }
 
     @Test
-    public void checkClientTrustedWithSslEngine() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void checkClientTrustedWithSslEngine() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         LogCaptor<UnsafeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
 
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
@@ -54,7 +54,7 @@ public class UnsafeX509ExtendedTrustManagerShould {
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
 
         assertThat(trustManager).isNotNull();
-        assertThat(trustManager.getAcceptedIssuers()).hasSize(0);
+        assertThat(trustManager.getAcceptedIssuers()).isEmpty();
         assertThat(trustedCerts).hasSize(1);
 
         assertThatCode(() -> trustManager.checkClientTrusted(trustedCerts, "RSA", (SSLEngine) null))
@@ -66,7 +66,7 @@ public class UnsafeX509ExtendedTrustManagerShould {
     }
 
     @Test
-    public void checkClientTrustedWithSocket() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void checkClientTrustedWithSocket() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         LogCaptor<UnsafeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
 
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
@@ -74,7 +74,7 @@ public class UnsafeX509ExtendedTrustManagerShould {
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
 
         assertThat(trustManager).isNotNull();
-        assertThat(trustManager.getAcceptedIssuers()).hasSize(0);
+        assertThat(trustManager.getAcceptedIssuers()).isEmpty();
         assertThat(trustedCerts).hasSize(1);
 
         assertThatCode(() -> trustManager.checkClientTrusted(trustedCerts, "RSA", (Socket) null))
@@ -86,7 +86,7 @@ public class UnsafeX509ExtendedTrustManagerShould {
     }
 
     @Test
-    public void checkServerTrusted() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void checkServerTrusted() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         LogCaptor<UnsafeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
 
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
@@ -94,7 +94,7 @@ public class UnsafeX509ExtendedTrustManagerShould {
         X509ExtendedTrustManager trustManager = UnsafeX509ExtendedTrustManager.INSTANCE;
 
         assertThat(trustedCerts).hasSize(1);
-        assertThat(trustManager.getAcceptedIssuers()).hasSize(0);
+        assertThat(trustManager.getAcceptedIssuers()).isEmpty();
 
         assertThatCode(() -> trustManager.checkServerTrusted(trustedCerts, "RSA"))
                 .doesNotThrowAnyException();
@@ -105,7 +105,7 @@ public class UnsafeX509ExtendedTrustManagerShould {
     }
 
     @Test
-    public void checkServerTrustedWithSslEngine() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void checkServerTrustedWithSslEngine() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         LogCaptor<UnsafeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
 
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
@@ -113,7 +113,7 @@ public class UnsafeX509ExtendedTrustManagerShould {
         X509ExtendedTrustManager trustManager = UnsafeX509ExtendedTrustManager.INSTANCE;
 
         assertThat(trustedCerts).hasSize(1);
-        assertThat(trustManager.getAcceptedIssuers()).hasSize(0);
+        assertThat(trustManager.getAcceptedIssuers()).isEmpty();
 
         assertThatCode(() -> trustManager.checkServerTrusted(trustedCerts, "RSA", (SSLEngine) null))
                 .doesNotThrowAnyException();
@@ -124,7 +124,7 @@ public class UnsafeX509ExtendedTrustManagerShould {
     }
 
     @Test
-    public void checkServerTrustedWitSocket() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void checkServerTrustedWitSocket() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         LogCaptor<UnsafeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
 
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
@@ -132,7 +132,7 @@ public class UnsafeX509ExtendedTrustManagerShould {
         X509ExtendedTrustManager trustManager = UnsafeX509ExtendedTrustManager.INSTANCE;
 
         assertThat(trustedCerts).hasSize(1);
-        assertThat(trustManager.getAcceptedIssuers()).hasSize(0);
+        assertThat(trustManager.getAcceptedIssuers()).isEmpty();
 
         assertThatCode(() -> trustManager.checkServerTrusted(trustedCerts, "RSA", (Socket) null))
                 .doesNotThrowAnyException();
@@ -143,7 +143,7 @@ public class UnsafeX509ExtendedTrustManagerShould {
     }
 
     @Test
-    public void checkClientTrustedDoesNotLogAnythingWhenDebugLevelIsDisabled() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void checkClientTrustedDoesNotLogAnythingWhenDebugLevelIsDisabled() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         LogCaptor<UnsafeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
         logCaptor.setLogLevelToInfo();
 
@@ -152,7 +152,7 @@ public class UnsafeX509ExtendedTrustManagerShould {
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
 
         assertThat(trustManager).isNotNull();
-        assertThat(trustManager.getAcceptedIssuers()).hasSize(0);
+        assertThat(trustManager.getAcceptedIssuers()).isEmpty();
         assertThat(trustedCerts).hasSize(1);
 
         assertThatCode(() -> trustManager.checkClientTrusted(trustedCerts, "RSA"))
@@ -163,7 +163,7 @@ public class UnsafeX509ExtendedTrustManagerShould {
     }
 
     @Test
-    public void checkClientTrustedWithSslEngineDoesNotLogAnythingWhenDebugLevelIsDisabled() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void checkClientTrustedWithSslEngineDoesNotLogAnythingWhenDebugLevelIsDisabled() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         LogCaptor<UnsafeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
         logCaptor.setLogLevelToInfo();
 
@@ -172,7 +172,7 @@ public class UnsafeX509ExtendedTrustManagerShould {
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
 
         assertThat(trustManager).isNotNull();
-        assertThat(trustManager.getAcceptedIssuers()).hasSize(0);
+        assertThat(trustManager.getAcceptedIssuers()).isEmpty();
         assertThat(trustedCerts).hasSize(1);
 
         assertThatCode(() -> trustManager.checkClientTrusted(trustedCerts, "RSA", (SSLEngine) null))
@@ -183,7 +183,7 @@ public class UnsafeX509ExtendedTrustManagerShould {
     }
 
     @Test
-    public void checkClientTrustedWithSocketDoesNotLogAnythingWhenDebugLevelIsDisabled() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void checkClientTrustedWithSocketDoesNotLogAnythingWhenDebugLevelIsDisabled() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         LogCaptor<UnsafeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
         logCaptor.setLogLevelToInfo();
 
@@ -192,7 +192,7 @@ public class UnsafeX509ExtendedTrustManagerShould {
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
 
         assertThat(trustManager).isNotNull();
-        assertThat(trustManager.getAcceptedIssuers()).hasSize(0);
+        assertThat(trustManager.getAcceptedIssuers()).isEmpty();
         assertThat(trustedCerts).hasSize(1);
 
         assertThatCode(() -> trustManager.checkClientTrusted(trustedCerts, "RSA", (Socket) null))
@@ -203,7 +203,7 @@ public class UnsafeX509ExtendedTrustManagerShould {
     }
 
     @Test
-    public void checkServerTrustedDoesNotLogAnythingWhenDebugLevelIsDisabled() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void checkServerTrustedDoesNotLogAnythingWhenDebugLevelIsDisabled() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         LogCaptor<UnsafeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
         logCaptor.setLogLevelToInfo();
 
@@ -212,7 +212,7 @@ public class UnsafeX509ExtendedTrustManagerShould {
         X509ExtendedTrustManager trustManager = UnsafeX509ExtendedTrustManager.INSTANCE;
 
         assertThat(trustedCerts).hasSize(1);
-        assertThat(trustManager.getAcceptedIssuers()).hasSize(0);
+        assertThat(trustManager.getAcceptedIssuers()).isEmpty();
 
         assertThatCode(() -> trustManager.checkServerTrusted(trustedCerts, "RSA"))
                 .doesNotThrowAnyException();
@@ -222,7 +222,7 @@ public class UnsafeX509ExtendedTrustManagerShould {
     }
 
     @Test
-    public void checkServerTrustedWithSslEngineDoesNotLogAnythingWhenDebugLevelIsDisabled() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void checkServerTrustedWithSslEngineDoesNotLogAnythingWhenDebugLevelIsDisabled() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         LogCaptor<UnsafeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
         logCaptor.setLogLevelToInfo();
 
@@ -231,7 +231,7 @@ public class UnsafeX509ExtendedTrustManagerShould {
         X509ExtendedTrustManager trustManager = UnsafeX509ExtendedTrustManager.INSTANCE;
 
         assertThat(trustedCerts).hasSize(1);
-        assertThat(trustManager.getAcceptedIssuers()).hasSize(0);
+        assertThat(trustManager.getAcceptedIssuers()).isEmpty();
 
         assertThatCode(() -> trustManager.checkServerTrusted(trustedCerts, "RSA", (SSLEngine) null))
                 .doesNotThrowAnyException();
@@ -241,7 +241,7 @@ public class UnsafeX509ExtendedTrustManagerShould {
     }
 
     @Test
-    public void checkServerTrustedWithSocketDoesNotLogAnythingWhenDebugLevelIsDisabled() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void checkServerTrustedWithSocketDoesNotLogAnythingWhenDebugLevelIsDisabled() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         LogCaptor<UnsafeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
         logCaptor.setLogLevelToInfo();
 
@@ -250,7 +250,7 @@ public class UnsafeX509ExtendedTrustManagerShould {
         X509ExtendedTrustManager trustManager = UnsafeX509ExtendedTrustManager.INSTANCE;
 
         assertThat(trustedCerts).hasSize(1);
-        assertThat(trustManager.getAcceptedIssuers()).hasSize(0);
+        assertThat(trustManager.getAcceptedIssuers()).isEmpty();
 
         assertThatCode(() -> trustManager.checkServerTrusted(trustedCerts, "RSA", (Socket) null))
                 .doesNotThrowAnyException();

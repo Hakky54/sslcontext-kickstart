@@ -40,6 +40,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 public final class SSLFactory {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SSLFactory.class);
+    private static final char[] EMPTY_PASSWORD = {};
 
     private final String protocol;
     private final SecureRandom secureRandom;
@@ -52,6 +53,7 @@ public final class SSLFactory {
     private final List<X509ExtendedTrustManager> trustManagers = new ArrayList<>();
     private final boolean includeDefaultJdkTrustStore;
     private final boolean trustingAllCertificatesWithoutValidationEnabled;
+    private final boolean passwordCachingEnabled;
 
     private SSLContext sslContext;
     private CompositeX509ExtendedTrustManager trustManager;
@@ -66,7 +68,8 @@ public final class SSLFactory {
                        List<KeyStoreHolder> trustStores,
                        List<X509ExtendedTrustManager> trustManagers,
                        boolean includeDefaultJdkTrustStore,
-                       boolean trustingAllCertificatesWithoutValidationEnabled) {
+                       boolean trustingAllCertificatesWithoutValidationEnabled,
+                       boolean passwordCachingEnabled) {
 
         this.protocol = protocol;
         this.secureRandom = secureRandom;
@@ -77,6 +80,7 @@ public final class SSLFactory {
         this.trustManagers.addAll(trustManagers);
         this.includeDefaultJdkTrustStore = includeDefaultJdkTrustStore;
         this.trustingAllCertificatesWithoutValidationEnabled = trustingAllCertificatesWithoutValidationEnabled;
+        this.passwordCachingEnabled = passwordCachingEnabled;
     }
 
     private void createSSLContextWithTrustMaterial() {
@@ -102,6 +106,12 @@ public final class SSLFactory {
                 .withIdentities(identities)
                 .build();
 
+        if (!passwordCachingEnabled && !identities.isEmpty()) {
+            List<KeyStoreHolder> sanitizedIdentities = sanitizeKeyStores(identities);
+            identities.clear();
+            identities.addAll(sanitizedIdentities);
+        }
+
         return new X509ExtendedKeyManager[] {keyManager};
     }
 
@@ -123,7 +133,19 @@ public final class SSLFactory {
         }
 
         trustManager = trustManagerBuilder.build();
+
+        if (!passwordCachingEnabled && !trustStores.isEmpty()) {
+            List<KeyStoreHolder> sanitizedTrustStores = sanitizeKeyStores(trustStores);
+            trustStores.clear();
+            trustStores.addAll(sanitizedTrustStores);
+        }
         return new TrustManager[] {trustManager};
+    }
+
+    private List<KeyStoreHolder> sanitizeKeyStores(List<KeyStoreHolder> keyStores) {
+        return keyStores.stream()
+                .map(keyStoreHolder -> new KeyStoreHolder(keyStoreHolder.getKeyStore(), EMPTY_PASSWORD, EMPTY_PASSWORD))
+                .collect(toList());
     }
 
     public List<KeyStoreHolder> getIdentities() {
@@ -182,6 +204,7 @@ public final class SSLFactory {
 
         private boolean includeDefaultJdkTrustStore = false;
         private boolean trustingAllCertificatesWithoutValidationEnabled = false;
+        private boolean passwordCachingEnabled = false;
 
         private Builder() {}
 
@@ -243,18 +266,26 @@ public final class SSLFactory {
             return this;
         }
 
-        public Builder withIdentity(String identityPath, char[] identityPassword) {
-            return withIdentity(identityPath, identityPassword, KeyStore.getDefaultType());
+        public Builder withIdentity(String identityStorePath, char[] identityStorePassword) {
+            return withIdentity(identityStorePath, identityStorePassword, identityStorePassword, KeyStore.getDefaultType());
         }
 
-        public Builder withIdentity(String identityPath, char[] identityPassword, String identityType) {
-            if (isBlank(identityPath) || isEmpty(identityPassword) || isBlank(identityType)) {
+        public Builder withIdentity(String identityStorePath, char[] identityStorePassword, char[] identityPassword) {
+            return withIdentity(identityStorePath, identityStorePassword, identityPassword, KeyStore.getDefaultType());
+        }
+
+        public Builder withIdentity(String identityStorePath, char[] identityStorePassword, String identityStoreType) {
+            return withIdentity(identityStorePath, identityStorePassword, identityStorePassword, identityStoreType);
+        }
+
+        public Builder withIdentity(String identityStorePath, char[] identityStorePassword, char[] identityPassword, String identityStoreType) {
+            if (isBlank(identityStorePath) || isEmpty(identityStorePassword) || isBlank(identityStoreType)) {
                 throw new GenericKeyStoreException(IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
             }
 
             try {
-                KeyStore identity = KeyStoreUtils.loadKeyStore(identityPath, identityPassword, identityType);
-                KeyStoreHolder identityHolder = new KeyStoreHolder(identity, identityPassword);
+                KeyStore identity = KeyStoreUtils.loadKeyStore(identityStorePath, identityStorePassword, identityStoreType);
+                KeyStoreHolder identityHolder = new KeyStoreHolder(identity, identityStorePassword, identityPassword);
                 identities.add(identityHolder);
             } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
                 throw new GenericKeyStoreException(KEY_STORE_LOADING_EXCEPTION, e);
@@ -262,18 +293,26 @@ public final class SSLFactory {
             return this;
         }
 
-        public Builder withIdentity(Path identityPath, char[] identityPassword) {
-            return withIdentity(identityPath, identityPassword, KeyStore.getDefaultType());
+        public Builder withIdentity(Path identityStorePath, char[] identityStorePassword) {
+            return withIdentity(identityStorePath, identityStorePassword, identityStorePassword, KeyStore.getDefaultType());
         }
 
-        public Builder withIdentity(Path identityPath, char[] identityPassword, String identityType) {
-            if (isNull(identityPath) || isEmpty(identityPassword) || isBlank(identityType)) {
+        public Builder withIdentity(Path identityStorePath, char[] identityStorePassword, char[] identityPassword) {
+            return withIdentity(identityStorePath, identityStorePassword, identityPassword, KeyStore.getDefaultType());
+        }
+
+        public Builder withIdentity(Path identityStorePath, char[] identityStorePassword, String identityStoreType) {
+            return withIdentity(identityStorePath, identityStorePassword, identityStorePassword, identityStoreType);
+        }
+
+        public Builder withIdentity(Path identityStorePath, char[] identityStorePassword, char[] identityPassword, String identityStoreType) {
+            if (isNull(identityStorePath) || isEmpty(identityStorePassword) || isBlank(identityStoreType)) {
                 throw new GenericKeyStoreException(IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
             }
 
             try {
-                KeyStore identity = KeyStoreUtils.loadKeyStore(identityPath, identityPassword, identityType);
-                KeyStoreHolder identityHolder = new KeyStoreHolder(identity, identityPassword);
+                KeyStore identity = KeyStoreUtils.loadKeyStore(identityStorePath, identityStorePassword, identityStoreType);
+                KeyStoreHolder identityHolder = new KeyStoreHolder(identity, identityStorePassword, identityPassword);
                 identities.add(identityHolder);
             } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
                 throw new GenericKeyStoreException(KEY_STORE_LOADING_EXCEPTION, e);
@@ -281,9 +320,13 @@ public final class SSLFactory {
             return this;
         }
 
-        public Builder withIdentity(KeyStore identity, char[] identityPassword) {
-            validateKeyStore(identity, identityPassword, IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
-            KeyStoreHolder identityHolder = new KeyStoreHolder(identity, identityPassword);
+        public Builder withIdentity(KeyStore identityStore, char[] identityStorePassword) {
+            return withIdentity(identityStore, identityStorePassword, identityStorePassword);
+        }
+
+        public Builder withIdentity(KeyStore identityStore, char[] identityStorePassword, char[] identityPassword) {
+            validateKeyStore(identityStore, identityStorePassword, IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
+            KeyStoreHolder identityHolder = new KeyStoreHolder(identityStore, identityStorePassword, identityPassword);
             identities.add(identityHolder);
             return this;
         }
@@ -319,6 +362,11 @@ public final class SSLFactory {
             return this;
         }
 
+        public Builder withPasswordCaching() {
+            passwordCachingEnabled = true;
+            return this;
+        }
+
         public SSLFactory build() {
             if (isIdentityMaterialNotPresent() && isTrustMaterialNotPresent()) {
                 throw new GenericSecurityException(IDENTITY_AND_TRUST_MATERIAL_VALIDATION_EXCEPTION_MESSAGE);
@@ -337,7 +385,9 @@ public final class SSLFactory {
                     trustStores,
                     trustManagers,
                     includeDefaultJdkTrustStore,
-                    trustingAllCertificatesWithoutValidationEnabled);
+                    trustingAllCertificatesWithoutValidationEnabled,
+                    passwordCachingEnabled
+            );
 
             if (isIdentityMaterialPresent() && isTrustMaterialPresent()) {
                 sslFactory.createSSLContextWithKeyMaterialAndTrustMaterial();
