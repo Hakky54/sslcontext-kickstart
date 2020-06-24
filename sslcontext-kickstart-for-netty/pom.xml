@@ -37,7 +37,7 @@
     </developers>
 
     <properties>
-        <version.netty-handler>4.1.49.Final</version.netty-handler>
+        <version.netty-handler>4.1.50.Final</version.netty-handler>
         <version.sslcontext-kickstart>3.0.10-SNAPSHOT</version.sslcontext-kickstart>
     </properties>
 
