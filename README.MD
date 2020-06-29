@@ -16,20 +16,20 @@
 <dependency>
     <groupId>io.github.hakky54</groupId>
     <artifactId>sslcontext-kickstart</artifactId>
-    <version>3.1.0</version>
+    <version>4.0.0</version>
 </dependency>
 ```
 ### Install with Gradle
 ```groovy
-implementation 'io.github.hakky54:sslcontext-kickstart:3.1.0'
+implementation 'io.github.hakky54:sslcontext-kickstart:4.0.0'
 ```
 ### Install with Scala SBT
 ```
-libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "3.1.0"
+libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "4.0.0"
 ```
 ### Install with Apache Ivy
 ```xml
-<dependency org="io.github.hakky54" name="sslcontext-kickstart" rev="3.1.0" />
+<dependency org="io.github.hakky54" name="sslcontext-kickstart" rev="4.0.0" />
 ```
 
 ## Table of contents
@@ -95,7 +95,7 @@ public class App {
 
     public static void main(String[] args) throws IOException, JSONException {
         SSLFactory sslFactory = SSLFactory.builder()
-                .withDefaultJdkTrustStore()
+                .withDefaultTrustMaterial()
                 .build();
 
         HttpClient httpClient = HttpClients.custom()
@@ -137,8 +137,8 @@ public class App {
 
     public static void main(String[] args) {
         SSLFactory sslFactory = SSLFactory.builder()
-                .withIdentity("keystore.p12", "secret".toCharArray(), "PKCS12")
-                .withTrustStore("truststore.p12", "secret".toCharArray(), "PKCS12")
+                .withIdentityMaterial("keystore.p12", "secret".toCharArray(), "PKCS12")
+                .withTrustStoreMaterial("truststore.p12", "secret".toCharArray(), "PKCS12")
                 .build();
 
         SSLContext sslContext = sslFactory.getSslContext();
@@ -156,7 +156,7 @@ public class App {
 One way authentication with custom trustStore 
 ```text
 SSLFactory.builder()
-          .withTrustStore(trustStore, trustStorePassword)
+          .withTrustStoreMaterial(trustStore, trustStorePassword)
           .build();
 ```
 
@@ -171,7 +171,7 @@ One way authentication with specific encryption protocol version, custom secure 
 If you are using java 11 or newer, than you are also able to use TLSv1.3 as encryption protocol. Just provide `TLSv1.3` as protocol argument and it will work out-of-the-box.
 ```text
 SSLFactory.builder()
-          .withTrustStore(trustStore, trustStorePassword)
+          .withTrustStoreMaterial(trustStore, trustStorePassword)
           .withHostnameVerifier(hostnameVerifier)
           .withSecureRandom(secureRandom)
           .withProtocol("TLSv1.2")
@@ -181,32 +181,35 @@ SSLFactory.builder()
 Two way authentication with custom trustStore, hostname verifier and encryption protocol version
 ```text
 SSLFactory.builder()
-          .withIdentity(identity, identityPassword)
-          .withTrustStore(trustStore, trustStorePassword)
+          .withIdentityMaterial(identity, identityPassword)
+          .withTrustStoreMaterial(trustStore, trustStorePassword)
           .withHostnameVerifier(hostnameVerifier)
           .withProtocol("TLSv1.2")
           .build();
 ```
 
-Support for using multiple identities and trustStores 
+Support for using multiple identity materials and trust materials 
 ```text
 SSLFactory.builder()
-          .withIdentity(identityA, identityPasswordA)
-          .withIdentity(identityB, identityPasswordB)
-          .withIdentity(identityC, identityPasswordC)
-          .withTrustStore(trustStoreA, trustStorePasswordA)
-          .withTrustStore(trustStoreB, trustStorePasswordB)
-          .withTrustStore(trustStoreC, trustStorePasswordC)
-          .withTrustStore(trustStoreD, trustStorePasswordD)
+          .withIdentityMaterial(identityA, identityPasswordA)
+          .withIdentityMaterial(identityB, identityPasswordB)
+          .withIdentityMaterial(identityC, identityPasswordC)
+          .withTrustStoreMaterial(trustStoreA, trustStorePasswordA)
+          .withTrustStoreMaterial(trustStoreB, trustStorePasswordB)
+          .withTrustStoreMaterial(trustStoreC, trustStorePasswordC)
+          .withTrustStoreMaterial(trustStoreD, trustStorePasswordD)
           .withProtocol("TLSv1.2")
           .build();
 ```
 
-Support for using X509KeyManager and X509TrustManager
+Support for using X509ExtendedKeyManager and X509ExtendedTrustManager
 ```text
+X509ExtendedKeyManager keyManager = ...
+X509ExtendedTrustManager trustManager = ...
+
 SSLFactory.builder()
-          .withKeyManager(keyManager)
-          .withTrustManager(trustManager)
+          .withIdentityMaterial(keyManager)
+          .withTrustStoreMaterial(trustManager)
           .build();
 ```
 
@@ -220,7 +223,7 @@ Some know http clients which relay on netty libraries are: [Spring WebFlux WebCl
 <dependency>
     <groupId>io.github.hakky54</groupId>
     <artifactId>sslcontext-kickstart-for-netty</artifactId>
-    <version>3.1.0</version>
+    <version>4.0.0</version>
 </dependency>
 ```
 Example setup for Spring WebClient with Netty:
@@ -238,7 +241,7 @@ public class App {
     
     public static void main(String[] args) throws SSLException {
         SSLFactory sslFactory = SSLFactory.builder()
-                .withDefaultJdkTrustStore()
+                .withDefaultTrustMaterial()
                 .build();
 
         SslContext sslContext = NettySslContextUtils.forClient(sslFactory).build();
@@ -258,7 +261,7 @@ public class App {
 <dependency>
     <groupId>io.github.hakky54</groupId>
     <artifactId>sslcontext-kickstart-for-jetty</artifactId>
-    <version>3.1.0</version>
+    <version>4.0.0</version>
 </dependency>
 ```
 Example setup for [Spring WebFlux WebClient Jetty](https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html):
@@ -274,7 +277,7 @@ public class App {
 
     public static void main(String[] args) {
         SSLFactory sslFactory = SSLFactory.builder()
-                .withDefaultJdkTrustStore()
+                .withDefaultTrustMaterial()
                 .build();
         
         SslContextFactory.Client sslContextFactory = JettySslContextUtils.forClient(sslFactory);
@@ -295,7 +298,7 @@ However it is still possible to configure the http client with their custom conf
 <dependency>
     <groupId>io.github.hakky54</groupId>
     <artifactId>sslcontext-kickstart-for-apache</artifactId>
-    <version>3.1.0</version>
+    <version>4.0.0</version>
 </dependency>
 ```
 ```java
@@ -309,7 +312,7 @@ public class App {
 
     public static void main(String[] args) {
         SSLFactory sslFactory = SSLFactory.builder()
-                .withDefaultJdkTrustStore()
+                .withDefaultTrustMaterial()
                 .build();
 
         LayeredConnectionSocketFactory socketFactory = ApacheSslContextUtils.toLayeredConnectionSocketFactory(sslFactory);

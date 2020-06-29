@@ -207,20 +207,8 @@ public final class SSLFactory {
 
         private Builder() {}
 
-        @Deprecated
-        public Builder withDefaultJdkTrustStore() {
-            this.includeDefaultJdkTrustStore = true;
-            return this;
-        }
-
         public Builder withDefaultTrustMaterial() {
             this.includeDefaultJdkTrustStore = true;
-            return this;
-        }
-
-        @Deprecated
-        public Builder withTrustManager(X509ExtendedTrustManager trustManager) {
-            trustManagers.add(trustManager);
             return this;
         }
 
@@ -229,30 +217,8 @@ public final class SSLFactory {
             return this;
         }
 
-        @Deprecated
-        public Builder withTrustStore(String trustStorePath, char[] trustStorePassword) {
-            return withTrustStore(trustStorePath, trustStorePassword, KeyStore.getDefaultType());
-        }
-
         public Builder withTrustMaterial(String trustStorePath, char[] trustStorePassword) {
-            return withTrustStore(trustStorePath, trustStorePassword, KeyStore.getDefaultType());
-        }
-
-        @Deprecated
-        public Builder withTrustStore(String trustStorePath, char[] trustStorePassword, String trustStoreType) {
-            if (isBlank(trustStorePath) || isEmpty(trustStorePassword)) {
-                throw new GenericKeyStoreException(TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
-            }
-
-            try {
-                KeyStore trustStore = KeyStoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType);
-                KeyStoreHolder trustStoreHolder = new KeyStoreHolder(trustStore, trustStorePassword);
-                trustStores.add(trustStoreHolder);
-            } catch (IOException | KeyStoreException | NoSuchAlgorithmException | CertificateException e) {
-                throw new GenericKeyStoreException(KEY_STORE_LOADING_EXCEPTION, e);
-            }
-
-            return this;
+            return withTrustMaterial(trustStorePath, trustStorePassword, KeyStore.getDefaultType());
         }
 
         public Builder withTrustMaterial(String trustStorePath, char[] trustStorePassword, String trustStoreType) {
@@ -271,30 +237,8 @@ public final class SSLFactory {
             return this;
         }
 
-        @Deprecated
-        public Builder withTrustStore(Path trustStorePath, char[] trustStorePassword) {
-            return withTrustStore(trustStorePath, trustStorePassword, KeyStore.getDefaultType());
-        }
-
         public Builder withTrustMaterial(Path trustStorePath, char[] trustStorePassword) {
-            return withTrustStore(trustStorePath, trustStorePassword, KeyStore.getDefaultType());
-        }
-
-        @Deprecated
-        public Builder withTrustStore(Path trustStorePath, char[] trustStorePassword, String trustStoreType) {
-            if (isNull(trustStorePath) || isEmpty(trustStorePassword) || isBlank(trustStoreType)) {
-                throw new GenericKeyStoreException(TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
-            }
-
-            try {
-                KeyStore trustStore = KeyStoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType);
-                KeyStoreHolder trustStoreHolder = new KeyStoreHolder(trustStore, trustStorePassword);
-                trustStores.add(trustStoreHolder);
-            } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
-                throw new GenericKeyStoreException(KEY_STORE_LOADING_EXCEPTION, e);
-            }
-
-            return this;
+            return withTrustMaterial(trustStorePath, trustStorePassword, KeyStore.getDefaultType());
         }
 
         public Builder withTrustMaterial(Path trustStorePath, char[] trustStorePassword, String trustStoreType) {
@@ -313,15 +257,6 @@ public final class SSLFactory {
             return this;
         }
 
-        @Deprecated
-        public Builder withTrustStore(KeyStore trustStore, char[] trustStorePassword) {
-            validateKeyStore(trustStore, trustStorePassword, TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
-            KeyStoreHolder trustStoreHolder = new KeyStoreHolder(trustStore, trustStorePassword);
-            trustStores.add(trustStoreHolder);
-
-            return this;
-        }
-
         public Builder withTrustMaterial(KeyStore trustStore, char[] trustStorePassword) {
             validateKeyStore(trustStore, trustStorePassword, TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
             KeyStoreHolder trustStoreHolder = new KeyStoreHolder(trustStore, trustStorePassword);
@@ -330,47 +265,16 @@ public final class SSLFactory {
             return this;
         }
 
-        @Deprecated
-        public Builder withIdentity(String identityStorePath, char[] identityStorePassword) {
-            return withIdentity(identityStorePath, identityStorePassword, identityStorePassword, KeyStore.getDefaultType());
-        }
-
         public Builder withIdentityMaterial(String identityStorePath, char[] identityStorePassword) {
-            return withIdentity(identityStorePath, identityStorePassword, identityStorePassword, KeyStore.getDefaultType());
-        }
-
-        @Deprecated
-        public Builder withIdentity(String identityStorePath, char[] identityStorePassword, char[] identityPassword) {
-            return withIdentity(identityStorePath, identityStorePassword, identityPassword, KeyStore.getDefaultType());
+            return withIdentityMaterial(identityStorePath, identityStorePassword, identityStorePassword, KeyStore.getDefaultType());
         }
 
         public Builder withIdentityMaterial(String identityStorePath, char[] identityStorePassword, char[] identityPassword) {
-            return withIdentity(identityStorePath, identityStorePassword, identityPassword, KeyStore.getDefaultType());
-        }
-
-        @Deprecated
-        public Builder withIdentity(String identityStorePath, char[] identityStorePassword, String identityStoreType) {
-            return withIdentity(identityStorePath, identityStorePassword, identityStorePassword, identityStoreType);
+            return withIdentityMaterial(identityStorePath, identityStorePassword, identityPassword, KeyStore.getDefaultType());
         }
 
         public Builder withIdentityMaterial(String identityStorePath, char[] identityStorePassword, String identityStoreType) {
-            return withIdentity(identityStorePath, identityStorePassword, identityStorePassword, identityStoreType);
-        }
-
-        @Deprecated
-        public Builder withIdentity(String identityStorePath, char[] identityStorePassword, char[] identityPassword, String identityStoreType) {
-            if (isBlank(identityStorePath) || isEmpty(identityStorePassword) || isBlank(identityStoreType)) {
-                throw new GenericKeyStoreException(IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
-            }
-
-            try {
-                KeyStore identity = KeyStoreUtils.loadKeyStore(identityStorePath, identityStorePassword, identityStoreType);
-                KeyStoreHolder identityHolder = new KeyStoreHolder(identity, identityStorePassword, identityPassword);
-                identities.add(identityHolder);
-            } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
-                throw new GenericKeyStoreException(KEY_STORE_LOADING_EXCEPTION, e);
-            }
-            return this;
+            return withIdentityMaterial(identityStorePath, identityStorePassword, identityStorePassword, identityStoreType);
         }
 
         public Builder withIdentityMaterial(String identityStorePath, char[] identityStorePassword, char[] identityPassword, String identityStoreType) {
@@ -388,47 +292,16 @@ public final class SSLFactory {
             return this;
         }
 
-        @Deprecated
-        public Builder withIdentity(Path identityStorePath, char[] identityStorePassword) {
-            return withIdentity(identityStorePath, identityStorePassword, identityStorePassword, KeyStore.getDefaultType());
-        }
-
         public Builder withIdentityMaterial(Path identityStorePath, char[] identityStorePassword) {
-            return withIdentity(identityStorePath, identityStorePassword, identityStorePassword, KeyStore.getDefaultType());
-        }
-
-        @Deprecated
-        public Builder withIdentity(Path identityStorePath, char[] identityStorePassword, char[] identityPassword) {
-            return withIdentity(identityStorePath, identityStorePassword, identityPassword, KeyStore.getDefaultType());
+            return withIdentityMaterial(identityStorePath, identityStorePassword, identityStorePassword, KeyStore.getDefaultType());
         }
 
         public Builder withIdentityMaterial(Path identityStorePath, char[] identityStorePassword, char[] identityPassword) {
-            return withIdentity(identityStorePath, identityStorePassword, identityPassword, KeyStore.getDefaultType());
-        }
-
-        @Deprecated
-        public Builder withIdentity(Path identityStorePath, char[] identityStorePassword, String identityStoreType) {
-            return withIdentity(identityStorePath, identityStorePassword, identityStorePassword, identityStoreType);
+            return withIdentityMaterial(identityStorePath, identityStorePassword, identityPassword, KeyStore.getDefaultType());
         }
 
         public Builder withIdentityMaterial(Path identityStorePath, char[] identityStorePassword, String identityStoreType) {
-            return withIdentity(identityStorePath, identityStorePassword, identityStorePassword, identityStoreType);
-        }
-
-        @Deprecated
-        public Builder withIdentity(Path identityStorePath, char[] identityStorePassword, char[] identityPassword, String identityStoreType) {
-            if (isNull(identityStorePath) || isEmpty(identityStorePassword) || isBlank(identityStoreType)) {
-                throw new GenericKeyStoreException(IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
-            }
-
-            try {
-                KeyStore identity = KeyStoreUtils.loadKeyStore(identityStorePath, identityStorePassword, identityStoreType);
-                KeyStoreHolder identityHolder = new KeyStoreHolder(identity, identityStorePassword, identityPassword);
-                identities.add(identityHolder);
-            } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
-                throw new GenericKeyStoreException(KEY_STORE_LOADING_EXCEPTION, e);
-            }
-            return this;
+            return withIdentityMaterial(identityStorePath, identityStorePassword, identityStorePassword, identityStoreType);
         }
 
         public Builder withIdentityMaterial(Path identityStorePath, char[] identityStorePassword, char[] identityPassword, String identityStoreType) {
@@ -446,33 +319,14 @@ public final class SSLFactory {
             return this;
         }
 
-        @Deprecated
-        public Builder withIdentity(KeyStore identityStore, char[] identityStorePassword) {
-            return withIdentity(identityStore, identityStorePassword, identityStorePassword);
-        }
-
         public Builder withIdentityMaterial(KeyStore identityStore, char[] identityStorePassword) {
-            return withIdentity(identityStore, identityStorePassword, identityStorePassword);
-        }
-
-        @Deprecated
-        public Builder withIdentity(KeyStore identityStore, char[] identityStorePassword, char[] identityPassword) {
-            validateKeyStore(identityStore, identityStorePassword, IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
-            KeyStoreHolder identityHolder = new KeyStoreHolder(identityStore, identityStorePassword, identityPassword);
-            identities.add(identityHolder);
-            return this;
+            return withIdentityMaterial(identityStore, identityStorePassword, identityStorePassword);
         }
 
         public Builder withIdentityMaterial(KeyStore identityStore, char[] identityStorePassword, char[] identityPassword) {
             validateKeyStore(identityStore, identityStorePassword, IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
             KeyStoreHolder identityHolder = new KeyStoreHolder(identityStore, identityStorePassword, identityPassword);
             identities.add(identityHolder);
-            return this;
-        }
-
-        @Deprecated
-        public Builder withKeyManager(X509ExtendedKeyManager keyManager) {
-            identityManagers.add(keyManager);
             return this;
         }
 
