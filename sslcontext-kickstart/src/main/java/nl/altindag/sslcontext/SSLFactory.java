@@ -420,12 +420,12 @@ public final class SSLFactory {
         }
 
         private boolean isEmpty(char[] chars) {
-            int length = chars == null ? 0 : Array.getLength(chars);
+            int length = isNull(chars) ? 0 : Array.getLength(chars);
             return length == 0;
         }
 
         private boolean isBlank(CharSequence charSequence) {
-            int length = charSequence == null ? 0 : charSequence.length();
+            int length = isNull(charSequence) ? 0 : charSequence.length();
             if (length != 0) {
                 for (int i = 0; i < length; ++i) {
                     if (!Character.isWhitespace(charSequence.charAt(i))) {

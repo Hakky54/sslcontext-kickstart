@@ -776,11 +776,38 @@ class SSLFactoryShould {
     }
 
     @Test
+    void throwExceptionWhenIdentityPathAsStringIsNull() {
+        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
+
+        assertThatThrownBy(() -> factoryBuilder.withIdentity((String) null, IDENTITY_PASSWORD))
+                .isInstanceOf(GenericKeyStoreException.class)
+                .hasMessage(GENERIC_IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
+    }
+
+    @Test
+    void throwExceptionWhenIdentityPathAsStringContainsOnlyWhiteSpace() {
+        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
+
+        assertThatThrownBy(() -> factoryBuilder.withIdentity("    ", IDENTITY_PASSWORD))
+                .isInstanceOf(GenericKeyStoreException.class)
+                .hasMessage(GENERIC_IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
+    }
+
+    @Test
     void throwExceptionWhenIdentityPasswordIsNotProvided() {
         SSLFactory.Builder factoryBuilder = SSLFactory.builder();
         char[] empty = EMPTY.toCharArray();
 
         assertThatThrownBy(() -> factoryBuilder.withIdentity(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, empty))
+                .isInstanceOf(GenericKeyStoreException.class)
+                .hasMessage(GENERIC_IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
+    }
+
+    @Test
+    void throwExceptionWhenIdentityPasswordIsNull() {
+        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
+
+        assertThatThrownBy(() -> factoryBuilder.withIdentity(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, null))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
     }
