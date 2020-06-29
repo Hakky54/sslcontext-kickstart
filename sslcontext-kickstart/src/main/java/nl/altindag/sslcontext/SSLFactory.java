@@ -207,7 +207,13 @@ public final class SSLFactory {
 
         private Builder() {}
 
+        @Deprecated
         public Builder withDefaultJdkTrustStore() {
+            this.includeDefaultJdkTrustStore = true;
+            return this;
+        }
+
+        public Builder withDefaultTrustMaterial() {
             this.includeDefaultJdkTrustStore = true;
             return this;
         }
