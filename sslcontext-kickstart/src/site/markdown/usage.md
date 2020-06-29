@@ -13,7 +13,7 @@ It has already built-in default values for SecureRandom, HostnameVerifier, Encry
 One way authentication with custom trustStore 
 ```text
 SSLFactory.builder()
-          .withTrustStoreMaterial(trustStore, trustStorePassword)
+          .withTrustMaterial(trustStore, trustStorePassword)
           .build();
 ```
 
@@ -28,7 +28,7 @@ One way authentication with specific encryption protocol version, custom secure 
 If you are using java 11 or newer, than you are also able to use TLSv1.3 as encryption protocol. Just provide `TLSv1.3` as protocol argument and it will work out-of-the-box.
 ```text
 SSLFactory.builder()
-          .withTrustStoreMaterial(trustStore, trustStorePassword)
+          .withTrustMaterial(trustStore, trustStorePassword)
           .withHostnameVerifier(hostnameVerifier)
           .withSecureRandom(secureRandom)
           .withProtocol("TLSv1.2")
@@ -39,7 +39,7 @@ Two way authentication with custom trustStore, hostname verifier and encryption 
 ```text
 SSLFactory.builder()
           .withIdentityMaterial(identity, identityPassword)
-          .withTrustStoreMaterial(trustStore, trustStorePassword)
+          .withTrustMaterial(trustStore, trustStorePassword)
           .withHostnameVerifier(hostnameVerifier)
           .withProtocol("TLSv1.2")
           .build();
@@ -51,10 +51,10 @@ SSLFactory.builder()
           .withIdentityMaterial(identityA, identityPasswordA)
           .withIdentityMaterial(identityB, identityPasswordB)
           .withIdentityMaterial(identityC, identityPasswordC)
-          .withTrustStoreMaterial(trustStoreA, trustStorePasswordA)
-          .withTrustStoreMaterial(trustStoreB, trustStorePasswordB)
-          .withTrustStoreMaterial(trustStoreC, trustStorePasswordC)
-          .withTrustStoreMaterial(trustStoreD, trustStorePasswordD)
+          .withTrustMaterial(trustStoreA, trustStorePasswordA)
+          .withTrustMaterial(trustStoreB, trustStorePasswordB)
+          .withTrustMaterial(trustStoreC, trustStorePasswordC)
+          .withTrustMaterial(trustStoreD, trustStorePasswordD)
           .withProtocol("TLSv1.2")
           .build();
 ```
@@ -66,7 +66,7 @@ X509ExtendedTrustManager trustManager = ...
 
 SSLFactory.builder()
           .withIdentityMaterial(keyManager)
-          .withTrustStoreMaterial(trustManager)
+          .withTrustMaterial(trustManager)
           .build();
 ```
 
