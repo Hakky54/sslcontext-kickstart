@@ -26,7 +26,7 @@ class ApacheSslContextUtilsShould {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 
         SSLFactory sslFactory = SSLFactory.builder()
-                .withTrustStore(trustStore, TRUSTSTORE_PASSWORD)
+                .withTrustMaterial(trustStore, TRUSTSTORE_PASSWORD)
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
@@ -52,8 +52,8 @@ class ApacheSslContextUtilsShould {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 
         SSLFactory sslFactory = SSLFactory.builder()
-                .withIdentity(identity, IDENTITY_PASSWORD)
-                .withTrustStore(trustStore, TRUSTSTORE_PASSWORD)
+                .withIdentityMaterial(identity, IDENTITY_PASSWORD)
+                .withTrustMaterial(trustStore, TRUSTSTORE_PASSWORD)
                 .withPasswordCaching()
                 .build();
 

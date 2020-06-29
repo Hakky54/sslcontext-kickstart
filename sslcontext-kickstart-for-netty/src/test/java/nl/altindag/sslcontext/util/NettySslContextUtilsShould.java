@@ -27,7 +27,7 @@ class NettySslContextUtilsShould {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 
         SSLFactory sslFactory = SSLFactory.builder()
-                .withTrustStore(trustStore, TRUSTSTORE_PASSWORD)
+                .withTrustMaterial(trustStore, TRUSTSTORE_PASSWORD)
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
@@ -55,8 +55,8 @@ class NettySslContextUtilsShould {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 
         SSLFactory sslFactory = SSLFactory.builder()
-                .withIdentity(identity, IDENTITY_PASSWORD)
-                .withTrustStore(trustStore, TRUSTSTORE_PASSWORD)
+                .withIdentityMaterial(identity, IDENTITY_PASSWORD)
+                .withTrustMaterial(trustStore, TRUSTSTORE_PASSWORD)
                 .withPasswordCaching()
                 .build();
 
@@ -86,8 +86,8 @@ class NettySslContextUtilsShould {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 
         SSLFactory sslFactory = SSLFactory.builder()
-                .withIdentity(identity, IDENTITY_PASSWORD)
-                .withTrustStore(trustStore, TRUSTSTORE_PASSWORD)
+                .withIdentityMaterial(identity, IDENTITY_PASSWORD)
+                .withTrustMaterial(trustStore, TRUSTSTORE_PASSWORD)
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
@@ -114,7 +114,7 @@ class NettySslContextUtilsShould {
     void throwExceptionWhenCreatingNettySslContextBuilderForServerWithoutIdentity() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         SSLFactory sslFactory = SSLFactory.builder()
-                .withTrustStore(trustStore, TRUSTSTORE_PASSWORD)
+                .withTrustMaterial(trustStore, TRUSTSTORE_PASSWORD)
                 .build();
 
         assertThatThrownBy(() -> NettySslContextUtils.forServer(sslFactory))
