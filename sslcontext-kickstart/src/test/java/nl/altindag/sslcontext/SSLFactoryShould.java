@@ -38,13 +38,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import static nl.altindag.sslcontext.TestConstants.EMPTY;
 import static nl.altindag.sslcontext.TestConstants.IDENTITY_FILE_NAME;
 import static nl.altindag.sslcontext.TestConstants.IDENTITY_PASSWORD;
 import static nl.altindag.sslcontext.TestConstants.KEYSTORE_LOCATION;
 import static nl.altindag.sslcontext.TestConstants.TEMPORALLY_KEYSTORE_LOCATION;
 import static nl.altindag.sslcontext.TestConstants.TRUSTSTORE_FILE_NAME;
 import static nl.altindag.sslcontext.TestConstants.TRUSTSTORE_PASSWORD;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;

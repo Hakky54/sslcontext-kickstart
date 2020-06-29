@@ -19,6 +19,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509ExtendedTrustManager;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.nio.file.Path;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
@@ -34,8 +35,6 @@ import java.util.Optional;
 
 import static java.util.Objects.isNull;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.ArrayUtils.isEmpty;
-import static org.apache.commons.lang3.StringUtils.isBlank;
 
 public final class SSLFactory {
 
@@ -419,5 +418,23 @@ public final class SSLFactory {
         private boolean isIdentityMaterialNotPresent() {
             return !isIdentityMaterialPresent();
         }
+
+        private boolean isEmpty(char[] chars) {
+            int length = chars == null ? 0 : Array.getLength(chars);
+            return length == 0;
+        }
+
+        private boolean isBlank(CharSequence charSequence) {
+            int length = charSequence == null ? 0 : charSequence.length();
+            if (length != 0) {
+                for (int i = 0; i < length; ++i) {
+                    if (!Character.isWhitespace(charSequence.charAt(i))) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
     }
 }
