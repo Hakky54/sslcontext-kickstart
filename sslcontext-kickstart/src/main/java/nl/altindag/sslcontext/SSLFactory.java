@@ -106,9 +106,7 @@ public final class SSLFactory {
                 .build();
 
         if (!passwordCachingEnabled && !identities.isEmpty()) {
-            List<KeyStoreHolder> sanitizedIdentities = sanitizeKeyStores(identities);
-            identities.clear();
-            identities.addAll(sanitizedIdentities);
+            sanitizeKeyStores(identities);
         }
 
         return new X509ExtendedKeyManager[] {keyManager};
@@ -134,17 +132,19 @@ public final class SSLFactory {
         trustManager = trustManagerBuilder.build();
 
         if (!passwordCachingEnabled && !trustStores.isEmpty()) {
-            List<KeyStoreHolder> sanitizedTrustStores = sanitizeKeyStores(trustStores);
-            trustStores.clear();
-            trustStores.addAll(sanitizedTrustStores);
+            sanitizeKeyStores(trustStores);
         }
+
         return new TrustManager[] {trustManager};
     }
 
-    private List<KeyStoreHolder> sanitizeKeyStores(List<KeyStoreHolder> keyStores) {
-        return keyStores.stream()
+    private void sanitizeKeyStores(List<KeyStoreHolder> keyStores) {
+        List<KeyStoreHolder> sanitizedKeyStores = keyStores.stream()
                 .map(keyStoreHolder -> new KeyStoreHolder(keyStoreHolder.getKeyStore(), EMPTY_PASSWORD, EMPTY_PASSWORD))
                 .collect(toList());
+
+        keyStores.clear();
+        keyStores.addAll(sanitizedKeyStores);
     }
 
     public List<KeyStoreHolder> getIdentities() {
