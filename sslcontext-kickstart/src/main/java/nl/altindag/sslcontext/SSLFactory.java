@@ -193,7 +193,7 @@ public final class SSLFactory {
                 "and Trust material are not present. Please provide at least a Trust material.";
 
         private String protocol = "TLSv1.2";
-        private SecureRandom secureRandom = new SecureRandom();
+        private SecureRandom secureRandom = null;
         private HostnameVerifier hostnameVerifier = (host, sslSession) -> host.equalsIgnoreCase(sslSession.getPeerHost());
 
         private final List<KeyStoreHolder> identities = new ArrayList<>();
