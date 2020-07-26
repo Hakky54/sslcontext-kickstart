@@ -222,7 +222,7 @@ public final class SSLFactory {
         }
 
         public Builder withTrustMaterial(String trustStorePath, char[] trustStorePassword, String trustStoreType) {
-            if (isBlank(trustStorePath) || isEmpty(trustStorePassword)) {
+            if (isBlank(trustStorePath)) {
                 throw new GenericKeyStoreException(TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
             }
 
@@ -242,7 +242,7 @@ public final class SSLFactory {
         }
 
         public Builder withTrustMaterial(Path trustStorePath, char[] trustStorePassword, String trustStoreType) {
-            if (isNull(trustStorePath) || isEmpty(trustStorePassword) || isBlank(trustStoreType)) {
+            if (isNull(trustStorePath) || isBlank(trustStoreType)) {
                 throw new GenericKeyStoreException(TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
             }
 
@@ -258,7 +258,7 @@ public final class SSLFactory {
         }
 
         public Builder withTrustMaterial(KeyStore trustStore, char[] trustStorePassword) {
-            validateKeyStore(trustStore, trustStorePassword, TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
+            validateKeyStore(trustStore, TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
             KeyStoreHolder trustStoreHolder = new KeyStoreHolder(trustStore, trustStorePassword);
             trustStores.add(trustStoreHolder);
 
@@ -278,7 +278,7 @@ public final class SSLFactory {
         }
 
         public Builder withIdentityMaterial(String identityStorePath, char[] identityStorePassword, char[] identityPassword, String identityStoreType) {
-            if (isBlank(identityStorePath) || isEmpty(identityStorePassword) || isBlank(identityStoreType)) {
+            if (isBlank(identityStorePath) || isBlank(identityStoreType)) {
                 throw new GenericKeyStoreException(IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
             }
 
@@ -305,7 +305,7 @@ public final class SSLFactory {
         }
 
         public Builder withIdentityMaterial(Path identityStorePath, char[] identityStorePassword, char[] identityPassword, String identityStoreType) {
-            if (isNull(identityStorePath) || isEmpty(identityStorePassword) || isBlank(identityStoreType)) {
+            if (isNull(identityStorePath) || isBlank(identityStoreType)) {
                 throw new GenericKeyStoreException(IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
             }
 
@@ -324,7 +324,7 @@ public final class SSLFactory {
         }
 
         public Builder withIdentityMaterial(KeyStore identityStore, char[] identityStorePassword, char[] identityPassword) {
-            validateKeyStore(identityStore, identityStorePassword, IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
+            validateKeyStore(identityStore, IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
             KeyStoreHolder identityHolder = new KeyStoreHolder(identityStore, identityStorePassword, identityPassword);
             identities.add(identityHolder);
             return this;
@@ -335,8 +335,8 @@ public final class SSLFactory {
             return this;
         }
 
-        private void validateKeyStore(KeyStore keyStore, char[] keyStorePassword, String exceptionMessage) {
-            if (isNull(keyStore) || isEmpty(keyStorePassword)) {
+        private void validateKeyStore(KeyStore keyStore, String exceptionMessage) {
+            if (isNull(keyStore)) {
                 throw new GenericKeyStoreException(exceptionMessage);
             }
         }
@@ -417,11 +417,6 @@ public final class SSLFactory {
 
         private boolean isIdentityMaterialNotPresent() {
             return !isIdentityMaterialPresent();
-        }
-
-        private boolean isEmpty(char[] chars) {
-            int length = isNull(chars) ? 0 : Array.getLength(chars);
-            return length == 0;
         }
 
         private boolean isBlank(CharSequence charSequence) {
