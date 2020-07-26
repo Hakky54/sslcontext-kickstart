@@ -77,6 +77,24 @@ class SSLFactoryShould {
     }
 
     @Test
+    void buildSSLFactoryWithTrustMaterialWithoutPassword() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withTrustMaterial(KEYSTORE_LOCATION + "truststore-without-password.jks", null)
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+
+        assertThat(sslFactory.getTrustManager()).isNotNull();
+        assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
+        assertThat(sslFactory.getTrustStores()).isNotEmpty();
+        assertThat(sslFactory.getHostnameVerifier()).isNotNull();
+
+        assertThat(sslFactory.getKeyManager()).isNotPresent();
+        assertThat(sslFactory.getIdentities()).isEmpty();
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+    }
+
+    @Test
     void buildSSLFactoryWithTrustMaterialFromPath() throws IOException {
         Path trustStorePath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
 
@@ -213,6 +231,29 @@ class SSLFactoryShould {
         assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
         assertThat(sslFactory.getTrustStores()).isNotEmpty();
         assertThat(sslFactory.getTrustStores().get(0).getKeyStorePassword()).isEqualTo(TRUSTSTORE_PASSWORD);
+        assertThat(sslFactory.getTrustManager()).isNotNull();
+        assertThat(sslFactory.getHostnameVerifier()).isNotNull();
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+    }
+
+    @Test
+    void buildSSLFactoryWithIdentityMaterialWithoutPasswordAndTrustMaterialWithoutPassword() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(KEYSTORE_LOCATION + "identity-without-password.jks", null, "secret".toCharArray())
+                .withTrustMaterial(KEYSTORE_LOCATION + "truststore-without-password.jks", null)
+                .withPasswordCaching()
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+
+        assertThat(sslFactory.getKeyManager()).isPresent();
+        assertThat(sslFactory.getIdentities()).isNotEmpty();
+        assertThat(sslFactory.getIdentities().get(0).getKeyStorePassword()).isNull();
+
+        assertThat(sslFactory.getTrustManager()).isNotNull();
+        assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
+        assertThat(sslFactory.getTrustStores()).isNotEmpty();
+        assertThat(sslFactory.getTrustStores().get(0).getKeyStorePassword()).isNull();
         assertThat(sslFactory.getTrustManager()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
@@ -693,19 +734,6 @@ class SSLFactoryShould {
     }
 
     @Test
-    void throwExceptionWhenBuildingSSLFactoryWithEmptyTrustStorePassword() throws IOException {
-        Path trustStorePath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
-        char[] trustStorePassword = EMPTY.toCharArray();
-        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
-
-        assertThatThrownBy(() -> factoryBuilder.withTrustMaterial(trustStorePath, trustStorePassword))
-                .isInstanceOf(GenericKeyStoreException.class)
-                .hasMessage(GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE);
-
-        Files.delete(trustStorePath);
-    }
-
-    @Test
     void throwExceptionWhenBuildingSSLFactoryWithEmptyTrustStoreType() throws IOException {
         Path trustStorePath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
         SSLFactory.Builder factoryBuilder = SSLFactory.builder();
@@ -727,18 +755,6 @@ class SSLFactoryShould {
     }
 
     @Test
-    void throwExceptionWhenBuildingSSLFactoryWithEmptyTrustStorePasswordWhileUsingKeyStoreObject() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
-        char[] trustStorePassword = EMPTY.toCharArray();
-        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
-
-        assertThatThrownBy(() -> factoryBuilder.withTrustMaterial(trustStore, trustStorePassword))
-                .isInstanceOf(GenericKeyStoreException.class)
-                .hasMessage(GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE);
-    }
-
-
-    @Test
     void throwExceptionWhenKeyStoreFileIsNotFound() {
         SSLFactory.Builder factoryBuilder = SSLFactory.builder();
 
@@ -752,16 +768,6 @@ class SSLFactoryShould {
         SSLFactory.Builder factoryBuilder = SSLFactory.builder();
 
         assertThatThrownBy(() -> factoryBuilder.withTrustMaterial(EMPTY, TRUSTSTORE_PASSWORD))
-                .isInstanceOf(GenericKeyStoreException.class)
-                .hasMessage(GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE);
-    }
-
-    @Test
-    void throwExceptionWhenTrustStorePasswordIsNotProvided() {
-        char[] trustStorePassword = EMPTY.toCharArray();
-        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
-
-        assertThatThrownBy(() -> factoryBuilder.withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, trustStorePassword))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE);
     }
@@ -794,25 +800,6 @@ class SSLFactoryShould {
     }
 
     @Test
-    void throwExceptionWhenIdentityPasswordIsNotProvided() {
-        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
-        char[] empty = EMPTY.toCharArray();
-
-        assertThatThrownBy(() -> factoryBuilder.withIdentityMaterial(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, empty))
-                .isInstanceOf(GenericKeyStoreException.class)
-                .hasMessage(GENERIC_IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
-    }
-
-    @Test
-    void throwExceptionWhenIdentityPasswordIsNull() {
-        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
-
-        assertThatThrownBy(() -> factoryBuilder.withIdentityMaterial(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, null))
-                .isInstanceOf(GenericKeyStoreException.class)
-                .hasMessage(GENERIC_IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
-    }
-
-    @Test
     void throwExceptionWhenIdentityTypeIsNotProvided() {
         SSLFactory.Builder factoryBuilder = SSLFactory.builder();
 
@@ -831,34 +818,10 @@ class SSLFactoryShould {
     }
 
     @Test
-    void throwExceptionWhenIdentityPasswordIsNotProvidedWhileUsingPath() throws IOException {
-        Path identityPath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, IDENTITY_FILE_NAME);
-        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
-        char[] empty = EMPTY.toCharArray();
-
-        assertThatThrownBy(() -> factoryBuilder.withIdentityMaterial(identityPath, empty))
-                .isInstanceOf(GenericKeyStoreException.class)
-                .hasMessage(GENERIC_IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
-
-        Files.delete(identityPath);
-    }
-
-    @Test
     void throwExceptionWhenIdentityIsNull() {
         SSLFactory.Builder factoryBuilder = SSLFactory.builder();
 
         assertThatThrownBy(() -> factoryBuilder.withIdentityMaterial((KeyStore) null, IDENTITY_PASSWORD))
-                .isInstanceOf(GenericKeyStoreException.class)
-                .hasMessage(GENERIC_IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
-    }
-
-    @Test
-    void throwExceptionWhenIdentityPasswordIsEmptyWhileUsingKeyStoreAsObject() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
-        char[] identityStorePassword = EMPTY.toCharArray();
-        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
-
-        assertThatThrownBy(() -> factoryBuilder.withIdentityMaterial(identity, identityStorePassword))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
     }
