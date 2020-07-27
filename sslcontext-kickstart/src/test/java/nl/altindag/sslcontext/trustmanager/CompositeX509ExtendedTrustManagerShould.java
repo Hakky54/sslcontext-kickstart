@@ -125,7 +125,7 @@ class CompositeX509ExtendedTrustManagerShould {
         X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
 
-        LogCaptor<CompositeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
+        LogCaptor logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
         logCaptor.setLogLevelToInfo();
 
         CompositeX509ExtendedTrustManager compositeX509ExtendedTrustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(trustManager));
@@ -146,7 +146,7 @@ class CompositeX509ExtendedTrustManagerShould {
         X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
 
-        LogCaptor<CompositeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
+        LogCaptor logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
         logCaptor.setLogLevelToInfo();
 
         CompositeX509ExtendedTrustManager compositeX509ExtendedTrustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(trustManager));
@@ -167,7 +167,7 @@ class CompositeX509ExtendedTrustManagerShould {
         X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
 
-        LogCaptor<CompositeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
+        LogCaptor logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
         logCaptor.setLogLevelToInfo();
 
         CompositeX509ExtendedTrustManager compositeX509ExtendedTrustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(trustManager));
@@ -188,7 +188,7 @@ class CompositeX509ExtendedTrustManagerShould {
         X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
 
-        LogCaptor<CompositeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
+        LogCaptor logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
 
         CompositeX509ExtendedTrustManager compositeX509ExtendedTrustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(trustManager));
         assertThat(trustManager).isNotNull();
@@ -209,7 +209,7 @@ class CompositeX509ExtendedTrustManagerShould {
         X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
 
-        LogCaptor<CompositeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
+        LogCaptor logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
 
         CompositeX509ExtendedTrustManager compositeX509ExtendedTrustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(trustManager));
         assertThat(trustManager).isNotNull();
@@ -230,7 +230,7 @@ class CompositeX509ExtendedTrustManagerShould {
         X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
 
-        LogCaptor<CompositeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
+        LogCaptor logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
 
         CompositeX509ExtendedTrustManager compositeX509ExtendedTrustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(trustManager));
         assertThat(trustManager).isNotNull();
@@ -250,7 +250,7 @@ class CompositeX509ExtendedTrustManagerShould {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-dummy-client.jks", TRUSTSTORE_PASSWORD);
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
-        LogCaptor<CompositeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
+        LogCaptor logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
         logCaptor.setLogLevelToInfo();
 
         CompositeX509ExtendedTrustManager trustManager = CompositeX509ExtendedTrustManager.builder()
@@ -271,7 +271,7 @@ class CompositeX509ExtendedTrustManagerShould {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-dummy-client.jks", TRUSTSTORE_PASSWORD);
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
-        LogCaptor<CompositeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
+        LogCaptor logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
         logCaptor.setLogLevelToInfo();
 
         CompositeX509ExtendedTrustManager trustManager = CompositeX509ExtendedTrustManager.builder()
@@ -292,7 +292,7 @@ class CompositeX509ExtendedTrustManagerShould {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-dummy-client.jks", TRUSTSTORE_PASSWORD);
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
-        LogCaptor<CompositeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
+        LogCaptor logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
         logCaptor.setLogLevelToInfo();
 
         CompositeX509ExtendedTrustManager trustManager = CompositeX509ExtendedTrustManager.builder()
@@ -313,7 +313,7 @@ class CompositeX509ExtendedTrustManagerShould {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-dummy-client.jks", TRUSTSTORE_PASSWORD);
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
-        LogCaptor<CompositeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
+        LogCaptor logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
 
         CompositeX509ExtendedTrustManager trustManager = CompositeX509ExtendedTrustManager.builder()
                 .withTrustStores(trustStore)
@@ -334,7 +334,7 @@ class CompositeX509ExtendedTrustManagerShould {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-dummy-client.jks", TRUSTSTORE_PASSWORD);
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
-        LogCaptor<CompositeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
+        LogCaptor logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
 
         CompositeX509ExtendedTrustManager trustManager = CompositeX509ExtendedTrustManager.builder()
                 .withTrustStores(trustStore)
@@ -355,7 +355,7 @@ class CompositeX509ExtendedTrustManagerShould {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-dummy-client.jks", TRUSTSTORE_PASSWORD);
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
-        LogCaptor<CompositeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
+        LogCaptor logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
 
         CompositeX509ExtendedTrustManager trustManager = CompositeX509ExtendedTrustManager.builder()
                 .withTrustStores(trustStore)

@@ -27,7 +27,7 @@ class UnsafeX509ExtendedTrustManagerShould {
 
     @Test
     void checkClientTrusted() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        LogCaptor<UnsafeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
+        LogCaptor logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
 
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         X509ExtendedTrustManager trustManager = UnsafeX509ExtendedTrustManager.INSTANCE;
@@ -47,7 +47,7 @@ class UnsafeX509ExtendedTrustManagerShould {
 
     @Test
     void checkClientTrustedWithSslEngine() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        LogCaptor<UnsafeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
+        LogCaptor logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
 
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         X509ExtendedTrustManager trustManager = UnsafeX509ExtendedTrustManager.INSTANCE;
@@ -67,7 +67,7 @@ class UnsafeX509ExtendedTrustManagerShould {
 
     @Test
     void checkClientTrustedWithSocket() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        LogCaptor<UnsafeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
+        LogCaptor logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
 
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         X509ExtendedTrustManager trustManager = UnsafeX509ExtendedTrustManager.INSTANCE;
@@ -87,7 +87,7 @@ class UnsafeX509ExtendedTrustManagerShould {
 
     @Test
     void checkServerTrusted() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        LogCaptor<UnsafeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
+        LogCaptor logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
 
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
@@ -106,7 +106,7 @@ class UnsafeX509ExtendedTrustManagerShould {
 
     @Test
     void checkServerTrustedWithSslEngine() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        LogCaptor<UnsafeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
+        LogCaptor logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
 
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
@@ -125,7 +125,7 @@ class UnsafeX509ExtendedTrustManagerShould {
 
     @Test
     void checkServerTrustedWitSocket() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        LogCaptor<UnsafeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
+        LogCaptor logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
 
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
@@ -144,7 +144,7 @@ class UnsafeX509ExtendedTrustManagerShould {
 
     @Test
     void checkClientTrustedDoesNotLogAnythingWhenDebugLevelIsDisabled() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        LogCaptor<UnsafeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
+        LogCaptor logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
         logCaptor.setLogLevelToInfo();
 
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
@@ -164,7 +164,7 @@ class UnsafeX509ExtendedTrustManagerShould {
 
     @Test
     void checkClientTrustedWithSslEngineDoesNotLogAnythingWhenDebugLevelIsDisabled() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        LogCaptor<UnsafeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
+        LogCaptor logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
         logCaptor.setLogLevelToInfo();
 
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
@@ -184,7 +184,7 @@ class UnsafeX509ExtendedTrustManagerShould {
 
     @Test
     void checkClientTrustedWithSocketDoesNotLogAnythingWhenDebugLevelIsDisabled() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        LogCaptor<UnsafeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
+        LogCaptor logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
         logCaptor.setLogLevelToInfo();
 
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
@@ -204,7 +204,7 @@ class UnsafeX509ExtendedTrustManagerShould {
 
     @Test
     void checkServerTrustedDoesNotLogAnythingWhenDebugLevelIsDisabled() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        LogCaptor<UnsafeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
+        LogCaptor logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
         logCaptor.setLogLevelToInfo();
 
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
@@ -223,7 +223,7 @@ class UnsafeX509ExtendedTrustManagerShould {
 
     @Test
     void checkServerTrustedWithSslEngineDoesNotLogAnythingWhenDebugLevelIsDisabled() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        LogCaptor<UnsafeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
+        LogCaptor logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
         logCaptor.setLogLevelToInfo();
 
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
@@ -242,7 +242,7 @@ class UnsafeX509ExtendedTrustManagerShould {
 
     @Test
     void checkServerTrustedWithSocketDoesNotLogAnythingWhenDebugLevelIsDisabled() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        LogCaptor<UnsafeX509ExtendedTrustManager> logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
+        LogCaptor logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
         logCaptor.setLogLevelToInfo();
 
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));

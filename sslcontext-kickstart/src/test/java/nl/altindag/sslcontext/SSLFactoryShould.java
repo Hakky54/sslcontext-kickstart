@@ -628,7 +628,7 @@ class SSLFactoryShould {
 
     @Test
     void buildSSLFactoryWithTrustingAllCertificatesWithoutValidation() {
-        LogCaptor<SSLFactory> logCaptor = LogCaptor.forClass(SSLFactory.class);
+        LogCaptor logCaptor = LogCaptor.forClass(SSLFactory.class);
 
         SSLFactory sslFactory = SSLFactory.builder()
                 .withTrustingAllCertificatesWithoutValidation()
