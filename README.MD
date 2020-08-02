@@ -144,8 +144,8 @@ public class App {
         SSLContext sslContext = sslFactory.getSslContext();
         HostnameVerifier hostnameVerifier = sslFactory.getHostnameVerifier();
         Optional<X509ExtendedKeyManager> keyManager = sslFactory.getKeyManager();
-        X509ExtendedTrustManager trustManager = sslFactory.getTrustManager();
-        X509Certificate[] trustedCertificates = sslFactory.getTrustedCertificates();
+        Optional<X509ExtendedTrustManager> trustManager = sslFactory.getTrustManager();
+        List<X509Certificate> trustedCertificates = sslFactory.getTrustedCertificates();
         List<KeyStoreHolder> identities = sslFactory.getIdentities();
         List<KeyStoreHolder> trustStores = sslFactory.getTrustStores();
     }
