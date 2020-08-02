@@ -22,10 +22,10 @@ public final class NettySslContextUtils {
      */
     public static SslContextBuilder forClient(SSLFactory sslFactory) {
         SslContextBuilder sslContextBuilder = SslContextBuilder.forClient()
-                .trustManager(sslFactory.getTrustManager())
                 .ciphers(Arrays.asList(sslFactory.getSslContext().getDefaultSSLParameters().getCipherSuites()), SupportedCipherSuiteFilter.INSTANCE)
                 .protocols(sslFactory.getSslContext().getDefaultSSLParameters().getProtocols());
         sslFactory.getKeyManager().ifPresent(sslContextBuilder::keyManager);
+        sslFactory.getTrustManager().ifPresent(sslContextBuilder::trustManager);
 
         return sslContextBuilder;
     }
@@ -43,10 +43,12 @@ public final class NettySslContextUtils {
         X509ExtendedKeyManager keyManager = sslFactory.getKeyManager()
                 .orElseThrow(NullPointerException::new);
 
-        return SslContextBuilder.forServer(keyManager)
-                .trustManager(sslFactory.getTrustManager())
+        SslContextBuilder sslContextBuilder = SslContextBuilder.forServer(keyManager)
                 .ciphers(Arrays.asList(sslFactory.getSslContext().getDefaultSSLParameters().getCipherSuites()), SupportedCipherSuiteFilter.INSTANCE)
                 .protocols(sslFactory.getSslContext().getDefaultSSLParameters().getProtocols());
+        sslFactory.getTrustManager().ifPresent(sslContextBuilder::trustManager);
+
+        return sslContextBuilder;
     }
 
 }

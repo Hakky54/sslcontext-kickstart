@@ -32,7 +32,6 @@ import java.security.SecureRandom;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -68,7 +67,7 @@ class SSLFactoryShould {
 
         assertThat(sslFactory.getSslContext()).isNotNull();
 
-        assertThat(sslFactory.getTrustManager()).isNotNull();
+        assertThat(sslFactory.getTrustManager()).isPresent();
         assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
         assertThat(sslFactory.getTrustStores()).isNotEmpty();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
@@ -84,7 +83,7 @@ class SSLFactoryShould {
 
         assertThat(sslFactory.getSslContext()).isNotNull();
 
-        assertThat(sslFactory.getTrustManager()).isNotNull();
+        assertThat(sslFactory.getTrustManager()).isPresent();
         assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
         assertThat(sslFactory.getTrustStores()).isNotEmpty();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
@@ -104,7 +103,7 @@ class SSLFactoryShould {
 
         assertThat(sslFactory.getSslContext()).isNotNull();
 
-        assertThat(sslFactory.getTrustManager()).isNotNull();
+        assertThat(sslFactory.getTrustManager()).isPresent();
         assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
         assertThat(sslFactory.getTrustStores()).isNotEmpty();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
@@ -126,7 +125,7 @@ class SSLFactoryShould {
 
         assertThat(sslFactory.getSslContext()).isNotNull();
 
-        assertThat(sslFactory.getTrustManager()).isNotNull();
+        assertThat(sslFactory.getTrustManager()).isPresent();
         assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
         assertThat(sslFactory.getTrustStores()).isNotEmpty();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
@@ -147,7 +146,7 @@ class SSLFactoryShould {
 
         assertThat(sslFactory.getSslContext()).isNotNull();
 
-        assertThat(sslFactory.getTrustManager()).isNotNull();
+        assertThat(sslFactory.getTrustManager()).isPresent();
         assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
         assertThat(sslFactory.getTrustStores()).isEmpty();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
@@ -165,7 +164,7 @@ class SSLFactoryShould {
 
         assertThat(sslFactory.getSslContext()).isNotNull();
 
-        assertThat(sslFactory.getTrustManager()).isNotNull();
+        assertThat(sslFactory.getTrustManager()).isPresent();
         assertThat(sslFactory.getTrustStores()).isEmpty();
         assertThat(sslFactory.getTrustedCertificates()).hasSizeGreaterThan(10);
 
@@ -183,7 +182,7 @@ class SSLFactoryShould {
 
         assertThat(sslFactory.getSslContext()).isNotNull();
 
-        assertThat(sslFactory.getTrustManager()).isNotNull();
+        assertThat(sslFactory.getTrustManager()).isPresent();
         assertThat(sslFactory.getTrustStores()).isEmpty();
         assertThat(sslFactory.getTrustedCertificates()).hasSizeGreaterThan(10);
 
@@ -200,17 +199,35 @@ class SSLFactoryShould {
                 .withPasswordCaching()
                 .build();
 
-        assertThat(sslFactory.getTrustManager()).isNotNull();
+        assertThat(sslFactory.getTrustManager()).isPresent();
         assertThat(sslFactory.getTrustStores()).isNotEmpty();
         assertThat(sslFactory.getTrustStores().get(0).getKeyStorePassword()).isEqualTo(TRUSTSTORE_PASSWORD);
         assertThat(sslFactory.getTrustedCertificates()).hasSizeGreaterThan(10);
-        assertThat(Arrays.stream(sslFactory.getTrustedCertificates())
+        assertThat(sslFactory.getTrustedCertificates().stream()
                 .map(X509Certificate::getSubjectX500Principal)
                 .map(X500Principal::toString)).contains("CN=*.google.com, O=Google LLC, L=Mountain View, ST=California, C=US");
 
         assertThat(sslFactory.getKeyManager()).isNotPresent();
         assertThat(sslFactory.getIdentities()).isEmpty();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+    }
+
+    @Test
+    void buildSSLFactoryWithIdentityMaterial() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD)
+                .withPasswordCaching()
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+
+        assertThat(sslFactory.getKeyManager()).isPresent();
+        assertThat(sslFactory.getIdentities()).isNotEmpty();
+        assertThat(sslFactory.getIdentities().get(0).getKeyStorePassword()).isEqualTo(IDENTITY_PASSWORD);
+
+        assertThat(sslFactory.getTrustManager()).isNotPresent();
+        assertThat(sslFactory.getTrustedCertificates()).isEmpty();
+        assertThat(sslFactory.getTrustStores()).isEmpty();
     }
 
     @Test
@@ -227,11 +244,10 @@ class SSLFactoryShould {
         assertThat(sslFactory.getIdentities()).isNotEmpty();
         assertThat(sslFactory.getIdentities().get(0).getKeyStorePassword()).isEqualTo(IDENTITY_PASSWORD);
 
-        assertThat(sslFactory.getTrustManager()).isNotNull();
+        assertThat(sslFactory.getTrustManager()).isPresent();
         assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
         assertThat(sslFactory.getTrustStores()).isNotEmpty();
         assertThat(sslFactory.getTrustStores().get(0).getKeyStorePassword()).isEqualTo(TRUSTSTORE_PASSWORD);
-        assertThat(sslFactory.getTrustManager()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
     }
@@ -250,11 +266,10 @@ class SSLFactoryShould {
         assertThat(sslFactory.getIdentities()).isNotEmpty();
         assertThat(sslFactory.getIdentities().get(0).getKeyStorePassword()).isNull();
 
-        assertThat(sslFactory.getTrustManager()).isNotNull();
+        assertThat(sslFactory.getTrustManager()).isPresent();
         assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
         assertThat(sslFactory.getTrustStores()).isNotEmpty();
         assertThat(sslFactory.getTrustStores().get(0).getKeyStorePassword()).isNull();
-        assertThat(sslFactory.getTrustManager()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
     }
@@ -273,11 +288,10 @@ class SSLFactoryShould {
         assertThat(sslFactory.getIdentities()).isNotEmpty();
         assertThat(sslFactory.getIdentities().get(0).getKeyStorePassword()).isEqualTo(IDENTITY_PASSWORD);
 
-        assertThat(sslFactory.getTrustManager()).isNotNull();
+        assertThat(sslFactory.getTrustManager()).isPresent();
         assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
         assertThat(sslFactory.getTrustStores()).isNotEmpty();
         assertThat(sslFactory.getTrustStores().get(0).getKeyStorePassword()).isEqualTo(TRUSTSTORE_PASSWORD);
-        assertThat(sslFactory.getTrustManager()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
     }
@@ -297,11 +311,10 @@ class SSLFactoryShould {
         assertThat(sslFactory.getKeyManager()).isPresent();
         assertThat(sslFactory.getIdentities()).isEmpty();
 
-        assertThat(sslFactory.getTrustManager()).isNotNull();
+        assertThat(sslFactory.getTrustManager()).isPresent();
         assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
         assertThat(sslFactory.getTrustStores()).isNotEmpty();
         assertThat(sslFactory.getTrustStores().get(0).getKeyStorePassword()).isEmpty();
-        assertThat(sslFactory.getTrustManager()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
     }
@@ -320,10 +333,9 @@ class SSLFactoryShould {
         assertThat(sslFactory.getIdentities()).isNotEmpty();
         assertThat(sslFactory.getIdentities().get(0).getKeyStorePassword()).isEmpty();
 
-        assertThat(sslFactory.getTrustManager()).isNotNull();
+        assertThat(sslFactory.getTrustManager()).isPresent();
         assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
         assertThat(sslFactory.getTrustStores()).isEmpty();
-        assertThat(sslFactory.getTrustManager()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
     }
@@ -343,10 +355,9 @@ class SSLFactoryShould {
         assertThat(sslFactory.getIdentities().get(0).getKeyStorePassword()).isEqualTo(IDENTITY_PASSWORD);
         assertThat(sslFactory.getIdentities().get(0).getKeyPassword()).isEqualTo("my-precious".toCharArray());
 
-        assertThat(sslFactory.getTrustManager()).isNotNull();
+        assertThat(sslFactory.getTrustManager()).isPresent();
         assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
         assertThat(sslFactory.getTrustStores()).isEmpty();
-        assertThat(sslFactory.getTrustManager()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
     }
@@ -368,10 +379,9 @@ class SSLFactoryShould {
         assertThat(sslFactory.getIdentities().get(0).getKeyStorePassword()).isEqualTo(IDENTITY_PASSWORD);
         assertThat(sslFactory.getIdentities().get(0).getKeyPassword()).isEqualTo("my-precious".toCharArray());
 
-        assertThat(sslFactory.getTrustManager()).isNotNull();
+        assertThat(sslFactory.getTrustManager()).isPresent();
         assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
         assertThat(sslFactory.getTrustStores()).isEmpty();
-        assertThat(sslFactory.getTrustManager()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
 
@@ -395,11 +405,10 @@ class SSLFactoryShould {
         assertThat(sslFactory.getIdentities()).isNotEmpty();
         assertThat(sslFactory.getIdentities().get(0).getKeyStorePassword()).isEqualTo(IDENTITY_PASSWORD);
 
-        assertThat(sslFactory.getTrustManager()).isNotNull();
+        assertThat(sslFactory.getTrustManager()).isPresent();
         assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
         assertThat(sslFactory.getTrustStores()).isNotEmpty();
         assertThat(sslFactory.getTrustStores().get(0).getKeyStorePassword()).isEqualTo(TRUSTSTORE_PASSWORD);
-        assertThat(sslFactory.getTrustManager()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
 
@@ -424,11 +433,10 @@ class SSLFactoryShould {
         assertThat(sslFactory.getIdentities()).isNotEmpty();
         assertThat(sslFactory.getIdentities().get(0).getKeyStorePassword()).isEqualTo(IDENTITY_PASSWORD);
 
-        assertThat(sslFactory.getTrustManager()).isNotNull();
+        assertThat(sslFactory.getTrustManager()).isPresent();
         assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
         assertThat(sslFactory.getTrustStores()).isNotEmpty();
         assertThat(sslFactory.getTrustStores().get(0).getKeyStorePassword()).isEqualTo(TRUSTSTORE_PASSWORD);
-        assertThat(sslFactory.getTrustManager()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
 
@@ -453,11 +461,10 @@ class SSLFactoryShould {
         assertThat(sslFactory.getIdentities()).isNotEmpty();
         assertThat(sslFactory.getIdentities().get(0).getKeyStorePassword()).isEqualTo(IDENTITY_PASSWORD);
 
-        assertThat(sslFactory.getTrustManager()).isNotNull();
+        assertThat(sslFactory.getTrustManager()).isPresent();
         assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
         assertThat(sslFactory.getTrustStores()).isNotEmpty();
         assertThat(sslFactory.getTrustStores().get(0).getKeyStorePassword()).isEqualTo(TRUSTSTORE_PASSWORD);
-        assertThat(sslFactory.getTrustManager()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
     }
@@ -478,11 +485,10 @@ class SSLFactoryShould {
         assertThat(sslFactory.getIdentities()).isNotEmpty();
         assertThat(sslFactory.getIdentities().get(0).getKeyStorePassword()).isEmpty();
 
-        assertThat(sslFactory.getTrustManager()).isNotNull();
+        assertThat(sslFactory.getTrustManager()).isPresent();
         assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
         assertThat(sslFactory.getTrustStores()).isNotEmpty();
         assertThat(sslFactory.getTrustStores().get(0).getKeyStorePassword()).isEmpty();
-        assertThat(sslFactory.getTrustManager()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
     }
@@ -637,7 +643,8 @@ class SSLFactoryShould {
         assertThat(sslFactory.getSslContext()).isNotNull();
         assertThat(sslFactory.getTrustedCertificates()).isEmpty();
         assertThat(sslFactory.getTrustStores()).isEmpty();
-        assertThat(sslFactory.getTrustManager()).isInstanceOf(CompositeX509ExtendedTrustManager.class);
+        assertThat(sslFactory.getTrustManager()).isPresent();
+        assertThat(sslFactory.getTrustManager().get()).isInstanceOf(CompositeX509ExtendedTrustManager.class);
         assertThat(logCaptor.getWarnLogs()).contains("UnsafeTrustManager is being used. Client/Server certificates will be accepted without validation. Please don't use this configuration at production.");
     }
 
@@ -836,17 +843,6 @@ class SSLFactoryShould {
                 .hasMessage(GENERIC_IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
 
         Files.delete(identityPath);
-    }
-
-    @Test
-    void throwExceptionWhenTrustMaterialIsMissingAlthoughIdentityMaterialIsPresent() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
-        SSLFactory.Builder factoryBuilder = SSLFactory.builder()
-                .withIdentityMaterial(identity, IDENTITY_PASSWORD);
-
-        assertThatThrownBy(factoryBuilder::build)
-                .isInstanceOf(GenericKeyStoreException.class)
-                .hasMessage(GENERIC_TRUST_STRATEGY_VALIDATION_EXCEPTION_MESSAGE);
     }
 
     @Test

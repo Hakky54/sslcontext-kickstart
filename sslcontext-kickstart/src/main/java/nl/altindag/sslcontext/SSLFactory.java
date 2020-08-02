@@ -28,6 +28,7 @@ import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -56,6 +57,7 @@ public final class SSLFactory {
     private SSLContext sslContext;
     private CompositeX509ExtendedTrustManager trustManager;
     private CompositeX509ExtendedKeyManager keyManager;
+    private List<X509Certificate> trustedCertificates;
 
     @SuppressWarnings("java:S107")
     private SSLFactory(String protocol,
@@ -81,11 +83,15 @@ public final class SSLFactory {
         this.passwordCachingEnabled = passwordCachingEnabled;
     }
 
+    private void createSSLContextWithIdentityMaterial() {
+        createSSLContext(createKeyManager(), null);
+    }
+
     private void createSSLContextWithTrustMaterial() {
         createSSLContext(null, createTrustManagers());
     }
 
-    private void createSSLContextWithKeyMaterialAndTrustMaterial() {
+    private void createSSLContextWithIdentityMaterialAndTrustMaterial() {
         createSSLContext(createKeyManager(), createTrustManagers());
     }
 
@@ -162,12 +168,19 @@ public final class SSLFactory {
         return Optional.ofNullable(keyManager);
     }
 
-    public X509ExtendedTrustManager getTrustManager() {
-        return trustManager;
+    public Optional<X509ExtendedTrustManager> getTrustManager() {
+        return Optional.ofNullable(trustManager);
     }
 
-    public X509Certificate[] getTrustedCertificates() {
-        return trustManager.getAcceptedIssuers();
+    public List<X509Certificate> getTrustedCertificates() {
+        if (isNull(trustedCertificates)) {
+            trustedCertificates = Optional.ofNullable(trustManager)
+                    .map(X509ExtendedTrustManager::getAcceptedIssuers)
+                    .flatMap(x509Certificates -> Optional.of(Arrays.asList(x509Certificates)))
+                    .map(Collections::unmodifiableList)
+                    .orElse(Collections.emptyList());
+        }
+        return trustedCertificates;
     }
 
     public HostnameVerifier getHostnameVerifier() {
@@ -181,11 +194,6 @@ public final class SSLFactory {
     public static class Builder {
 
         private static final String TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE = "TrustStore details are empty, which are required to be present when SSL/TLS is enabled";
-        private static final String TRUST_STRATEGY_VALIDATION_EXCEPTION_MESSAGE = "Trust strategy is missing. Please validate if the TrustStore is present, "
-                + "or including default JDK TrustStore is enabled, "
-                + "or TrustManager is present, "
-                + "or trusting all certificates without validation is enabled";
-
         private static final String IDENTITY_VALIDATION_EXCEPTION_MESSAGE = "Identity details are empty, which are required to be present when SSL/TLS is enabled";
         private static final String KEY_STORE_LOADING_EXCEPTION = "Failed to load the keystore";
         public static final String IDENTITY_AND_TRUST_MATERIAL_VALIDATION_EXCEPTION_MESSAGE = "Could not create instance of SSLFactory because Identity " +
@@ -370,10 +378,6 @@ public final class SSLFactory {
                 throw new GenericSecurityException(IDENTITY_AND_TRUST_MATERIAL_VALIDATION_EXCEPTION_MESSAGE);
             }
 
-            if (isTrustMaterialNotPresent()) {
-                throw new GenericKeyStoreException(TRUST_STRATEGY_VALIDATION_EXCEPTION_MESSAGE);
-            }
-
             SSLFactory sslFactory = new SSLFactory(
                     protocol,
                     secureRandom,
@@ -387,12 +391,16 @@ public final class SSLFactory {
                     passwordCachingEnabled
             );
 
-            if (isIdentityMaterialPresent() && isTrustMaterialPresent()) {
-                sslFactory.createSSLContextWithKeyMaterialAndTrustMaterial();
+            if (isIdentityMaterialPresent() && isTrustMaterialNotPresent()) {
+                sslFactory.createSSLContextWithIdentityMaterial();
             }
 
             if (isIdentityMaterialNotPresent() && isTrustMaterialPresent()) {
                 sslFactory.createSSLContextWithTrustMaterial();
+            }
+
+            if (isIdentityMaterialPresent() && isTrustMaterialPresent()) {
+                sslFactory.createSSLContextWithIdentityMaterialAndTrustMaterial();
             }
 
             return sslFactory;
