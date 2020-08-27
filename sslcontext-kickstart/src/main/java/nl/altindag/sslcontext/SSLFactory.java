@@ -264,6 +264,11 @@ public final class SSLFactory {
             return this;
         }
 
+        public Builder withTrustMaterial(KeyStore trustStore) {
+            withTrustMaterial(trustStore, EMPTY_PASSWORD);
+            return this;
+        }
+
         public Builder withTrustMaterial(KeyStore trustStore, char[] trustStorePassword) {
             validateKeyStore(trustStore, TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
             KeyStoreHolder trustStoreHolder = new KeyStoreHolder(trustStore, trustStorePassword);
