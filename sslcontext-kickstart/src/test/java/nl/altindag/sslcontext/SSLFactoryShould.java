@@ -136,6 +136,26 @@ class SSLFactoryShould {
     }
 
     @Test
+    void buildSSLFactoryWithTrustMaterialFromKeyStoreWithoutAdditionalPassword() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withTrustMaterial(trustStore)
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+
+        assertThat(sslFactory.getTrustManager()).isPresent();
+        assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
+        assertThat(sslFactory.getTrustStores()).isNotEmpty();
+        assertThat(sslFactory.getHostnameVerifier()).isNotNull();
+
+        assertThat(sslFactory.getKeyManager()).isNotPresent();
+        assertThat(sslFactory.getIdentities()).isEmpty();
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+    }
+
+    @Test
     void buildSSLFactoryWithTrustMaterialFromTrustManager() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
