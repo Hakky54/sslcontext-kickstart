@@ -87,15 +87,15 @@ public final class PemUtils {
         return parseCertificate(content);
     }
 
-    private static Map<String, Certificate> parseCertificate(String content) throws IOException, CertificateException {
+    private static Map<String, Certificate> parseCertificate(String certificateContent) throws IOException, CertificateException {
         Map<String, Certificate> certificates = new HashMap<>();
-        Matcher matcher = CERTIFICATE_PATTERN.matcher(content);
+        Matcher certificateMatcher = CERTIFICATE_PATTERN.matcher(certificateContent);
 
-        while (matcher.find()) {
-            byte[] certificateAsBytes = Base64.getDecoder().decode(matcher.group(1).replaceAll(NEW_LINE, EMPTY).trim());
-            try(ByteArrayInputStream certificateAsByteArrayStream = new ByteArrayInputStream(certificateAsBytes)) {
+        while (certificateMatcher.find()) {
+            byte[] decodedCertificate = Base64.getDecoder().decode(certificateMatcher.group(1).replaceAll(NEW_LINE, EMPTY).trim());
+            try(ByteArrayInputStream certificateAsInputStream = new ByteArrayInputStream(decodedCertificate)) {
                 CertificateFactory certificateFactory = CertificateFactory.getInstance(CERTIFICATE_TYPE);
-                Certificate certificate = certificateFactory.generateCertificate(certificateAsByteArrayStream);
+                Certificate certificate = certificateFactory.generateCertificate(certificateAsInputStream);
                 certificates.put(getCertificateAlias(certificate), certificate);
             }
         }
