@@ -213,6 +213,13 @@ SSLFactory.builder()
           .build();
 ```
 
+Support for using system trust material (only available for Mac and Windows)
+```text
+SSLFactory.builder()
+          .withSystemTrustMaterial()
+          .build();
+```
+
 ### Additional mappers for specific libraries
 Some http clients relay on different ssl classes from third parties and require mapping from SSLFactory to those libraries.
 Below you will find the maven dependency which will provide the mapping and also the SSLFactory library.
