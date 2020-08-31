@@ -194,6 +194,23 @@ class SSLFactoryShould {
     }
 
     @Test
+    void buildSSLFactoryWithTrustMaterialFromOnlySystemTrustedCertificates() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withSystemTrustMaterial()
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+
+        assertThat(sslFactory.getTrustManager()).isPresent();
+        assertThat(sslFactory.getTrustStores()).isEmpty();
+        assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
+
+        assertThat(sslFactory.getKeyManager()).isNotPresent();
+        assertThat(sslFactory.getIdentities()).isEmpty();
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+    }
+
+    @Test
     void buildSSLFactoryWithSecureRandom() throws NoSuchAlgorithmException {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withSecureRandom(SecureRandom.getInstanceStrong())

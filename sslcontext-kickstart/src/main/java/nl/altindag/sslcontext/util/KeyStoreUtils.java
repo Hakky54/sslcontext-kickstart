@@ -11,6 +11,8 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.util.ArrayList;
+import java.util.List;
 
 public final class KeyStoreUtils {
 
@@ -44,6 +46,31 @@ public final class KeyStoreUtils {
         KeyStore keystore = KeyStore.getInstance(keystoreType);
         keystore.load(keystoreInputStream, keystorePassword);
         return keystore;
+    }
+
+    public static List<KeyStore> loadSystemKeyStores() throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
+        List<KeyStore> keyStores = new ArrayList<>();
+        String operatingSystem = System.getProperty("os.name").toLowerCase();
+        if (operatingSystem.contains("windows")) {
+            KeyStore windowsRootKeyStore = loadSystemKeyStore("Windows-ROOT");
+            KeyStore windowsMyKeyStore = loadSystemKeyStore("Windows-MY");
+
+            keyStores.add(windowsRootKeyStore);
+            keyStores.add(windowsMyKeyStore);
+        }
+
+        if (operatingSystem.contains("mac")) {
+            KeyStore macKeyStore = loadSystemKeyStore("KeychainStore");
+            keyStores.add(macKeyStore);
+        }
+
+        return keyStores;
+    }
+
+    private static KeyStore loadSystemKeyStore(String keyStoreType) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
+        KeyStore keyStore = KeyStore.getInstance(keyStoreType);
+        keyStore.load(null, null);
+        return keyStore;
     }
 
 }
