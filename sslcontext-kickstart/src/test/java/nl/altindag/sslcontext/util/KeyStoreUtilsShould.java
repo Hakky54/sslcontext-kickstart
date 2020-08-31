@@ -60,7 +60,10 @@ class KeyStoreUtilsShould {
     void loadSystemKeyStore() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         List<KeyStore> keyStores = KeyStoreUtils.loadSystemKeyStores();
 
-        assertThat(keyStores).isNotEmpty();
+        String operatingSystem = System.getProperty("os.name").toLowerCase();
+        if (operatingSystem.contains("mac") || operatingSystem.contains("windows")) {
+            assertThat(keyStores).isNotEmpty();
+        }
     }
 
     @Test

@@ -199,7 +199,11 @@ class SSLFactoryShould {
 
         assertThat(sslFactory.getTrustManager()).isPresent();
         assertThat(sslFactory.getTrustStores()).isEmpty();
-        assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
+
+        String operatingSystem = System.getProperty("os.name").toLowerCase();
+        if (operatingSystem.contains("mac") || operatingSystem.contains("windows")) {
+            assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
+        }
 
         assertThat(sslFactory.getKeyManager()).isNotPresent();
         assertThat(sslFactory.getIdentities()).isEmpty();
