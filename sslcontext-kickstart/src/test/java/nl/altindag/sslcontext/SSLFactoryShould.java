@@ -54,10 +54,6 @@ class SSLFactoryShould {
 
     private static final String GENERIC_IDENTITY_VALIDATION_EXCEPTION_MESSAGE = "Identity details are empty, which are required to be present when SSL/TLS is enabled";
     private static final String GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE = "TrustStore details are empty, which are required to be present when SSL/TLS is enabled";
-    private static final String GENERIC_TRUST_STRATEGY_VALIDATION_EXCEPTION_MESSAGE = "Trust strategy is missing. Please validate if the TrustStore is present, " +
-            "or including default JDK TrustStore is enabled, " +
-            "or TrustManager is present, " +
-            "or trusting all certificates without validation is enabled";
 
     @Test
     void buildSSLFactoryWithTrustMaterial() {
@@ -187,6 +183,27 @@ class SSLFactoryShould {
         assertThat(sslFactory.getTrustManager()).isPresent();
         assertThat(sslFactory.getTrustStores()).isEmpty();
         assertThat(sslFactory.getTrustedCertificates()).hasSizeGreaterThan(10);
+
+        assertThat(sslFactory.getKeyManager()).isNotPresent();
+        assertThat(sslFactory.getIdentities()).isEmpty();
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+    }
+
+    @Test
+    void buildSSLFactoryWithTrustMaterialFromOnlySystemTrustedCertificates() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withSystemTrustMaterial()
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+
+        assertThat(sslFactory.getTrustManager()).isPresent();
+        assertThat(sslFactory.getTrustStores()).isEmpty();
+
+        String operatingSystem = System.getProperty("os.name").toLowerCase();
+        if (operatingSystem.contains("mac") || operatingSystem.contains("windows")) {
+            assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
+        }
 
         assertThat(sslFactory.getKeyManager()).isNotPresent();
         assertThat(sslFactory.getIdentities()).isEmpty();

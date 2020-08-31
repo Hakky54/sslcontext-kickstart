@@ -7,9 +7,11 @@ import nl.altindag.sslcontext.trustmanager.CompositeX509ExtendedTrustManager;
 
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509ExtendedTrustManager;
+import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,6 +32,15 @@ public final class TrustManagerUtils {
 
     public static X509ExtendedTrustManager createTrustManagerWithJdkTrustedCertificates() {
         return createTrustManager((KeyStore) null);
+    }
+
+    public static X509ExtendedTrustManager createTrustManagerWithSystemTrustedCertificates() {
+        try {
+            KeyStore[] trustStores = KeyStoreUtils.loadSystemKeyStores().toArray(new KeyStore[]{});
+            return createTrustManager(trustStores);
+        } catch (IOException | CertificateException | NoSuchAlgorithmException | KeyStoreException e) {
+            throw new GenericSecurityException(e);
+        }
     }
 
     public static X509ExtendedTrustManager createTrustManager(KeyStoreHolder... trustStoreHolders) {

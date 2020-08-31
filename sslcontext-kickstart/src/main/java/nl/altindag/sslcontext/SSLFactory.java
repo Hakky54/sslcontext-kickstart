@@ -50,6 +50,7 @@ public final class SSLFactory {
 
     private final List<KeyStoreHolder> trustStores = new ArrayList<>();
     private final List<X509ExtendedTrustManager> trustManagers = new ArrayList<>();
+    private final boolean includeSystemTrustStore;
     private final boolean includeDefaultJdkTrustStore;
     private final boolean trustingAllCertificatesWithoutValidationEnabled;
     private final boolean passwordCachingEnabled;
@@ -67,6 +68,7 @@ public final class SSLFactory {
                        List<X509ExtendedKeyManager> identityManagers,
                        List<KeyStoreHolder> trustStores,
                        List<X509ExtendedTrustManager> trustManagers,
+                       boolean includeSystemTrustStore,
                        boolean includeDefaultJdkTrustStore,
                        boolean trustingAllCertificatesWithoutValidationEnabled,
                        boolean passwordCachingEnabled) {
@@ -78,6 +80,7 @@ public final class SSLFactory {
         this.identityManagers.addAll(identityManagers);
         this.trustStores.addAll(trustStores);
         this.trustManagers.addAll(trustManagers);
+        this.includeSystemTrustStore = includeSystemTrustStore;
         this.includeDefaultJdkTrustStore = includeDefaultJdkTrustStore;
         this.trustingAllCertificatesWithoutValidationEnabled = trustingAllCertificatesWithoutValidationEnabled;
         this.passwordCachingEnabled = passwordCachingEnabled;
@@ -128,6 +131,10 @@ public final class SSLFactory {
         if (trustingAllCertificatesWithoutValidationEnabled) {
             LOGGER.warn("UnsafeTrustManager is being used. Client/Server certificates will be accepted without validation. Please don't use this configuration at production.");
             trustManagerBuilder.withTrustManagers(UnsafeX509ExtendedTrustManager.INSTANCE);
+        }
+
+        if (includeSystemTrustStore) {
+            trustManagerBuilder.withTrustManagers(TrustManagerUtils.createTrustManagerWithSystemTrustedCertificates());
         }
 
         if (includeDefaultJdkTrustStore) {
@@ -208,11 +215,17 @@ public final class SSLFactory {
         private final List<X509ExtendedKeyManager> identityManagers = new ArrayList<>();
         private final List<X509ExtendedTrustManager> trustManagers = new ArrayList<>();
 
+        private boolean includeSystemTrustStore = false;
         private boolean includeDefaultJdkTrustStore = false;
         private boolean trustingAllCertificatesWithoutValidationEnabled = false;
         private boolean passwordCachingEnabled = false;
 
         private Builder() {}
+
+        public Builder withSystemTrustMaterial() {
+            this.includeSystemTrustStore = true;
+            return this;
+        }
 
         public Builder withDefaultTrustMaterial() {
             this.includeDefaultJdkTrustStore = true;
@@ -391,6 +404,7 @@ public final class SSLFactory {
                     identityManagers,
                     trustStores,
                     trustManagers,
+                    includeSystemTrustStore,
                     includeDefaultJdkTrustStore,
                     trustingAllCertificatesWithoutValidationEnabled,
                     passwordCachingEnabled
@@ -414,6 +428,7 @@ public final class SSLFactory {
         private boolean isTrustMaterialPresent() {
             return !trustStores.isEmpty()
                     || !trustManagers.isEmpty()
+                    || includeSystemTrustStore
                     || includeDefaultJdkTrustStore
                     || trustingAllCertificatesWithoutValidationEnabled;
         }
