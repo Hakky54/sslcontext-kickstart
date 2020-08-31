@@ -54,10 +54,6 @@ class SSLFactoryShould {
 
     private static final String GENERIC_IDENTITY_VALIDATION_EXCEPTION_MESSAGE = "Identity details are empty, which are required to be present when SSL/TLS is enabled";
     private static final String GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE = "TrustStore details are empty, which are required to be present when SSL/TLS is enabled";
-    private static final String GENERIC_TRUST_STRATEGY_VALIDATION_EXCEPTION_MESSAGE = "Trust strategy is missing. Please validate if the TrustStore is present, " +
-            "or including default JDK TrustStore is enabled, " +
-            "or TrustManager is present, " +
-            "or trusting all certificates without validation is enabled";
 
     @Test
     void buildSSLFactoryWithTrustMaterial() {
