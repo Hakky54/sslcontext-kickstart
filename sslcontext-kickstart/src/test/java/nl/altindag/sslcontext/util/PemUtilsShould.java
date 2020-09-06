@@ -143,6 +143,16 @@ class PemUtilsShould {
     }
 
     @Test
+    void loadUnencryptedIdentityMaterialFromInputStream() throws InvalidKeySpecException, CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        X509ExtendedKeyManager keyManager;
+        try(InputStream inputStream = getResource(PEM_LOCATION + "unencrypted-identity.pem")) {
+            keyManager = PemUtils.loadIdentityMaterial(inputStream);
+        }
+
+        assertThat(keyManager).isNotNull();
+    }
+
+    @Test
     void loadUnencryptedPrivateKeyAndCertificateAsIdentityFromClassPath() throws InvalidKeySpecException, CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(
                 PEM_LOCATION + "splitted-unencrypted-identity-containing-private-key.pem",

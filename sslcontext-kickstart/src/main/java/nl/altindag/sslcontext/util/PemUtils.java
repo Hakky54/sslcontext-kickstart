@@ -200,4 +200,9 @@ public final class PemUtils {
         }
     }
 
+    public static X509ExtendedKeyManager loadIdentityMaterial(InputStream identityStream) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, KeyStoreException, CertificateException {
+        String identityContent = getStreamContent(identityStream);
+        return parseIdentityMaterial(identityContent, identityContent);
+    }
+
 }
