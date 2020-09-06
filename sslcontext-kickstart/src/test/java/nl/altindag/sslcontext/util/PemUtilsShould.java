@@ -155,8 +155,8 @@ class PemUtilsShould {
     @Test
     void loadUnencryptedPrivateKeyAndCertificateAsIdentityFromClassPath() throws InvalidKeySpecException, CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(
-                PEM_LOCATION + "splitted-unencrypted-identity-containing-private-key.pem",
-                PEM_LOCATION + "splitted-unencrypted-identity-containing-certificate.pem"
+                PEM_LOCATION + "splitted-unencrypted-identity-containing-certificate.pem",
+                PEM_LOCATION + "splitted-unencrypted-identity-containing-private-key.pem"
         );
 
         assertThat(keyManager).isNotNull();
@@ -164,10 +164,10 @@ class PemUtilsShould {
 
     @Test
     void loadUnencryptedPrivateKeyAndCertificateAsIdentityFromDirectory() throws InvalidKeySpecException, CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        Path privateKeyPath = copyFileToHomeDirectory(PEM_LOCATION, "splitted-unencrypted-identity-containing-private-key.pem");
         Path certificatePath = copyFileToHomeDirectory(PEM_LOCATION, "splitted-unencrypted-identity-containing-certificate.pem");
+        Path privateKeyPath = copyFileToHomeDirectory(PEM_LOCATION, "splitted-unencrypted-identity-containing-private-key.pem");
 
-        X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(privateKeyPath, certificatePath);
+        X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(certificatePath, privateKeyPath);
 
         assertThat(keyManager).isNotNull();
 

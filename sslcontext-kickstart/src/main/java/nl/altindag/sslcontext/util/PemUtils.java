@@ -133,25 +133,25 @@ public final class PemUtils {
         return loadTrustMaterial(Function.identity(), certificateStreams);
     }
 
-    public static X509ExtendedKeyManager loadIdentityMaterial(String privateKeyPath, String certificatePath) throws IOException, InvalidKeySpecException, NoSuchAlgorithmException, CertificateException, KeyStoreException {
-        try(InputStream privateKeyStream = PemUtils.class.getClassLoader().getResourceAsStream(privateKeyPath);
-            InputStream certificateStream = PemUtils.class.getClassLoader().getResourceAsStream(certificatePath)) {
-            return loadIdentityMaterial(privateKeyStream, certificateStream);
+    public static X509ExtendedKeyManager loadIdentityMaterial(String certificatePath, String privateKeyPath) throws IOException, InvalidKeySpecException, NoSuchAlgorithmException, CertificateException, KeyStoreException {
+        try(InputStream certificateStream = PemUtils.class.getClassLoader().getResourceAsStream(certificatePath);
+            InputStream privateKeyStream = PemUtils.class.getClassLoader().getResourceAsStream(privateKeyPath)) {
+            return loadIdentityMaterial(certificateStream, privateKeyStream);
         }
     }
 
-    public static X509ExtendedKeyManager loadIdentityMaterial(InputStream privateKeyStream, InputStream certificateStream) throws IOException, InvalidKeySpecException, NoSuchAlgorithmException, CertificateException, KeyStoreException {
-        String privateKeyContent = getStreamContent(privateKeyStream);
+    public static X509ExtendedKeyManager loadIdentityMaterial(InputStream certificateStream, InputStream privateKeyStream) throws IOException, InvalidKeySpecException, NoSuchAlgorithmException, CertificateException, KeyStoreException {
         String certificateContent = getStreamContent(certificateStream);
-        return parseIdentityMaterial(privateKeyContent, certificateContent);
+        String privateKeyContent = getStreamContent(privateKeyStream);
+        return parseIdentityMaterial(certificateContent, privateKeyContent);
     }
 
-    private static X509ExtendedKeyManager parseIdentityMaterial(String privateKeyContent, String certificateContent) throws IOException, InvalidKeySpecException, NoSuchAlgorithmException, CertificateException, KeyStoreException {
+    private static X509ExtendedKeyManager parseIdentityMaterial(String certificateContent, String privateKeyContent) throws IOException, InvalidKeySpecException, NoSuchAlgorithmException, CertificateException, KeyStoreException {
         PrivateKey privateKey = parsePrivateKey(privateKeyContent);
         Certificate[] certificates = parseCertificate(certificateContent).values()
                 .toArray(new Certificate[]{});
 
-        return parseIdentityMaterial(privateKey, certificates);
+        return parseIdentityMaterial(certificates, privateKey);
     }
 
     private static PrivateKey parsePrivateKey(String identityContent) throws NoSuchAlgorithmException, InvalidKeySpecException {
@@ -172,17 +172,17 @@ public final class PemUtils {
         return keyFactory.generatePrivate(keySpecPKCS8);
     }
 
-    private static X509ExtendedKeyManager parseIdentityMaterial(PrivateKey privateKey, Certificate[] certificates) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, KeyStoreException, CertificateException {
+    private static X509ExtendedKeyManager parseIdentityMaterial(Certificate[] certificates, PrivateKey privateKey) throws IOException, NoSuchAlgorithmException, KeyStoreException, CertificateException {
         KeyStore keyStore = createEmptyKeyStore();
         keyStore.setKeyEntry(getCertificateAlias(certificates[0]), privateKey, null, certificates);
 
         return KeyManagerUtils.createKeyManager(keyStore, null);
     }
 
-    public static X509ExtendedKeyManager loadIdentityMaterial(Path privateKeyPath, Path certificatePath) throws IOException, InvalidKeySpecException, NoSuchAlgorithmException, CertificateException, KeyStoreException {
-        try(InputStream privateKeyStream = Files.newInputStream(privateKeyPath, StandardOpenOption.READ);
-            InputStream certificateStream = Files.newInputStream(certificatePath, StandardOpenOption.READ)) {
-            return loadIdentityMaterial(privateKeyStream, certificateStream);
+    public static X509ExtendedKeyManager loadIdentityMaterial(Path certificatePath, Path privateKeyPath) throws IOException, InvalidKeySpecException, NoSuchAlgorithmException, CertificateException, KeyStoreException {
+        try(InputStream certificateStream = Files.newInputStream(certificatePath, StandardOpenOption.READ);
+            InputStream privateKeyStream = Files.newInputStream(privateKeyPath, StandardOpenOption.READ)) {
+            return loadIdentityMaterial(certificateStream, privateKeyStream);
         }
     }
 
