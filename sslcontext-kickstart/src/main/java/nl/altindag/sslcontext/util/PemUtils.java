@@ -165,7 +165,7 @@ public final class PemUtils {
                 "The private key should be wrapped between [-----BEGIN PRIVATE KEY-----] and [-----END PRIVATE KEY-----]");
 
         PKCS8EncodedKeySpec keySpecPKCS8 = new PKCS8EncodedKeySpec(
-                Base64.getDecoder().decode(Objects.requireNonNull(privateKeyContent))
+                Base64.getDecoder().decode(privateKeyContent)
         );
 
         KeyFactory keyFactory = KeyFactory.getInstance(KEY_FACTORY_ALGORITHM);
