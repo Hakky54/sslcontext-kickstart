@@ -12,6 +12,7 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.util.List;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -53,6 +54,16 @@ class KeyStoreUtilsShould {
         assertThat(keyStore).isNotNull();
 
         Files.delete(keystorePath);
+    }
+
+    @Test
+    void loadSystemKeyStore() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        List<KeyStore> keyStores = KeyStoreUtils.loadSystemKeyStores();
+
+        String operatingSystem = System.getProperty("os.name").toLowerCase();
+        if (operatingSystem.contains("mac") || operatingSystem.contains("windows")) {
+            assertThat(keyStores).isNotEmpty();
+        }
     }
 
     @Test

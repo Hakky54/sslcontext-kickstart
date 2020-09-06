@@ -16,20 +16,20 @@
 <dependency>
     <groupId>io.github.hakky54</groupId>
     <artifactId>sslcontext-kickstart</artifactId>
-    <version>5.0.0</version>
+    <version>5.1.0</version>
 </dependency>
 ```
 ### Install with Gradle
 ```groovy
-implementation 'io.github.hakky54:sslcontext-kickstart:5.0.0'
+implementation 'io.github.hakky54:sslcontext-kickstart:5.1.0'
 ```
 ### Install with Scala SBT
 ```
-libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "5.0.0"
+libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "5.1.0"
 ```
 ### Install with Apache Ivy
 ```xml
-<dependency org="io.github.hakky54" name="sslcontext-kickstart" rev="5.0.0" />
+<dependency org="io.github.hakky54" name="sslcontext-kickstart" rev="5.1.0" />
 ```
 
 ## Table of contents
@@ -213,6 +213,13 @@ SSLFactory.builder()
           .build();
 ```
 
+Support for using system trust material (only available for Mac and Windows)
+```text
+SSLFactory.builder()
+          .withSystemTrustMaterial()
+          .build();
+```
+
 ### Additional mappers for specific libraries
 Some http clients relay on different ssl classes from third parties and require mapping from SSLFactory to those libraries.
 Below you will find the maven dependency which will provide the mapping and also the SSLFactory library.
@@ -223,7 +230,7 @@ Some know http clients which relay on netty libraries are: [Spring WebFlux WebCl
 <dependency>
     <groupId>io.github.hakky54</groupId>
     <artifactId>sslcontext-kickstart-for-netty</artifactId>
-    <version>5.0.0</version>
+    <version>5.1.0</version>
 </dependency>
 ```
 Example setup for Spring WebClient with Netty:
@@ -261,7 +268,7 @@ public class App {
 <dependency>
     <groupId>io.github.hakky54</groupId>
     <artifactId>sslcontext-kickstart-for-jetty</artifactId>
-    <version>5.0.0</version>
+    <version>5.1.0</version>
 </dependency>
 ```
 Example setup for [Spring WebFlux WebClient Jetty](https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html):
@@ -298,7 +305,7 @@ However it is still possible to configure the http client with their custom conf
 <dependency>
     <groupId>io.github.hakky54</groupId>
     <artifactId>sslcontext-kickstart-for-apache</artifactId>
-    <version>5.0.0</version>
+    <version>5.1.0</version>
 </dependency>
 ```
 ```java
