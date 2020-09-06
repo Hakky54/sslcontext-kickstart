@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 
 public final class PemUtils {
 
+    private static final String KEYSTORE_TYPE = "PKCS12";
     private static final String KEY_FACTORY_ALGORITHM = "RSA";
     private static final String CERTIFICATE_TYPE = "X.509";
     private static final Pattern PRIVATE_KEY_PATTERN = Pattern.compile("-----BEGIN PRIVATE KEY-----(.*?)-----END PRIVATE KEY-----", Pattern.DOTALL);
@@ -67,7 +68,7 @@ public final class PemUtils {
     }
 
     private static KeyStore createEmptyKeyStore() throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException {
-        KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+        KeyStore keyStore = KeyStore.getInstance(KEYSTORE_TYPE);
         keyStore.load(null, null);
         return keyStore;
     }
