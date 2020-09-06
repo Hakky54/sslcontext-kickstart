@@ -90,12 +90,45 @@ class PemUtilsShould {
     }
 
     @Test
+    void loadSingleTrustMaterialFromSingleInputStream() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        X509ExtendedTrustManager trustManager;
+        try(InputStream inputStream = getResource(PEM_LOCATION + "github-certificate.pem")) {
+            trustManager = PemUtils.loadTrustMaterial(inputStream);
+        }
+
+        assertThat(trustManager).isNotNull();
+        assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
+    }
+
+    @Test
+    void loadMultipleTrustMaterialsFromMultipleInputStream() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        X509ExtendedTrustManager trustManager;
+        try(InputStream inputStreamOne = getResource(PEM_LOCATION + "github-certificate.pem");
+            InputStream inputStreamTwo = getResource(PEM_LOCATION + "stackexchange.pem")) {
+            trustManager = PemUtils.loadTrustMaterial(inputStreamOne, inputStreamTwo);
+        }
+
+        assertThat(trustManager).isNotNull();
+        assertThat(trustManager.getAcceptedIssuers()).hasSize(2);
+    }
+
+    @Test
+    void loadMultipleTrustMaterialsFromSingleInputStream() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        X509ExtendedTrustManager trustManager;
+        try(InputStream inputStream = getResource(PEM_LOCATION + "multiple-certificates.pem")) {
+            trustManager = PemUtils.loadTrustMaterial(inputStream);
+        }
+
+        assertThat(trustManager).isNotNull();
+        assertThat(trustManager.getAcceptedIssuers()).hasSize(3);
+    }
+
+    @Test
     void loadUnencryptedIdentityMaterialFromClassPath() throws InvalidKeySpecException, CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(PEM_LOCATION + "unencrypted-identity.pem");
 
         assertThat(keyManager).isNotNull();
     }
-
     @Test
     void loadUnencryptedIdentityMaterialFromDirectory() throws InvalidKeySpecException, CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         Path identityPath = copyFileToHomeDirectory(PEM_LOCATION, "unencrypted-identity.pem");
@@ -113,6 +146,10 @@ class PemUtilsShould {
             Files.copy(Objects.requireNonNull(file), destination, REPLACE_EXISTING);
             return destination;
         }
+    }
+
+    private InputStream getResource(String path) {
+        return this.getClass().getClassLoader().getResourceAsStream(path);
     }
 
 }

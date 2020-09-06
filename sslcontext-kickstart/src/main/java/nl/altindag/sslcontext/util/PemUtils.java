@@ -10,6 +10,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.security.KeyFactory;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -21,18 +22,19 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
-import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public final class PemUtils {
 
+    private static final String KEY_FACTORY_ALGORITHM = "RSA";
     private static final String CERTIFICATE_TYPE = "X.509";
     private static final Pattern PRIVATE_KEY_PATTERN = Pattern.compile("-----BEGIN PRIVATE KEY-----(.*?)-----END PRIVATE KEY-----", Pattern.DOTALL);
     private static final Pattern CERTIFICATE_PATTERN = Pattern.compile("-----BEGIN CERTIFICATE-----(.*?)-----END CERTIFICATE-----", Pattern.DOTALL);
@@ -46,13 +48,15 @@ public final class PemUtils {
      * Reads a PEM formatted certificate file from the classpath
      */
     public static X509ExtendedTrustManager loadTrustMaterial(String... certificatePaths) throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException {
-        KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
-        trustStore.load(null);
+        return loadTrustMaterial(certificatePath -> PemUtils.class.getClassLoader().getResourceAsStream(certificatePath), certificatePaths);
+    }
 
-        for (String certificatePath : certificatePaths) {
-            try(InputStream certificateStream = PemUtils.class.getClassLoader().getResourceAsStream(certificatePath)) {
+    private static <T> X509ExtendedTrustManager loadTrustMaterial(Function<T, InputStream> resourceMapper, T... resources) throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        KeyStore trustStore = createEmptyKeyStore();
+
+        for (T resource : resources) {
+            try (InputStream certificateStream = resourceMapper.apply(resource)) {
                 Map<String, Certificate> certificates = parseCertificate(certificateStream);
-
                 for (Map.Entry<String, Certificate> entry : certificates.entrySet()) {
                     trustStore.setCertificateEntry(entry.getKey(), entry.getValue());
                 }
@@ -62,24 +66,10 @@ public final class PemUtils {
         return TrustManagerUtils.createTrustManager(trustStore);
     }
 
-    /**
-     * Reads a PEM formatted certificate file from the file system
-     */
-    public static X509ExtendedTrustManager loadTrustMaterial(Path... certificatePaths) throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException {
-        KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
-        trustStore.load(null);
-
-        for (Path certificatePath : certificatePaths) {
-            try(InputStream certificateStream = Files.newInputStream(certificatePath)) {
-                Map<String, Certificate> certificates = parseCertificate(certificateStream);
-
-                for (Map.Entry<String, Certificate> entry : certificates.entrySet()) {
-                    trustStore.setCertificateEntry(entry.getKey(), entry.getValue());
-                }
-            }
-        }
-
-        return TrustManagerUtils.createTrustManager(trustStore);
+    private static KeyStore createEmptyKeyStore() throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException {
+        KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+        keyStore.load(null, null);
+        return keyStore;
     }
 
     private static Map<String, Certificate> parseCertificate(InputStream certificateStream) throws IOException, CertificateException {
@@ -87,12 +77,22 @@ public final class PemUtils {
         return parseCertificate(content);
     }
 
+    private static String getStreamContent(InputStream inputStream) throws IOException {
+        try(InputStreamReader inputStreamReader = new InputStreamReader(Objects.requireNonNull(inputStream), StandardCharsets.UTF_8);
+            BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
+
+            return bufferedReader.lines()
+                    .collect(Collectors.joining(NEW_LINE));
+        }
+    }
+
     private static Map<String, Certificate> parseCertificate(String certificateContent) throws IOException, CertificateException {
         Map<String, Certificate> certificates = new HashMap<>();
         Matcher certificateMatcher = CERTIFICATE_PATTERN.matcher(certificateContent);
 
         while (certificateMatcher.find()) {
-            byte[] decodedCertificate = Base64.getDecoder().decode(certificateMatcher.group(1).replaceAll(NEW_LINE, EMPTY).trim());
+            String sanitizedCertificate = certificateMatcher.group(1).replace(NEW_LINE, EMPTY).trim();
+            byte[] decodedCertificate = Base64.getDecoder().decode(sanitizedCertificate);
             try(ByteArrayInputStream certificateAsInputStream = new ByteArrayInputStream(decodedCertificate)) {
                 CertificateFactory certificateFactory = CertificateFactory.getInstance(CERTIFICATE_TYPE);
                 Certificate certificate = certificateFactory.generateCertificate(certificateAsInputStream);
@@ -101,6 +101,23 @@ public final class PemUtils {
         }
 
         return certificates;
+    }
+
+    /**
+     * Reads a PEM formatted certificate file from the file system
+     */
+    public static X509ExtendedTrustManager loadTrustMaterial(Path... certificatePaths) throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException {
+        return loadTrustMaterial(certificatePath -> {
+            try {
+                return Files.newInputStream(certificatePath, StandardOpenOption.READ);
+            } catch (IOException exception) {
+                throw new RuntimeException(exception);
+            }
+        }, certificatePaths);
+    }
+
+    public static X509ExtendedTrustManager loadTrustMaterial(InputStream... certificateStreams) throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        return loadTrustMaterial(Function.identity(), certificateStreams);
     }
 
     /**
@@ -124,41 +141,38 @@ public final class PemUtils {
     }
 
     private static X509ExtendedKeyManager parseIdentityMaterial(String identityContent) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, KeyStoreException, CertificateException {
-        String privateKeyContent = null;
-        Matcher privateKeyMatcher = PRIVATE_KEY_PATTERN.matcher(identityContent);
-        if (privateKeyMatcher.find()) {
-            privateKeyContent = privateKeyMatcher.group(1).replaceAll(NEW_LINE, EMPTY).trim();
-        }
-
-        Certificate[] certificates = new ArrayList<>(parseCertificate(identityContent).values())
+        PrivateKey privateKey = parsePrivateKey(identityContent);
+        Certificate[] certificates = parseCertificate(identityContent).values()
                 .toArray(new Certificate[]{});
 
-        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-
-        PKCS8EncodedKeySpec keySpecPKCS8 = new PKCS8EncodedKeySpec(Base64.getDecoder().decode(Objects.requireNonNull(privateKeyContent)));
-        PrivateKey privateKey = keyFactory.generatePrivate(keySpecPKCS8);
-
-        KeyStore keyStore = KeyStore.getInstance("PKCS12");
-        keyStore.load(null, null);
+        KeyStore keyStore = createEmptyKeyStore();
         keyStore.setKeyEntry(getCertificateAlias(certificates[0]), privateKey, null, certificates);
 
         return KeyManagerUtils.createKeyManager(keyStore, null);
     }
 
-    private static String getStreamContent(InputStream inputStream) throws IOException {
-        try(InputStreamReader inputStreamReader = new InputStreamReader(Objects.requireNonNull(inputStream), StandardCharsets.UTF_8);
-            BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
-            return bufferedReader.lines().collect(Collectors.joining(NEW_LINE));
+    private static PrivateKey parsePrivateKey(String identityContent) throws NoSuchAlgorithmException, InvalidKeySpecException {
+        String privateKeyContent = null;
+        Matcher privateKeyMatcher = PRIVATE_KEY_PATTERN.matcher(identityContent);
+        if (privateKeyMatcher.find()) {
+            privateKeyContent = privateKeyMatcher.group(1).replace(NEW_LINE, EMPTY).trim();
         }
+
+        PKCS8EncodedKeySpec keySpecPKCS8 = new PKCS8EncodedKeySpec(
+                Base64.getDecoder().decode(Objects.requireNonNull(privateKeyContent))
+        );
+
+        KeyFactory keyFactory = KeyFactory.getInstance(KEY_FACTORY_ALGORITHM);
+        return keyFactory.generatePrivate(keySpecPKCS8);
     }
 
     private static String getCertificateAlias(Certificate certificate) {
-        String alias;
         if (certificate instanceof X509Certificate) {
-            alias = ((X509Certificate) certificate).getSubjectX500Principal().getName();
+            return ((X509Certificate) certificate)
+                    .getSubjectX500Principal()
+                    .getName();
         } else {
-            alias = UUID.randomUUID().toString();
+            return UUID.randomUUID().toString();
         }
-        return alias;
     }
 }
