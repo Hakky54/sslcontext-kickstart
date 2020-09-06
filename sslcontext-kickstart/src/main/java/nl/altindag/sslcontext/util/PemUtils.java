@@ -104,6 +104,16 @@ public final class PemUtils {
         return certificates;
     }
 
+    private static String getCertificateAlias(Certificate certificate) {
+        if (certificate instanceof X509Certificate) {
+            return ((X509Certificate) certificate)
+                    .getSubjectX500Principal()
+                    .getName();
+        } else {
+            return UUID.randomUUID().toString();
+        }
+    }
+
     /**
      * Reads a PEM formatted certificate file from the file system
      */
@@ -117,6 +127,9 @@ public final class PemUtils {
         }, certificatePaths);
     }
 
+    /**
+     * Reads a PEM formatted certificate InputStream
+     */
     public static X509ExtendedTrustManager loadTrustMaterial(InputStream... certificateStreams) throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         return loadTrustMaterial(Function.identity(), certificateStreams);
     }
@@ -124,32 +137,28 @@ public final class PemUtils {
     /**
      * Reads an unencrypted PEM formatted key-pair file from the classpath
      */
-    public static X509ExtendedKeyManager loadIdentityMaterial(String identityPath) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, KeyStoreException, CertificateException {
-        try(InputStream identityStream = PemUtils.class.getClassLoader().getResourceAsStream(identityPath)) {
-            String identityContent = getStreamContent(identityStream);
-            return parseIdentityMaterial(identityContent);
+    public static X509ExtendedKeyManager loadIdentityMaterial(String privateKeyPath, String certificatePath) throws IOException, InvalidKeySpecException, NoSuchAlgorithmException, CertificateException, KeyStoreException {
+        try(InputStream privateKeyStream = PemUtils.class.getClassLoader().getResourceAsStream(privateKeyPath);
+            InputStream certificateStream = PemUtils.class.getClassLoader().getResourceAsStream(certificatePath)) {
+            return loadIdentityMaterial(privateKeyStream, certificateStream);
         }
     }
 
     /**
-     * Reads an unencrypted PEM formatted key-pair file from the file system
+     * Reads an unencrypted PEM formatted key-pair InputStream
      */
-    public static X509ExtendedKeyManager loadIdentityMaterial(Path identityPath) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, KeyStoreException, CertificateException {
-        try(InputStream identityStream = Files.newInputStream(identityPath)) {
-            String identityContent = getStreamContent(identityStream);
-            return parseIdentityMaterial(identityContent);
-        }
+    public static X509ExtendedKeyManager loadIdentityMaterial(InputStream privateKeyStream, InputStream certificateStream) throws IOException, InvalidKeySpecException, NoSuchAlgorithmException, CertificateException, KeyStoreException {
+        String privateKeyContent = getStreamContent(privateKeyStream);
+        String certificateContent = getStreamContent(certificateStream);
+        return parseIdentityMaterial(privateKeyContent, certificateContent);
     }
 
-    private static X509ExtendedKeyManager parseIdentityMaterial(String identityContent) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, KeyStoreException, CertificateException {
-        PrivateKey privateKey = parsePrivateKey(identityContent);
-        Certificate[] certificates = parseCertificate(identityContent).values()
+    private static X509ExtendedKeyManager parseIdentityMaterial(String privateKeyContent, String certificateContent) throws IOException, InvalidKeySpecException, NoSuchAlgorithmException, CertificateException, KeyStoreException {
+        PrivateKey privateKey = parsePrivateKey(privateKeyContent);
+        Certificate[] certificates = parseCertificate(certificateContent).values()
                 .toArray(new Certificate[]{});
 
-        KeyStore keyStore = createEmptyKeyStore();
-        keyStore.setKeyEntry(getCertificateAlias(certificates[0]), privateKey, null, certificates);
-
-        return KeyManagerUtils.createKeyManager(keyStore, null);
+        return parseIdentityMaterial(privateKey, certificates);
     }
 
     private static PrivateKey parsePrivateKey(String identityContent) throws NoSuchAlgorithmException, InvalidKeySpecException {
@@ -159,6 +168,9 @@ public final class PemUtils {
             privateKeyContent = privateKeyMatcher.group(1).replace(NEW_LINE, EMPTY).trim();
         }
 
+        Objects.requireNonNull(privateKeyContent, "Received an unsupported private key type. " +
+                "The private key should be wrapped between [-----BEGIN PRIVATE KEY-----] and [-----END PRIVATE KEY-----]");
+
         PKCS8EncodedKeySpec keySpecPKCS8 = new PKCS8EncodedKeySpec(
                 Base64.getDecoder().decode(Objects.requireNonNull(privateKeyContent))
         );
@@ -167,13 +179,41 @@ public final class PemUtils {
         return keyFactory.generatePrivate(keySpecPKCS8);
     }
 
-    private static String getCertificateAlias(Certificate certificate) {
-        if (certificate instanceof X509Certificate) {
-            return ((X509Certificate) certificate)
-                    .getSubjectX500Principal()
-                    .getName();
-        } else {
-            return UUID.randomUUID().toString();
+    private static X509ExtendedKeyManager parseIdentityMaterial(PrivateKey privateKey, Certificate[] certificates) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, KeyStoreException, CertificateException {
+        KeyStore keyStore = createEmptyKeyStore();
+        keyStore.setKeyEntry(getCertificateAlias(certificates[0]), privateKey, null, certificates);
+
+        return KeyManagerUtils.createKeyManager(keyStore, null);
+    }
+
+    /**
+     * Reads an unencrypted PEM formatted key-pair file from the file system
+     */
+    public static X509ExtendedKeyManager loadIdentityMaterial(Path privateKeyPath, Path certificatePath) throws IOException, InvalidKeySpecException, NoSuchAlgorithmException, CertificateException, KeyStoreException {
+        try(InputStream privateKeyStream = Files.newInputStream(privateKeyPath, StandardOpenOption.READ);
+            InputStream certificateStream = Files.newInputStream(certificatePath, StandardOpenOption.READ)) {
+            return loadIdentityMaterial(privateKeyStream, certificateStream);
         }
     }
+
+    /**
+     * Reads an unencrypted PEM formatted key-pair file from the classpath
+     */
+    public static X509ExtendedKeyManager loadIdentityMaterial(String identityPath) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, KeyStoreException, CertificateException {
+        try(InputStream identityStream = PemUtils.class.getClassLoader().getResourceAsStream(identityPath)) {
+            String identityContent = getStreamContent(identityStream);
+            return parseIdentityMaterial(identityContent, identityContent);
+        }
+    }
+
+    /**
+     * Reads an unencrypted PEM formatted key-pair file from the file system
+     */
+    public static X509ExtendedKeyManager loadIdentityMaterial(Path identityPath) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, KeyStoreException, CertificateException {
+        try(InputStream identityStream = Files.newInputStream(identityPath)) {
+            String identityContent = getStreamContent(identityStream);
+            return parseIdentityMaterial(identityContent, identityContent);
+        }
+    }
+
 }

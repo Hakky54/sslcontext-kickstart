@@ -17,6 +17,7 @@ import java.util.Objects;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SuppressWarnings("SameParameterValue")
 class PemUtilsShould {
@@ -129,6 +130,7 @@ class PemUtilsShould {
 
         assertThat(keyManager).isNotNull();
     }
+
     @Test
     void loadUnencryptedIdentityMaterialFromDirectory() throws InvalidKeySpecException, CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         Path identityPath = copyFileToHomeDirectory(PEM_LOCATION, "unencrypted-identity.pem");
@@ -138,6 +140,43 @@ class PemUtilsShould {
         assertThat(keyManager).isNotNull();
 
         Files.delete(identityPath);
+    }
+
+    @Test
+    void loadUnencryptedPrivateKeyAndCertificateAsIdentityFromClassPath() throws InvalidKeySpecException, CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(
+                PEM_LOCATION + "splitted-unencrypted-identity-containing-private-key.pem",
+                PEM_LOCATION + "splitted-unencrypted-identity-containing-certificate.pem"
+        );
+
+        assertThat(keyManager).isNotNull();
+    }
+
+    @Test
+    void loadUnencryptedPrivateKeyAndCertificateAsIdentityFromDirectory() throws InvalidKeySpecException, CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        Path privateKeyPath = copyFileToHomeDirectory(PEM_LOCATION, "splitted-unencrypted-identity-containing-private-key.pem");
+        Path certificatePath = copyFileToHomeDirectory(PEM_LOCATION, "splitted-unencrypted-identity-containing-certificate.pem");
+
+        X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(privateKeyPath, certificatePath);
+
+        assertThat(keyManager).isNotNull();
+
+        Files.delete(privateKeyPath);
+        Files.delete(certificatePath);
+    }
+
+    @Test
+    void loadingEncryptedIdentityThrowsException() {
+        assertThatThrownBy(() -> PemUtils.loadIdentityMaterial(PEM_LOCATION + "encrypted-identity.pem"))
+                .hasMessage("Received an unsupported private key type. " +
+                        "The private key should be wrapped between [-----BEGIN PRIVATE KEY-----] and [-----END PRIVATE KEY-----]");
+    }
+
+    @Test
+    void loadingRsaEncryptedIdentityThrowsException() {
+        assertThatThrownBy(() -> PemUtils.loadIdentityMaterial(PEM_LOCATION + "rsa-encrypted-identity.pem"))
+                .hasMessage("Received an unsupported private key type. " +
+                        "The private key should be wrapped between [-----BEGIN PRIVATE KEY-----] and [-----END PRIVATE KEY-----]");
     }
 
     private Path copyFileToHomeDirectory(String path, String fileName) throws IOException {
