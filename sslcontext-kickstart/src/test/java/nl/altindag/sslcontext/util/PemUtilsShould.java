@@ -6,6 +6,7 @@ import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509ExtendedTrustManager;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -88,6 +89,14 @@ class PemUtilsShould {
         assertThat(trustManager.getAcceptedIssuers()).hasSize(3);
 
         Files.delete(certificatePath);
+    }
+
+    @Test
+    void loadingNonExistingTrustMaterialFromDirectoryThrowsException() {
+        Path nonExistingCertificate = Paths.get("somewhere-in-space.pem");
+        assertThatThrownBy(() -> PemUtils.loadTrustMaterial(nonExistingCertificate))
+                .isInstanceOf(UncheckedIOException.class)
+                .hasMessage("java.nio.file.NoSuchFileException: somewhere-in-space.pem");
     }
 
     @Test

@@ -7,6 +7,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -124,7 +125,7 @@ public final class PemUtils {
             try {
                 return Files.newInputStream(certificatePath, StandardOpenOption.READ);
             } catch (IOException exception) {
-                throw new RuntimeException(exception);
+                throw new UncheckedIOException(exception);
             }
         }, certificatePaths);
     }
