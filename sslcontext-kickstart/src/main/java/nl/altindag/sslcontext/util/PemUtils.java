@@ -9,7 +9,6 @@ import nl.altindag.sslcontext.exception.PrivateKeyParseException;
 
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509ExtendedTrustManager;
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -206,10 +205,8 @@ public final class PemUtils {
     }
 
     private static KeySpec getKeySpecFromAsn1StructuredData(byte[] decodedPrivateKeyContent) throws IOException {
-        try(ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(decodedPrivateKeyContent);
-            BufferedInputStream bufferedInputStream = new BufferedInputStream(byteArrayInputStream)) {
-
-            ASN1InputStream stream = new ASN1InputStream(new DERDecoder(), bufferedInputStream);
+        try(ByteArrayInputStream privateKeyAsInputStream = new ByteArrayInputStream(decodedPrivateKeyContent)) {
+            ASN1InputStream stream = new ASN1InputStream(new DERDecoder(), privateKeyAsInputStream);
             ASN1Sequence asn1Sequence = stream.readObject();
 
             if (asn1Sequence.getValue().size() < 9) {
