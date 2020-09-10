@@ -220,6 +220,38 @@ SSLFactory.builder()
           .build();
 ```
 
+Support for using pem formatted private key and certificates from classpath, any directory or as an InputStream. See [PemUtilsShould](sslcontext-kickstart/src/test/java/nl/altindag/sslcontext/util/PemUtilsShould.java) for detailed usages.
+```text
+/* EXAMPLE FILES
+ *
+ * [some-trusted-certificate.pem]
+ * -----BEGIN CERTIFICATE-----
+ *             ...
+ *             ...
+ * -----END CERTIFICATE-----
+ *
+ * [private-key.pem]
+ * -----BEGIN PRIVATE KEY-----
+ *             ...
+ *             ...
+ * -----END PRIVATE KEY-----
+ *
+ * [private-key.pem]
+ * -----BEGIN RSA PRIVATE KEY-----
+ *             ...
+ *             ...
+ * -----END RSA PRIVATE KEY-----
+ */
+
+X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial("certificate.pem", "private-key.pem");
+X509ExtendedTrustManager trustManager = PemUtils.loadTrustMaterial("some-trusted-certificate.pem");
+
+SSLFactory.builder()
+          .withIdentityMaterial(keyManager)
+          .withTrustMaterial(trustManager)
+          .build();
+```
+
 ### Additional mappers for specific libraries
 Some http clients relay on different ssl classes from third parties and require mapping from SSLFactory to those libraries.
 Below you will find the maven dependency which will provide the mapping and also the SSLFactory library.

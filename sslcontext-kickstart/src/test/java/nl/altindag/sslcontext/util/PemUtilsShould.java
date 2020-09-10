@@ -1,5 +1,6 @@
 package nl.altindag.sslcontext.util;
 
+import nl.altindag.sslcontext.exception.PrivateKeyParseException;
 import org.junit.jupiter.api.Test;
 
 import javax.net.ssl.X509ExtendedKeyManager;
@@ -185,17 +186,18 @@ class PemUtilsShould {
     }
 
     @Test
-    void loadingEncryptedIdentityThrowsException() {
-        assertThatThrownBy(() -> PemUtils.loadIdentityMaterial(PEM_LOCATION + "encrypted-identity.pem"))
-                .hasMessage("Received an unsupported private key type. " +
-                        "The private key should be wrapped between [-----BEGIN PRIVATE KEY-----] and [-----END PRIVATE KEY-----]");
+    void loadRsaUnencryptedIdentityMaterialFromClassPath() throws InvalidKeySpecException, CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(PEM_LOCATION + "rsa-unencrypted-identity.pem");
+
+        assertThat(keyManager).isNotNull();
     }
 
     @Test
-    void loadingRsaEncryptedIdentityThrowsException() {
-        assertThatThrownBy(() -> PemUtils.loadIdentityMaterial(PEM_LOCATION + "rsa-encrypted-identity.pem"))
-                .hasMessage("Received an unsupported private key type. " +
-                        "The private key should be wrapped between [-----BEGIN PRIVATE KEY-----] and [-----END PRIVATE KEY-----]");
+    void loadingEncryptedIdentityThrowsException() {
+        assertThatThrownBy(() -> PemUtils.loadIdentityMaterial(PEM_LOCATION + "encrypted-identity.pem"))
+                .isInstanceOf(PrivateKeyParseException.class)
+                .hasMessage("Received an unsupported private key type. The private key should have either of the following pattern: " +
+                        "[-----BEGIN PRIVATE KEY-----(.*?)-----END PRIVATE KEY-----] or [-----BEGIN RSA PRIVATE KEY-----(.*?)-----END RSA PRIVATE KEY-----]");
     }
 
     private Path copyFileToHomeDirectory(String path, String fileName) throws IOException {

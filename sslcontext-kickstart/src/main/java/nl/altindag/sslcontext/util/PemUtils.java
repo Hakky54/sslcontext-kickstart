@@ -1,13 +1,22 @@
 package nl.altindag.sslcontext.util;
 
+import com.hierynomus.asn1.ASN1InputStream;
+import com.hierynomus.asn1.encodingrules.der.DERDecoder;
+import com.hierynomus.asn1.types.ASN1Object;
+import com.hierynomus.asn1.types.constructed.ASN1Sequence;
+import com.hierynomus.asn1.types.primitive.ASN1Integer;
+import nl.altindag.sslcontext.exception.PrivateKeyParseException;
+
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509ExtendedTrustManager;
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -22,7 +31,9 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
+import java.security.spec.KeySpec;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.RSAPrivateCrtKeySpec;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,21 +44,29 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static java.util.Objects.isNull;
+
 /**
  * Reads PEM formatted private keys and certificates
  * as identity material and trust material
  *
  * NOTE: There is currently limited support for reading
- *       the private keys. For now only unencrypted
- *       private keys are supported
+ *       the private keys. For now only private keys wrapped
+ *       in the following header and footer are supported:
+ *
+ *       - BEGIN PRIVATE KEY        ***     END PRIVATE KEY
+ *       - BEGIN RSA PRIVATE KEY    ***     END RSA PRIVATE KEY
+ *
  */
 public final class PemUtils {
 
     private static final String KEYSTORE_TYPE = "PKCS12";
     private static final String KEY_FACTORY_ALGORITHM = "RSA";
     private static final String CERTIFICATE_TYPE = "X.509";
-    private static final Pattern PRIVATE_KEY_PATTERN = Pattern.compile("-----BEGIN PRIVATE KEY-----(.*?)-----END PRIVATE KEY-----", Pattern.DOTALL);
+
     private static final Pattern CERTIFICATE_PATTERN = Pattern.compile("-----BEGIN CERTIFICATE-----(.*?)-----END CERTIFICATE-----", Pattern.DOTALL);
+    private static final Pattern PRIVATE_KEY_PATTERN = Pattern.compile("-----BEGIN PRIVATE KEY-----(.*?)-----END PRIVATE KEY-----", Pattern.DOTALL);
+    private static final Pattern RSA_PRIVATE_KEY_PATTERN = Pattern.compile("-----BEGIN RSA PRIVATE KEY-----(.*?)-----END RSA PRIVATE KEY-----", Pattern.DOTALL);
 
     private static final String NEW_LINE = "\n";
     private static final String EMPTY = "";
@@ -155,22 +174,73 @@ public final class PemUtils {
         return parseIdentityMaterial(certificates, privateKey);
     }
 
-    private static PrivateKey parsePrivateKey(String identityContent) throws NoSuchAlgorithmException, InvalidKeySpecException {
-        String privateKeyContent = null;
+    private static PrivateKey parsePrivateKey(String identityContent) throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
+        KeySpec keySpec = null;
+
         Matcher privateKeyMatcher = PRIVATE_KEY_PATTERN.matcher(identityContent);
         if (privateKeyMatcher.find()) {
-            privateKeyContent = privateKeyMatcher.group(1).replace(NEW_LINE, EMPTY).trim();
+            String privateKeyContent = privateKeyMatcher.group(1).replace(NEW_LINE, EMPTY).trim();
+            byte[] decodedPrivateKeyContent = Base64.getDecoder().decode(privateKeyContent);
+            keySpec = new PKCS8EncodedKeySpec(decodedPrivateKeyContent);
         }
 
-        Objects.requireNonNull(privateKeyContent, "Received an unsupported private key type. " +
-                "The private key should be wrapped between [-----BEGIN PRIVATE KEY-----] and [-----END PRIVATE KEY-----]");
+        privateKeyMatcher = RSA_PRIVATE_KEY_PATTERN.matcher(identityContent);
+        if (privateKeyMatcher.find()) {
+            String privateKeyContent = privateKeyMatcher.group(1).replace(NEW_LINE, EMPTY).trim();
+            byte[] decodedPrivateKeyContent = Base64.getDecoder().decode(privateKeyContent);
+            keySpec = getKeySpecFromAsn1StructuredData(decodedPrivateKeyContent);
+        }
 
-        PKCS8EncodedKeySpec keySpecPKCS8 = new PKCS8EncodedKeySpec(
-                Base64.getDecoder().decode(privateKeyContent)
-        );
+        if (isNull(keySpec)) {
+            throw new PrivateKeyParseException(
+                    String.format(
+                            "Received an unsupported private key type. " +
+                            "The private key should have either of the following pattern: [%s] or [%s]",
+                            PRIVATE_KEY_PATTERN.pattern(), RSA_PRIVATE_KEY_PATTERN.pattern()
+                    )
+            );
+        }
 
         KeyFactory keyFactory = KeyFactory.getInstance(KEY_FACTORY_ALGORITHM);
-        return keyFactory.generatePrivate(keySpecPKCS8);
+        return keyFactory.generatePrivate(keySpec);
+    }
+
+    private static KeySpec getKeySpecFromAsn1StructuredData(byte[] decodedPrivateKeyContent) throws IOException {
+        try(ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(decodedPrivateKeyContent);
+            BufferedInputStream bufferedInputStream = new BufferedInputStream(byteArrayInputStream)) {
+
+            ASN1InputStream stream = new ASN1InputStream(new DERDecoder(), bufferedInputStream);
+            ASN1Sequence asn1Sequence = stream.readObject();
+
+            if (asn1Sequence.getValue().size() < 9) {
+                throw new PrivateKeyParseException("Parsed key content doesn't have the minimum required sequence size of 9");
+            }
+
+            BigInteger modulus = extractIntValueFrom(asn1Sequence.get(1));
+            BigInteger publicExponent = extractIntValueFrom(asn1Sequence.get(2));
+            BigInteger privateExponent = extractIntValueFrom(asn1Sequence.get(3));
+            BigInteger primeP = extractIntValueFrom(asn1Sequence.get(4));
+            BigInteger primeQ = extractIntValueFrom(asn1Sequence.get(5));
+            BigInteger primeExponentP = extractIntValueFrom(asn1Sequence.get(6));
+            BigInteger primeExponentQ = extractIntValueFrom(asn1Sequence.get(7));
+            BigInteger crtCoefficient = extractIntValueFrom(asn1Sequence.get(8));
+
+            return new RSAPrivateCrtKeySpec(
+                    modulus, publicExponent, privateExponent,
+                    primeP, primeQ, primeExponentP, primeExponentQ, crtCoefficient
+            );
+        }
+    }
+
+    private static BigInteger extractIntValueFrom(ASN1Object<?> asn1Object) {
+        if (asn1Object instanceof ASN1Integer) {
+            return ((ASN1Integer) asn1Object).getValue();
+        } else {
+            throw new PrivateKeyParseException(String.format(
+                    "Unable to parse the provided value of the object type [%s]. The type should be an instance of [%s]",
+                    asn1Object.getClass().getName(), ASN1Integer.class.getName())
+            );
+        }
     }
 
     private static X509ExtendedKeyManager parseIdentityMaterial(Certificate[] certificates, PrivateKey privateKey) throws IOException, NoSuchAlgorithmException, KeyStoreException, CertificateException {
