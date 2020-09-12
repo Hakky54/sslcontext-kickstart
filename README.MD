@@ -221,7 +221,7 @@ SSLFactory.builder()
           .build();
 ```
 
-Support for using pem formatted private key and certificates from classpath, any directory or as an InputStream. See [PemUtilsShould](sslcontext-kickstart/src/test/java/nl/altindag/sslcontext/util/PemUtilsShould.java) for detailed usages.
+Support for using pem formatted private key and certificates from classpath, any directory or as an InputStream. See [PemUtilsShould](sslcontext-kickstart-for-pem/src/test/java/nl/altindag/sslcontext/util/PemUtilsShould.java) for detailed usages.
 ```text
 /* EXAMPLE FILES
  *
