@@ -3,10 +3,13 @@ package nl.altindag.sslcontext.util;
 import nl.altindag.sslcontext.exception.PrivateKeyParseException;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.openssl.PEMDecryptorProvider;
+import org.bouncycastle.openssl.PEMEncryptedKeyPair;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.openssl.jcajce.JceOpenSSLPKCS8DecryptorProviderBuilder;
+import org.bouncycastle.openssl.jcajce.JcePEMDecryptorProviderBuilder;
 import org.bouncycastle.operator.InputDecryptorProvider;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.pkcs.PKCS8EncryptedPrivateKeyInfo;
@@ -197,6 +200,16 @@ public final class PemUtils {
                     .build(Objects.requireNonNull(keyPassword));
 
             PrivateKeyInfo privateKeyInfo = ((PKCS8EncryptedPrivateKeyInfo) object).decryptPrivateKeyInfo(inputDecryptorProvider);
+            keySpec = new PKCS8EncodedKeySpec(privateKeyInfo.getEncoded());
+        }
+
+        if (object instanceof PEMEncryptedKeyPair) {
+            PEMDecryptorProvider pemDecryptorProvider = new JcePEMDecryptorProviderBuilder()
+                    .setProvider(BOUNCY_CASTLE_PROVIDER)
+                    .build(keyPassword);
+
+            PEMKeyPair pemKeyPair = ((PEMEncryptedKeyPair) object).decryptKeyPair(pemDecryptorProvider);
+            PrivateKeyInfo privateKeyInfo = pemKeyPair.getPrivateKeyInfo();
             keySpec = new PKCS8EncodedKeySpec(privateKeyInfo.getEncoded());
         }
 

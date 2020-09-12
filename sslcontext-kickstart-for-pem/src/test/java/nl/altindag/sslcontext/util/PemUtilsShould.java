@@ -194,6 +194,13 @@ class PemUtilsShould {
     }
 
     @Test
+    void loadRsaEncryptedIdentityMaterialFromClassPath() throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException, InvalidKeySpecException {
+        X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(PEM_LOCATION + "encrypted-rsa-identity.pem", "secret".toCharArray());
+
+        assertThat(keyManager).isNotNull();
+    }
+
+    @Test
     void loadEncryptedIdentityMaterialFromClassPath() throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException, InvalidKeySpecException {
         X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(PEM_LOCATION + "encrypted-identity.pem", "secret".toCharArray());
 
