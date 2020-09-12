@@ -6,8 +6,4 @@ public final class PrivateKeyParseException extends GenericSecurityException {
         super(message);
     }
 
-    public PrivateKeyParseException(Throwable cause) {
-        super(cause);
-    }
-
 }
