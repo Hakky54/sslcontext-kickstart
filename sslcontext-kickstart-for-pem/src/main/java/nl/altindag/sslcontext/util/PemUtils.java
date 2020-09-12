@@ -7,7 +7,6 @@ import org.bouncycastle.openssl.PEMDecryptorProvider;
 import org.bouncycastle.openssl.PEMEncryptedKeyPair;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
-import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.openssl.jcajce.JceOpenSSLPKCS8DecryptorProviderBuilder;
 import org.bouncycastle.openssl.jcajce.JcePEMDecryptorProviderBuilder;
 import org.bouncycastle.operator.InputDecryptorProvider;
@@ -29,7 +28,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.security.KeyFactory;
-import java.security.KeyPair;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -189,9 +187,8 @@ public final class PemUtils {
         }
 
         if (object instanceof PEMKeyPair) {
-            JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider(BOUNCY_CASTLE_PROVIDER);
-            KeyPair keyPair = converter.getKeyPair((PEMKeyPair) object);
-            return keyPair.getPrivate();
+            PrivateKeyInfo privateKeyInfo = ((PEMKeyPair) object).getPrivateKeyInfo();
+            keySpec = new PKCS8EncodedKeySpec(privateKeyInfo.getEncoded());
         }
 
         if (object instanceof PKCS8EncryptedPrivateKeyInfo) {
