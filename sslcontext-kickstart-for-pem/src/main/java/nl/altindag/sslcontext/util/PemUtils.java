@@ -95,7 +95,7 @@ public final class PemUtils {
 
     private static KeyStore createEmptyKeyStore() throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
         KeyStore keyStore = KeyStore.getInstance(KEYSTORE_TYPE);
-        keyStore.load(null, null);
+        keyStore.load(null, EMPTY_PASSWORD_PLACEHOLDER);
         return keyStore;
     }
 
@@ -223,8 +223,8 @@ public final class PemUtils {
 
     private static X509ExtendedKeyManager parseIdentityMaterial(Certificate[] certificates, PrivateKey privateKey) throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore keyStore = createEmptyKeyStore();
-        keyStore.setKeyEntry(getCertificateAlias(certificates[0]), privateKey, null, certificates);
-        return KeyManagerUtils.createKeyManager(keyStore, null);
+        keyStore.setKeyEntry(getCertificateAlias(certificates[0]), privateKey, EMPTY_PASSWORD_PLACEHOLDER, certificates);
+        return KeyManagerUtils.createKeyManager(keyStore, EMPTY_PASSWORD_PLACEHOLDER);
     }
 
     public static X509ExtendedKeyManager loadIdentityMaterial(Path certificatePath, Path privateKeyPath) throws CertificateException, NoSuchAlgorithmException, IOException, OperatorCreationException, PKCSException, InvalidKeySpecException, KeyStoreException {
