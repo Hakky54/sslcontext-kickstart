@@ -1,14 +1,17 @@
 package nl.altindag.sslcontext.util;
 
+import nl.altindag.sslcontext.exception.PrivateKeyParseException;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.pkcs.PKCSException;
 import org.junit.jupiter.api.Test;
 
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509ExtendedTrustManager;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -226,6 +229,15 @@ class PemUtilsShould {
         }
 
         assertThat(keyManager).isNotNull();
+    }
+
+    @Test
+    void throwPrivateKeyParseExceptionWhenAnUnknownPrivateKeyHasBeenSupplied() throws IOException {
+        try(InputStream inputStream = new ByteArrayInputStream("Hello there friend!".getBytes(StandardCharsets.UTF_8))) {
+            assertThatThrownBy(() -> PemUtils.loadIdentityMaterial(inputStream))
+                    .isInstanceOf(PrivateKeyParseException.class)
+                    .hasMessage("Received an unsupported private key type");
+        }
     }
 
     private Path copyFileToHomeDirectory(String path, String fileName) throws IOException {
