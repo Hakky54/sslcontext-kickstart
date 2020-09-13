@@ -176,31 +176,25 @@ public final class PemUtils {
     }
 
     private static PrivateKey parsePrivateKey(String identityContent, char[] keyPassword) throws IOException, PKCSException, NoSuchAlgorithmException, InvalidKeySpecException, OperatorCreationException {
-        PKCS8EncodedKeySpec keySpec = null;
-        PrivateKeyInfo privateKeyInfo = null;
+        PKCS8EncodedKeySpec keySpec;
+        PrivateKeyInfo privateKeyInfo;
         PEMParser pemParser = new PEMParser(new StringReader(identityContent));
         Object object = pemParser.readObject();
 
         if (object instanceof PrivateKeyInfo) {
             privateKeyInfo = (PrivateKeyInfo) object;
             keySpec = new PKCS8EncodedKeySpec(((PrivateKeyInfo) object).getEncoded());
-        }
-
-        if (object instanceof PEMKeyPair) {
+        } else if (object instanceof PEMKeyPair) {
             privateKeyInfo = ((PEMKeyPair) object).getPrivateKeyInfo();
             keySpec = new PKCS8EncodedKeySpec(privateKeyInfo.getEncoded());
-        }
-
-        if (object instanceof PKCS8EncryptedPrivateKeyInfo) {
+        } else if (object instanceof PKCS8EncryptedPrivateKeyInfo) {
             InputDecryptorProvider inputDecryptorProvider = new JceOpenSSLPKCS8DecryptorProviderBuilder()
                     .setProvider(BOUNCY_CASTLE_PROVIDER)
                     .build(Objects.requireNonNull(keyPassword));
 
             privateKeyInfo = ((PKCS8EncryptedPrivateKeyInfo) object).decryptPrivateKeyInfo(inputDecryptorProvider);
             keySpec = new PKCS8EncodedKeySpec(privateKeyInfo.getEncoded());
-        }
-
-        if (object instanceof PEMEncryptedKeyPair) {
+        } else if (object instanceof PEMEncryptedKeyPair) {
             PEMDecryptorProvider pemDecryptorProvider = new JcePEMDecryptorProviderBuilder()
                     .setProvider(BOUNCY_CASTLE_PROVIDER)
                     .build(keyPassword);
@@ -208,9 +202,7 @@ public final class PemUtils {
             PEMKeyPair pemKeyPair = ((PEMEncryptedKeyPair) object).decryptKeyPair(pemDecryptorProvider);
             privateKeyInfo = pemKeyPair.getPrivateKeyInfo();
             keySpec = new PKCS8EncodedKeySpec(privateKeyInfo.getEncoded());
-        }
-
-        if (isNull(keySpec)) {
+        } else {
             throw new PrivateKeyParseException("Received an unsupported private key type");
         }
 
