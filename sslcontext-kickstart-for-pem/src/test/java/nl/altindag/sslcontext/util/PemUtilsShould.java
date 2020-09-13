@@ -204,6 +204,20 @@ class PemUtilsShould {
     }
 
     @Test
+    void loadEcUnencryptedIdentityMaterialFromClassPath() throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException, InvalidKeySpecException {
+        X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(PEM_LOCATION + "unencrypted-ec-identity.pem", "secret".toCharArray());
+
+        assertThat(keyManager).isNotNull();
+    }
+
+    @Test
+    void loadEcEncryptedIdentityMaterialFromClassPath() throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException, InvalidKeySpecException {
+        X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(PEM_LOCATION + "encrypted-ec-identity.pem", "secret".toCharArray());
+
+        assertThat(keyManager).isNotNull();
+    }
+
+    @Test
     void loadEncryptedIdentityMaterialFromClassPath() throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException, InvalidKeySpecException {
         X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(PEM_LOCATION + "encrypted-identity.pem", "secret".toCharArray());
 

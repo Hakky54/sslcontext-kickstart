@@ -37,7 +37,6 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
-import java.security.spec.KeySpec;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
 import java.util.HashMap;
@@ -60,7 +59,6 @@ public final class PemUtils {
     private static final char[] EMPTY_PASSWORD_PLACEHOLDER = null;
 
     private static final String KEYSTORE_TYPE = "PKCS12";
-    private static final String KEY_FACTORY_ALGORITHM = "RSA";
     private static final String CERTIFICATE_TYPE = "X.509";
 
     private static final Pattern CERTIFICATE_PATTERN = Pattern.compile("-----BEGIN CERTIFICATE-----(.*?)-----END CERTIFICATE-----", Pattern.DOTALL);
@@ -178,16 +176,18 @@ public final class PemUtils {
     }
 
     private static PrivateKey parsePrivateKey(String identityContent, char[] keyPassword) throws IOException, PKCSException, NoSuchAlgorithmException, InvalidKeySpecException, OperatorCreationException {
-        KeySpec keySpec = null;
+        PKCS8EncodedKeySpec keySpec = null;
+        PrivateKeyInfo privateKeyInfo = null;
         PEMParser pemParser = new PEMParser(new StringReader(identityContent));
         Object object = pemParser.readObject();
 
         if (object instanceof PrivateKeyInfo) {
+            privateKeyInfo = (PrivateKeyInfo) object;
             keySpec = new PKCS8EncodedKeySpec(((PrivateKeyInfo) object).getEncoded());
         }
 
         if (object instanceof PEMKeyPair) {
-            PrivateKeyInfo privateKeyInfo = ((PEMKeyPair) object).getPrivateKeyInfo();
+            privateKeyInfo = ((PEMKeyPair) object).getPrivateKeyInfo();
             keySpec = new PKCS8EncodedKeySpec(privateKeyInfo.getEncoded());
         }
 
@@ -196,7 +196,7 @@ public final class PemUtils {
                     .setProvider(BOUNCY_CASTLE_PROVIDER)
                     .build(Objects.requireNonNull(keyPassword));
 
-            PrivateKeyInfo privateKeyInfo = ((PKCS8EncryptedPrivateKeyInfo) object).decryptPrivateKeyInfo(inputDecryptorProvider);
+            privateKeyInfo = ((PKCS8EncryptedPrivateKeyInfo) object).decryptPrivateKeyInfo(inputDecryptorProvider);
             keySpec = new PKCS8EncodedKeySpec(privateKeyInfo.getEncoded());
         }
 
@@ -206,7 +206,7 @@ public final class PemUtils {
                     .build(keyPassword);
 
             PEMKeyPair pemKeyPair = ((PEMEncryptedKeyPair) object).decryptKeyPair(pemDecryptorProvider);
-            PrivateKeyInfo privateKeyInfo = pemKeyPair.getPrivateKeyInfo();
+            privateKeyInfo = pemKeyPair.getPrivateKeyInfo();
             keySpec = new PKCS8EncodedKeySpec(privateKeyInfo.getEncoded());
         }
 
@@ -214,7 +214,8 @@ public final class PemUtils {
             throw new PrivateKeyParseException("Received an unsupported private key type");
         }
 
-        KeyFactory keyFactory = KeyFactory.getInstance(KEY_FACTORY_ALGORITHM);
+        String privateKeyAlgorithmId = privateKeyInfo.getPrivateKeyAlgorithm().getAlgorithm().getId();
+        KeyFactory keyFactory = KeyFactory.getInstance(privateKeyAlgorithmId, BOUNCY_CASTLE_PROVIDER);
         return keyFactory.generatePrivate(keySpec);
     }
 
