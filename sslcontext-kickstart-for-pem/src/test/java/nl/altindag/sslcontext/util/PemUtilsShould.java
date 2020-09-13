@@ -139,14 +139,14 @@ class PemUtilsShould {
     }
 
     @Test
-    void loadUnencryptedIdentityMaterialFromClassPath() throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException, InvalidKeySpecException {
+    void loadUnencryptedIdentityMaterialFromClassPath() throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException {
         X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(PEM_LOCATION + "unencrypted-identity.pem");
 
         assertThat(keyManager).isNotNull();
     }
 
     @Test
-    void loadUnencryptedIdentityMaterialFromDirectory() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException, OperatorCreationException, PKCSException, InvalidKeySpecException {
+    void loadUnencryptedIdentityMaterialFromDirectory() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException, OperatorCreationException, PKCSException {
         Path identityPath = copyFileToHomeDirectory(PEM_LOCATION, "unencrypted-identity.pem");
 
         X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(identityPath);
@@ -157,7 +157,7 @@ class PemUtilsShould {
     }
 
     @Test
-    void loadUnencryptedIdentityMaterialFromInputStream() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException, OperatorCreationException, PKCSException, InvalidKeySpecException {
+    void loadUnencryptedIdentityMaterialFromInputStream() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException, OperatorCreationException, PKCSException {
         X509ExtendedKeyManager keyManager;
         try(InputStream inputStream = getResource(PEM_LOCATION + "unencrypted-identity.pem")) {
             keyManager = PemUtils.loadIdentityMaterial(inputStream);
@@ -167,7 +167,7 @@ class PemUtilsShould {
     }
 
     @Test
-    void loadUnencryptedPrivateKeyAndCertificateAsIdentityFromClassPath() throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException, InvalidKeySpecException {
+    void loadUnencryptedPrivateKeyAndCertificateAsIdentityFromClassPath() throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException {
         X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(
                 PEM_LOCATION + "splitted-unencrypted-identity-containing-certificate.pem",
                 PEM_LOCATION + "splitted-unencrypted-identity-containing-private-key.pem"
@@ -177,7 +177,7 @@ class PemUtilsShould {
     }
 
     @Test
-    void loadUnencryptedPrivateKeyAndCertificateAsIdentityFromDirectory() throws IOException, CertificateException, NoSuchAlgorithmException, OperatorCreationException, KeyStoreException, PKCSException, InvalidKeySpecException {
+    void loadUnencryptedPrivateKeyAndCertificateAsIdentityFromDirectory() throws IOException, CertificateException, NoSuchAlgorithmException, OperatorCreationException, KeyStoreException, PKCSException {
         Path certificatePath = copyFileToHomeDirectory(PEM_LOCATION, "splitted-unencrypted-identity-containing-certificate.pem");
         Path privateKeyPath = copyFileToHomeDirectory(PEM_LOCATION, "splitted-unencrypted-identity-containing-private-key.pem");
 
@@ -190,42 +190,42 @@ class PemUtilsShould {
     }
 
     @Test
-    void loadRsaUnencryptedIdentityMaterialFromClassPath() throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException, InvalidKeySpecException {
+    void loadRsaUnencryptedIdentityMaterialFromClassPath() throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException {
         X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(PEM_LOCATION + "rsa-unencrypted-identity.pem");
 
         assertThat(keyManager).isNotNull();
     }
 
     @Test
-    void loadRsaEncryptedIdentityMaterialFromClassPath() throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException, InvalidKeySpecException {
+    void loadRsaEncryptedIdentityMaterialFromClassPath() throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException {
         X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(PEM_LOCATION + "encrypted-rsa-identity.pem", "secret".toCharArray());
 
         assertThat(keyManager).isNotNull();
     }
 
     @Test
-    void loadEcUnencryptedIdentityMaterialFromClassPath() throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException, InvalidKeySpecException {
+    void loadEcUnencryptedIdentityMaterialFromClassPath() throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException {
         X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(PEM_LOCATION + "unencrypted-ec-identity.pem", "secret".toCharArray());
 
         assertThat(keyManager).isNotNull();
     }
 
     @Test
-    void loadEcEncryptedIdentityMaterialFromClassPath() throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException, InvalidKeySpecException {
+    void loadEcEncryptedIdentityMaterialFromClassPath() throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException {
         X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(PEM_LOCATION + "encrypted-ec-identity.pem", "secret".toCharArray());
 
         assertThat(keyManager).isNotNull();
     }
 
     @Test
-    void loadEncryptedIdentityMaterialFromClassPath() throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException, InvalidKeySpecException {
+    void loadEncryptedIdentityMaterialFromClassPath() throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException {
         X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(PEM_LOCATION + "encrypted-identity.pem", "secret".toCharArray());
 
         assertThat(keyManager).isNotNull();
     }
 
     @Test
-    void loadEncryptedIdentityMaterialFromDirectory() throws IOException, CertificateException, NoSuchAlgorithmException, OperatorCreationException, KeyStoreException, PKCSException, InvalidKeySpecException {
+    void loadEncryptedIdentityMaterialFromDirectory() throws IOException, CertificateException, NoSuchAlgorithmException, OperatorCreationException, KeyStoreException, PKCSException {
         Path identityPath = copyFileToHomeDirectory(PEM_LOCATION, "encrypted-identity.pem");
 
         X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(identityPath, "secret".toCharArray());
@@ -236,7 +236,7 @@ class PemUtilsShould {
     }
 
     @Test
-    void loadEncryptedIdentityMaterialFromInputStream() throws IOException, CertificateException, NoSuchAlgorithmException, OperatorCreationException, KeyStoreException, PKCSException, InvalidKeySpecException {
+    void loadEncryptedIdentityMaterialFromInputStream() throws IOException, CertificateException, NoSuchAlgorithmException, OperatorCreationException, KeyStoreException, PKCSException {
         X509ExtendedKeyManager keyManager;
         try(InputStream inputStream = getResource(PEM_LOCATION + "encrypted-identity.pem")) {
             keyManager = PemUtils.loadIdentityMaterial(inputStream, "secret".toCharArray());
