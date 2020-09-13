@@ -48,8 +48,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static java.util.Objects.isNull;
-
 /**
  * Reads PEM formatted private keys and certificates
  * as identity material and trust material
