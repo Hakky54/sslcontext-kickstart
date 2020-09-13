@@ -7,6 +7,7 @@ import org.bouncycastle.openssl.PEMDecryptorProvider;
 import org.bouncycastle.openssl.PEMEncryptedKeyPair;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.openssl.jcajce.JceOpenSSLPKCS8DecryptorProviderBuilder;
 import org.bouncycastle.openssl.jcajce.JcePEMDecryptorProviderBuilder;
 import org.bouncycastle.operator.InputDecryptorProvider;
@@ -27,7 +28,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.security.KeyFactory;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -37,7 +37,6 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
@@ -58,12 +57,13 @@ public final class PemUtils {
 
     private static final String KEYSTORE_TYPE = "PKCS12";
     private static final String CERTIFICATE_TYPE = "X.509";
-
     private static final Pattern CERTIFICATE_PATTERN = Pattern.compile("-----BEGIN CERTIFICATE-----(.*?)-----END CERTIFICATE-----", Pattern.DOTALL);
 
     private static final String NEW_LINE = "\n";
     private static final String EMPTY = "";
+
     private static final BouncyCastleProvider BOUNCY_CASTLE_PROVIDER = new BouncyCastleProvider();
+    private static final JcaPEMKeyConverter KEY_CONVERTER = new JcaPEMKeyConverter().setProvider(BOUNCY_CASTLE_PROVIDER);
 
     private PemUtils() {}
 
@@ -174,24 +174,20 @@ public final class PemUtils {
     }
 
     private static PrivateKey parsePrivateKey(String identityContent, char[] keyPassword) throws IOException, PKCSException, NoSuchAlgorithmException, InvalidKeySpecException, OperatorCreationException {
-        PKCS8EncodedKeySpec keySpec;
-        PrivateKeyInfo privateKeyInfo;
         PEMParser pemParser = new PEMParser(new StringReader(identityContent));
         Object object = pemParser.readObject();
 
+        PrivateKeyInfo privateKeyInfo;
         if (object instanceof PrivateKeyInfo) {
             privateKeyInfo = (PrivateKeyInfo) object;
-            keySpec = new PKCS8EncodedKeySpec(((PrivateKeyInfo) object).getEncoded());
         } else if (object instanceof PEMKeyPair) {
             privateKeyInfo = ((PEMKeyPair) object).getPrivateKeyInfo();
-            keySpec = new PKCS8EncodedKeySpec(privateKeyInfo.getEncoded());
         } else if (object instanceof PKCS8EncryptedPrivateKeyInfo) {
             InputDecryptorProvider inputDecryptorProvider = new JceOpenSSLPKCS8DecryptorProviderBuilder()
                     .setProvider(BOUNCY_CASTLE_PROVIDER)
                     .build(Objects.requireNonNull(keyPassword));
 
             privateKeyInfo = ((PKCS8EncryptedPrivateKeyInfo) object).decryptPrivateKeyInfo(inputDecryptorProvider);
-            keySpec = new PKCS8EncodedKeySpec(privateKeyInfo.getEncoded());
         } else if (object instanceof PEMEncryptedKeyPair) {
             PEMDecryptorProvider pemDecryptorProvider = new JcePEMDecryptorProviderBuilder()
                     .setProvider(BOUNCY_CASTLE_PROVIDER)
@@ -199,14 +195,11 @@ public final class PemUtils {
 
             PEMKeyPair pemKeyPair = ((PEMEncryptedKeyPair) object).decryptKeyPair(pemDecryptorProvider);
             privateKeyInfo = pemKeyPair.getPrivateKeyInfo();
-            keySpec = new PKCS8EncodedKeySpec(privateKeyInfo.getEncoded());
         } else {
             throw new PrivateKeyParseException("Received an unsupported private key type");
         }
 
-        String privateKeyAlgorithmId = privateKeyInfo.getPrivateKeyAlgorithm().getAlgorithm().getId();
-        KeyFactory keyFactory = KeyFactory.getInstance(privateKeyAlgorithmId, BOUNCY_CASTLE_PROVIDER);
-        return keyFactory.generatePrivate(keySpec);
+        return KEY_CONVERTER.getPrivateKey(privateKeyInfo);
     }
 
     private static X509ExtendedKeyManager parseIdentityMaterial(Certificate[] certificates, PrivateKey privateKey) throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
