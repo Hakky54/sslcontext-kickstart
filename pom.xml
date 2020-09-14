@@ -4,7 +4,7 @@
 
     <groupId>io.github.hakky54</groupId>
     <artifactId>sslcontext-kickstart-parent</artifactId>
-    <version>5.2.1</version>
+    <version>5.2.2-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>${project.artifactId}</name>
@@ -31,7 +31,7 @@
         <url>https://github.com/Hakky54/sslcontext-kickstart</url>
         <connection>scm:git:git@github.com:Hakky54/sslcontext-kickstart.git</connection>
         <developerConnection>scm:git:git@github.com:Hakky54/sslcontext-kickstart.git</developerConnection>
-        <tag>v5.2.1</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <developers>
