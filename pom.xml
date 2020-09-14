@@ -60,7 +60,7 @@
     <properties>
         <version.java>1.8</version.java>
         <version.slf4j>1.7.30</version.slf4j>
-        <version.junit>5.6.2</version.junit>
+        <version.junit>5.7.0</version.junit>
         <version.assertj-core>3.17.2</version.assertj-core>
         <version.logcaptor>2.1.1</version.logcaptor>
         <version.jacoco-maven-plugin>0.8.5</version.jacoco-maven-plugin>
