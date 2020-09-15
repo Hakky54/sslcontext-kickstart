@@ -18,7 +18,6 @@ import java.nio.file.Paths;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
-import java.security.spec.InvalidKeySpecException;
 import java.util.Objects;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
