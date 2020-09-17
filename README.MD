@@ -42,6 +42,7 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "5.2.1"
 2. [Usage](#usage)
    - [Example configuration](#example-configuration)
    - [Other possible configurations](#other-possible-configurations)
+   - [Using PEM Files](#using-pem-files)
 3. [Additional mappers for specific libraries](#additional-mappers-for-specific-libraries)
    - [Netty](#netty)
    - [Jetty](#jetty)
@@ -221,9 +222,18 @@ SSLFactory.builder()
           .build();
 ```
 
+#### Using PEM Files
 Support for using pem formatted private key and certificates from classpath, any directory or as an InputStream. See [PemUtilsShould](sslcontext-kickstart-for-pem/src/test/java/nl/altindag/sslcontext/util/PemUtilsShould.java) for detailed usages.
+Add only the dependency below to use this feature, it also includes the core features from the library such as SSLFactory.
+```xml
+<dependency>
+    <groupId>io.github.hakky54</groupId>
+    <artifactId>sslcontext-kickstart-for-pem</artifactId>
+    <version>5.2.1</version>
+</dependency>
+```
 ```text
-/* EXAMPLE FILES
+ * EXAMPLE FILES
  *
  * [some-trusted-certificate.pem]
  * -----BEGIN CERTIFICATE-----
@@ -242,8 +252,16 @@ Support for using pem formatted private key and certificates from classpath, any
  *             ...
  *             ...
  * -----END RSA PRIVATE KEY-----
+ *
+ * [private-key.pem]
+ * -----BEGIN ENCRYPTED PRIVATE KEY-----
+ *             ...
+ *             ...
+ * -----END ENCRYPTED PRIVATE KEY-----
  */
-
+```
+Example usage:
+```
 X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial("certificate.pem", "private-key.pem");
 X509ExtendedTrustManager trustManager = PemUtils.loadTrustMaterial("some-trusted-certificate.pem");
 
