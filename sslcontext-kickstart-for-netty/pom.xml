@@ -38,6 +38,7 @@
 
     <properties>
         <version.netty-handler>4.1.52.Final</version.netty-handler>
+        <version.reactor-netty>0.9.12.RELEASE</version.reactor-netty>
         <version.sslcontext-kickstart>5.2.2-SNAPSHOT</version.sslcontext-kickstart>
     </properties>
 
@@ -68,6 +69,10 @@
             <groupId>io.github.hakky54</groupId>
             <artifactId>logcaptor</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.projectreactor.netty</groupId>
+            <artifactId>reactor-netty</artifactId>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
@@ -76,6 +81,12 @@
                 <groupId>io.netty</groupId>
                 <artifactId>netty-handler</artifactId>
                 <version>${version.netty-handler}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.projectreactor.netty</groupId>
+                <artifactId>reactor-netty</artifactId>
+                <version>${version.reactor-netty}</version>
+                <scope>test</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
