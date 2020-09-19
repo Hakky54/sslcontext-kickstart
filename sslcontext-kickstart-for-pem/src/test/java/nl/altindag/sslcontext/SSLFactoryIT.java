@@ -1,0 +1,39 @@
+package nl.altindag.sslcontext;
+
+import nl.altindag.sslcontext.util.PemUtils;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.pkcs.PKCSException;
+import org.junit.jupiter.api.Test;
+
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.X509ExtendedKeyManager;
+import javax.net.ssl.X509ExtendedTrustManager;
+import java.io.IOException;
+import java.net.URL;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+class SSLFactoryIT {
+
+    @Test
+    void executeHttpsRequestWithMutualAuthentication() throws IOException, OperatorCreationException, CertificateException, NoSuchAlgorithmException, KeyStoreException, PKCSException {
+        X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial("pems-for-unit-tests/badssl-identity.pem", "badssl.com".toCharArray());
+        X509ExtendedTrustManager trustManager = PemUtils.loadTrustMaterial("pems-for-unit-tests/badssl-certificate.pem");
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(keyManager)
+                .withTrustMaterial(trustManager)
+                .build();
+
+        HttpsURLConnection connection = (HttpsURLConnection) new URL("https://client.badssl.com/").openConnection();
+        connection.setSSLSocketFactory(sslFactory.getSslContext().getSocketFactory());
+        connection.setHostnameVerifier(sslFactory.getHostnameVerifier());
+        connection.setRequestMethod("GET");
+
+        assertThat(connection.getResponseCode()).isEqualTo(200);
+    }
+
+}
