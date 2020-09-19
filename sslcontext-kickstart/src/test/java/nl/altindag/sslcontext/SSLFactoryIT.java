@@ -1,5 +1,6 @@
 package nl.altindag.sslcontext;
 
+import nl.altindag.log.LogCaptor;
 import org.junit.jupiter.api.Test;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -13,6 +14,8 @@ class SSLFactoryIT {
 
     @Test
     void executeHttpsRequestWithMutualAuthentication() throws IOException {
+        LogCaptor logCaptor = LogCaptor.forRoot();
+
         SSLFactory sslFactory = SSLFactory.builder()
                 .withIdentityMaterial(KEYSTORE_LOCATION + "badssl-identity.p12", "badssl.com".toCharArray())
                 .withTrustMaterial(KEYSTORE_LOCATION + "badssl-truststore.p12", "badssl.com".toCharArray())
@@ -24,6 +27,7 @@ class SSLFactoryIT {
         connection.setRequestMethod("GET");
 
         assertThat(connection.getResponseCode()).isEqualTo(200);
+        assertThat(logCaptor.getLogs()).containsExactly("Received the following server certificate: [CN=*.badssl.com, O=Lucas Garron Torres, L=Walnut Creek, ST=California, C=US]");
     }
 
 }

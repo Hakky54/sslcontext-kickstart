@@ -1,5 +1,6 @@
 package nl.altindag.sslcontext;
 
+import nl.altindag.log.LogCaptor;
 import nl.altindag.sslcontext.util.PemUtils;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.pkcs.PKCSException;
@@ -20,6 +21,8 @@ class SSLFactoryIT {
 
     @Test
     void executeHttpsRequestWithMutualAuthentication() throws IOException, OperatorCreationException, CertificateException, NoSuchAlgorithmException, KeyStoreException, PKCSException {
+        LogCaptor logCaptor = LogCaptor.forRoot();
+
         X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial("pems-for-unit-tests/badssl-identity.pem", "badssl.com".toCharArray());
         X509ExtendedTrustManager trustManager = PemUtils.loadTrustMaterial("pems-for-unit-tests/badssl-certificate.pem");
 
@@ -34,6 +37,7 @@ class SSLFactoryIT {
         connection.setRequestMethod("GET");
 
         assertThat(connection.getResponseCode()).isEqualTo(200);
+        assertThat(logCaptor.getLogs()).containsExactly("Received the following server certificate: [CN=*.badssl.com, O=Lucas Garron Torres, L=Walnut Creek, ST=California, C=US]");
     }
 
 }
