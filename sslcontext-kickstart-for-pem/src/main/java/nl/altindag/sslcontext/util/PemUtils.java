@@ -148,9 +148,13 @@ public final class PemUtils {
     }
 
     public static X509ExtendedKeyManager loadIdentityMaterial(String certificatePath, String privateKeyPath) throws IOException, CertificateException, NoSuchAlgorithmException, PKCSException, OperatorCreationException, KeyStoreException {
+        return loadIdentityMaterial(certificatePath, privateKeyPath, EMPTY_PASSWORD_PLACEHOLDER);
+    }
+
+    public static X509ExtendedKeyManager loadIdentityMaterial(String certificatePath, String privateKeyPath, char[] keyPassword) throws IOException, CertificateException, NoSuchAlgorithmException, PKCSException, OperatorCreationException, KeyStoreException {
         try (InputStream certificateStream = PemUtils.class.getClassLoader().getResourceAsStream(certificatePath);
              InputStream privateKeyStream = PemUtils.class.getClassLoader().getResourceAsStream(privateKeyPath)) {
-            return loadIdentityMaterial(certificateStream, privateKeyStream);
+            return loadIdentityMaterial(certificateStream, privateKeyStream, keyPassword);
         }
     }
 

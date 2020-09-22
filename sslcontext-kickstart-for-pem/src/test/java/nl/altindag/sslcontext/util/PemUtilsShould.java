@@ -189,6 +189,26 @@ class PemUtilsShould {
     }
 
     @Test
+    void loadUnencryptedPrivateKeyAndCertificateAsIdentityInputStream() throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException {
+        try(InputStream certificateStream = getResource(PEM_LOCATION + "splitted-unencrypted-identity-containing-certificate.pem");
+            InputStream privateKeyStream = getResource(PEM_LOCATION + "splitted-unencrypted-identity-containing-private-key.pem")) {
+            X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(certificateStream, privateKeyStream);
+            assertThat(keyManager).isNotNull();
+        }
+    }
+
+    @Test
+    void loadEncryptedPrivateKeyAndCertificateAsIdentityFromClassPath() throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException {
+        X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(
+                PEM_LOCATION + "splitted-unencrypted-identity-containing-certificate.pem",
+                PEM_LOCATION + "splitted-unencrypted-identity-containing-private-key.pem",
+                "secret".toCharArray()
+        );
+
+        assertThat(keyManager).isNotNull();
+    }
+
+    @Test
     void loadRsaUnencryptedIdentityMaterialFromClassPath() throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException {
         X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(PEM_LOCATION + "rsa-unencrypted-identity.pem");
 
