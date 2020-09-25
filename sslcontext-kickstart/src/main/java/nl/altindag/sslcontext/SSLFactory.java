@@ -85,8 +85,8 @@ public final class SSLFactory {
         this.trustStores.addAll(trustStores);
         this.trustManagers.addAll(trustManagers);
         this.passwordCachingEnabled = passwordCachingEnabled;
-        this.allowedCiphers = Collections.unmodifiableList(allowedCiphers);
-        this.allowedProtocols = Collections.unmodifiableList(allowedProtocols);
+        this.allowedCiphers = allowedCiphers;
+        this.allowedProtocols = allowedProtocols;
     }
 
     private void createSSLContextWithIdentityMaterial() {
@@ -502,8 +502,8 @@ public final class SSLFactory {
                     trustStores,
                     trustManagers,
                     passwordCachingEnabled,
-                    new ArrayList<>(allowedCiphers),
-                    new ArrayList<>(allowedProtocols)
+                    Collections.unmodifiableList(new ArrayList<>(allowedCiphers)),
+                    Collections.unmodifiableList(new ArrayList<>(allowedProtocols))
             );
 
             if (isIdentityMaterialPresent() && isTrustMaterialNotPresent()) {
