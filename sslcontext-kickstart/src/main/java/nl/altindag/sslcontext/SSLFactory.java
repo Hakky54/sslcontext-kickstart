@@ -392,7 +392,7 @@ public final class SSLFactory {
         /**
          * Adds the provided cipher to the list of allowed ciphers. Duplicates will be ignored.
          *
-         * <p><p><pre>
+         * <p></p><pre>
          * NOTE: This option won't force your client/server by default to use one of the provided ciphers.
          *       It acts as a storage for your supplied allowed ciphers to use at a later moment. It is unfortunately
          *       not possible to apply the properties within the resulting {@link SSLContext}. However it is possible
@@ -410,7 +410,7 @@ public final class SSLFactory {
         /**
          * Adds the provided ciphers to the list of allowed ciphers. Duplicates will be ignored.
          *
-         * <p><p><pre>
+         * <p></p><pre>
          * NOTE: This option won't force your client/server by default to use one of the provided ciphers.
          *       It acts as a storage for your supplied allowed ciphers to use at a later moment. It is unfortunately
          *       not possible to apply the properties within the resulting {@link SSLContext}. However it is possible
@@ -428,7 +428,7 @@ public final class SSLFactory {
         /**
          * Adds the provided protocol to the list of allowed protocols. Duplicates will be ignored.
          *
-         * <p><p><pre>
+         * <p></p><pre>
          * NOTE: This option won't force your client/server by default to use one of the provided protocol.
          *       It acts as a storage for your supplied allowed protocols to use at a later moment. It is unfortunately
          *       not possible to apply the properties within the resulting {@link SSLContext}. However it is possible
@@ -446,7 +446,7 @@ public final class SSLFactory {
         /**
          * Adds the provided protocols to the list of allowed protocols. Duplicates will be ignored.
          *
-         * <p><p><pre>
+         * <p></p><pre>
          * NOTE: This option won't force your client/server by default to use one of the provided protocol.
          *       It acts as a storage for your supplied allowed protocols to use at a later moment. It is unfortunately
          *       not possible to apply the properties within the resulting {@link SSLContext}. However it is possible
