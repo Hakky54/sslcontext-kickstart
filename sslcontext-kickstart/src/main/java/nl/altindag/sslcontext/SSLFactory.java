@@ -16,6 +16,7 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509ExtendedTrustManager;
@@ -394,8 +395,8 @@ public final class SSLFactory {
          * <pre>
          * NOTE: This option won't force your client/server by default to use one of the provided ciphers.
          *       It acts as a storage for your supplied allowed ciphers to use at a later moment. It is unfortunately
-         *       not possible to apply the properties within the resulting {@link SSLContext}. However it is possible
-         *       to modify the properties after creating a {@link SSLEngine} which also can be used to start a ssl handshake
+         *       not possible to apply the properties within the resulting {@link SSLContext}. However it is possible to apply
+         *       these custom properties on an instance of {@link SSLEngine} and {@link SSLSocketFactory}.
          * </pre>
          *
          * @param   allowedCipher a single cipher
@@ -411,8 +412,8 @@ public final class SSLFactory {
          * <pre>
          * NOTE: This option won't force your client/server by default to use one of the provided ciphers.
          *       It acts as a storage for your supplied allowed ciphers to use at a later moment. It is unfortunately
-         *       not possible to apply the properties within the resulting {@link SSLContext}. However it is possible
-         *       to modify the properties after creating a {@link SSLEngine} which also can be used to start a ssl handshake
+         *       not possible to apply the properties within the resulting {@link SSLContext}. However it is possible to apply
+         *       these custom properties on an instance of {@link SSLEngine} and {@link SSLSocketFactory}.
          * </pre>
          *
          * @param   allowedCiphers ciphers
@@ -428,8 +429,8 @@ public final class SSLFactory {
          * <pre>
          * NOTE: This option won't force your client/server by default to use one of the provided protocol.
          *       It acts as a storage for your supplied allowed protocols to use at a later moment. It is unfortunately
-         *       not possible to apply the properties within the resulting {@link SSLContext}. However it is possible
-         *       to modify the properties after creating a {@link SSLEngine}, which also can be used to start a ssl handshake
+         *       not possible to apply the properties within the resulting {@link SSLContext}. However it is possible to apply
+         *       these custom properties on an instance of {@link SSLEngine} and {@link SSLSocketFactory}.
          * <pre>
          *
          * @param   allowedProtocol a single protocol
@@ -445,8 +446,8 @@ public final class SSLFactory {
          * <pre>
          * NOTE: This option won't force your client/server by default to use one of the provided protocol.
          *       It acts as a storage for your supplied allowed protocols to use at a later moment. It is unfortunately
-         *       not possible to apply the properties within the resulting {@link SSLContext}. However it is possible
-         *       to modify the properties after creating a {@link SSLEngine}, which also can be used to start a ssl handshake
+         *       not possible to apply the properties within the resulting {@link SSLContext}. However it is possible to apply
+         *       these custom properties on an instance of {@link SSLEngine} and {@link SSLSocketFactory}.
          * <pre>
          *
          * @param   allowedProtocols protocols
@@ -462,7 +463,7 @@ public final class SSLFactory {
          * instance can support different version of the security protocol even though a specific one is specified here. Some
          * clients/servers support limiting the protocols by supplying the protocol to a {@link SSLEngine}, which can be created
          * from a {@link SSLContext}. Please use {@link SSLFactory.Builder#withAllowedProtocol(String)} as a temporally storage
-         * to fetch later when using for example the {@link SSLEngine}
+         * to fetch later when using for example the {@link SSLEngine} or {@link SSLSocketFactory}.
          *
          * @param   protocol protocol to be used when creating
          * @return  {@link SSLFactory.Builder}
