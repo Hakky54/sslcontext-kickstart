@@ -771,7 +771,7 @@ class SSLFactoryShould {
     void returnAllowedProtocol() {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withDefaultTrustMaterial()
-                .withAllowedProtocols("TLSv1.2")
+                .withAllowedProtocol("TLSv1.2")
                 .withAllowedProtocol("TLSv1.1")
                 .build();
 
