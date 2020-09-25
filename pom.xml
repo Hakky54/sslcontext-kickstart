@@ -240,6 +240,9 @@
                 <version>${version.maven-javadoc-plugin}</version>
                 <configuration>
                     <source>8</source>
+                    <additionalOptions>
+                        <additionalOption>-Xdoclint:none</additionalOption>
+                    </additionalOptions>
                 </configuration>
                 <executions>
                     <execution>
