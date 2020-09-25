@@ -723,6 +723,74 @@ class SSLFactoryShould {
     }
 
     @Test
+    void returnSupportedCiphers() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withDefaultTrustMaterial()
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+        assertThat(sslFactory.getSupportedCiphers()).isNotEmpty();
+    }
+
+    @Test
+    void returnAllowedCipher() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withDefaultTrustMaterial()
+                .withAllowedCipher("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384")
+                .withAllowedCipher("TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384")
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+        assertThat(sslFactory.getAllowedCiphers())
+                .containsExactlyInAnyOrder("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384", "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384");
+    }
+
+    @Test
+    void returnAllowedCiphers() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withDefaultTrustMaterial()
+                .withAllowedCiphers("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384", "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384")
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+        assertThat(sslFactory.getAllowedCiphers())
+                .containsExactlyInAnyOrder("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384", "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384");
+    }
+
+    @Test
+    void returnSupportedProtocols() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withDefaultTrustMaterial()
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+        assertThat(sslFactory.getSupportedProtocols()).isNotEmpty();
+    }
+
+    @Test
+    void returnAllowedProtocol() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withDefaultTrustMaterial()
+                .withAllowedProtocols("TLSv1.2")
+                .withAllowedProtocol("TLSv1.1")
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+        assertThat(sslFactory.getAllowedProtocols()).containsExactlyInAnyOrder("TLSv1.2", "TLSv1.1");
+    }
+
+    @Test
+    void returnAllowedProtocols() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withDefaultTrustMaterial()
+                .withAllowedProtocols("TLSv1.2", "TLSv1.1")
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+        assertThat(sslFactory.getAllowedProtocols()).containsExactlyInAnyOrder("TLSv1.2", "TLSv1.1");
+    }
+
+    @Test
     void throwExceptionWhenBuildingSSLFactoryWithTrustStoreWhileProvidingWrongPassword() {
         SSLFactory.Builder factoryBuilder = SSLFactory.builder();
         char[] trustStorePassword = "password".toCharArray();

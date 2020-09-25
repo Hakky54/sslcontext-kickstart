@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509ExtendedTrustManager;
@@ -30,8 +31,10 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static java.util.Objects.isNull;
 import static java.util.stream.Collectors.toList;
@@ -57,6 +60,11 @@ public final class SSLFactory {
     private CompositeX509ExtendedKeyManager keyManager;
     private List<X509Certificate> trustedCertificates;
 
+    private List<String> supportedCiphers;
+    private List<String> supportedProtocols;
+    private final List<String> allowedCiphers;
+    private final List<String> allowedProtocols;
+
     @SuppressWarnings("java:S107")
     private SSLFactory(String protocol,
                        SecureRandom secureRandom,
@@ -65,7 +73,9 @@ public final class SSLFactory {
                        List<X509ExtendedKeyManager> identityManagers,
                        List<KeyStoreHolder> trustStores,
                        List<X509ExtendedTrustManager> trustManagers,
-                       boolean passwordCachingEnabled) {
+                       boolean passwordCachingEnabled,
+                       List<String> allowedCiphers,
+                       List<String> allowedProtocols) {
 
         this.protocol = protocol;
         this.secureRandom = secureRandom;
@@ -75,6 +85,8 @@ public final class SSLFactory {
         this.trustStores.addAll(trustStores);
         this.trustManagers.addAll(trustManagers);
         this.passwordCachingEnabled = passwordCachingEnabled;
+        this.allowedCiphers = Collections.unmodifiableList(allowedCiphers);
+        this.allowedProtocols = Collections.unmodifiableList(allowedProtocols);
     }
 
     private void createSSLContextWithIdentityMaterial() {
@@ -170,6 +182,36 @@ public final class SSLFactory {
         return hostnameVerifier;
     }
 
+    public List<String> getSupportedCiphers() {
+        if (isNull(supportedCiphers)) {
+            supportedCiphers = Collections.unmodifiableList(Arrays.asList(sslContext.getDefaultSSLParameters().getCipherSuites()));
+        }
+        return supportedCiphers;
+    }
+
+    public List<String> getSupportedProtocols() {
+        if (isNull(supportedProtocols)) {
+            supportedProtocols = Collections.unmodifiableList(Arrays.asList(sslContext.getDefaultSSLParameters().getProtocols()));
+        }
+        return supportedProtocols;
+    }
+
+    public List<String> getAllowedCiphers() {
+        if (allowedCiphers.isEmpty()) {
+            return getSupportedCiphers();
+        } else {
+            return allowedCiphers;
+        }
+    }
+
+    public List<String> getAllowedProtocols() {
+        if (allowedProtocols.isEmpty()) {
+            return getSupportedProtocols();
+        } else {
+            return allowedProtocols;
+        }
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -190,6 +232,9 @@ public final class SSLFactory {
         private final List<KeyStoreHolder> trustStores = new ArrayList<>();
         private final List<X509ExtendedKeyManager> identityManagers = new ArrayList<>();
         private final List<X509ExtendedTrustManager> trustManagers = new ArrayList<>();
+
+        private final Set<String> allowedCiphers = new HashSet<>();
+        private final Set<String> allowedProtocols = new HashSet<>();
 
         private boolean passwordCachingEnabled = false;
 
@@ -344,6 +389,88 @@ public final class SSLFactory {
             return this;
         }
 
+        /**
+         * Adds the provided cipher to the list of allowed ciphers. Duplicates will be ignored.
+         *
+         * <p><p><pre>
+         * NOTE: This option won't force your client/server by default to use one of the provided ciphers.
+         *       It acts as a storage for your supplied allowed ciphers to use at a later moment. It is unfortunately
+         *       not possible to apply the properties within the resulting {@link SSLContext}. However it is possible
+         *       to modify the properties after creating a {@link SSLEngine} which also can be used to start a ssl handshake
+         * </pre>
+         *
+         * @param   allowedCipher a single cipher
+         * @return  {@link SSLFactory.Builder}
+         */
+        public Builder withAllowedCipher(String allowedCipher) {
+            this.allowedCiphers.add(allowedCipher);
+            return this;
+        }
+
+        /**
+         * Adds the provided ciphers to the list of allowed ciphers. Duplicates will be ignored.
+         *
+         * <p><p><pre>
+         * NOTE: This option won't force your client/server by default to use one of the provided ciphers.
+         *       It acts as a storage for your supplied allowed ciphers to use at a later moment. It is unfortunately
+         *       not possible to apply the properties within the resulting {@link SSLContext}. However it is possible
+         *       to modify the properties after creating a {@link SSLEngine} which also can be used to start a ssl handshake
+         * </pre>
+         *
+         * @param   allowedCiphers ciphers
+         * @return  {@link SSLFactory.Builder}
+         */
+        public Builder withAllowedCiphers(String... allowedCiphers) {
+            this.allowedCiphers.addAll(Arrays.asList(allowedCiphers));
+            return this;
+        }
+
+        /**
+         * Adds the provided protocol to the list of allowed protocols. Duplicates will be ignored.
+         *
+         * <p><p><pre>
+         * NOTE: This option won't force your client/server by default to use one of the provided protocol.
+         *       It acts as a storage for your supplied allowed protocols to use at a later moment. It is unfortunately
+         *       not possible to apply the properties within the resulting {@link SSLContext}. However it is possible
+         *       to modify the properties after creating a {@link SSLEngine}, which also can be used to start a ssl handshake
+         * <pre>
+         *
+         * @param   allowedProtocol a single protocol
+         * @return  {@link SSLFactory.Builder}
+         */
+        public Builder withAllowedProtocol(String allowedProtocol) {
+            this.allowedProtocols.add(allowedProtocol);
+            return this;
+        }
+
+        /**
+         * Adds the provided protocols to the list of allowed protocols. Duplicates will be ignored.
+         *
+         * <p><p><pre>
+         * NOTE: This option won't force your client/server by default to use one of the provided protocol.
+         *       It acts as a storage for your supplied allowed protocols to use at a later moment. It is unfortunately
+         *       not possible to apply the properties within the resulting {@link SSLContext}. However it is possible
+         *       to modify the properties after creating a {@link SSLEngine}, which also can be used to start a ssl handshake
+         * <pre>
+         *
+         * @param   allowedProtocols protocols
+         * @return  {@link SSLFactory.Builder}
+         */
+        public Builder withAllowedProtocols(String... allowedProtocols) {
+            this.allowedProtocols.addAll(Arrays.asList(allowedProtocols));
+            return this;
+        }
+
+        /**
+         * The provided protocol will be used when creating an instance of {@link SSLContext}. The resulting {@link SSLContext}
+         * instance can support different version of the security protocol even though a specific one is specified here. Some
+         * clients/servers support limiting the protocols by supplying the protocol to a {@link SSLEngine}, which can be created
+         * from a {@link SSLContext}. Please use {@link SSLFactory.Builder#withAllowedProtocol(String)} as a temporally storage
+         * to fetch later when using for example the {@link SSLEngine}
+         *
+         * @param   protocol protocol to be used when creating
+         * @return  {@link SSLFactory.Builder}
+         */
         public Builder withProtocol(String protocol) {
             this.protocol = protocol;
             return this;
@@ -378,7 +505,9 @@ public final class SSLFactory {
                     identityManagers,
                     trustStores,
                     trustManagers,
-                    passwordCachingEnabled
+                    passwordCachingEnabled,
+                    new ArrayList<>(allowedCiphers),
+                    new ArrayList<>(allowedProtocols)
             );
 
             if (isIdentityMaterialPresent() && isTrustMaterialNotPresent()) {
