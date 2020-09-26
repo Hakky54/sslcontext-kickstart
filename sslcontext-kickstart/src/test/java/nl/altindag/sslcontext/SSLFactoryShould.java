@@ -68,7 +68,7 @@ class SSLFactoryShould {
         assertThat(sslFactory.getTrustStores()).isNotEmpty();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
         assertThat(sslFactory.getKeyManager()).isNotPresent();
-        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLS");
     }
 
     @Test
@@ -86,7 +86,7 @@ class SSLFactoryShould {
 
         assertThat(sslFactory.getKeyManager()).isNotPresent();
         assertThat(sslFactory.getIdentities()).isEmpty();
-        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLS");
     }
 
     @Test
@@ -106,7 +106,7 @@ class SSLFactoryShould {
 
         assertThat(sslFactory.getKeyManager()).isNotPresent();
         assertThat(sslFactory.getIdentities()).isEmpty();
-        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLS");
 
         Files.delete(trustStorePath);
     }
@@ -128,7 +128,7 @@ class SSLFactoryShould {
 
         assertThat(sslFactory.getKeyManager()).isNotPresent();
         assertThat(sslFactory.getIdentities()).isEmpty();
-        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLS");
     }
 
     @Test
@@ -148,7 +148,7 @@ class SSLFactoryShould {
 
         assertThat(sslFactory.getKeyManager()).isNotPresent();
         assertThat(sslFactory.getIdentities()).isEmpty();
-        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLS");
     }
 
     @Test
@@ -169,7 +169,7 @@ class SSLFactoryShould {
 
         assertThat(sslFactory.getKeyManager()).isNotPresent();
         assertThat(sslFactory.getIdentities()).isEmpty();
-        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLS");
     }
 
     @Test
@@ -186,7 +186,7 @@ class SSLFactoryShould {
 
         assertThat(sslFactory.getKeyManager()).isNotPresent();
         assertThat(sslFactory.getIdentities()).isEmpty();
-        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLS");
     }
 
     @Test
@@ -207,7 +207,7 @@ class SSLFactoryShould {
 
         assertThat(sslFactory.getKeyManager()).isNotPresent();
         assertThat(sslFactory.getIdentities()).isEmpty();
-        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLS");
     }
 
     @Test
@@ -225,7 +225,7 @@ class SSLFactoryShould {
 
         assertThat(sslFactory.getKeyManager()).isNotPresent();
         assertThat(sslFactory.getIdentities()).isEmpty();
-        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLS");
     }
 
     @Test
@@ -246,7 +246,7 @@ class SSLFactoryShould {
 
         assertThat(sslFactory.getKeyManager()).isNotPresent();
         assertThat(sslFactory.getIdentities()).isEmpty();
-        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLS");
     }
 
     @Test
@@ -286,7 +286,7 @@ class SSLFactoryShould {
         assertThat(sslFactory.getTrustStores()).isNotEmpty();
         assertThat(sslFactory.getTrustStores().get(0).getKeyStorePassword()).isEqualTo(TRUSTSTORE_PASSWORD);
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
-        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLS");
     }
 
     @Test
@@ -308,7 +308,7 @@ class SSLFactoryShould {
         assertThat(sslFactory.getTrustStores()).isNotEmpty();
         assertThat(sslFactory.getTrustStores().get(0).getKeyStorePassword()).isNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
-        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLS");
     }
 
     @Test
@@ -330,7 +330,7 @@ class SSLFactoryShould {
         assertThat(sslFactory.getTrustStores()).isNotEmpty();
         assertThat(sslFactory.getTrustStores().get(0).getKeyStorePassword()).isEqualTo(TRUSTSTORE_PASSWORD);
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
-        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLS");
     }
 
     @Test
@@ -353,7 +353,7 @@ class SSLFactoryShould {
         assertThat(sslFactory.getTrustStores()).isNotEmpty();
         assertThat(sslFactory.getTrustStores().get(0).getKeyStorePassword()).isEmpty();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
-        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLS");
     }
 
     @Test
@@ -374,7 +374,7 @@ class SSLFactoryShould {
         assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
         assertThat(sslFactory.getTrustStores()).isEmpty();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
-        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLS");
     }
 
     @Test
@@ -396,7 +396,7 @@ class SSLFactoryShould {
         assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
         assertThat(sslFactory.getTrustStores()).isEmpty();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
-        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLS");
     }
 
     @Test
@@ -420,7 +420,7 @@ class SSLFactoryShould {
         assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
         assertThat(sslFactory.getTrustStores()).isEmpty();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
-        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLS");
 
         Files.delete(identityPath);
     }
@@ -447,7 +447,7 @@ class SSLFactoryShould {
         assertThat(sslFactory.getTrustStores()).isNotEmpty();
         assertThat(sslFactory.getTrustStores().get(0).getKeyStorePassword()).isEqualTo(TRUSTSTORE_PASSWORD);
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
-        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLS");
 
         Files.delete(identityPath);
         Files.delete(trustStorePath);
@@ -475,7 +475,7 @@ class SSLFactoryShould {
         assertThat(sslFactory.getTrustStores()).isNotEmpty();
         assertThat(sslFactory.getTrustStores().get(0).getKeyStorePassword()).isEqualTo(TRUSTSTORE_PASSWORD);
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
-        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLS");
 
         Files.delete(identityPath);
         Files.delete(trustStorePath);
@@ -503,7 +503,7 @@ class SSLFactoryShould {
         assertThat(sslFactory.getTrustStores()).isNotEmpty();
         assertThat(sslFactory.getTrustStores().get(0).getKeyStorePassword()).isEqualTo(TRUSTSTORE_PASSWORD);
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
-        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLS");
     }
 
     @Test
@@ -527,7 +527,7 @@ class SSLFactoryShould {
         assertThat(sslFactory.getTrustStores()).isNotEmpty();
         assertThat(sslFactory.getTrustStores().get(0).getKeyStorePassword()).isEmpty();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
-        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLS");
     }
 
     @Test
@@ -662,7 +662,7 @@ class SSLFactoryShould {
     void buildSSLFactoryWithTlsProtocolVersionOneDotOne() {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
-                .withProtocol("TLSv1.1")
+                .withSslContextProtocol("TLSv1.1")
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
@@ -715,7 +715,7 @@ class SSLFactoryShould {
         LOGGER.info("Found java version {}, including testing SSLFactory with TLSv1.3 protocol", javaMajorVersion);
         SSLFactory sslFactory = SSLFactory.builder()
                 .withDefaultTrustMaterial()
-                .withProtocol("TLSv1.3")
+                .withSslContextProtocol("TLSv1.3")
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
@@ -723,71 +723,47 @@ class SSLFactoryShould {
     }
 
     @Test
-    void returnSupportedCiphers() {
+    void returnDefaultCiphersWhenNoneSpecified() {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withDefaultTrustMaterial()
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
-        assertThat(sslFactory.getSupportedCiphers()).isNotEmpty();
+        assertThat(sslFactory.getCiphers()).isNotEmpty();
+        assertThat(sslFactory.getCiphers()).containsExactlyInAnyOrder(sslFactory.getSslContext().getDefaultSSLParameters().getCipherSuites());
     }
 
     @Test
-    void returnAllowedCipher() {
+    void returnSpecifiedCiphers() {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withDefaultTrustMaterial()
-                .withAllowedCipher("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384")
-                .withAllowedCipher("TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384")
+                .withCiphers("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384", "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384")
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
-        assertThat(sslFactory.getAllowedCiphers())
+        assertThat(sslFactory.getCiphers())
                 .containsExactlyInAnyOrder("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384", "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384");
     }
 
     @Test
-    void returnAllowedCiphers() {
+    void returnDefaultProtocolsWhenNoneSpecified() {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withDefaultTrustMaterial()
-                .withAllowedCiphers("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384", "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384")
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
-        assertThat(sslFactory.getAllowedCiphers())
-                .containsExactlyInAnyOrder("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384", "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384");
+        assertThat(sslFactory.getProtocols()).containsExactlyInAnyOrder(sslFactory.getSslContext().getDefaultSSLParameters().getProtocols());
     }
 
     @Test
-    void returnSupportedProtocols() {
+    void returnSpecifiedProtocols() {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withDefaultTrustMaterial()
+                .withProtocols("TLSv1.2", "TLSv1.1")
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
-        assertThat(sslFactory.getSupportedProtocols()).isNotEmpty();
-    }
-
-    @Test
-    void returnAllowedProtocol() {
-        SSLFactory sslFactory = SSLFactory.builder()
-                .withDefaultTrustMaterial()
-                .withAllowedProtocol("TLSv1.2")
-                .withAllowedProtocol("TLSv1.1")
-                .build();
-
-        assertThat(sslFactory.getSslContext()).isNotNull();
-        assertThat(sslFactory.getAllowedProtocols()).containsExactlyInAnyOrder("TLSv1.2", "TLSv1.1");
-    }
-
-    @Test
-    void returnAllowedProtocols() {
-        SSLFactory sslFactory = SSLFactory.builder()
-                .withDefaultTrustMaterial()
-                .withAllowedProtocols("TLSv1.2", "TLSv1.1")
-                .build();
-
-        assertThat(sslFactory.getSslContext()).isNotNull();
-        assertThat(sslFactory.getAllowedProtocols()).containsExactlyInAnyOrder("TLSv1.2", "TLSv1.1");
+        assertThat(sslFactory.getProtocols()).containsExactlyInAnyOrder("TLSv1.2", "TLSv1.1");
     }
 
     @Test
@@ -954,7 +930,7 @@ class SSLFactoryShould {
     void throwExceptionWhenProvidingAnInvalidEncryptionProtocol() {
         SSLFactory.Builder factoryBuilder = SSLFactory.builder()
                 .withTrustingAllCertificatesWithoutValidation()
-                .withProtocol("ENCRYPTIONv1.1");
+                .withSslContextProtocol("ENCRYPTIONv1.1");
 
         assertThatThrownBy(factoryBuilder::build)
                 .isInstanceOf(GenericSSLContextException.class)

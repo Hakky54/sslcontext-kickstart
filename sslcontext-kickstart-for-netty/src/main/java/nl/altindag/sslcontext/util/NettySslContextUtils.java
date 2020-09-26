@@ -21,8 +21,8 @@ public final class NettySslContextUtils {
      */
     public static SslContextBuilder forClient(SSLFactory sslFactory) {
         SslContextBuilder sslContextBuilder = SslContextBuilder.forClient()
-                .ciphers(sslFactory.getAllowedCiphers(), SupportedCipherSuiteFilter.INSTANCE)
-                .protocols(sslFactory.getAllowedProtocols());
+                .ciphers(sslFactory.getCiphers(), SupportedCipherSuiteFilter.INSTANCE)
+                .protocols(sslFactory.getProtocols());
         sslFactory.getKeyManager().ifPresent(sslContextBuilder::keyManager);
         sslFactory.getTrustManager().ifPresent(sslContextBuilder::trustManager);
 
@@ -43,8 +43,8 @@ public final class NettySslContextUtils {
                 .orElseThrow(NullPointerException::new);
 
         SslContextBuilder sslContextBuilder = SslContextBuilder.forServer(keyManager)
-                .ciphers(sslFactory.getAllowedCiphers(), SupportedCipherSuiteFilter.INSTANCE)
-                .protocols(sslFactory.getAllowedProtocols());
+                .ciphers(sslFactory.getCiphers(), SupportedCipherSuiteFilter.INSTANCE)
+                .protocols(sslFactory.getProtocols());
         sslFactory.getTrustManager().ifPresent(sslContextBuilder::trustManager);
 
         return sslContextBuilder;

@@ -41,7 +41,6 @@ class NettySslContextUtilsShould {
         assertThat(sslFactory.getTrustStores().get(0).getKeyStorePassword()).isEmpty();
         assertThat(sslFactory.getTrustManager()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
-        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
 
         SslContext sslContext = NettySslContextUtils.forClient(sslFactory).build();
         assertThat(sslContext.isClient()).isTrue();
@@ -72,7 +71,6 @@ class NettySslContextUtilsShould {
         assertThat(sslFactory.getTrustStores().get(0).getKeyStorePassword()).isEqualTo(TRUSTSTORE_PASSWORD);
         assertThat(sslFactory.getTrustManager()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
-        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
 
         SslContext sslContext = NettySslContextUtils.forClient(sslFactory).build();
         assertThat(sslContext.isClient()).isTrue();
@@ -102,7 +100,6 @@ class NettySslContextUtilsShould {
         assertThat(sslFactory.getTrustStores().get(0).getKeyStorePassword()).isEmpty();
         assertThat(sslFactory.getTrustManager()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
-        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
 
         SslContext sslContext = NettySslContextUtils.forServer(sslFactory).build();
         assertThat(sslContext.isClient()).isFalse();
