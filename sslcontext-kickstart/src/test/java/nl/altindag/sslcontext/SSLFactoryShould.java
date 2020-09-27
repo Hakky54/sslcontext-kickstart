@@ -707,7 +707,7 @@ class SSLFactoryShould {
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
-        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.3");
+        assertThat(sslFactory.getProtocols()).contains("TLSv1.3");
     }
 
     @Test
