@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLParameters;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509ExtendedTrustManager;
@@ -41,7 +42,7 @@ public final class SSLFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(SSLFactory.class);
     private static final char[] EMPTY_PASSWORD = {};
 
-    private final String protocol;
+    private final String sslContextProtocol;
     private final SecureRandom secureRandom;
     private final HostnameVerifier hostnameVerifier;
 
@@ -51,23 +52,27 @@ public final class SSLFactory {
     private final List<KeyStoreHolder> trustStores = new ArrayList<>();
     private final List<X509ExtendedTrustManager> trustManagers = new ArrayList<>();
     private final boolean passwordCachingEnabled;
+    private final SSLParameters sslParameters;
 
     private SSLContext sslContext;
     private CompositeX509ExtendedTrustManager trustManager;
     private CompositeX509ExtendedKeyManager keyManager;
     private List<X509Certificate> trustedCertificates;
+    private List<String> ciphers;
+    private List<String> protocols;
 
     @SuppressWarnings("java:S107")
-    private SSLFactory(String protocol,
+    private SSLFactory(String sslContextProtocol,
                        SecureRandom secureRandom,
                        HostnameVerifier hostnameVerifier,
                        List<KeyStoreHolder> identities,
                        List<X509ExtendedKeyManager> identityManagers,
                        List<KeyStoreHolder> trustStores,
                        List<X509ExtendedTrustManager> trustManagers,
-                       boolean passwordCachingEnabled) {
+                       boolean passwordCachingEnabled,
+                       SSLParameters sslParameters) {
 
-        this.protocol = protocol;
+        this.sslContextProtocol = sslContextProtocol;
         this.secureRandom = secureRandom;
         this.hostnameVerifier = hostnameVerifier;
         this.identities.addAll(identities);
@@ -75,6 +80,7 @@ public final class SSLFactory {
         this.trustStores.addAll(trustStores);
         this.trustManagers.addAll(trustManagers);
         this.passwordCachingEnabled = passwordCachingEnabled;
+        this.sslParameters = sslParameters;
     }
 
     private void createSSLContextWithIdentityMaterial() {
@@ -91,7 +97,7 @@ public final class SSLFactory {
 
     private void createSSLContext(KeyManager[] keyManagers, TrustManager[] trustManagers)  {
         try {
-            sslContext = SSLContext.getInstance(protocol);
+            sslContext = SSLContext.getInstance(sslContextProtocol);
             sslContext.init(keyManagers, trustManagers, secureRandom);
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
             throw new GenericSSLContextException(e);
@@ -170,6 +176,28 @@ public final class SSLFactory {
         return hostnameVerifier;
     }
 
+    public List<String> getCiphers() {
+        if (isNull(ciphers)) {
+            ciphers = Collections.unmodifiableList(
+                    Optional.ofNullable(sslParameters.getCipherSuites())
+                            .map(Arrays::asList)
+                            .orElse(Arrays.asList(sslContext.getDefaultSSLParameters().getCipherSuites()))
+            );
+        }
+        return ciphers;
+    }
+
+    public List<String> getProtocols() {
+        if (isNull(protocols)) {
+            protocols = Collections.unmodifiableList(
+                    Optional.ofNullable(sslParameters.getProtocols())
+                            .map(Arrays::asList)
+                            .orElse(Arrays.asList(sslContext.getDefaultSSLParameters().getProtocols()))
+            );
+        }
+        return protocols;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -182,7 +210,7 @@ public final class SSLFactory {
         public static final String IDENTITY_AND_TRUST_MATERIAL_VALIDATION_EXCEPTION_MESSAGE = "Could not create instance of SSLFactory because Identity " +
                 "and Trust material are not present. Please provide at least a Trust material.";
 
-        private String protocol = "TLSv1.2";
+        private String sslContextProtocol = "TLS";
         private SecureRandom secureRandom = null;
         private HostnameVerifier hostnameVerifier = (host, sslSession) -> host.equalsIgnoreCase(sslSession.getPeerHost());
 
@@ -190,6 +218,7 @@ public final class SSLFactory {
         private final List<KeyStoreHolder> trustStores = new ArrayList<>();
         private final List<X509ExtendedKeyManager> identityManagers = new ArrayList<>();
         private final List<X509ExtendedTrustManager> trustManagers = new ArrayList<>();
+        private final SSLParameters sslParameters = new SSLParameters();
 
         private boolean passwordCachingEnabled = false;
 
@@ -344,8 +373,27 @@ public final class SSLFactory {
             return this;
         }
 
+        public Builder withCiphers(String... ciphers) {
+            sslParameters.setCipherSuites(ciphers);
+            return this;
+        }
+
+        public Builder withProtocols(String... protocols) {
+            sslParameters.setProtocols(protocols);
+            return this;
+        }
+
+        /**
+         * @deprecated  Will be removed with version 6.0.0 as it will provide by
+         *              default the latest list of supported protocols. Currently
+         *              it will create SSLContext instance with the protocol name TLS,
+         *              this will result into TLSv1, TLSv1.1 and TLSv1.2 for Java 1.8.
+         *              However if you are using Java 11 it will automatically include TLSv1.3
+         *              therefore it doesn't make sense to explicitly set the protocol
+         */
+        @Deprecated
         public Builder withProtocol(String protocol) {
-            this.protocol = protocol;
+            this.sslContextProtocol = protocol;
             return this;
         }
 
@@ -371,14 +419,15 @@ public final class SSLFactory {
             }
 
             SSLFactory sslFactory = new SSLFactory(
-                    protocol,
+                    sslContextProtocol,
                     secureRandom,
                     hostnameVerifier,
                     identities,
                     identityManagers,
                     trustStores,
                     trustManagers,
-                    passwordCachingEnabled
+                    passwordCachingEnabled,
+                    sslParameters
             );
 
             if (isIdentityMaterialPresent() && isTrustMaterialNotPresent()) {

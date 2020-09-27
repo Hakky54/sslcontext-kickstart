@@ -40,7 +40,6 @@ class ApacheSslContextUtilsShould {
         assertThat(sslFactory.getTrustStores().get(0).getKeyStorePassword()).isEmpty();
         assertThat(sslFactory.getTrustManager()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
-        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
 
         LayeredConnectionSocketFactory socketFactory = ApacheSslContextUtils.toLayeredConnectionSocketFactory(sslFactory);
         assertThat(socketFactory).isNotNull();
@@ -69,7 +68,6 @@ class ApacheSslContextUtilsShould {
         assertThat(sslFactory.getTrustStores().get(0).getKeyStorePassword()).isEqualTo(TRUSTSTORE_PASSWORD);
         assertThat(sslFactory.getTrustManager()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
-        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
 
         LayeredConnectionSocketFactory socketFactory = ApacheSslContextUtils.toLayeredConnectionSocketFactory(sslFactory);
         assertThat(socketFactory).isNotNull();

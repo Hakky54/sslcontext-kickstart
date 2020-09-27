@@ -5,7 +5,6 @@ import io.netty.handler.ssl.SupportedCipherSuiteFilter;
 import nl.altindag.sslcontext.SSLFactory;
 
 import javax.net.ssl.X509ExtendedKeyManager;
-import java.util.Arrays;
 
 public final class NettySslContextUtils {
 
@@ -22,8 +21,8 @@ public final class NettySslContextUtils {
      */
     public static SslContextBuilder forClient(SSLFactory sslFactory) {
         SslContextBuilder sslContextBuilder = SslContextBuilder.forClient()
-                .ciphers(Arrays.asList(sslFactory.getSslContext().getDefaultSSLParameters().getCipherSuites()), SupportedCipherSuiteFilter.INSTANCE)
-                .protocols(sslFactory.getSslContext().getDefaultSSLParameters().getProtocols());
+                .ciphers(sslFactory.getCiphers(), SupportedCipherSuiteFilter.INSTANCE)
+                .protocols(sslFactory.getProtocols());
         sslFactory.getKeyManager().ifPresent(sslContextBuilder::keyManager);
         sslFactory.getTrustManager().ifPresent(sslContextBuilder::trustManager);
 
@@ -44,8 +43,8 @@ public final class NettySslContextUtils {
                 .orElseThrow(NullPointerException::new);
 
         SslContextBuilder sslContextBuilder = SslContextBuilder.forServer(keyManager)
-                .ciphers(Arrays.asList(sslFactory.getSslContext().getDefaultSSLParameters().getCipherSuites()), SupportedCipherSuiteFilter.INSTANCE)
-                .protocols(sslFactory.getSslContext().getDefaultSSLParameters().getProtocols());
+                .ciphers(sslFactory.getCiphers(), SupportedCipherSuiteFilter.INSTANCE)
+                .protocols(sslFactory.getProtocols());
         sslFactory.getTrustManager().ifPresent(sslContextBuilder::trustManager);
 
         return sslContextBuilder;
