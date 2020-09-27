@@ -5,11 +5,11 @@
     <parent>
         <groupId>io.github.hakky54</groupId>
         <artifactId>sslcontext-kickstart-parent</artifactId>
-        <version>5.2.3-SNAPSHOT</version>
+        <version>5.2.3</version>
     </parent>
 
     <artifactId>sslcontext-kickstart-for-pem</artifactId>
-    <version>5.2.3-SNAPSHOT</version>
+    <version>5.2.3</version>
     <packaging>jar</packaging>
 
     <name>${project.artifactId}</name>
@@ -37,7 +37,7 @@
     </developers>
 
     <properties>
-        <version.sslcontext-kickstart>5.2.3-SNAPSHOT</version.sslcontext-kickstart>
+        <version.sslcontext-kickstart>5.2.3</version.sslcontext-kickstart>
         <version.bouncy-castle>1.66</version.bouncy-castle>
     </properties>
 
