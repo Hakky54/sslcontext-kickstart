@@ -659,17 +659,6 @@ class SSLFactoryShould {
     }
 
     @Test
-    void buildSSLFactoryWithTlsProtocolVersionOneDotOne() {
-        SSLFactory sslFactory = SSLFactory.builder()
-                .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
-                .withSslContextProtocol("TLSv1.1")
-                .build();
-
-        assertThat(sslFactory.getSslContext()).isNotNull();
-        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.1");
-    }
-
-    @Test
     void buildSSLFactoryWithTrustingAllCertificatesWithoutValidation() {
         LogCaptor logCaptor = LogCaptor.forClass(SSLFactory.class);
 
@@ -715,7 +704,6 @@ class SSLFactoryShould {
         LOGGER.info("Found java version {}, including testing SSLFactory with TLSv1.3 protocol", javaMajorVersion);
         SSLFactory sslFactory = SSLFactory.builder()
                 .withDefaultTrustMaterial()
-                .withSslContextProtocol("TLSv1.3")
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
@@ -924,17 +912,6 @@ class SSLFactoryShould {
                 .hasMessage(GENERIC_IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
 
         Files.delete(identityPath);
-    }
-
-    @Test
-    void throwExceptionWhenProvidingAnInvalidEncryptionProtocol() {
-        SSLFactory.Builder factoryBuilder = SSLFactory.builder()
-                .withTrustingAllCertificatesWithoutValidation()
-                .withSslContextProtocol("ENCRYPTIONv1.1");
-
-        assertThatThrownBy(factoryBuilder::build)
-                .isInstanceOf(GenericSSLContextException.class)
-                .hasMessage("java.security.NoSuchAlgorithmException: ENCRYPTIONv1.1 SSLContext not available");
     }
 
     @Test

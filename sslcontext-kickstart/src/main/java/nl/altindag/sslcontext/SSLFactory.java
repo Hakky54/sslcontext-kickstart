@@ -25,7 +25,6 @@ import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.Provider;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -44,7 +43,6 @@ public final class SSLFactory {
     private static final char[] EMPTY_PASSWORD = {};
 
     private final String sslContextProtocol;
-    private final Provider sslContextProvider;
     private final SecureRandom secureRandom;
     private final HostnameVerifier hostnameVerifier;
 
@@ -65,7 +63,6 @@ public final class SSLFactory {
 
     @SuppressWarnings("java:S107")
     private SSLFactory(String sslContextProtocol,
-                       Provider sslContextProvider,
                        SecureRandom secureRandom,
                        HostnameVerifier hostnameVerifier,
                        List<KeyStoreHolder> identities,
@@ -76,7 +73,6 @@ public final class SSLFactory {
                        SSLParameters sslParameters) {
 
         this.sslContextProtocol = sslContextProtocol;
-        this.sslContextProvider = sslContextProvider;
         this.secureRandom = secureRandom;
         this.hostnameVerifier = hostnameVerifier;
         this.identities.addAll(identities);
@@ -101,7 +97,7 @@ public final class SSLFactory {
 
     private void createSSLContext(KeyManager[] keyManagers, TrustManager[] trustManagers)  {
         try {
-            sslContext = sslContextProvider == null ? SSLContext.getInstance(sslContextProtocol) : SSLContext.getInstance(sslContextProtocol, sslContextProvider);
+            sslContext = SSLContext.getInstance(sslContextProtocol);
             sslContext.init(keyManagers, trustManagers, secureRandom);
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
             throw new GenericSSLContextException(e);
@@ -215,7 +211,6 @@ public final class SSLFactory {
                 "and Trust material are not present. Please provide at least a Trust material.";
 
         private String sslContextProtocol = "TLS";
-        private Provider sslContextProvider = null;
         private SecureRandom secureRandom = null;
         private HostnameVerifier hostnameVerifier = (host, sslSession) -> host.equalsIgnoreCase(sslSession.getPeerHost());
 
@@ -389,21 +384,16 @@ public final class SSLFactory {
         }
 
         /**
-         * @deprecated instead use the {@link Builder#withSslContextProtocol}
+         * @deprecated  Will be removed with version 6.0.0 as it will provide by
+         *              default the latest list of supported protocols. Currently
+         *              it will create SSLContext instance with the protocol name TLS,
+         *              this will result into TLSv1, TLSv1.1 and TLSv1.2 for Java 1.8.
+         *              However if you are using Java 11 it will automatically include TLSv1.3
+         *              therefore it doesn't make sense to explicitly set the protocol
          */
         @Deprecated
         public Builder withProtocol(String protocol) {
             this.sslContextProtocol = protocol;
-            return this;
-        }
-
-        public Builder withSslContextProtocol(String sslContextProtocol) {
-            this.sslContextProtocol = sslContextProtocol;
-            return this;
-        }
-
-        public Builder withSslContextProvider(Provider sslContextProvider) {
-            this.sslContextProvider = sslContextProvider;
             return this;
         }
 
@@ -430,7 +420,6 @@ public final class SSLFactory {
 
             SSLFactory sslFactory = new SSLFactory(
                     sslContextProtocol,
-                    sslContextProvider,
                     secureRandom,
                     hostnameVerifier,
                     identities,
