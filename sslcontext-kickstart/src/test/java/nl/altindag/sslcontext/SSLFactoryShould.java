@@ -2,7 +2,6 @@ package nl.altindag.sslcontext;
 
 import nl.altindag.log.LogCaptor;
 import nl.altindag.sslcontext.exception.GenericKeyStoreException;
-import nl.altindag.sslcontext.exception.GenericSSLContextException;
 import nl.altindag.sslcontext.exception.GenericSecurityException;
 import nl.altindag.sslcontext.trustmanager.CompositeX509ExtendedTrustManager;
 import nl.altindag.sslcontext.util.KeyManagerUtils;
