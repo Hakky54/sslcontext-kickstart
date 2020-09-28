@@ -169,14 +169,13 @@ SSLFactory.builder()
           .build();
 ```
 
-One way authentication with specific encryption protocol version, custom secure random and option to validate the hostname within the request against the SAN field of a certificate.
-If you are using java 11 or newer, than you are also able to use TLSv1.3 as encryption protocol. Just provide `TLSv1.3` as protocol argument and it will work out-of-the-box.
+One way authentication with custom secure random and option to validate the hostname within the request against the SAN field of a certificate.
+If you are using java 11 or newer, than you are also able to use TLSv1.3 as encryption protocol by default.
 ```text
 SSLFactory.builder()
           .withTrustMaterial(trustStore, trustStorePassword)
           .withHostnameVerifier(hostnameVerifier)
           .withSecureRandom(secureRandom)
-          .withProtocol("TLSv1.2")
           .build();
 ```
 
@@ -186,7 +185,6 @@ SSLFactory.builder()
           .withIdentityMaterial(identity, identityPassword)
           .withTrustMaterial(trustStore, trustStorePassword)
           .withHostnameVerifier(hostnameVerifier)
-          .withProtocol("TLSv1.2")
           .build();
 ```
 
@@ -200,7 +198,6 @@ SSLFactory.builder()
           .withTrustMaterial(trustStoreB, trustStorePasswordB)
           .withTrustMaterial(trustStoreC, trustStorePasswordC)
           .withTrustMaterial(trustStoreD, trustStorePasswordD)
-          .withProtocol("TLSv1.2")
           .build();
 ```
 
