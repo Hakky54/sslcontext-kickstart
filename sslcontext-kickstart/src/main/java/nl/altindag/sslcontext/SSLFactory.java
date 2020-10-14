@@ -99,6 +99,8 @@ public final class SSLFactory {
         try {
             sslContext = SSLContext.getInstance(sslContextProtocol);
             sslContext.init(keyManagers, trustManagers, secureRandom);
+
+            reinitializeSslParameters();
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
             throw new GenericSSLContextException(e);
         }
@@ -141,6 +143,22 @@ public final class SSLFactory {
         keyStores.addAll(sanitizedKeyStores);
     }
 
+    private void reinitializeSslParameters() {
+        SSLParameters defaultSSLParameters = sslContext.getDefaultSSLParameters();
+
+        String[] someCiphers = Optional.ofNullable(sslParameters.getCipherSuites())
+                .orElse(defaultSSLParameters.getCipherSuites());
+
+        String[] someProtocols = Optional.ofNullable(sslParameters.getProtocols())
+                .orElse(defaultSSLParameters.getProtocols());
+
+        sslParameters.setCipherSuites(someCiphers);
+        sslParameters.setProtocols(someProtocols);
+
+        ciphers = Collections.unmodifiableList(Arrays.asList(someCiphers));
+        protocols = Collections.unmodifiableList(Arrays.asList(someProtocols));
+    }
+
     public List<KeyStoreHolder> getIdentities() {
         return Collections.unmodifiableList(identities);
     }
@@ -177,25 +195,15 @@ public final class SSLFactory {
     }
 
     public List<String> getCiphers() {
-        if (isNull(ciphers)) {
-            ciphers = Collections.unmodifiableList(
-                    Optional.ofNullable(sslParameters.getCipherSuites())
-                            .map(Arrays::asList)
-                            .orElse(Arrays.asList(sslContext.getDefaultSSLParameters().getCipherSuites()))
-            );
-        }
         return ciphers;
     }
 
     public List<String> getProtocols() {
-        if (isNull(protocols)) {
-            protocols = Collections.unmodifiableList(
-                    Optional.ofNullable(sslParameters.getProtocols())
-                            .map(Arrays::asList)
-                            .orElse(Arrays.asList(sslContext.getDefaultSSLParameters().getProtocols()))
-            );
-        }
         return protocols;
+    }
+
+    public SSLParameters getSslParameters() {
+        return sslParameters;
     }
 
     public static Builder builder() {

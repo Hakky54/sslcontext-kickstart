@@ -733,6 +733,23 @@ class SSLFactoryShould {
     }
 
     @Test
+    void returnSpecifiedCiphersAndProtocolsWithinSslParameters() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withDefaultTrustMaterial()
+                .withCiphers("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384", "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384")
+                .withProtocols("TLSv1.2", "TLSv1.1")
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+        assertThat(sslFactory.getSslParameters().getCipherSuites())
+                .containsExactlyInAnyOrder("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384", "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384");
+        assertThat(sslFactory.getSslParameters().getProtocols())
+                .containsExactlyInAnyOrder("TLSv1.2", "TLSv1.1");
+        assertThat(sslFactory.getSslParameters())
+                .isNotEqualTo(sslFactory.getSslContext().getDefaultSSLParameters());
+    }
+
+    @Test
     void returnDefaultProtocolsWhenNoneSpecified() {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withDefaultTrustMaterial()
