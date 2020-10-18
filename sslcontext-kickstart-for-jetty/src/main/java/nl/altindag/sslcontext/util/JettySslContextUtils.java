@@ -35,8 +35,8 @@ public final class JettySslContextUtils {
 
     private static <T extends SslContextFactory> T createSslContextFactory(SSLFactory sslFactory, T sslContextFactory) {
         sslContextFactory.setSslContext(sslFactory.getSslContext());
-        sslContextFactory.setIncludeProtocols(sslFactory.getProtocols().toArray(new String[0]));
-        sslContextFactory.setIncludeCipherSuites(sslFactory.getCiphers().toArray(new String[0]));
+        sslContextFactory.setIncludeProtocols(sslFactory.getSslParameters().getProtocols());
+        sslContextFactory.setIncludeCipherSuites(sslFactory.getSslParameters().getCipherSuites());
         sslContextFactory.setHostnameVerifier(sslFactory.getHostnameVerifier());
 
         return sslContextFactory;

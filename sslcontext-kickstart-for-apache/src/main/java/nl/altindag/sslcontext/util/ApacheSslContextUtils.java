@@ -11,8 +11,8 @@ public final class ApacheSslContextUtils {
     public static LayeredConnectionSocketFactory toLayeredConnectionSocketFactory(SSLFactory sslFactory) {
         return new SSLConnectionSocketFactory(
                 sslFactory.getSslContext(),
-                sslFactory.getProtocols().toArray(new String[0]),
-                sslFactory.getCiphers().toArray(new String[0]),
+                sslFactory.getSslParameters().getProtocols(),
+                sslFactory.getSslParameters().getCipherSuites(),
                 sslFactory.getHostnameVerifier()
         );
     }
