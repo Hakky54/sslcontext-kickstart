@@ -108,11 +108,6 @@ public final class SSLFactory {
         }
     }
 
-    private void postConstructRemainingSslMaterials() {
-        reinitializeSslParameters();
-        sslSocketFactory = new CompositeSSLSocketFactory(sslContext.getSocketFactory(), sslParameters);
-    }
-
     private KeyManager[] createKeyManager() {
         keyManager = CompositeX509ExtendedKeyManager.builder()
                 .withKeyManagers(identityManagers)
@@ -148,6 +143,11 @@ public final class SSLFactory {
 
         keyStores.clear();
         keyStores.addAll(sanitizedKeyStores);
+    }
+
+    private void postConstructRemainingSslMaterials() {
+        reinitializeSslParameters();
+        sslSocketFactory = new CompositeSSLSocketFactory(sslContext.getSocketFactory(), sslParameters);
     }
 
     private void reinitializeSslParameters() {
