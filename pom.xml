@@ -65,6 +65,7 @@
         <version.logcaptor>2.1.1</version.logcaptor>
         <version.jacoco-maven-plugin>0.8.5</version.jacoco-maven-plugin>
         <version.maven-surefire-plugin>2.22.2</version.maven-surefire-plugin>
+        <version.mockito>3.5.15</version.mockito>
         <version.maven-fail-safe>2.22.2</version.maven-fail-safe>
         <version.maven-compiler-plugin>3.8.1</version.maven-compiler-plugin>
         <version.maven-enforcer-plugin>3.0.0-M3</version.maven-enforcer-plugin>
@@ -96,6 +97,12 @@
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter-engine</artifactId>
                 <version>${version.junit}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-junit-jupiter</artifactId>
+                <version>${version.mockito}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>

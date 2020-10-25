@@ -710,6 +710,19 @@ class SSLFactoryShould {
     }
 
     @Test
+    void returnSslSocketFactory() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withDefaultTrustMaterial()
+                .withCiphers("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384")
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+        assertThat(sslFactory.getSslSocketFactory()).isNotNull();
+        assertThat(sslFactory.getSslSocketFactory().getDefaultCipherSuites()).containsExactly("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384");
+        assertThat(sslFactory.getSslSocketFactory().getSupportedCipherSuites()).containsExactly("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384");
+    }
+
+    @Test
     void returnDefaultCiphersWhenNoneSpecified() {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withDefaultTrustMaterial()

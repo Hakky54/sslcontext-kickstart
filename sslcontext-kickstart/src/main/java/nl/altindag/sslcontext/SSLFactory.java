@@ -5,6 +5,7 @@ import nl.altindag.sslcontext.exception.GenericSSLContextException;
 import nl.altindag.sslcontext.exception.GenericSecurityException;
 import nl.altindag.sslcontext.keymanager.CompositeX509ExtendedKeyManager;
 import nl.altindag.sslcontext.model.KeyStoreHolder;
+import nl.altindag.sslcontext.socketfactory.CompositeSSLSocketFactory;
 import nl.altindag.sslcontext.trustmanager.CompositeX509ExtendedTrustManager;
 import nl.altindag.sslcontext.trustmanager.UnsafeX509ExtendedTrustManager;
 import nl.altindag.sslcontext.util.KeyStoreUtils;
@@ -16,6 +17,7 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLParameters;
+import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509ExtendedTrustManager;
@@ -55,6 +57,7 @@ public final class SSLFactory {
     private final SSLParameters sslParameters;
 
     private SSLContext sslContext;
+    private SSLSocketFactory sslSocketFactory;
     private CompositeX509ExtendedTrustManager trustManager;
     private CompositeX509ExtendedKeyManager keyManager;
     private List<X509Certificate> trustedCertificates;
@@ -99,11 +102,15 @@ public final class SSLFactory {
         try {
             sslContext = SSLContext.getInstance(sslContextProtocol);
             sslContext.init(keyManagers, trustManagers, secureRandom);
-
-            reinitializeSslParameters();
+            postConstructRemainingSslMaterials();
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
             throw new GenericSSLContextException(e);
         }
+    }
+
+    private void postConstructRemainingSslMaterials() {
+        reinitializeSslParameters();
+        sslSocketFactory = new CompositeSSLSocketFactory(sslContext.getSocketFactory(), sslParameters);
     }
 
     private KeyManager[] createKeyManager() {
@@ -169,6 +176,10 @@ public final class SSLFactory {
 
     public SSLContext getSslContext() {
         return sslContext;
+    }
+
+    public SSLSocketFactory getSslSocketFactory() {
+        return sslSocketFactory;
     }
 
     public Optional<X509ExtendedKeyManager> getKeyManager() {
