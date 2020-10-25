@@ -57,7 +57,7 @@ public final class SSLFactory {
     private final SSLParameters sslParameters;
 
     private SSLContext sslContext;
-    private SSLSocketFactory sslSocketFactory;
+    private CompositeSSLSocketFactory sslSocketFactory;
     private CompositeX509ExtendedTrustManager trustManager;
     private CompositeX509ExtendedKeyManager keyManager;
     private List<X509Certificate> trustedCertificates;
