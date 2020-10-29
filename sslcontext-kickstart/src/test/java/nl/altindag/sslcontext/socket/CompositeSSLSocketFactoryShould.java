@@ -69,7 +69,7 @@ class CompositeSSLSocketFactoryShould {
 
     @Test
     void createSocketWithSocketInputStreamAutoClosable() throws IOException {
-        Socket baseSocket = mock(SSLSocket.class);;
+        Socket baseSocket = mock(SSLSocket.class);
         SSLSocket mockedSslSocket = mock(SSLSocket.class);
         InputStream inputStream = new ByteArrayInputStream(new byte[]{});
 
@@ -85,7 +85,7 @@ class CompositeSSLSocketFactoryShould {
 
     @Test
     void createSocketWithSocketHostPortAutoClosable() throws IOException {
-        Socket baseSocket = mock(SSLSocket.class);;
+        Socket baseSocket = mock(SSLSocket.class);
         SSLSocket mockedSslSocket = mock(SSLSocket.class);
 
         doReturn(mockedSslSocket)
