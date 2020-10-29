@@ -1,4 +1,4 @@
-package nl.altindag.sslcontext.socketfactory;
+package nl.altindag.sslcontext.socket;
 
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLSocket;

@@ -1,4 +1,4 @@
-package nl.altindag.sslcontext.socketfactory;
+package nl.altindag.sslcontext.socket;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

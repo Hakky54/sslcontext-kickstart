@@ -5,7 +5,7 @@ import nl.altindag.sslcontext.exception.GenericSSLContextException;
 import nl.altindag.sslcontext.exception.GenericSecurityException;
 import nl.altindag.sslcontext.keymanager.CompositeX509ExtendedKeyManager;
 import nl.altindag.sslcontext.model.KeyStoreHolder;
-import nl.altindag.sslcontext.socketfactory.CompositeSSLSocketFactory;
+import nl.altindag.sslcontext.socket.CompositeSSLSocketFactory;
 import nl.altindag.sslcontext.trustmanager.CompositeX509ExtendedTrustManager;
 import nl.altindag.sslcontext.trustmanager.UnsafeX509ExtendedTrustManager;
 import nl.altindag.sslcontext.util.KeyStoreUtils;
