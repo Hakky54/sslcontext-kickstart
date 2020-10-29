@@ -7,7 +7,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 
@@ -50,6 +52,35 @@ class CompositeSSLSocketFactoryShould {
 
         assertThat(supportedCipherSuites).containsExactly("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384");
         verify(sslParameters, times(1)).getCipherSuites();
+    }
+
+    @Test
+    void createSocket() throws IOException {
+        SSLSocket mockedSslSocket = mock(SSLSocket.class);
+
+        doReturn(mockedSslSocket).when(sslSocketFactory).createSocket();
+
+        Socket socket = victim.createSocket();
+
+        assertThat(socket).isNotNull();
+        verify(sslSocketFactory, times(1)).createSocket();
+        verify(mockedSslSocket, times(1)).setSSLParameters(sslParameters);
+    }
+
+    @Test
+    void createSocketWithSocketInputStreamAutoClosable() throws IOException {
+        Socket baseSocket = mock(SSLSocket.class);;
+        SSLSocket mockedSslSocket = mock(SSLSocket.class);
+        InputStream inputStream = new ByteArrayInputStream(new byte[]{});
+
+        doReturn(mockedSslSocket)
+                .when(sslSocketFactory).createSocket(any(Socket.class), any(InputStream.class), anyBoolean());
+
+        Socket socket = victim.createSocket(baseSocket, inputStream, true);
+
+        assertThat(socket).isNotNull();
+        verify(sslSocketFactory, times(1)).createSocket(baseSocket, inputStream, true);
+        verify(mockedSslSocket, times(1)).setSSLParameters(sslParameters);
     }
 
     @Test

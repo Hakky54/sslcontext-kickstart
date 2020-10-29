@@ -4,6 +4,7 @@ import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -26,6 +27,18 @@ public final class CompositeSSLSocketFactory extends SSLSocketFactory {
     @Override
     public String[] getSupportedCipherSuites() {
         return sslParameters.getCipherSuites();
+    }
+
+    @Override
+    public Socket createSocket() throws IOException {
+        Socket socket = sslSocketFactory.createSocket();
+        return withSslParameters(socket);
+    }
+
+    @Override
+    public Socket createSocket(Socket socket, InputStream inputStream, boolean autoClosable) throws IOException {
+        Socket newSocket = sslSocketFactory.createSocket(socket, inputStream, autoClosable);
+        return withSslParameters(newSocket);
     }
 
     @Override
