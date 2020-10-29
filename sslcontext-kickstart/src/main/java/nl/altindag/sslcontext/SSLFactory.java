@@ -5,6 +5,7 @@ import nl.altindag.sslcontext.exception.GenericSSLContextException;
 import nl.altindag.sslcontext.exception.GenericSecurityException;
 import nl.altindag.sslcontext.keymanager.CompositeX509ExtendedKeyManager;
 import nl.altindag.sslcontext.model.KeyStoreHolder;
+import nl.altindag.sslcontext.socket.CompositeSSLServerSocketFactory;
 import nl.altindag.sslcontext.socket.CompositeSSLSocketFactory;
 import nl.altindag.sslcontext.trustmanager.CompositeX509ExtendedTrustManager;
 import nl.altindag.sslcontext.trustmanager.UnsafeX509ExtendedTrustManager;
@@ -17,6 +18,7 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLParameters;
+import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509ExtendedKeyManager;
@@ -58,6 +60,7 @@ public final class SSLFactory {
 
     private SSLContext sslContext;
     private CompositeSSLSocketFactory sslSocketFactory;
+    private CompositeSSLServerSocketFactory sslServerSocketFactory;
     private CompositeX509ExtendedTrustManager trustManager;
     private CompositeX509ExtendedKeyManager keyManager;
     private List<X509Certificate> trustedCertificates;
@@ -148,6 +151,7 @@ public final class SSLFactory {
     private void postConstructRemainingSslMaterials() {
         reinitializeSslParameters();
         sslSocketFactory = new CompositeSSLSocketFactory(sslContext.getSocketFactory(), sslParameters);
+        sslServerSocketFactory = new CompositeSSLServerSocketFactory(sslContext.getServerSocketFactory(), sslParameters);
     }
 
     private void reinitializeSslParameters() {
@@ -180,6 +184,10 @@ public final class SSLFactory {
 
     public SSLSocketFactory getSslSocketFactory() {
         return sslSocketFactory;
+    }
+
+    public SSLServerSocketFactory getSslServerSocketFactory() {
+        return sslServerSocketFactory;
     }
 
     public Optional<X509ExtendedKeyManager> getKeyManager() {
