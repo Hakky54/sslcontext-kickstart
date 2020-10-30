@@ -152,6 +152,11 @@ public final class SSLFactory {
         reinitializeSslParameters();
         sslSocketFactory = new CompositeSSLSocketFactory(sslContext.getSocketFactory(), sslParameters);
         sslServerSocketFactory = new CompositeSSLServerSocketFactory(sslContext.getServerSocketFactory(), sslParameters);
+        trustedCertificates = Optional.ofNullable(trustManager)
+                .map(X509ExtendedTrustManager::getAcceptedIssuers)
+                .flatMap(x509Certificates -> Optional.of(Arrays.asList(x509Certificates)))
+                .map(Collections::unmodifiableList)
+                .orElse(Collections.emptyList());
     }
 
     private void reinitializeSslParameters() {
@@ -199,13 +204,6 @@ public final class SSLFactory {
     }
 
     public List<X509Certificate> getTrustedCertificates() {
-        if (isNull(trustedCertificates)) {
-            trustedCertificates = Optional.ofNullable(trustManager)
-                    .map(X509ExtendedTrustManager::getAcceptedIssuers)
-                    .flatMap(x509Certificates -> Optional.of(Arrays.asList(x509Certificates)))
-                    .map(Collections::unmodifiableList)
-                    .orElse(Collections.emptyList());
-        }
         return trustedCertificates;
     }
 
