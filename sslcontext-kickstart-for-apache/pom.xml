@@ -38,7 +38,7 @@
 
     <properties>
         <version.sslcontext-kickstart>5.2.5-SNAPSHOT</version.sslcontext-kickstart>
-        <version.httpcomponents.httpcore>4.5.12</version.httpcomponents.httpcore>
+        <version.httpcomponents.httpcore>4.5.13</version.httpcomponents.httpcore>
     </properties>
 
     <dependencies>

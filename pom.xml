@@ -61,11 +61,11 @@
         <version.java>1.8</version.java>
         <version.slf4j>1.7.30</version.slf4j>
         <version.junit>5.7.0</version.junit>
-        <version.assertj-core>3.17.2</version.assertj-core>
+        <version.assertj-core>3.18.0</version.assertj-core>
         <version.logcaptor>2.1.1</version.logcaptor>
         <version.jacoco-maven-plugin>0.8.5</version.jacoco-maven-plugin>
         <version.maven-surefire-plugin>2.22.2</version.maven-surefire-plugin>
-        <version.mockito>3.5.15</version.mockito>
+        <version.mockito>3.6.0</version.mockito>
         <version.maven-fail-safe>2.22.2</version.maven-fail-safe>
         <version.maven-compiler-plugin>3.8.1</version.maven-compiler-plugin>
         <version.maven-enforcer-plugin>3.0.0-M3</version.maven-enforcer-plugin>
