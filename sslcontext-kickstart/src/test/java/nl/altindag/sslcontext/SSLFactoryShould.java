@@ -28,6 +28,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.security.SecureRandom;
+import java.security.Security;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -518,6 +519,26 @@ class SSLFactoryShould {
     }
 
     @Test
+    void buildSSLFactoryWithOldSslContextProtocolSetterMethod() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withDefaultTrustMaterial()
+                .withProtocol("TLSv1.2")
+                .build();
+
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+    }
+
+    @Test
+    void buildSSLFactoryWithSslContextProtocol() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withDefaultTrustMaterial()
+                .withSslContextProtocol("TLSv1.2")
+                .build();
+
+        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
+    }
+
+    @Test
     void buildSSLFactoryWithCustomHostnameVerifier() {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
@@ -659,6 +680,30 @@ class SSLFactoryShould {
         assertThat(sslFactory.getTrustManager()).isPresent();
         assertThat(sslFactory.getTrustManager().get()).isInstanceOf(CompositeX509ExtendedTrustManager.class);
         assertThat(logCaptor.getWarnLogs()).contains("UnsafeTrustManager is being used. Client/Server certificates will be accepted without validation. Please don't use this configuration at production.");
+    }
+
+    @Test
+    void buildSSLFactoryWithSecurityProvider() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withDefaultTrustMaterial()
+                .withSslContextProtocol("TLS")
+                .withSecurityProvider(Security.getProvider("SunJSSE"))
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+        assertThat(sslFactory.getSslContext().getProvider().getName()).isEqualTo("SunJSSE");
+    }
+
+    @Test
+    void buildSSLFactoryWithSecurityProviderName() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withDefaultTrustMaterial()
+                .withSslContextProtocol("TLS")
+                .withSecurityProvider("SunJSSE")
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+        assertThat(sslFactory.getSslContext().getProvider().getName()).isEqualTo("SunJSSE");
     }
 
     @Test
@@ -957,6 +1002,29 @@ class SSLFactoryShould {
         assertThatThrownBy(factoryBuilder::build)
                 .isInstanceOf(GenericSecurityException.class)
                 .hasMessage("java.security.UnrecoverableKeyException: Get Key failed: Given final block not properly padded. Such issues can arise if a bad key is used during decryption.");
+    }
+
+    @Test
+    void throwExceptionWhenUnknownSslContextProtocolIsProvided() {
+        SSLFactory.Builder factoryBuilder = SSLFactory.builder()
+                .withDefaultTrustMaterial()
+                .withSslContextProtocol("KABOOM");
+
+        assertThatThrownBy(factoryBuilder::build)
+                .isInstanceOf(GenericSecurityException.class)
+                .hasMessage("java.security.NoSuchAlgorithmException: KABOOM SSLContext not available");
+    }
+
+    @Test
+    void throwExceptionWhenUnknownSecurityProviderNameIsProvided() {
+        SSLFactory.Builder factoryBuilder = SSLFactory.builder()
+                .withDefaultTrustMaterial()
+                .withSslContextProtocol("TLS")
+                .withSecurityProvider("KABOOOM");
+
+        assertThatThrownBy(factoryBuilder::build)
+                .isInstanceOf(GenericSecurityException.class)
+                .hasMessage("java.security.NoSuchProviderException: no such provider: KABOOOM");
     }
 
     @SuppressWarnings("SameParameterValue")

@@ -29,6 +29,8 @@ import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.Provider;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -39,6 +41,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toList;
 
 public final class SSLFactory {
@@ -47,6 +50,8 @@ public final class SSLFactory {
     private static final char[] EMPTY_PASSWORD = {};
 
     private final String sslContextProtocol;
+    private final Provider securityProvider;
+    private final String securityProviderName;
     private final SecureRandom secureRandom;
     private final HostnameVerifier hostnameVerifier;
 
@@ -69,6 +74,8 @@ public final class SSLFactory {
 
     @SuppressWarnings("java:S107")
     private SSLFactory(String sslContextProtocol,
+                       Provider securityProvider,
+                       String securityProviderName,
                        SecureRandom secureRandom,
                        HostnameVerifier hostnameVerifier,
                        List<KeyStoreHolder> identities,
@@ -79,6 +86,8 @@ public final class SSLFactory {
                        SSLParameters sslParameters) {
 
         this.sslContextProtocol = sslContextProtocol;
+        this.securityProvider = securityProvider;
+        this.securityProviderName = securityProviderName;
         this.secureRandom = secureRandom;
         this.hostnameVerifier = hostnameVerifier;
         this.identities.addAll(identities);
@@ -103,10 +112,17 @@ public final class SSLFactory {
 
     private void createSSLContext(KeyManager[] keyManagers, TrustManager[] trustManagers)  {
         try {
-            sslContext = SSLContext.getInstance(sslContextProtocol);
+            if (nonNull(securityProvider)) {
+                sslContext = SSLContext.getInstance(sslContextProtocol, securityProvider);
+            } else if (nonNull(securityProviderName)) {
+                sslContext = SSLContext.getInstance(sslContextProtocol, securityProviderName);
+            } else {
+                sslContext = SSLContext.getInstance(sslContextProtocol);
+            }
+
             sslContext.init(keyManagers, trustManagers, secureRandom);
             postConstructRemainingSslMaterials();
-        } catch (NoSuchAlgorithmException | KeyManagementException e) {
+        } catch (NoSuchAlgorithmException | NoSuchProviderException | KeyManagementException e) {
             throw new GenericSSLContextException(e);
         }
     }
@@ -236,6 +252,8 @@ public final class SSLFactory {
                 "and Trust material are not present. Please provide at least a Trust material.";
 
         private String sslContextProtocol = "TLS";
+        private Provider securityProvider = null;
+        private String securityProviderName = null;
         private SecureRandom secureRandom = null;
         private HostnameVerifier hostnameVerifier = (host, sslSession) -> host.equalsIgnoreCase(sslSession.getPeerHost());
 
@@ -422,6 +440,21 @@ public final class SSLFactory {
             return this;
         }
 
+        public Builder withSslContextProtocol(String sslContextProtocol) {
+            this.sslContextProtocol = sslContextProtocol;
+            return this;
+        }
+
+        public Builder withSecurityProvider(Provider securityProvider) {
+            this.securityProvider = securityProvider;
+            return this;
+        }
+
+        public Builder withSecurityProvider(String securityProviderName) {
+            this.securityProviderName = securityProviderName;
+            return this;
+        }
+
         public Builder withSecureRandom(SecureRandom secureRandom) {
             this.secureRandom = secureRandom;
             return this;
@@ -445,6 +478,8 @@ public final class SSLFactory {
 
             SSLFactory sslFactory = new SSLFactory(
                     sslContextProtocol,
+                    securityProvider,
+                    securityProviderName,
                     secureRandom,
                     hostnameVerifier,
                     identities,
