@@ -59,6 +59,19 @@ class CompositeSSLServerSocketFactoryShould {
     }
 
     @Test
+    void createServerSocketDoesNotUseSslParametersWhenInnerSslServerSocketFactoryReturnsServerSocket() throws IOException {
+        ServerSocket mockedServerSocket = mock(ServerSocket.class);
+
+        doReturn(mockedServerSocket).when(sslServerSocketFactory).createServerSocket();
+
+        ServerSocket serverSocket = victim.createServerSocket();
+
+        assertThat(serverSocket).isNotNull();
+        verify(sslServerSocketFactory, times(1)).createServerSocket();
+        verifyNoInteractions(mockedServerSocket);
+    }
+
+    @Test
     void createServerSocketWithPort() throws IOException {
         SSLServerSocket mockedSslServerSocket = mock(SSLServerSocket.class);
 

@@ -23,6 +23,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 @ExtendWith(MockitoExtension.class)
 class CompositeSSLSocketFactoryShould {
@@ -65,6 +66,19 @@ class CompositeSSLSocketFactoryShould {
         assertThat(socket).isNotNull();
         verify(sslSocketFactory, times(1)).createSocket();
         verify(mockedSslSocket, times(1)).setSSLParameters(sslParameters);
+    }
+
+    @Test
+    void createSocketDoesNotUseSslParametersWhenInnerSslSocketFactoryReturnsSocket() throws IOException {
+        Socket mockedSocket = mock(Socket.class);
+
+        doReturn(mockedSocket).when(sslSocketFactory).createSocket();
+
+        Socket socket = victim.createSocket();
+
+        assertThat(socket).isNotNull();
+        verify(sslSocketFactory, times(1)).createSocket();
+        verifyNoInteractions(mockedSocket);
     }
 
     @Test
