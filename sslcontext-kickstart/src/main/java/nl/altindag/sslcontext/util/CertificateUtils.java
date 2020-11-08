@@ -4,7 +4,7 @@ import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.UUID;
 
-public class CertificateUtils {
+public final class CertificateUtils {
 
     private CertificateUtils() {}
 
