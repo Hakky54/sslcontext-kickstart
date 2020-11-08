@@ -15,8 +15,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static java.util.Objects.isNull;
-
 /**
  * {@link CompositeX509ExtendedTrustManager} is a wrapper for a collection of TrustManagers.
  * It has the ability to validate a certificate chain against multiple TrustManagers.
@@ -44,10 +42,15 @@ public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustMa
     private static final String SERVER_CERTIFICATE_LOG_MESSAGE = "Received the following server certificate: [{}]";
 
     private final List<? extends X509ExtendedTrustManager> trustManagers;
-    private X509Certificate[] acceptedIssuers;
+    private final X509Certificate[] acceptedIssuers;
 
     public CompositeX509ExtendedTrustManager(List<? extends X509ExtendedTrustManager> trustManagers) {
         this.trustManagers = Collections.unmodifiableList(trustManagers);
+        acceptedIssuers = trustManagers.stream()
+                .map(X509ExtendedTrustManager::getAcceptedIssuers)
+                .flatMap(Arrays::stream)
+                .distinct()
+                .toArray(X509Certificate[]::new);
     }
 
     @Override
@@ -184,13 +187,6 @@ public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustMa
 
     @Override
     public X509Certificate[] getAcceptedIssuers() {
-        if (isNull(acceptedIssuers)) {
-            acceptedIssuers = trustManagers.stream()
-                    .map(X509ExtendedTrustManager::getAcceptedIssuers)
-                    .flatMap(Arrays::stream)
-                    .distinct()
-                    .toArray(X509Certificate[]::new);
-        }
         return acceptedIssuers;
     }
 
