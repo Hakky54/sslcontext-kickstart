@@ -1,5 +1,7 @@
 package nl.altindag.sslcontext.util;
 
+import javax.net.ssl.X509TrustManager;
+
 import static java.util.Objects.isNull;
 
 import java.io.IOException;
@@ -10,11 +12,17 @@ import java.nio.file.StandardOpenOption;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public final class KeyStoreUtils {
+
+    private static final char[] EMPTY_PASSWORD_PLACEHOLDER = null;
+    private static final String KEYSTORE_TYPE = "PKCS12";
 
     private KeyStoreUtils() {}
 
@@ -46,6 +54,32 @@ public final class KeyStoreUtils {
         KeyStore keystore = KeyStore.getInstance(keystoreType);
         keystore.load(keystoreInputStream, keystorePassword);
         return keystore;
+    }
+
+    public static <T extends X509TrustManager> KeyStore createTrustStore(T... trustManagers) throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        List<X509Certificate> certificates = new ArrayList<>();
+        for (T trustManager : trustManagers) {
+            certificates.addAll(Arrays.asList(trustManager.getAcceptedIssuers()));
+        }
+        return createTrustStore(certificates);
+    }
+
+    public static <T extends Certificate> KeyStore createTrustStore(T... certificates) throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        return createTrustStore(Arrays.asList(certificates));
+    }
+
+    public static <T extends Certificate> KeyStore createTrustStore(List<T> certificates) throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        KeyStore trustStore = createEmptyKeyStore();
+        for (T certificate : certificates) {
+            trustStore.setCertificateEntry(CertificateUtils.generateAlias(certificate), certificate);
+        }
+        return trustStore;
+    }
+
+    public static KeyStore createEmptyKeyStore() throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
+        KeyStore keyStore = KeyStore.getInstance(KEYSTORE_TYPE);
+        keyStore.load(null, EMPTY_PASSWORD_PLACEHOLDER);
+        return keyStore;
     }
 
     public static List<KeyStore> loadSystemKeyStores() throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
