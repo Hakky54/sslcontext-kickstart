@@ -490,16 +490,12 @@ public final class SSLFactory {
                     sslParameters
             );
 
-            if (isIdentityMaterialPresent() && isTrustMaterialNotPresent()) {
-                sslFactory.createSSLContextWithIdentityMaterial();
-            }
-
-            if (isIdentityMaterialNotPresent() && isTrustMaterialPresent()) {
-                sslFactory.createSSLContextWithTrustMaterial();
-            }
-
             if (isIdentityMaterialPresent() && isTrustMaterialPresent()) {
                 sslFactory.createSSLContextWithIdentityMaterialAndTrustMaterial();
+            } else if (isIdentityMaterialPresent()) {
+                sslFactory.createSSLContextWithIdentityMaterial();
+            } else {
+                sslFactory.createSSLContextWithTrustMaterial();
             }
 
             return sslFactory;
