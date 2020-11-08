@@ -1,14 +1,16 @@
 package nl.altindag.sslcontext.util;
 
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-import static nl.altindag.sslcontext.TestConstants.IDENTITY_FILE_NAME;
-import static nl.altindag.sslcontext.TestConstants.KEYSTORE_LOCATION;
-import static nl.altindag.sslcontext.TestConstants.TRUSTSTORE_FILE_NAME;
-import static nl.altindag.sslcontext.TestConstants.TRUSTSTORE_PASSWORD;
-import static org.assertj.core.api.Assertions.assertThat;
+import nl.altindag.sslcontext.SSLFactory;
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.MockedStatic;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import javax.net.ssl.X509ExtendedTrustManager;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -19,12 +21,16 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
-import nl.altindag.sslcontext.SSLFactory;
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.Test;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import static nl.altindag.sslcontext.TestConstants.IDENTITY_FILE_NAME;
+import static nl.altindag.sslcontext.TestConstants.KEYSTORE_LOCATION;
+import static nl.altindag.sslcontext.TestConstants.TRUSTSTORE_FILE_NAME;
+import static nl.altindag.sslcontext.TestConstants.TRUSTSTORE_PASSWORD;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 
-import javax.net.ssl.X509ExtendedTrustManager;
-
+@ExtendWith(MockitoExtension.class)
 class KeyStoreUtilsShould {
 
     private static final String JCEKS_KEYSTORE_FILE_NAME = "identity.jceks";
@@ -33,6 +39,7 @@ class KeyStoreUtilsShould {
 
     private static final char[] KEYSTORE_PASSWORD = new char[] {'s', 'e', 'c', 'r', 'e', 't'};
     private static final String TEMPORALLY_KEYSTORE_LOCATION = System.getProperty("user.home");
+    private static final String ORIGINAL_OS_NAME = System.getProperty("os.name");
 
     @Test
     void loadKeyStoreFromClasspath() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
@@ -70,6 +77,52 @@ class KeyStoreUtilsShould {
         if (operatingSystem.contains("mac") || operatingSystem.contains("windows")) {
             assertThat(keyStores).isNotEmpty();
         }
+    }
+
+    @Test
+    void loadWindowsSystemKeyStore() throws Exception {
+        System.setProperty("os.name", "windows");
+        KeyStore windowsRootKeyStore = mock(KeyStore.class);
+        KeyStore windowsMyKeyStore = mock(KeyStore.class);
+
+        try (MockedStatic<KeyStoreUtils> keyStoreUtilsMock = mockStatic(KeyStoreUtils.class, invocation -> {
+            Method method = invocation.getMethod();
+            if ("loadSystemKeyStores".equals(method.getName()) && method.getParameterCount() == 0) {
+                return invocation.callRealMethod();
+            } else {
+                return invocation.getMock();
+            }
+        })) {
+            keyStoreUtilsMock.when(() -> KeyStoreUtils.loadSystemKeyStore("Windows-ROOT")).thenReturn(windowsRootKeyStore);
+            keyStoreUtilsMock.when(() -> KeyStoreUtils.loadSystemKeyStore("Windows-MY")).thenReturn(windowsMyKeyStore);
+
+            List<KeyStore> keyStores = KeyStoreUtils.loadSystemKeyStores();
+            assertThat(keyStores).containsExactlyInAnyOrder(windowsRootKeyStore, windowsMyKeyStore);
+        }
+
+        resetOsName();
+    }
+
+    @Test
+    void loadMacSystemKeyStore() throws Exception {
+        System.setProperty("os.name", "mac");
+        KeyStore macKeyStore = mock(KeyStore.class);
+
+        try (MockedStatic<KeyStoreUtils> keyStoreUtilsMock = mockStatic(KeyStoreUtils.class, invocation -> {
+            Method method = invocation.getMethod();
+            if ("loadSystemKeyStores".equals(method.getName()) && method.getParameterCount() == 0) {
+                return invocation.callRealMethod();
+            } else {
+                return invocation.getMock();
+            }
+        })) {
+            keyStoreUtilsMock.when(() -> KeyStoreUtils.loadSystemKeyStore("KeychainStore")).thenReturn(macKeyStore);
+
+            List<KeyStore> keyStores = KeyStoreUtils.loadSystemKeyStores();
+            assertThat(keyStores).containsExactly(macKeyStore);
+        }
+
+        resetOsName();
     }
 
     @Test
@@ -128,6 +181,10 @@ class KeyStoreUtilsShould {
             Files.copy(keystoreInputStream, destination, REPLACE_EXISTING);
             return destination;
         }
+    }
+
+    private void resetOsName() {
+        System.setProperty("os.name", ORIGINAL_OS_NAME);
     }
 
 }

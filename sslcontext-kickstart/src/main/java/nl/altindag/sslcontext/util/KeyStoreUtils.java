@@ -101,7 +101,7 @@ public final class KeyStoreUtils {
         return keyStores;
     }
 
-    private static KeyStore loadSystemKeyStore(String keyStoreType) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
+    static KeyStore loadSystemKeyStore(String keyStoreType) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
         KeyStore keyStore = KeyStore.getInstance(keyStoreType);
         keyStore.load(null, null);
         return keyStore;
