@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Represents an ordered list of {@link X509ExtendedKeyManager} with most-preferred managers first.
@@ -146,11 +147,12 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
      */
     @Override
     public String[] getClientAliases(String keyType, Principal[] issuers) {
-        List<String> aliases = new ArrayList<>();
+        List<String> clientAliases = new ArrayList<>();
         for (X509ExtendedKeyManager keyManager : keyManagers) {
-            aliases.addAll(Arrays.asList(keyManager.getClientAliases(keyType, issuers)));
+            Optional.ofNullable(keyManager.getClientAliases(keyType, issuers))
+                    .ifPresent(aliases -> clientAliases.addAll(Arrays.asList(aliases)));
         }
-        return emptyToNull(aliases.toArray(new String[]{}));
+        return emptyToNull(clientAliases.toArray(new String[]{}));
     }
 
     /**
@@ -159,11 +161,12 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
      */
     @Override
     public String[] getServerAliases(String keyType, Principal[] issuers) {
-        List<String> aliases = new ArrayList<>();
+        List<String> serverAliases = new ArrayList<>();
         for (X509ExtendedKeyManager keyManager : keyManagers) {
-            aliases.addAll(Arrays.asList(keyManager.getServerAliases(keyType, issuers)));
+            Optional.ofNullable(keyManager.getServerAliases(keyType, issuers))
+                    .ifPresent(aliases -> serverAliases.addAll(Arrays.asList(aliases)));
         }
-        return emptyToNull(aliases.toArray(new String[]{}));
+        return emptyToNull(serverAliases.toArray(new String[]{}));
     }
 
     public int size() {

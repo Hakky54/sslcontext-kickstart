@@ -3,6 +3,9 @@ package nl.altindag.sslcontext.util;
 import nl.altindag.sslcontext.exception.GenericSecurityException;
 import nl.altindag.sslcontext.model.KeyStoreHolder;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.MockedStatic;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.net.ssl.X509ExtendedTrustManager;
 import java.io.IOException;
@@ -13,7 +16,9 @@ import java.security.cert.CertificateException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mockStatic;
 
+@ExtendWith(MockitoExtension.class)
 class TrustManagerUtilsShould {
 
     private static final String TRUSTSTORE_FILE_NAME = "truststore.jks";
@@ -85,6 +90,29 @@ class TrustManagerUtilsShould {
 
         assertThat(trustManager).isNotNull();
         assertThat((trustManager).getAcceptedIssuers()).hasSizeGreaterThan(10);
+    }
+
+    @Test
+    void createTrustManagerWithSystemTrustedCertificate() {
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManagerWithSystemTrustedCertificates();
+
+        assertThat(trustManager).isNotNull();
+
+        String operatingSystem = System.getProperty("os.name").toLowerCase();
+        if (operatingSystem.contains("mac") || operatingSystem.contains("windows")) {
+            assertThat((trustManager).getAcceptedIssuers()).hasSizeGreaterThan(0);
+        }
+    }
+
+    @Test
+    void createTrustManagerWithSystemTrustedCertificateWrapsCheckedExceptionIntoGenericSecurityException() {
+        try (MockedStatic<KeyStoreUtils> keyStoreUtilsMock = mockStatic(KeyStoreUtils.class)) {
+            keyStoreUtilsMock.when(KeyStoreUtils::loadSystemKeyStores).thenThrow(new KeyStoreException("KABOOOM!"));
+
+            assertThatThrownBy(TrustManagerUtils::createTrustManagerWithSystemTrustedCertificates)
+                    .hasMessageContaining("KABOOOM!")
+                    .isInstanceOf(GenericSecurityException.class);
+        }
     }
 
     @Test

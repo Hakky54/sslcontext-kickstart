@@ -4,6 +4,8 @@ import nl.altindag.sslcontext.model.KeyStoreHolder;
 import nl.altindag.sslcontext.util.KeyManagerUtils;
 import nl.altindag.sslcontext.util.KeyStoreUtils;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.X509ExtendedKeyManager;
@@ -11,11 +13,18 @@ import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.Principal;
 import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.Arrays;
+import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class CompositeX509ExtendedKeyManagerShould {
 
     private static final String IDENTITY_FILE_NAME = "identity.jks";
@@ -104,6 +113,18 @@ class CompositeX509ExtendedKeyManagerShould {
     }
 
     @Test
+    void returnNullWhenCertificateChainLengthIsZeroWhenGettingCertificateChain() {
+        X509ExtendedKeyManager mockedInnerKeyManager = mock(X509ExtendedKeyManager.class);
+        when(mockedInnerKeyManager.getCertificateChain(anyString())).thenReturn(new X509Certificate[] {});
+
+        CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(Collections.singletonList(mockedInnerKeyManager));
+        X509Certificate[] certificateChain = keyManager.getCertificateChain("dummy-client");
+
+        assertThat(certificateChain).isNull();
+    }
+
+
+    @Test
     void getServerAliases() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
@@ -121,6 +142,19 @@ class CompositeX509ExtendedKeyManagerShould {
         assertThat(identityOne.size()).isEqualTo(1);
         assertThat(identityTwo.size()).isEqualTo(1);
         assertThat(aliases).containsExactlyInAnyOrder("dummy-client", "another-server");
+    }
+
+    @Test
+    void getServerAliasesReturnsNullWhenThereIsNoMatchingIssuer() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        X509ExtendedKeyManager mockedInnerKeyManager = mock(X509ExtendedKeyManager.class);
+        Principal mockedIssuer = mock(Principal.class);
+        Principal[] mockedIssuers = new Principal[]{ mockedIssuer };
+        when(mockedInnerKeyManager.getServerAliases("RSA", mockedIssuers)).thenReturn(null);
+
+        CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(Collections.singletonList(mockedInnerKeyManager));
+        String[] serverAliases = keyManager.getServerAliases("RSA", mockedIssuers);
+
+        assertThat(serverAliases).isNull();
     }
 
     @Test
