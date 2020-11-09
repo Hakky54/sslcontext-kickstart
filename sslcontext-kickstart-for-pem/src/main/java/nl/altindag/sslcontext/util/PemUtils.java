@@ -182,7 +182,9 @@ public final class PemUtils {
                 privateKeyInfo = pemKeyPair.getPrivateKeyInfo();
             }
 
-            object = pemParser.readObject();
+            if (privateKeyInfo == null) {
+                object = pemParser.readObject();
+            }
         }
 
         if (Objects.isNull(privateKeyInfo)) {

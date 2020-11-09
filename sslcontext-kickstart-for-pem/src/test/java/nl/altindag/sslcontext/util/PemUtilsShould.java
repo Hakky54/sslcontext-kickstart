@@ -265,6 +265,13 @@ class PemUtilsShould {
     }
 
     @Test
+    void loadUnencryptedIdentityMaterialFromClassPathWhichFirstContainsTheCertificate() throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException {
+        X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(PEM_LOCATION + "unencrypted-identity-with-certificate-first.pem");
+
+        assertThat(keyManager).isNotNull();
+    }
+
+    @Test
     void throwPrivateKeyParseExceptionWhenAnUnknownPrivateKeyHasBeenSupplied() throws IOException {
         try(InputStream inputStream = new ByteArrayInputStream("Hello there friend!".getBytes(StandardCharsets.UTF_8))) {
             assertThatThrownBy(() -> PemUtils.loadIdentityMaterial(inputStream))
