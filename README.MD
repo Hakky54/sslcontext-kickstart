@@ -150,6 +150,11 @@ public class App {
         List<X509Certificate> trustedCertificates = sslFactory.getTrustedCertificates();
         List<KeyStoreHolder> identities = sslFactory.getIdentities();
         List<KeyStoreHolder> trustStores = sslFactory.getTrustStores();
+        SSLSocketFactory sslSocketFactory = sslFactory.getSslSocketFactory();
+        SSLServerSocketFactory sslServerSocketFactory = sslFactory.getSslServerSocketFactory();
+        SSLParameters sslParameters = sslFactory.getSslParameters();
+        List<String> ciphers = sslFactory.getCiphers();
+        List<String> protocols = sslFactory.getProtocols();
     }
 
 }
