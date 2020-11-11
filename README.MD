@@ -75,7 +75,9 @@ The library also provide other utilities such as [KeyStoreUtils](sslcontext-kick
 I would like to thank [Cody A. Ray](https://github.com/codyaray) for his contribution to the community regarding loading multiple Keystores into the SSLContext. The limitation of the JDK is to only support one keystore for the KeyManagerFactory and only one keystore for the TrustManagerFactory.
 The code snippets which Cody has shared are now available within this library and can be found here: [CompositeX509KeyManager](sslcontext-kickstart/src/main/java/nl/altindag/sslcontext/keymanager/CompositeX509ExtendedKeyManager.java) and [CompositeX509TrustManager](sslcontext-kickstart/src/main/java/nl/altindag/sslcontext/trustmanager/CompositeX509ExtendedTrustManager.java) 
 
-The original content can be found here: [Codyaray - Java SSL with Multiple KeyStores](http://codyaray.com/2013/04/java-ssl-with-multiple-keystores) and [Stackoverflow - Registering multiple keystores in JVM](https://stackoverflow.com/a/16229909/6777695)
+The original content can be found here:
+- [Codyaray - Java SSL with Multiple KeyStores](http://codyaray.com/2013/04/java-ssl-with-multiple-keystores)
+- [Stackoverflow - Registering multiple keystores in JVM](https://stackoverflow.com/a/16229909/6777695)
 
 ### Advantages:
 * No need for low-level SSLContext configuration anymore
