@@ -161,6 +161,7 @@ SSLFactory.builder()
 SSLFactory.builder()
           .withDefaultTrustMaterial()
           .withSystemTrustMaterial()
+          .build();
 ```
 
 ##### Using specific protocols, ciphers with custom secure random and hostname verifier
