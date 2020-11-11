@@ -40,9 +40,17 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "5.3.0"
    - [Advantages](#advantages)
    - [Definitions](#definitions)
 2. [Usage](#usage)
-   - [Example configuration](#example-configuration)
+   - [Example configuration](#basic-example-configuration)
    - [Other possible configurations](#other-possible-configurations)
-   - [Using PEM Files](#using-pem-files)
+     - [Loading from the classpath](#loading-keystore-and-truststore-from-the-classpath)
+     - [Loading from the file system](#loading-keystore-and-trust-store-from-anywhere-on-the-filesystem)
+     - [Skip certificate validation](#trusting-all-certificates-without-validation-not-recommended-to-use-at-production)
+     - [Loading JDK and OS trusted certificates](#loading-jdk-and-os-trusted-certificates)
+     - [Using specific protocols and ciphers with custom secure-random and hostname-verifier](#using-specific-protocols-ciphers-with-custom-secure-random-and-hostname-verifier)
+     - [Using multiple identity materials and trust materials](#support-for-using-multiple-identity-materials-and-trust-materials)
+     - [Using custom KeyManager and TrustManager](#support-for-using-x509extendedkeymanager-and-x509extendedtrustmanager)
+     - [Using PEM Files](#using-pem-files)
+   - [Returnable values from the SSLFactory](#basic-example-configuration)
 3. [Additional mappers for specific libraries](#additional-mappers-for-specific-libraries)
    - [Netty](#netty)
    - [Jetty](#jetty)
@@ -50,22 +58,24 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "5.3.0"
 4. [Tested HTTP Clients](#tested-http-clients)
 
 ## Introduction
-SSLContext Kickstart is a library which provides a High-Level [Factory class](#usage) for configuring a http client to communicate over SSL/TLS for one way authentication or two way authentication.
+SSLContext Kickstart is a library which provides a High-Level SSLFactory class for configuring a http client to communicate over SSL/TLS for one way authentication or two-way authentication.
 
 ### History
 As a Java developer I worked for different kinds of clients. Most of the time the application required to call other microservices within the organization or some other http servers. 
-It was required to be HTTPS configured and so I began writing the code which was needed to configure the Http Client to communicate over ssl/tls. And every time I needed to write almost the same code over and over again which is in my opinion very verbose and hard to unit test.
+These requests needed to be secured and therefore it was required to load the ssl materials into the http client. Each client may require different input value to enable https requests and therefore I couldn't just copy-paste my earlier configuration into the new project. 
+The resulting configuration was in my opinion always verbose, not reusable, hard to test and hard to maintain. 
 
-As a developer you need to know how to properly load your file into your application and consume it as a KeyStore instance. Therefor you also need to learn how to properly create a KeyManagerFactory, TrustManagerFactory and SSLContext. 
-Traditional creation of SSLContext can be rewritten if you use a Http Client which relies on libraries of Jetty or Netty and therefor it makes it even more complex.
-The sslcontext-kickstart library is taking the responsibility of creating an instance of SSLContext from the provided arguments. I wanted to be as easy as possible to use to give every developer a kickstart when configuring their Http Client. So feel free to provide feedback or feature requests.
-The library also provide other utilities such as [KeyStoreUtils](sslcontext-kickstart/src/main/java/nl/altindag/sslcontext/util/KeyStoreUtils.java), [KeyManagerUtils](sslcontext-kickstart/src/main/java/nl/altindag/sslcontext/util/KeyManagerUtils.java) and [TrustManagerUtils](sslcontext-kickstart/src/main/java/nl/altindag/sslcontext/util/TrustManagerUtils.java). See the [javadoc](https://sslcontext-kickstart.com/apidocs/index.html) for all the options.
+As a developer you also need to know how to properly load your file into your application and consume it as a KeyStore instance. Therefore, you also need to understand how to properly create for example a KeyManager and a TrustManager for you SSLContext. 
+An alternative for the traditional creation of SSLContext can be simplified if you use a Http Client which relies on libraries of Jetty, Netty or Apache. If you use other clients than you are out of luck.
+The sslcontext-kickstart library is taking the responsibility of creating an instance of SSLContext from the provided arguments, and it will provide you all the ssl materials which are required to configure [30+ different Http Client](#tested-http-clients) for Java, Scala and Kotlin. 
+I wanted the library to be as easy as possible to use for all developers to give them a kickstart when configuring their Http Client. So feel free to provide feedback or feature requests.
+The library also provide other utilities such as [KeyStoreUtils](sslcontext-kickstart/src/main/java/nl/altindag/sslcontext/util/KeyStoreUtils.java), [KeyManagerUtils](sslcontext-kickstart/src/main/java/nl/altindag/sslcontext/util/KeyManagerUtils.java), [TrustManagerUtils](sslcontext-kickstart/src/main/java/nl/altindag/sslcontext/util/TrustManagerUtils.java) and [PemUtils](sslcontext-kickstart-for-pem/src/main/java/nl/altindag/sslcontext/util/PemUtils.java). See the [javadoc](https://sslcontext-kickstart.com/apidocs/index.html) for all the options.
 
 ### Acknowledgement
 I would like to thank [Cody A. Ray](https://github.com/codyaray) for his contribution to the community regarding loading multiple Keystores into the SSLContext. The limitation of the JDK is to only support one keystore for the KeyManagerFactory and only one keystore for the TrustManagerFactory.
 The code snippets which Cody has shared are now available within this library and can be found here: [CompositeX509KeyManager](sslcontext-kickstart/src/main/java/nl/altindag/sslcontext/keymanager/CompositeX509ExtendedKeyManager.java) and [CompositeX509TrustManager](sslcontext-kickstart/src/main/java/nl/altindag/sslcontext/trustmanager/CompositeX509ExtendedTrustManager.java) 
 
-The original article can be found here: [Codyaray - Java SSL with Multiple KeyStores](http://codyaray.com/2013/04/java-ssl-with-multiple-keystores).
+The original content can be found here: [Codyaray - Java SSL with Multiple KeyStores](http://codyaray.com/2013/04/java-ssl-with-multiple-keystores) and [Stackoverflow - Registering multiple keystores in JVM](https://stackoverflow.com/a/16229909/6777695)
 
 ### Advantages:
 * No need for low-level SSLContext configuration anymore
@@ -80,8 +90,8 @@ The original article can be found here: [Codyaray - Java SSL with Multiple KeySt
 * Two way authentication (also known as two way tls, two way ssl, mutual authentication): Https connection where the client as well as the counter party validates the certificate, also known as mutual authentication
 
 ## Usage
-### Example configuration
-Example configuration with apache http client, or see here for other clients: [ClientConfig class](https://github.com/Hakky54/mutual-tls-ssl/blob/master/client/src/main/java/nl/altindag/client/ClientConfig.java)
+### Basic example configuration
+Example configuration with apache http client, or [click here to view the other client configurations](#tested-http-clients)
 ```java
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -122,94 +132,64 @@ Received the following status code: 200
 Received the following joke: If a black cat crosses your path, you have bad luck. If Chuck Norris crosses your path, it was nice knowing you.
 ```
 
-The SSLFactory provides other useful options, see below for all the returnable values:
-```java
-import nl.altindag.sslcontext.SSLFactory;
-import nl.altindag.sslcontext.model.KeyStoreHolder;
-
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLParameters;
-import javax.net.ssl.SSLServerSocketFactory;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.X509ExtendedKeyManager;
-import javax.net.ssl.X509ExtendedTrustManager;
-import java.security.cert.X509Certificate;
-import java.util.List;
-import java.util.Optional;
-
-public class App {
-
-    public static void main(String[] args) {
-        SSLFactory sslFactory = SSLFactory.builder()
-                .withIdentityMaterial("keystore.p12", "secret".toCharArray(), "PKCS12")
-                .withTrustMaterial("truststore.p12", "secret".toCharArray(), "PKCS12")
-                .build();
-
-        SSLContext sslContext = sslFactory.getSslContext();
-        HostnameVerifier hostnameVerifier = sslFactory.getHostnameVerifier();
-        Optional<X509ExtendedKeyManager> keyManager = sslFactory.getKeyManager();
-        Optional<X509ExtendedTrustManager> trustManager = sslFactory.getTrustManager();
-        List<X509Certificate> trustedCertificates = sslFactory.getTrustedCertificates();
-        List<KeyStoreHolder> identities = sslFactory.getIdentities();
-        List<KeyStoreHolder> trustStores = sslFactory.getTrustStores();
-        SSLSocketFactory sslSocketFactory = sslFactory.getSslSocketFactory();
-        SSLServerSocketFactory sslServerSocketFactory = sslFactory.getSslServerSocketFactory();
-        SSLParameters sslParameters = sslFactory.getSslParameters();
-        List<String> ciphers = sslFactory.getCiphers();
-        List<String> protocols = sslFactory.getProtocols();
-    }
-
-}
-```
 #### Other possible configurations
-One way authentication with custom trustStore 
+##### Loading keystore and truststore from the classpath
 ```text
 SSLFactory.builder()
-          .withTrustMaterial(trustStore, trustStorePassword)
+          .withIdentityMaterial("identity.jks", "password".toCharArray())
+          .withTrustMaterial("truststore.jks", "password".toCharArray())
           .build();
 ```
 
-One way authentication while trusting all certificates without validation, not recommended to use at production!
+##### Loading keystore and trust store from anywhere on the filesystem
+```text
+SSLFactory.builder()
+          .withIdentityMaterial(Paths.get("/path/to/your/identity.jks"), "password".toCharArray())
+          .withTrustMaterial(Paths.get("/path/to/your/truststore.jks"), "password".toCharArray())
+          .build();
+```
+
+##### Trusting all certificates without validation, not recommended to use at production!
 ```text
 SSLFactory.builder()
           .withTrustingAllCertificatesWithoutValidation()
           .build();
 ```
 
-One way authentication with custom secure random and option to validate the hostname within the request against the SAN field of a certificate.
+##### Loading JDK and OS trusted certificates
+```text
+SSLFactory.builder()
+          .withDefaultTrustMaterial()
+          .withSystemTrustMaterial()
+```
+
+##### Using specific protocols, ciphers with custom secure random and hostname verifier
 If you are using java 11 or newer, than you are also able to use TLSv1.3 as encryption protocol by default.
 ```text
 SSLFactory.builder()
-          .withTrustMaterial(trustStore, trustStorePassword)
+          .withDefaultTrustMaterial()
+          .withProtocols("TLSv1.3", "TLSv1.2")
+          .withCiphers("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384", "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384")
           .withHostnameVerifier(hostnameVerifier)
           .withSecureRandom(secureRandom)
           .build();
 ```
 
-Two way authentication with custom trustStore, hostname verifier and encryption protocol version
+##### Support for using multiple identity materials and trust materials
 ```text
 SSLFactory.builder()
-          .withIdentityMaterial(identity, identityPassword)
-          .withTrustMaterial(trustStore, trustStorePassword)
-          .withHostnameVerifier(hostnameVerifier)
+          .withIdentityMaterial("identity-1.jks", password)
+          .withIdentityMaterial("identity-2.jks", password)
+          .withIdentityMaterial("identity-3.jks", password)
+          .withIdentityMaterial("identity-4.jks", password)
+          .withTrustMaterial("truststore-1.jks", password)
+          .withTrustMaterial("truststore-2.jks", password)
+          .withTrustMaterial("truststore-3.jks", password)
+          .withTrustMaterial("truststore-4.jks", password)
           .build();
 ```
 
-Support for using multiple identity materials and trust materials 
-```text
-SSLFactory.builder()
-          .withIdentityMaterial(identityA, identityPasswordA)
-          .withIdentityMaterial(identityB, identityPasswordB)
-          .withIdentityMaterial(identityC, identityPasswordC)
-          .withTrustMaterial(trustStoreA, trustStorePasswordA)
-          .withTrustMaterial(trustStoreB, trustStorePasswordB)
-          .withTrustMaterial(trustStoreC, trustStorePasswordC)
-          .withTrustMaterial(trustStoreD, trustStorePasswordD)
-          .build();
-```
-
-Support for using X509ExtendedKeyManager and X509ExtendedTrustManager
+##### Support for using X509ExtendedKeyManager and X509ExtendedTrustManager
 ```text
 X509ExtendedKeyManager keyManager = ...
 X509ExtendedTrustManager trustManager = ...
@@ -220,16 +200,9 @@ SSLFactory.builder()
           .build();
 ```
 
-Support for using system trust material (only available for Mac and Windows)
-```text
-SSLFactory.builder()
-          .withSystemTrustMaterial()
-          .build();
-```
-
 #### Using PEM Files
 Support for using pem formatted private key and certificates from classpath, any directory or as an InputStream. See [PemUtilsShould](sslcontext-kickstart-for-pem/src/test/java/nl/altindag/sslcontext/util/PemUtilsShould.java) for detailed usages.
-Add only the dependency below to use this feature, it also includes the core features from the library such as SSLFactory.
+Add the dependency below to use this feature, it also includes the core features from the library such as SSLFactory.
 ```xml
 <dependency>
     <groupId>io.github.hakky54</groupId>
@@ -274,6 +247,48 @@ SSLFactory.builder()
           .withIdentityMaterial(keyManager)
           .withTrustMaterial(trustManager)
           .build();
+```
+
+### Returnable values from the SSLFactory
+The SSLFactory provides other useful options, see below for all the returnable values:
+```java
+import nl.altindag.sslcontext.SSLFactory;
+import nl.altindag.sslcontext.model.KeyStoreHolder;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLParameters;
+import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.X509ExtendedKeyManager;
+import javax.net.ssl.X509ExtendedTrustManager;
+import java.security.cert.X509Certificate;
+import java.util.List;
+import java.util.Optional;
+
+public class App {
+
+    public static void main(String[] args) {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial("keystore.p12", "secret".toCharArray(), "PKCS12")
+                .withTrustMaterial("truststore.p12", "secret".toCharArray(), "PKCS12")
+                .build();
+
+        SSLContext sslContext = sslFactory.getSslContext();
+        HostnameVerifier hostnameVerifier = sslFactory.getHostnameVerifier();
+        Optional<X509ExtendedKeyManager> keyManager = sslFactory.getKeyManager();
+        Optional<X509ExtendedTrustManager> trustManager = sslFactory.getTrustManager();
+        List<X509Certificate> trustedCertificates = sslFactory.getTrustedCertificates();
+        List<KeyStoreHolder> identities = sslFactory.getIdentities();
+        List<KeyStoreHolder> trustStores = sslFactory.getTrustStores();
+        SSLSocketFactory sslSocketFactory = sslFactory.getSslSocketFactory();
+        SSLServerSocketFactory sslServerSocketFactory = sslFactory.getSslServerSocketFactory();
+        SSLParameters sslParameters = sslFactory.getSslParameters();
+        List<String> ciphers = sslFactory.getCiphers();
+        List<String> protocols = sslFactory.getProtocols();
+    }
+
+}
 ```
 
 ### Additional mappers for specific libraries
