@@ -50,7 +50,7 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "5.3.0"
      - [Using multiple identity materials and trust materials](#support-for-using-multiple-identity-materials-and-trust-materials)
      - [Using custom KeyManager and TrustManager](#support-for-using-x509extendedkeymanager-and-x509extendedtrustmanager)
      - [Using PEM Files](#using-pem-files)
-   - [Returnable values from the SSLFactory](#basic-example-configuration)
+   - [Returnable values from the SSLFactory](#returnable-values-from-the-sslfactory)
 3. [Additional mappers for specific libraries](#additional-mappers-for-specific-libraries)
    - [Netty](#netty)
    - [Jetty](#jetty)
