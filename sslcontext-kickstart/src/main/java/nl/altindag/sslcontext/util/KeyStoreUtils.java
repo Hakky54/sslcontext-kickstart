@@ -64,6 +64,7 @@ public final class KeyStoreUtils {
         return keyStore;
     }
 
+    @SafeVarargs
     public static <T extends X509TrustManager> KeyStore createTrustStore(T... trustManagers) throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         List<X509Certificate> certificates = new ArrayList<>();
         for (T trustManager : trustManagers) {
@@ -72,6 +73,7 @@ public final class KeyStoreUtils {
         return createTrustStore(certificates);
     }
 
+    @SafeVarargs
     public static <T extends Certificate> KeyStore createTrustStore(T... certificates) throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         return createTrustStore(Arrays.asList(certificates));
     }
