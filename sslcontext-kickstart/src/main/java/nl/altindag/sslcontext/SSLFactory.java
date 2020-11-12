@@ -32,6 +32,7 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
 import java.security.Provider;
 import java.security.SecureRandom;
 import java.security.cert.Certificate;
@@ -354,7 +355,7 @@ public final class SSLFactory {
                 KeyStoreHolder trustStoreHolder = new KeyStoreHolder(trustStore, EMPTY_PASSWORD);
                 trustStores.add(trustStoreHolder);
             } catch (CertificateException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
-                throw new GenericKeyStoreException(KEY_STORE_LOADING_EXCEPTION, e); //TODO
+                throw new GenericKeyStoreException(e);
             }
             return this;
         }
@@ -421,6 +422,16 @@ public final class SSLFactory {
             validateKeyStore(identityStore, IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
             KeyStoreHolder identityHolder = new KeyStoreHolder(identityStore, identityStorePassword, identityPassword);
             identities.add(identityHolder);
+            return this;
+        }
+
+        public Builder withIdentityMaterial(PrivateKey privateKey, char[] privateKeyPassword, Certificate... certificateChain) {
+            try {
+                KeyStore identityStore = KeyStoreUtils.createIdentityStore(privateKey, privateKeyPassword, certificateChain);
+                identities.add(new KeyStoreHolder(identityStore, EMPTY_PASSWORD));
+            } catch (CertificateException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
+                throw new GenericKeyStoreException(e);
+            }
             return this;
         }
 
