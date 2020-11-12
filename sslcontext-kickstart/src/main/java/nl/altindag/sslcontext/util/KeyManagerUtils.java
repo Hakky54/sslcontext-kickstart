@@ -10,6 +10,8 @@ import javax.net.ssl.X509ExtendedKeyManager;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.Provider;
 import java.security.UnrecoverableKeyException;
 import java.util.Arrays;
 import java.util.List;
@@ -44,8 +46,33 @@ public final class KeyManagerUtils {
     public static X509ExtendedKeyManager createKeyManager(KeyStore keyStore, char[] keyPassword, String keyManagerFactoryAlgorithm) {
         try {
             KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(keyManagerFactoryAlgorithm);
-            keyManagerFactory.init(keyStore, keyPassword);
+            return createKeyManager(keyStore, keyPassword, keyManagerFactory);
+        } catch (NoSuchAlgorithmException e) {
+            throw new GenericSecurityException(e);
+        }
+    }
 
+    public static X509ExtendedKeyManager createKeyManager(KeyStore keyStore, char[] keyPassword, String keyManagerFactoryAlgorithm, String securityProviderName) {
+        try {
+            KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(keyManagerFactoryAlgorithm, securityProviderName);
+            return createKeyManager(keyStore, keyPassword, keyManagerFactory);
+        } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
+            throw new GenericSecurityException(e);
+        }
+    }
+
+    public static X509ExtendedKeyManager createKeyManager(KeyStore keyStore, char[] keyPassword, String keyManagerFactoryAlgorithm, Provider securityProvider) {
+        try {
+            KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(keyManagerFactoryAlgorithm, securityProvider);
+            return createKeyManager(keyStore, keyPassword, keyManagerFactory);
+        } catch (NoSuchAlgorithmException e) {
+            throw new GenericSecurityException(e);
+        }
+    }
+
+    public static X509ExtendedKeyManager createKeyManager(KeyStore keyStore, char[] keyPassword, KeyManagerFactory keyManagerFactory) {
+        try {
+            keyManagerFactory.init(keyStore, keyPassword);
             return Arrays.stream(keyManagerFactory.getKeyManagers())
                     .filter(keyManager -> keyManager instanceof X509ExtendedKeyManager)
                     .map(keyManager -> (X509ExtendedKeyManager) keyManager)
