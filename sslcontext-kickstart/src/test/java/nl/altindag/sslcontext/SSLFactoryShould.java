@@ -1133,7 +1133,6 @@ class SSLFactoryShould {
     @Test
     void throwExceptionNullIsIsProvidedWhenUsingPrivateKey() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException, UnrecoverableKeyException {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
-        PrivateKey privateKey = (PrivateKey) identity.getKey("dummy-client", IDENTITY_PASSWORD);
         Certificate[] certificateChain = identity.getCertificateChain("dummy-client");
 
         SSLFactory.Builder sslFactoryBuilder = SSLFactory.builder();
