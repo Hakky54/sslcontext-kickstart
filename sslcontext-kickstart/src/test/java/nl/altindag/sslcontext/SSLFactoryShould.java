@@ -8,17 +8,24 @@ import nl.altindag.sslcontext.util.KeyManagerUtils;
 import nl.altindag.sslcontext.util.KeyStoreUtils;
 import nl.altindag.sslcontext.util.TrustManagerUtils;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.MockedStatic;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSessionContext;
+import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509ExtendedTrustManager;
+import javax.net.ssl.X509KeyManager;
+import javax.net.ssl.X509TrustManager;
 import javax.security.auth.x500.X500Principal;
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,8 +36,10 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
+import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.Security;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -49,7 +58,13 @@ import static nl.altindag.sslcontext.TestConstants.TRUSTSTORE_PASSWORD;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class SSLFactoryShould {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SSLFactoryShould.class);
@@ -412,6 +427,29 @@ class SSLFactoryShould {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         SSLFactory sslFactory = SSLFactory.builder()
                 .withIdentityMaterial(identity, IDENTITY_PASSWORD)
+                .withDefaultTrustMaterial()
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+
+        assertThat(sslFactory.getKeyManager()).isPresent();
+        assertThat(sslFactory.getIdentities()).isNotEmpty();
+        assertThat(sslFactory.getIdentities().get(0).getKeyStorePassword()).isEmpty();
+
+        assertThat(sslFactory.getTrustManager()).isPresent();
+        assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
+        assertThat(sslFactory.getTrustStores()).isEmpty();
+        assertThat(sslFactory.getHostnameVerifier()).isNotNull();
+    }
+
+    @Test
+    void buildSSLFactoryWithIdentityMaterialAndTrustMaterialFromPrivateKey() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException, UnrecoverableKeyException {
+        KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        PrivateKey privateKey = (PrivateKey) identity.getKey("dummy-client", IDENTITY_PASSWORD);
+        Certificate[] certificateChain = identity.getCertificateChain("dummy-client");
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(privateKey, IDENTITY_PASSWORD, certificateChain)
                 .withDefaultTrustMaterial()
                 .build();
 
@@ -1090,6 +1128,61 @@ class SSLFactoryShould {
         assertThatThrownBy(factoryBuilder::build)
                 .isInstanceOf(GenericSecurityException.class)
                 .hasMessage("java.security.NoSuchProviderException: no such provider: KABOOOM");
+    }
+
+    @Test
+    void throwExceptionNullIsIsProvidedWhenUsingPrivateKey() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException, UnrecoverableKeyException {
+        KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        PrivateKey privateKey = (PrivateKey) identity.getKey("dummy-client", IDENTITY_PASSWORD);
+        Certificate[] certificateChain = identity.getCertificateChain("dummy-client");
+
+        SSLFactory.Builder sslFactoryBuilder = SSLFactory.builder();
+
+        assertThatThrownBy(() -> sslFactoryBuilder.withIdentityMaterial(null, IDENTITY_PASSWORD, certificateChain))
+                .isInstanceOf(GenericSecurityException.class)
+                .hasMessage("java.security.KeyStoreException: Key protection  algorithm not found: java.security.KeyStoreException: Unsupported Key type");
+    }
+
+    @Test
+    void throwExceptionWhenKeyManagerFactoryDoesNotContainsKeyManagersOfX509ExtendedKeyManagerType() throws Exception {
+        KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyManagerFactory keyManagerFactory = spy(KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm()));
+        keyManagerFactory.init(identity, IDENTITY_PASSWORD);
+
+        when(keyManagerFactory.getKeyManagers()).thenReturn(new KeyManager[] { mock(X509KeyManager.class) });
+        SSLFactory.Builder sslFactoryBuilder = SSLFactory.builder();
+
+        assertThatThrownBy(() -> sslFactoryBuilder.withIdentityMaterial(keyManagerFactory))
+                .isInstanceOf(GenericSecurityException.class)
+                .hasMessage("KeyManagerFactory does not contain any KeyManagers of type X509ExtendedKeyManager");
+    }
+
+    @Test
+    void throwExceptionWhenTrustManagerFactoryDoesNotContainsTrustManagersOfX509ExtendedTrustManagerType() throws Exception {
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+        TrustManagerFactory trustManagerFactory = spy(TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm()));
+        trustManagerFactory.init(trustStore);
+
+        when(trustManagerFactory.getTrustManagers()).thenReturn(new TrustManager[] { mock(X509TrustManager.class) });
+        SSLFactory.Builder sslFactoryBuilder = SSLFactory.builder();
+
+        assertThatThrownBy(() -> sslFactoryBuilder.withTrustMaterial(trustManagerFactory))
+                .isInstanceOf(GenericSecurityException.class)
+                .hasMessage("TrustManagerFactory does not contain any TrustManagers of type X509ExtendedTrustManager");
+    }
+
+    @Test
+    void throwGenericSecurityExceptionWhenSomethingUnexpectedIsHappeningWhileUsingCertificateAsTrustMaterial() {
+        SSLFactory.Builder sslFactoryBuilder = SSLFactory.builder();
+        Certificate certificate = mock(Certificate.class);
+
+        try (MockedStatic<KeyStoreUtils> keyStoreUtilsMock = mockStatic(KeyStoreUtils.class)) {
+            keyStoreUtilsMock.when(() -> KeyStoreUtils.createTrustStore(any(Certificate.class))).thenThrow(new CertificateException("KABOOM!"));
+
+            assertThatThrownBy(() -> sslFactoryBuilder.withTrustMaterial(certificate))
+                    .isInstanceOf(GenericSecurityException.class)
+                    .hasMessage("java.security.cert.CertificateException: KABOOM!");
+        }
     }
 
     @SuppressWarnings("SameParameterValue")

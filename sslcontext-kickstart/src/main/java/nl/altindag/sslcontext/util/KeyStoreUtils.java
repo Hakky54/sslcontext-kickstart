@@ -23,7 +23,7 @@ import java.util.UUID;
 
 public final class KeyStoreUtils {
 
-    private static final char[] EMPTY_PASSWORD_PLACEHOLDER = null;
+    public static final String DUMMY_PASSWORD = "dummy-password";
     private static final String KEYSTORE_TYPE = "PKCS12";
 
     private KeyStoreUtils() {}
@@ -64,6 +64,20 @@ public final class KeyStoreUtils {
         return keyStore;
     }
 
+    public static KeyStore createEmptyKeyStore() throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
+        return createEmptyKeyStore(DUMMY_PASSWORD.toCharArray());
+    }
+
+    public static KeyStore createEmptyKeyStore(char[] keyStorePassword) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
+        return createEmptyKeyStore(KEYSTORE_TYPE, keyStorePassword);
+    }
+
+    public static KeyStore createEmptyKeyStore(String keyStoreType, char[] keyStorePassword) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
+        KeyStore keyStore = KeyStore.getInstance(keyStoreType);
+        keyStore.load(null, keyStorePassword);
+        return keyStore;
+    }
+
     @SafeVarargs
     public static <T extends X509TrustManager> KeyStore createTrustStore(T... trustManagers) throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         List<X509Certificate> certificates = new ArrayList<>();
@@ -84,12 +98,6 @@ public final class KeyStoreUtils {
             trustStore.setCertificateEntry(CertificateUtils.generateAlias(certificate), certificate);
         }
         return trustStore;
-    }
-
-    public static KeyStore createEmptyKeyStore() throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
-        KeyStore keyStore = KeyStore.getInstance(KEYSTORE_TYPE);
-        keyStore.load(null, EMPTY_PASSWORD_PLACEHOLDER);
-        return keyStore;
     }
 
     public static List<KeyStore> loadSystemKeyStores() throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {

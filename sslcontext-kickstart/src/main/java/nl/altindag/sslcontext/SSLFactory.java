@@ -252,7 +252,9 @@ public final class SSLFactory {
         private static final String TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE = "TrustStore details are empty, which are required to be present when SSL/TLS is enabled";
         private static final String IDENTITY_VALIDATION_EXCEPTION_MESSAGE = "Identity details are empty, which are required to be present when SSL/TLS is enabled";
         private static final String KEY_STORE_LOADING_EXCEPTION = "Failed to load the keystore";
-        public static final String IDENTITY_AND_TRUST_MATERIAL_VALIDATION_EXCEPTION_MESSAGE = "Could not create instance of SSLFactory because Identity " +
+        private static final String KEY_MANAGER_FACTORY_EXCEPTION = "KeyManagerFactory does not contain any KeyManagers of type X509ExtendedKeyManager";
+        private static final String TRUST_MANAGER_FACTORY_EXCEPTION = "TrustManagerFactory does not contain any TrustManagers of type X509ExtendedTrustManager";
+        private static final String IDENTITY_AND_TRUST_MATERIAL_VALIDATION_EXCEPTION_MESSAGE = "Could not create instance of SSLFactory because Identity " +
                 "and Trust material are not present. Please provide at least a Trust material.";
 
         private String sslContextProtocol = "TLS";
@@ -288,11 +290,19 @@ public final class SSLFactory {
 
         public <T extends TrustManagerFactory> Builder withTrustMaterial(T trustManagerFactory) {
             TrustManager[] trustManagersFromFactory = trustManagerFactory.getTrustManagers();
+
+            boolean isTrustManagerAdded = false;
             for (TrustManager trustManager : trustManagersFromFactory) {
                 if (trustManager instanceof X509ExtendedTrustManager) {
                     trustManagers.add((X509ExtendedTrustManager) trustManager);
+                    isTrustManagerAdded = true;
                 }
             }
+
+            if (!isTrustManagerAdded) {
+                throw new GenericSecurityException(TRUST_MANAGER_FACTORY_EXCEPTION);
+            }
+
             return this;
         }
 
@@ -352,7 +362,7 @@ public final class SSLFactory {
         public <T extends Certificate> Builder withTrustMaterial(T... certificates) {
             try {
                 KeyStore trustStore = KeyStoreUtils.createTrustStore(certificates);
-                KeyStoreHolder trustStoreHolder = new KeyStoreHolder(trustStore, EMPTY_PASSWORD);
+                KeyStoreHolder trustStoreHolder = new KeyStoreHolder(trustStore, KeyStoreUtils.DUMMY_PASSWORD.toCharArray());
                 trustStores.add(trustStoreHolder);
             } catch (CertificateException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
                 throw new GenericKeyStoreException(e);
@@ -428,7 +438,7 @@ public final class SSLFactory {
         public Builder withIdentityMaterial(PrivateKey privateKey, char[] privateKeyPassword, Certificate... certificateChain) {
             try {
                 KeyStore identityStore = KeyStoreUtils.createIdentityStore(privateKey, privateKeyPassword, certificateChain);
-                identities.add(new KeyStoreHolder(identityStore, EMPTY_PASSWORD));
+                identities.add(new KeyStoreHolder(identityStore, KeyStoreUtils.DUMMY_PASSWORD.toCharArray(), privateKeyPassword));
             } catch (CertificateException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
                 throw new GenericKeyStoreException(e);
             }
@@ -442,11 +452,19 @@ public final class SSLFactory {
 
         public <T extends KeyManagerFactory> Builder withIdentityMaterial(T keyManagerFactory) {
             KeyManager[] keyManagersFromFactory = keyManagerFactory.getKeyManagers();
+
+            boolean isKeyManagerAdded = false;
             for (KeyManager keyManager : keyManagersFromFactory) {
                 if (keyManager instanceof X509ExtendedKeyManager) {
                     identityManagers.add((X509ExtendedKeyManager) keyManager);
+                    isKeyManagerAdded = true;
                 }
             }
+
+            if (!isKeyManagerAdded) {
+                throw new GenericSecurityException(KEY_MANAGER_FACTORY_EXCEPTION);
+            }
+
             return this;
         }
 
