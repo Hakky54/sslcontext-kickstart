@@ -49,6 +49,7 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "5.3.0"
      - [Using specific protocols and ciphers with custom secure-random and hostname-verifier](#using-specific-protocols-ciphers-with-custom-secure-random-and-hostname-verifier)
      - [Using multiple identity materials and trust materials](#support-for-using-multiple-identity-materials-and-trust-materials)
      - [Using custom KeyManager and TrustManager](#support-for-using-x509extendedkeymanager-and-x509extendedtrustmanager)
+     - [Using custom PrivateKey and Certificates](#support-for-using-privatekey-and-certificates)
      - [Using PEM Files](#using-pem-files)
    - [Returnable values from the SSLFactory](#returnable-values-from-the-sslfactory)
 3. [Additional mappers for specific libraries](#additional-mappers-for-specific-libraries)
@@ -200,6 +201,20 @@ X509ExtendedTrustManager trustManager = ...
 SSLFactory.builder()
           .withIdentityMaterial(keyManager)
           .withTrustMaterial(trustManager)
+          .build();
+```
+
+##### Support for using PrivateKey and Certificates
+```text
+PrivateKey privateKey = ...
+char[] privateKeyPassword = ...
+Certificate[] certificateChain = ...
+
+Certificate trustedCertificate = ...
+
+SSLFactory.builder()
+          .withIdentityMaterial(privateKey, privateKeyPassword, certificateChain)
+          .withTrustMaterial(trustedCertificate)
           .build();
 ```
 
