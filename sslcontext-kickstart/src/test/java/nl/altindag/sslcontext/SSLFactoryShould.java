@@ -167,6 +167,25 @@ class SSLFactoryShould {
     }
 
     @Test
+    void buildSSLFactoryWithTrustMaterialFromCertificates() {
+        X509Certificate[] certificates = TrustManagerUtils.createTrustManagerWithJdkTrustedCertificates()
+                .getAcceptedIssuers();
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withTrustMaterial(certificates)
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+
+        assertThat(sslFactory.getTrustManager()).isPresent();
+        assertThat(sslFactory.getTrustStores()).isNotEmpty();
+        assertThat(sslFactory.getTrustedCertificates()).hasSizeGreaterThan(10);
+
+        assertThat(sslFactory.getKeyManager()).isNotPresent();
+        assertThat(sslFactory.getIdentities()).isEmpty();
+    }
+
+    @Test
     void buildSSLFactoryWithTrustMaterialFromOnlyJdkTrustedCertificates() {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withDefaultTrustMaterial()

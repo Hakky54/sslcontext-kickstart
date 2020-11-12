@@ -32,6 +32,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.Provider;
 import java.security.SecureRandom;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -332,6 +333,17 @@ public final class SSLFactory {
             KeyStoreHolder trustStoreHolder = new KeyStoreHolder(trustStore, trustStorePassword);
             trustStores.add(trustStoreHolder);
 
+            return this;
+        }
+
+        public <T extends Certificate> Builder withTrustMaterial(T... certificates) {
+            try {
+                KeyStore trustStore = KeyStoreUtils.createTrustStore(certificates);
+                KeyStoreHolder trustStoreHolder = new KeyStoreHolder(trustStore, EMPTY_PASSWORD);
+                trustStores.add(trustStoreHolder);
+            } catch (CertificateException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
+                throw new GenericKeyStoreException(KEY_STORE_LOADING_EXCEPTION, e);
+            }
             return this;
         }
 
