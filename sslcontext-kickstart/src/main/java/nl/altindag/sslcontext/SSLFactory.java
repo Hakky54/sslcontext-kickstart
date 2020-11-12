@@ -16,11 +16,13 @@ import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509ExtendedTrustManager;
 import java.io.IOException;
@@ -283,6 +285,16 @@ public final class SSLFactory {
             return this;
         }
 
+        public <T extends TrustManagerFactory> Builder withTrustMaterial(T trustManagerFactory) {
+            TrustManager[] trustManagersFromFactory = trustManagerFactory.getTrustManagers();
+            for (TrustManager trustManager : trustManagersFromFactory) {
+                if (trustManager instanceof X509ExtendedTrustManager) {
+                    trustManagers.add((X509ExtendedTrustManager) trustManager);
+                }
+            }
+            return this;
+        }
+
         public Builder withTrustMaterial(String trustStorePath, char[] trustStorePassword) {
             return withTrustMaterial(trustStorePath, trustStorePassword, KeyStore.getDefaultType());
         }
@@ -342,7 +354,7 @@ public final class SSLFactory {
                 KeyStoreHolder trustStoreHolder = new KeyStoreHolder(trustStore, EMPTY_PASSWORD);
                 trustStores.add(trustStoreHolder);
             } catch (CertificateException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
-                throw new GenericKeyStoreException(KEY_STORE_LOADING_EXCEPTION, e);
+                throw new GenericKeyStoreException(KEY_STORE_LOADING_EXCEPTION, e); //TODO
             }
             return this;
         }
@@ -414,6 +426,16 @@ public final class SSLFactory {
 
         public <T extends X509ExtendedKeyManager> Builder withIdentityMaterial(T keyManager) {
             identityManagers.add(keyManager);
+            return this;
+        }
+
+        public <T extends KeyManagerFactory> Builder withIdentityMaterial(T keyManagerFactory) {
+            KeyManager[] keyManagersFromFactory = keyManagerFactory.getKeyManagers();
+            for (KeyManager keyManager : keyManagersFromFactory) {
+                if (keyManager instanceof X509ExtendedKeyManager) {
+                    identityManagers.add((X509ExtendedKeyManager) keyManager);
+                }
+            }
             return this;
         }
 

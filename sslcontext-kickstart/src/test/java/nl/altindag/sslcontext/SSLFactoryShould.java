@@ -12,9 +12,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSessionContext;
+import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509ExtendedTrustManager;
 import javax.security.auth.x500.X500Principal;
@@ -153,6 +155,27 @@ class SSLFactoryShould {
 
         SSLFactory sslFactory = SSLFactory.builder()
                 .withTrustMaterial(trustManager)
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+
+        assertThat(sslFactory.getTrustManager()).isPresent();
+        assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
+        assertThat(sslFactory.getTrustStores()).isEmpty();
+        assertThat(sslFactory.getHostnameVerifier()).isNotNull();
+
+        assertThat(sslFactory.getKeyManager()).isNotPresent();
+        assertThat(sslFactory.getIdentities()).isEmpty();
+    }
+
+    @Test
+    void buildSSLFactoryWithTrustMaterialFromTrustManagerFactory() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+        TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        trustManagerFactory.init(trustStore);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withTrustMaterial(trustManagerFactory)
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
@@ -346,6 +369,29 @@ class SSLFactoryShould {
 
         SSLFactory sslFactory = SSLFactory.builder()
                 .withIdentityMaterial(identityManager)
+                .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+
+        assertThat(sslFactory.getKeyManager()).isPresent();
+        assertThat(sslFactory.getIdentities()).isEmpty();
+
+        assertThat(sslFactory.getTrustManager()).isPresent();
+        assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
+        assertThat(sslFactory.getTrustStores()).isNotEmpty();
+        assertThat(sslFactory.getTrustStores().get(0).getKeyStorePassword()).isEmpty();
+        assertThat(sslFactory.getHostnameVerifier()).isNotNull();
+    }
+
+    @Test
+    void buildSSLFactoryWithIdentityMaterialAndTrustMaterialFromIdentityManagerFactoryAndTrustStore() throws Exception {
+        KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+        keyManagerFactory.init(identity, IDENTITY_PASSWORD);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(keyManagerFactory)
                 .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
                 .build();
 
