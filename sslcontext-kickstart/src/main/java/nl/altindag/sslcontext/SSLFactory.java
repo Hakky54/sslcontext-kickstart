@@ -278,7 +278,7 @@ public final class SSLFactory {
             return this;
         }
 
-        public Builder withTrustMaterial(X509ExtendedTrustManager trustManager) {
+        public <T extends X509ExtendedTrustManager> Builder withTrustMaterial(T trustManager) {
             trustManagers.add(trustManager);
             return this;
         }
@@ -412,7 +412,7 @@ public final class SSLFactory {
             return this;
         }
 
-        public Builder withIdentityMaterial(X509ExtendedKeyManager keyManager) {
+        public <T extends X509ExtendedKeyManager> Builder withIdentityMaterial(T keyManager) {
             identityManagers.add(keyManager);
             return this;
         }
@@ -423,7 +423,7 @@ public final class SSLFactory {
             }
         }
 
-        public Builder withHostnameVerifier(HostnameVerifier hostnameVerifier) {
+        public <T extends HostnameVerifier> Builder withHostnameVerifier(T hostnameVerifier) {
             this.hostnameVerifier = hostnameVerifier;
             return this;
         }
@@ -457,7 +457,7 @@ public final class SSLFactory {
             return this;
         }
 
-        public Builder withSecurityProvider(Provider securityProvider) {
+        public <T extends Provider> Builder withSecurityProvider(T securityProvider) {
             this.securityProvider = securityProvider;
             return this;
         }
@@ -467,7 +467,7 @@ public final class SSLFactory {
             return this;
         }
 
-        public Builder withSecureRandom(SecureRandom secureRandom) {
+        public <T extends SecureRandom> Builder withSecureRandom(T secureRandom) {
             this.secureRandom = secureRandom;
             return this;
         }
