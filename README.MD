@@ -70,7 +70,14 @@ As a developer you also need to know how to properly load your file into your ap
 An alternative for the traditional creation of SSLContext can be simplified if you use a Http Client which relies on libraries of Jetty, Netty or Apache. If you use other clients than you are out of luck.
 The sslcontext-kickstart library is taking the responsibility of creating an instance of SSLContext from the provided arguments, and it will provide you all the ssl materials which are required to configure [30+ different Http Client](#tested-http-clients) for Java, Scala and Kotlin. 
 I wanted the library to be as easy as possible to use for all developers to give them a kickstart when configuring their Http Client. So feel free to provide feedback or feature requests.
-The library also provide other utilities such as [KeyStoreUtils](sslcontext-kickstart/src/main/java/nl/altindag/sslcontext/util/KeyStoreUtils.java), [KeyManagerUtils](sslcontext-kickstart/src/main/java/nl/altindag/sslcontext/util/KeyManagerUtils.java), [TrustManagerUtils](sslcontext-kickstart/src/main/java/nl/altindag/sslcontext/util/TrustManagerUtils.java) and [PemUtils](sslcontext-kickstart-for-pem/src/main/java/nl/altindag/sslcontext/util/PemUtils.java). See the [javadoc](https://sslcontext-kickstart.com/apidocs/index.html) for all the options.
+The library also provides other utilities such as:
+- [CertificateUtils](sslcontext-kickstart/src/main/java/nl/altindag/sslcontext/util/CertificateUtils.java)
+- [KeyStoreUtils](sslcontext-kickstart/src/main/java/nl/altindag/sslcontext/util/KeyStoreUtils.java)
+- [KeyManagerUtils](sslcontext-kickstart/src/main/java/nl/altindag/sslcontext/util/KeyManagerUtils.java)
+- [TrustManagerUtils](sslcontext-kickstart/src/main/java/nl/altindag/sslcontext/util/TrustManagerUtils.java)
+- [PemUtils](sslcontext-kickstart-for-pem/src/main/java/nl/altindag/sslcontext/util/PemUtils.java)
+
+See the [javadoc](https://sslcontext-kickstart.com/apidocs/index.html) for all the options.
 
 ### Acknowledgement
 I would like to thank [Cody A. Ray](https://github.com/codyaray) for his contribution to the community regarding loading multiple Keystores into the SSLContext. The limitation of the JDK is to only support one keystore for the KeyManagerFactory and only one keystore for the TrustManagerFactory.
@@ -268,7 +275,7 @@ SSLFactory.builder()
 ```
 
 ### Returnable values from the SSLFactory
-The SSLFactory provides other useful options, see below for all the returnable values:
+The SSLFactory provides different kinds of returnable values, see below for all the options:
 ```java
 import nl.altindag.sslcontext.SSLFactory;
 import nl.altindag.sslcontext.model.KeyStoreHolder;
