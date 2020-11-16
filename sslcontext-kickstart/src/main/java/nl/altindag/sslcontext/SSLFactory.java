@@ -360,6 +360,10 @@ public final class SSLFactory {
         }
 
         public <T extends Certificate> Builder withTrustMaterial(T... certificates) {
+            return withTrustMaterial(Arrays.asList(certificates));
+        }
+
+        public <T extends Certificate> Builder withTrustMaterial(List<T> certificates) {
             try {
                 KeyStore trustStore = KeyStoreUtils.createTrustStore(certificates);
                 KeyStoreHolder trustStoreHolder = new KeyStoreHolder(trustStore, KeyStoreUtils.DUMMY_PASSWORD.toCharArray());
