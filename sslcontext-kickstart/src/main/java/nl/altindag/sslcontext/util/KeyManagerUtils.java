@@ -1,6 +1,5 @@
 package nl.altindag.sslcontext.util;
 
-import nl.altindag.sslcontext.exception.GenericKeyStoreException;
 import nl.altindag.sslcontext.exception.GenericSecurityException;
 import nl.altindag.sslcontext.keymanager.CompositeX509ExtendedKeyManager;
 import nl.altindag.sslcontext.keymanager.X509KeyManagerWrapper;
@@ -17,6 +16,7 @@ import java.security.Provider;
 import java.security.UnrecoverableKeyException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toList;
@@ -30,6 +30,10 @@ public final class KeyManagerUtils {
     }
 
     public static X509ExtendedKeyManager combine(List<? extends X509ExtendedKeyManager> keyManagers) {
+        if (keyManagers.size() == 1) {
+            return keyManagers.get(0);
+        }
+
         return CompositeX509ExtendedKeyManager.builder()
                 .withKeyManagers(keyManagers)
                 .build();
@@ -79,9 +83,7 @@ public final class KeyManagerUtils {
                     .filter(keyManager -> keyManager instanceof X509KeyManager)
                     .map(keyManager -> (X509KeyManager) keyManager)
                     .map(KeyManagerUtils::wrapIfNeeded)
-                    .findFirst()
-                    .orElseThrow(() -> new GenericKeyStoreException("Could not create a KeyManager with the provided KeyStore, password and KeyManager algorithm"));
-
+                    .collect(Collectors.collectingAndThen(Collectors.toList(), KeyManagerUtils::combine));
         } catch (KeyStoreException | NoSuchAlgorithmException | UnrecoverableKeyException e) {
             throw new GenericSecurityException(e);
         }

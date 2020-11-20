@@ -1,6 +1,5 @@
 package nl.altindag.sslcontext.util;
 
-import nl.altindag.sslcontext.exception.GenericKeyStoreException;
 import nl.altindag.sslcontext.exception.GenericSecurityException;
 import nl.altindag.sslcontext.model.KeyStoreHolder;
 import nl.altindag.sslcontext.trustmanager.CompositeX509ExtendedTrustManager;
@@ -29,6 +28,10 @@ public final class TrustManagerUtils {
     }
 
     public static X509ExtendedTrustManager combine(List<? extends X509ExtendedTrustManager> trustManagers) {
+        if (trustManagers.size() == 1) {
+            return trustManagers.get(0);
+        }
+
         return CompositeX509ExtendedTrustManager.builder()
                 .withTrustManagers(trustManagers)
                 .build();
@@ -98,9 +101,7 @@ public final class TrustManagerUtils {
                     .filter(trustManager -> trustManager instanceof X509TrustManager)
                     .map(trustManager -> (X509TrustManager) trustManager)
                     .map(TrustManagerUtils::wrapIfNeeded)
-                    .findFirst()
-                    .orElseThrow(() -> new GenericKeyStoreException("Could not create a TrustManager with the provided TrustStore and TrustManager algorithm"));
-
+                    .collect(Collectors.collectingAndThen(Collectors.toList(), TrustManagerUtils::combine));
         } catch (KeyStoreException e) {
             throw new GenericSecurityException(e);
         }
