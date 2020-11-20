@@ -17,9 +17,7 @@ import org.slf4j.LoggerFactory;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
-import javax.net.ssl.SSLSessionContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509ExtendedKeyManager;
@@ -35,7 +33,6 @@ import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.Security;
@@ -1075,8 +1072,9 @@ class SSLFactoryShould {
 
         try (MockedStatic<KeyStoreUtils> keyStoreUtilsMock = mockStatic(KeyStoreUtils.class)) {
             keyStoreUtilsMock.when(() -> KeyStoreUtils.createTrustStore(any(List.class))).thenThrow(new CertificateException("KABOOM!"));
+            List<Certificate> certificates = Collections.singletonList(certificate);
 
-            assertThatThrownBy(() -> sslFactoryBuilder.withTrustMaterial(Collections.singletonList(certificate)))
+            assertThatThrownBy(() -> sslFactoryBuilder.withTrustMaterial(certificates))
                     .isInstanceOf(GenericSecurityException.class)
                     .hasMessage("java.security.cert.CertificateException: KABOOM!");
         }
