@@ -122,6 +122,7 @@ public final class PemUtils {
             }
         }
 
+        pemParser.close();
         stringReader.close();
 
         if (Objects.isNull(privateKeyInfo)) {
