@@ -91,7 +91,8 @@ public final class PemUtils {
     }
 
     private static PrivateKey parsePrivateKey(String identityContent, char[] keyPassword) throws IOException, PKCSException, OperatorCreationException {
-        PEMParser pemParser = new PEMParser(new StringReader(identityContent));
+        StringReader stringReader = new StringReader(identityContent);
+        PEMParser pemParser = new PEMParser(stringReader);
         PrivateKeyInfo privateKeyInfo = null;
 
         Object object = pemParser.readObject();
@@ -120,6 +121,8 @@ public final class PemUtils {
                 object = pemParser.readObject();
             }
         }
+
+        stringReader.close();
 
         if (Objects.isNull(privateKeyInfo)) {
             throw new PrivateKeyParseException("Received an unsupported private key type");
