@@ -2,6 +2,7 @@ package nl.altindag.sslcontext.util;
 
 import nl.altindag.sslcontext.exception.GenericSecurityException;
 import nl.altindag.sslcontext.model.KeyStoreHolder;
+import nl.altindag.sslcontext.trustmanager.X509TrustManagerWrapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
@@ -9,6 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509ExtendedTrustManager;
+import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -80,6 +82,24 @@ class TrustManagerUtilsShould {
 
         assertThat(trustStore.size()).isEqualTo(1);
         assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
+    }
+
+    @Test
+    void wrapIfNeeded() {
+        X509TrustManager trustManager = mock(X509TrustManager.class);
+        X509ExtendedTrustManager extendedTrustManager = TrustManagerUtils.wrapIfNeeded(trustManager);
+
+        assertThat(extendedTrustManager).isInstanceOf(X509TrustManagerWrapper.class);
+    }
+
+    @Test
+    void doNotWrapWhenInstanceIsX509ExtendedTrustManager() {
+        X509ExtendedTrustManager trustManager = mock(X509ExtendedTrustManager.class);
+        X509ExtendedTrustManager extendedTrustManager = TrustManagerUtils.wrapIfNeeded(trustManager);
+
+        assertThat(extendedTrustManager)
+                .isEqualTo(trustManager)
+                .isNotInstanceOf(X509TrustManagerWrapper.class);
     }
 
     @Test

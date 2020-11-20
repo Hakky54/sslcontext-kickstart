@@ -2,11 +2,15 @@ package nl.altindag.sslcontext.util;
 
 import nl.altindag.sslcontext.exception.GenericSecurityException;
 import nl.altindag.sslcontext.keymanager.CompositeX509ExtendedKeyManager;
+import nl.altindag.sslcontext.keymanager.X509KeyManagerWrapper;
 import nl.altindag.sslcontext.model.KeyStoreHolder;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.X509ExtendedKeyManager;
+import javax.net.ssl.X509KeyManager;
 import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -17,7 +21,9 @@ import java.security.cert.CertificateException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
 
+@ExtendWith(MockitoExtension.class)
 class KeyManagerUtilsShould {
 
     private static final String IDENTITY_FILE_NAME = "identity.jks";
@@ -63,6 +69,24 @@ class KeyManagerUtilsShould {
         X509ExtendedKeyManager keyManager = KeyManagerUtils.createKeyManager(identity, IDENTITY_PASSWORD, KeyManagerFactory.getDefaultAlgorithm(), sunJsseSecurityProvider);
 
         assertThat(keyManager).isNotNull();
+    }
+
+    @Test
+    void wrapIfNeeded() {
+        X509KeyManager keyManager = mock(X509KeyManager.class);
+        X509ExtendedKeyManager extendedKeyManager = KeyManagerUtils.wrapIfNeeded(keyManager);
+
+        assertThat(extendedKeyManager).isInstanceOf(X509KeyManagerWrapper.class);
+    }
+
+    @Test
+    void doNotWrapWhenInstanceIsX509ExtendedKeyManager() {
+        X509ExtendedKeyManager keyManager = mock(X509ExtendedKeyManager.class);
+        X509ExtendedKeyManager extendedKeyManager = KeyManagerUtils.wrapIfNeeded(keyManager);
+
+        assertThat(extendedKeyManager)
+                .isEqualTo(keyManager)
+                .isNotInstanceOf(X509KeyManagerWrapper.class);
     }
 
     @Test

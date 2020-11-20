@@ -4,9 +4,11 @@ import nl.altindag.sslcontext.exception.GenericKeyStoreException;
 import nl.altindag.sslcontext.exception.GenericSecurityException;
 import nl.altindag.sslcontext.model.KeyStoreHolder;
 import nl.altindag.sslcontext.trustmanager.CompositeX509ExtendedTrustManager;
+import nl.altindag.sslcontext.trustmanager.X509TrustManagerWrapper;
 
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509ExtendedTrustManager;
+import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -93,13 +95,22 @@ public final class TrustManagerUtils {
         try {
             trustManagerFactory.init(trustStore);
             return Arrays.stream(trustManagerFactory.getTrustManagers())
-                    .filter(trustManager -> trustManager instanceof X509ExtendedTrustManager)
-                    .map(trustManager -> (X509ExtendedTrustManager) trustManager)
+                    .filter(trustManager -> trustManager instanceof X509TrustManager)
+                    .map(trustManager -> (X509TrustManager) trustManager)
+                    .map(TrustManagerUtils::wrapIfNeeded)
                     .findFirst()
                     .orElseThrow(() -> new GenericKeyStoreException("Could not create a TrustManager with the provided TrustStore and TrustManager algorithm"));
 
         } catch (KeyStoreException e) {
             throw new GenericSecurityException(e);
+        }
+    }
+
+    public static X509ExtendedTrustManager wrapIfNeeded(X509TrustManager trustManager) {
+        if (trustManager instanceof X509ExtendedTrustManager) {
+            return (X509ExtendedTrustManager) trustManager;
+        } else {
+            return new X509TrustManagerWrapper(trustManager);
         }
     }
 
