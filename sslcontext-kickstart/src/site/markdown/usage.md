@@ -1,65 +1,67 @@
 ## Usage
 
-### Definitions
-* Identity: A KeyStore which holds the key pair also known as private and public key
-* TrustStore: A KeyStore containing one or more certificates also known as public key. This KeyStore contains a list of trusted certificates
-* One way authentication (also known as one way tls, one way ssl): Https connection where the client validates the certificate of the counter party
-* Two way authentication (also known as two way tls, two way ssl, mutual authentication): Https connection where the client as well as the counter party validates the certificate, also known as mutual authentication
-  
 ### SSLFactory configurations
 SSLFactory can be enriched with additional configuration with the fluent api.
 It has already built-in default values for SecureRandom, HostnameVerifier, Encryption protocol, but can be overridden if required, see below for examples and additional configurations.
 
-One way authentication with custom trustStore 
+##### Loading keystore and truststore from the classpath
 ```text
 SSLFactory.builder()
-          .withTrustMaterial(trustStore, trustStorePassword)
+          .withIdentityMaterial("identity.jks", "password".toCharArray())
+          .withTrustMaterial("truststore.jks", "password".toCharArray())
           .build();
 ```
 
-One way authentication while trusting all certificates without validation, not recommended to use at production!
+##### Loading keystore and trust store from anywhere on the filesystem
+```text
+SSLFactory.builder()
+          .withIdentityMaterial(Paths.get("/path/to/your/identity.jks"), "password".toCharArray())
+          .withTrustMaterial(Paths.get("/path/to/your/truststore.jks"), "password".toCharArray())
+          .build();
+```
+
+##### Trusting all certificates without validation, not recommended to use at production!
 ```text
 SSLFactory.builder()
           .withTrustingAllCertificatesWithoutValidation()
           .build();
 ```
 
-One way authentication with specific encryption protocol version, custom secure random and option to validate the hostname within the request against the SAN field of a certificate.
-If you are using java 11 or newer, than you are also able to use TLSv1.3 as encryption protocol. Just provide `TLSv1.3` as protocol argument and it will work out-of-the-box.
+##### Loading JDK and OS trusted certificates
 ```text
 SSLFactory.builder()
-          .withTrustMaterial(trustStore, trustStorePassword)
+          .withDefaultTrustMaterial()
+          .withSystemTrustMaterial()
+          .build();
+```
+
+##### Using specific protocols, ciphers with custom secure random and hostname verifier
+If you are using java 11 or newer, than you are also able to use TLSv1.3 as encryption protocol by default.
+```text
+SSLFactory.builder()
+          .withDefaultTrustMaterial()
+          .withProtocols("TLSv1.3", "TLSv1.2")
+          .withCiphers("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384", "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384")
           .withHostnameVerifier(hostnameVerifier)
           .withSecureRandom(secureRandom)
-          .withProtocol("TLSv1.2")
           .build();
 ```
 
-Two way authentication with custom trustStore, hostname verifier and encryption protocol version
+##### Support for using multiple identity materials and trust materials
 ```text
 SSLFactory.builder()
-          .withIdentityMaterial(identity, identityPassword)
-          .withTrustMaterial(trustStore, trustStorePassword)
-          .withHostnameVerifier(hostnameVerifier)
-          .withProtocol("TLSv1.2")
+          .withIdentityMaterial("identity-1.jks", password)
+          .withIdentityMaterial("identity-2.jks", password)
+          .withIdentityMaterial("identity-3.jks", password)
+          .withIdentityMaterial("identity-4.jks", password)
+          .withTrustMaterial("truststore-1.jks", password)
+          .withTrustMaterial("truststore-2.jks", password)
+          .withTrustMaterial("truststore-3.jks", password)
+          .withTrustMaterial("truststore-4.jks", password)
           .build();
 ```
 
-Support for using multiple identity materials and trust materials 
-```text
-SSLFactory.builder()
-          .withIdentityMaterial(identityA, identityPasswordA)
-          .withIdentityMaterial(identityB, identityPasswordB)
-          .withIdentityMaterial(identityC, identityPasswordC)
-          .withTrustMaterial(trustStoreA, trustStorePasswordA)
-          .withTrustMaterial(trustStoreB, trustStorePasswordB)
-          .withTrustMaterial(trustStoreC, trustStorePasswordC)
-          .withTrustMaterial(trustStoreD, trustStorePasswordD)
-          .withProtocol("TLSv1.2")
-          .build();
-```
-
-Support for using X509ExtendedKeyManager and X509ExtendedTrustManager
+##### Support for using X509ExtendedKeyManager and X509ExtendedTrustManager
 ```text
 X509ExtendedKeyManager keyManager = ...
 X509ExtendedTrustManager trustManager = ...
@@ -70,10 +72,65 @@ SSLFactory.builder()
           .build();
 ```
 
-Support for using system trust material (only available for Mac and Windows)
+##### Support for using PrivateKey and Certificates
 ```text
+PrivateKey privateKey = ...
+char[] privateKeyPassword = ...
+Certificate[] certificateChain = ...
+
+Certificate trustedCertificate = ...
+
 SSLFactory.builder()
-          .withSystemTrustMaterial()
+          .withIdentityMaterial(privateKey, privateKeyPassword, certificateChain)
+          .withTrustMaterial(trustedCertificate)
+          .build();
+```
+
+##### Using PEM Files
+Support for using pem formatted private key and certificates from classpath, any directory or as an InputStream. See [PemUtilsShould](sslcontext-kickstart-for-pem/src/test/java/nl/altindag/sslcontext/util/PemUtilsShould.java) for detailed usages.
+Add the dependency below to use this feature, it also includes the core features from the library such as SSLFactory.
+```xml
+<dependency>
+    <groupId>io.github.hakky54</groupId>
+    <artifactId>sslcontext-kickstart-for-pem</artifactId>
+</dependency>
+```
+```text
+ * EXAMPLE FILES
+ *
+ * [some-trusted-certificate.pem]
+ * -----BEGIN CERTIFICATE-----
+ *             ...
+ *             ...
+ * -----END CERTIFICATE-----
+ *
+ * [private-key.pem]
+ * -----BEGIN PRIVATE KEY-----
+ *             ...
+ *             ...
+ * -----END PRIVATE KEY-----
+ *
+ * [private-key.pem]
+ * -----BEGIN RSA PRIVATE KEY-----
+ *             ...
+ *             ...
+ * -----END RSA PRIVATE KEY-----
+ *
+ * [private-key.pem]
+ * -----BEGIN ENCRYPTED PRIVATE KEY-----
+ *             ...
+ *             ...
+ * -----END ENCRYPTED PRIVATE KEY-----
+ */
+```
+Example usage:
+```
+X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial("certificate.pem", "private-key.pem");
+X509ExtendedTrustManager trustManager = PemUtils.loadTrustMaterial("some-trusted-certificate.pem");
+
+SSLFactory.builder()
+          .withIdentityMaterial(keyManager)
+          .withTrustMaterial(trustManager)
           .build();
 ```
 
