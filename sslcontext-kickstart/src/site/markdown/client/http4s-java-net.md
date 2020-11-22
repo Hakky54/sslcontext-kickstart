@@ -19,7 +19,7 @@ abstract class App extends IOApp {
                 .withSslSocketFactory(sslFactory.getSslSocketFactory)
                 .withHostnameVerifier(sslFactory.getHostnameVerifier)
                 .resource
-  }
+    }
 
 }
 ```
