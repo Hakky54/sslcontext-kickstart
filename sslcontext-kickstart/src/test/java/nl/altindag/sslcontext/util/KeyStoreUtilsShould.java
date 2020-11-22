@@ -70,6 +70,16 @@ class KeyStoreUtilsShould {
     }
 
     @Test
+    void loadKeyStoreAsInputStream() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        KeyStore keyStore;
+        try(InputStream inputStream = getResource(KEYSTORE_LOCATION + IDENTITY_FILE_NAME)) {
+            keyStore = KeyStoreUtils.loadKeyStore(inputStream, "secret".toCharArray());
+        }
+
+        assertThat(keyStore).isNotNull();
+    }
+
+    @Test
     void loadSystemKeyStore() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         List<KeyStore> keyStores = KeyStoreUtils.loadSystemKeyStores();
 
@@ -172,7 +182,7 @@ class KeyStoreUtilsShould {
     void throwExceptionWhenLoadingNonExistingKeystore() {
         Assertions.assertThatThrownBy(() -> KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + NON_EXISTING_KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD))
                   .isInstanceOf(IOException.class)
-                  .hasMessage("Could not find the keystore file");
+                  .hasMessage("KeyStore is not present for the giving input");
     }
 
     private Path copyKeystoreToHomeDirectory(String path, String fileName) throws IOException {
@@ -185,6 +195,10 @@ class KeyStoreUtilsShould {
 
     private void resetOsName() {
         System.setProperty("os.name", ORIGINAL_OS_NAME);
+    }
+
+    private InputStream getResource(String path) {
+        return this.getClass().getClassLoader().getResourceAsStream(path);
     }
 
 }

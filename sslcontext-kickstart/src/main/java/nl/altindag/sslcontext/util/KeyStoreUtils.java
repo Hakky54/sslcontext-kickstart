@@ -48,9 +48,13 @@ public final class KeyStoreUtils {
         }
     }
 
-    private static KeyStore loadKeyStore(InputStream keystoreInputStream, char[] keystorePassword, String keystoreType) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
+    public static KeyStore loadKeyStore(InputStream keystoreInputStream, char[] keystorePassword) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
+        return loadKeyStore(keystoreInputStream, keystorePassword, KeyStore.getDefaultType());
+    }
+
+    public static KeyStore loadKeyStore(InputStream keystoreInputStream, char[] keystorePassword, String keystoreType) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
         if (isNull(keystoreInputStream)) {
-            throw new IOException("Could not find the keystore file");
+            throw new IOException("KeyStore is not present for the giving input");
         }
 
         KeyStore keystore = KeyStore.getInstance(keystoreType);
