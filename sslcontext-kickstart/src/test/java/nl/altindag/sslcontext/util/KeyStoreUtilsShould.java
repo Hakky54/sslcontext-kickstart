@@ -1,7 +1,6 @@
 package nl.altindag.sslcontext.util;
 
 import nl.altindag.sslcontext.SSLFactory;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
@@ -27,6 +26,7 @@ import static nl.altindag.sslcontext.TestConstants.KEYSTORE_LOCATION;
 import static nl.altindag.sslcontext.TestConstants.TRUSTSTORE_FILE_NAME;
 import static nl.altindag.sslcontext.TestConstants.TRUSTSTORE_PASSWORD;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 
@@ -180,7 +180,7 @@ class KeyStoreUtilsShould {
 
     @Test
     void throwExceptionWhenLoadingNonExistingKeystore() {
-        Assertions.assertThatThrownBy(() -> KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + NON_EXISTING_KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD))
+        assertThatThrownBy(() -> KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + NON_EXISTING_KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD))
                   .isInstanceOf(IOException.class)
                   .hasMessage("KeyStore is not present for the giving input");
     }
