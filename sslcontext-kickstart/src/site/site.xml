@@ -10,8 +10,42 @@
         <menu name="Overview">
             <item name="Introduction" href="index.html"/>
             <item name="History" href="history.html"/>
-            <item name="Usage" href="usage.html" />
+            <item name="Usage" href="usage.html"/>
         </menu>
+        <menu name="Client configuration">
+            <item name="Akka Http" href="client/akka.html"/>
+            <item name="Apache HttpClient" href="client/apache.html"/>
+            <item name="Async Http Client" href="client/async-http-client.html"/>
+            <item name="Dispatch Reboot" href="client/dispatch-reboot.html"/>
+            <item name="Feign" href="client/feign.html"/>
+            <item name="Fuel" href="client/fuel.html"/>
+            <item name="Google HttpClient" href="client/google.html"/>
+            <item name="Http4s Blaze Client" href="client/http4s-blaze.html"/>
+            <item name="Http4s Java Net Client" href="client/http4s-java-net.html"/>
+            <item name="JDK HttpClient" href="client/jdk.html"/>
+            <item name="Jersey Client" href="client/jersey.html"/>
+            <item name="Jetty Reactive HttpClient" href="client/jetty.html"/>
+            <item name="Kohttp" href="client/kohttp.html"/>
+            <item name="Ktor Android" href="client/ktor-android.html"/>
+            <item name="Ktor Apache" href="client/ktor-apache.html"/>
+            <item name="Ktor Okhttp" href="client/ktor-okhttp.html"/>
+            <item name="Methanol" href="client/methanol.html"/>
+            <item name="Netty Reactor" href="client/netty.html"/>
+            <item name="OkHttp" href="client/okhttp.html"/>
+            <item name="Old JDK HttpClient" href="client/old-jdk.html"/>
+            <item name="Old Jersey Client" href="client/old-jersey.html"/>
+            <item name="Requests-Scala" href="client/requests-scala.html"/>
+            <item name="Retrofit" href="client/retrofit.html"/>
+            <item name="ScalaJ" href="client/scalaj.html"/>
+            <item name="Spring RestTemplate" href="client/spring-resttemplate.html"/>
+            <item name="Spring WebFlux WebClient Jetty" href="client/spring-webclient-jetty.html"/>
+            <item name="Spring WebFlux WebClient Netty" href="client/spring-webclient-netty.html"/>
+            <item name="Sttp" href="client/sttp.html"/>
+            <item name="Twitter Finagle" href="client/finagle.html"/>
+            <item name="Twitter Finagle Featherbed" href="client/featherbed.html"/>
+            <item name="Unirest" href="client/unirest.html"/>
+        </menu>
+
         <menu ref="reports"/>
     </body>
 
