@@ -133,7 +133,7 @@ public final class PemUtils {
     }
 
     private static X509ExtendedKeyManager parseIdentityMaterial(Certificate[] certificates, PrivateKey privateKey) throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        KeyStore keyStore = KeyStoreUtils.createEmptyKeyStore();
+        KeyStore keyStore = KeyStoreUtils.createKeyStore();
         keyStore.setKeyEntry(CertificateUtils.generateAlias(certificates[0]), privateKey, EMPTY_PASSWORD_PLACEHOLDER, certificates);
         return KeyManagerUtils.createKeyManager(keyStore, EMPTY_PASSWORD_PLACEHOLDER);
     }

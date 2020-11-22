@@ -63,20 +63,20 @@ public final class KeyStoreUtils {
     }
 
     public static KeyStore createIdentityStore(PrivateKey privateKey, char[] privateKeyPassword, Certificate... certificateChain) throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        KeyStore keyStore = createEmptyKeyStore();
+        KeyStore keyStore = createKeyStore();
         keyStore.setKeyEntry(UUID.randomUUID().toString(), privateKey, privateKeyPassword, certificateChain);
         return keyStore;
     }
 
-    public static KeyStore createEmptyKeyStore() throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
-        return createEmptyKeyStore(DUMMY_PASSWORD.toCharArray());
+    public static KeyStore createKeyStore() throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
+        return createKeyStore(DUMMY_PASSWORD.toCharArray());
     }
 
-    public static KeyStore createEmptyKeyStore(char[] keyStorePassword) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
-        return createEmptyKeyStore(KEYSTORE_TYPE, keyStorePassword);
+    public static KeyStore createKeyStore(char[] keyStorePassword) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
+        return createKeyStore(KEYSTORE_TYPE, keyStorePassword);
     }
 
-    public static KeyStore createEmptyKeyStore(String keyStoreType, char[] keyStorePassword) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
+    public static KeyStore createKeyStore(String keyStoreType, char[] keyStorePassword) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
         KeyStore keyStore = KeyStore.getInstance(keyStoreType);
         keyStore.load(null, keyStorePassword);
         return keyStore;
@@ -97,7 +97,7 @@ public final class KeyStoreUtils {
     }
 
     public static <T extends Certificate> KeyStore createTrustStore(List<T> certificates) throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        KeyStore trustStore = createEmptyKeyStore();
+        KeyStore trustStore = createKeyStore();
         for (T certificate : certificates) {
             trustStore.setCertificateEntry(CertificateUtils.generateAlias(certificate), certificate);
         }
@@ -108,25 +108,19 @@ public final class KeyStoreUtils {
         List<KeyStore> keyStores = new ArrayList<>();
         String operatingSystem = System.getProperty("os.name").toLowerCase();
         if (operatingSystem.contains("windows")) {
-            KeyStore windowsRootKeyStore = loadSystemKeyStore("Windows-ROOT");
-            KeyStore windowsMyKeyStore = loadSystemKeyStore("Windows-MY");
+            KeyStore windowsRootKeyStore = createKeyStore("Windows-ROOT", null);
+            KeyStore windowsMyKeyStore = createKeyStore("Windows-MY", null);
 
             keyStores.add(windowsRootKeyStore);
             keyStores.add(windowsMyKeyStore);
         }
 
         if (operatingSystem.contains("mac")) {
-            KeyStore macKeyStore = loadSystemKeyStore("KeychainStore");
+            KeyStore macKeyStore = createKeyStore("KeychainStore", null);
             keyStores.add(macKeyStore);
         }
 
         return keyStores;
-    }
-
-    static KeyStore loadSystemKeyStore(String keyStoreType) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
-        KeyStore keyStore = KeyStore.getInstance(keyStoreType);
-        keyStore.load(null, null);
-        return keyStore;
     }
 
 }

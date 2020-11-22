@@ -103,8 +103,8 @@ class KeyStoreUtilsShould {
                 return invocation.getMock();
             }
         })) {
-            keyStoreUtilsMock.when(() -> KeyStoreUtils.loadSystemKeyStore("Windows-ROOT")).thenReturn(windowsRootKeyStore);
-            keyStoreUtilsMock.when(() -> KeyStoreUtils.loadSystemKeyStore("Windows-MY")).thenReturn(windowsMyKeyStore);
+            keyStoreUtilsMock.when(() -> KeyStoreUtils.createKeyStore("Windows-ROOT", null)).thenReturn(windowsRootKeyStore);
+            keyStoreUtilsMock.when(() -> KeyStoreUtils.createKeyStore("Windows-MY", null)).thenReturn(windowsMyKeyStore);
 
             List<KeyStore> keyStores = KeyStoreUtils.loadSystemKeyStores();
             assertThat(keyStores).containsExactlyInAnyOrder(windowsRootKeyStore, windowsMyKeyStore);
@@ -126,7 +126,7 @@ class KeyStoreUtilsShould {
                 return invocation.getMock();
             }
         })) {
-            keyStoreUtilsMock.when(() -> KeyStoreUtils.loadSystemKeyStore("KeychainStore")).thenReturn(macKeyStore);
+            keyStoreUtilsMock.when(() -> KeyStoreUtils.createKeyStore("KeychainStore", null)).thenReturn(macKeyStore);
 
             List<KeyStore> keyStores = KeyStoreUtils.loadSystemKeyStores();
             assertThat(keyStores).containsExactly(macKeyStore);
