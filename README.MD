@@ -418,7 +418,7 @@ public class App {
                 .withDefaultTrustMaterial()
                 .build();
 
-        LayeredConnectionSocketFactory socketFactory = ApacheSslContextUtils.toLayeredConnectionSocketFactory(sslFactory);
+        LayeredConnectionSocketFactory socketFactory = ApacheSslContextUtils.toSocketFactory(sslFactory);
 
         HttpClient httpClient = HttpClients.custom()
                 .setSSLSocketFactory(socketFactory)
