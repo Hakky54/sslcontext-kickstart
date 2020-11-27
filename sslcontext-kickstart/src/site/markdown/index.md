@@ -1,4 +1,4 @@
-## SSLContext Kickstart
+## Introduction
 SSLContext Kickstart is a high level library for configuring a http client to communicate over SSL/TLS for one way authentication or two way authentication.
 
 Below is a quick start; more detailed usage information is available [here.](./usage.html) See the [JavaDocs](./apidocs/index.html) for full documentation and the [Test Source](./xref-test/index.html) for complete examples of usage.
