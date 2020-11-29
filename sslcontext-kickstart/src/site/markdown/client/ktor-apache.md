@@ -1,8 +1,6 @@
 ## Ktor with Apache Engine - Example SSL Client Configuration
 
 ```kotlin
-import io.github.rybalkinsd.kohttp.client.client
-import io.github.rybalkinsd.kohttp.configuration.SslConfig
 import io.ktor.client.*
 import io.ktor.client.engine.android.*
 import nl.altindag.sslcontext.SSLFactory
