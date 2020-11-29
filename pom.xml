@@ -156,7 +156,7 @@
                 </executions>
                 <configuration>
                     <rules>
-                        <dependencyConvergence />
+                        <dependencyConvergence/>
                     </rules>
                 </configuration>
             </plugin>
