@@ -359,7 +359,8 @@ public final class SSLFactory {
             return this;
         }
 
-        public <T extends Certificate> Builder withTrustMaterial(T... certificates) {
+        @SafeVarargs
+        public final <T extends Certificate> Builder withTrustMaterial(T... certificates) {
             return withTrustMaterial(Arrays.asList(certificates));
         }
 
