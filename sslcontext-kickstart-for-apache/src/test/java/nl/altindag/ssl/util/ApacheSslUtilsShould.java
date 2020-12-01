@@ -41,7 +41,7 @@ class ApacheSslUtilsShould {
         assertThat(sslFactory.getTrustManager()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
 
-        LayeredConnectionSocketFactory socketFactory = ApacheSslUtils.toLayeredConnectionSocketFactory(sslFactory);
+        LayeredConnectionSocketFactory socketFactory = ApacheSslUtils.toSocketFactory(sslFactory);
         assertThat(socketFactory).isNotNull();
     }
 
@@ -69,7 +69,7 @@ class ApacheSslUtilsShould {
         assertThat(sslFactory.getTrustManager()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
 
-        LayeredConnectionSocketFactory socketFactory = ApacheSslUtils.toLayeredConnectionSocketFactory(sslFactory);
+        LayeredConnectionSocketFactory socketFactory = ApacheSslUtils.toSocketFactory(sslFactory);
         assertThat(socketFactory).isNotNull();
     }
 

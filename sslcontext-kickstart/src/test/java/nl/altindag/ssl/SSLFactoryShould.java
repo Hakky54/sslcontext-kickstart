@@ -621,16 +621,6 @@ class SSLFactoryShould {
     }
 
     @Test
-    void buildSSLFactoryWithOldSslContextProtocolSetterMethod() {
-        SSLFactory sslFactory = SSLFactory.builder()
-                .withDefaultTrustMaterial()
-                .withProtocol("TLSv1.2")
-                .build();
-
-        assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
-    }
-
-    @Test
     void buildSSLFactoryWithSslContextProtocol() {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withDefaultTrustMaterial()

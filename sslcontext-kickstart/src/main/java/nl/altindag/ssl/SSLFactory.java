@@ -494,20 +494,6 @@ public final class SSLFactory {
             return this;
         }
 
-        /**
-         * @deprecated  Will be removed with version 6.0.0 as it will provide by
-         *              default the latest list of supported protocols. Currently
-         *              it will create SSLContext instance with the protocol name TLS,
-         *              this will result into TLSv1, TLSv1.1 and TLSv1.2 for Java 1.8.
-         *              However if you are using Java 11 it will automatically include TLSv1.3
-         *              therefore it doesn't make sense to explicitly set the protocol
-         */
-        @Deprecated
-        public Builder withProtocol(String protocol) {
-            this.sslContextProtocol = protocol;
-            return this;
-        }
-
         public Builder withSslContextProtocol(String sslContextProtocol) {
             this.sslContextProtocol = sslContextProtocol;
             return this;
