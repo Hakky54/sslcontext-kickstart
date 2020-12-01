@@ -111,7 +111,7 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import nl.altindag.sslcontext.SSLFactory;
+import nl.altindag.ssl.SSLFactory;
 
 public class App {
 
@@ -277,8 +277,8 @@ SSLFactory.builder()
 ### Returnable values from the SSLFactory
 The SSLFactory provides different kinds of returnable values, see below for all the options:
 ```java
-import nl.altindag.sslcontext.SSLFactory;
-import nl.altindag.sslcontext.model.KeyStoreHolder;
+import nl.altindag.ssl.SSLFactory;
+import nl.altindag.ssl.model.KeyStoreHolder;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -332,8 +332,8 @@ Some know http clients which relay on netty libraries are: [Spring WebFlux WebCl
 Example setup for Spring WebClient with Netty:
 ```java
 import io.netty.handler.ssl.SslContext;
-import nl.altindag.sslcontext.SSLFactory;
-import nl.altindag.sslcontext.util.NettySslContextUtils;
+import nl.altindag.ssl.SSLFactory;
+import nl.altindag.ssl.util.NettySslContextUtils;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
@@ -369,8 +369,8 @@ public class App {
 ```
 Example setup for [Spring WebFlux WebClient Jetty](https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html):
 ```java
-import nl.altindag.sslcontext.SSLFactory;
-import nl.altindag.sslcontext.util.JettySslContextUtils;
+import nl.altindag.ssl.SSLFactory;
+import nl.altindag.ssl.util.JettySslContextUtils;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.springframework.http.client.reactive.JettyClientHttpConnector;
@@ -405,8 +405,8 @@ However it is still possible to configure the http client with their custom conf
 </dependency>
 ```
 ```java
-import nl.altindag.sslcontext.SSLFactory;
-import nl.altindag.sslcontext.util.ApacheSslContextUtils;
+import nl.altindag.ssl.SSLFactory;
+import nl.altindag.ssl.util.ApacheSslContextUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.impl.client.HttpClients;

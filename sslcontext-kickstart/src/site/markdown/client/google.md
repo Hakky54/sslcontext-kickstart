@@ -2,7 +2,7 @@
 
 ```java
 import com.google.api.client.http.javanet.NetHttpTransport;
-import nl.altindag.sslcontext.SSLFactory;
+import nl.altindag.ssl.SSLFactory;
 
 public class App {
 

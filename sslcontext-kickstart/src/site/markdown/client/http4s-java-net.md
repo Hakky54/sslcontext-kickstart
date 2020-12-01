@@ -2,7 +2,7 @@
 
 ```scala
 import cats.effect.{Blocker, IOApp, Resource}
-import nl.altindag.sslcontext.SSLFactory
+import nl.altindag.ssl.SSLFactory
 import org.http4s.client.JavaNetClientBuilder
 
 import scala.concurrent.ExecutionContext.Implicits.global

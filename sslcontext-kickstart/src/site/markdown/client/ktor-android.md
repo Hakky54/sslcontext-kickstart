@@ -3,7 +3,7 @@
 ```kotlin
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
-import nl.altindag.sslcontext.SSLFactory
+import nl.altindag.ssl.SSLFactory
 
 class App {
 

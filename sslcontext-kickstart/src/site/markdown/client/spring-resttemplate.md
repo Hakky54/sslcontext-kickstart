@@ -1,8 +1,8 @@
 ## Spring RestTemplate - Example SSL Client Configuration
 
 ```java
-import nl.altindag.sslcontext.SSLFactory;
-import nl.altindag.sslcontext.util.ApacheSslContextUtils;
+import nl.altindag.ssl.SSLFactory;
+import nl.altindag.ssl.util.ApacheSslContextUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.impl.client.HttpClients;

@@ -3,7 +3,7 @@
 ```scala
 import java.net.URI
 import com.twitter.finagle.Http
-import nl.altindag.sslcontext.SSLFactory
+import nl.altindag.ssl.SSLFactory
 
 class App {
 

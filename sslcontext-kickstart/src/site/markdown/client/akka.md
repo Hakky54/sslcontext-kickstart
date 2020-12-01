@@ -6,7 +6,7 @@ import akka.http.scaladsl.model.HttpRequest
 import akka.http.scaladsl.{ConnectionContext, Http}
 import com.typesafe.config.ConfigFactory
 import nl.altindag.client.ClientConfig
-import nl.altindag.sslcontext.SSLFactory
+import nl.altindag.ssl.SSLFactory
 
 object App {
 

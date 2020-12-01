@@ -4,7 +4,7 @@
 import java.net.URI
 
 import javax.net.ssl.HttpsURLConnection
-import nl.altindag.sslcontext.SSLFactory
+import nl.altindag.ssl.SSLFactory
 import sttp.client.{HttpURLConnectionBackend, basicRequest}
 import sttp.model.Uri
 

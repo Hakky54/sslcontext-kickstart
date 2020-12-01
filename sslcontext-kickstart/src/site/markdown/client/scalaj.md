@@ -2,7 +2,7 @@
 
 ```scala
 import javax.net.ssl.HttpsURLConnection
-import nl.altindag.sslcontext.SSLFactory
+import nl.altindag.ssl.SSLFactory
 import scalaj.http.Http
 
 object App {

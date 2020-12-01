@@ -2,8 +2,8 @@
 
 ```java
 import io.netty.handler.ssl.SslContext;
-import nl.altindag.sslcontext.SSLFactory;
-import nl.altindag.sslcontext.util.NettySslContextUtils;
+import nl.altindag.ssl.SSLFactory;
+import nl.altindag.ssl.util.NettySslContextUtils;
 import reactor.netty.http.client.HttpClient;
 
 public class App {

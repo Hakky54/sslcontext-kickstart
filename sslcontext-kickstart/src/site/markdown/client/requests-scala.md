@@ -1,7 +1,7 @@
 ## Requests-Scala - Example SSL Client Configuration
 
 ```scala
-import nl.altindag.sslcontext.SSLFactory
+import nl.altindag.ssl.SSLFactory
 
 object App {
 
