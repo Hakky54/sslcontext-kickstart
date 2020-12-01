@@ -4,7 +4,7 @@
 
     <groupId>io.github.hakky54</groupId>
     <artifactId>sslcontext-kickstart-parent</artifactId>
-    <version>5.3.1-SNAPSHOT</version>
+    <version>5.4.0</version>
     <packaging>pom</packaging>
 
     <name>${project.artifactId}</name>
@@ -31,7 +31,7 @@
         <url>https://github.com/Hakky54/sslcontext-kickstart</url>
         <connection>scm:git:git@github.com:Hakky54/sslcontext-kickstart.git</connection>
         <developerConnection>scm:git:git@github.com:Hakky54/sslcontext-kickstart.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>v5.4.0</tag>
     </scm>
 
     <developers>
@@ -156,7 +156,7 @@
                 </executions>
                 <configuration>
                     <rules>
-                        <dependencyConvergence/>
+                        <dependencyConvergence />
                     </rules>
                 </configuration>
             </plugin>
