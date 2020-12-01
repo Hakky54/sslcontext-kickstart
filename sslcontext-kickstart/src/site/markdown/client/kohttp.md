@@ -3,7 +3,7 @@
 ```kotlin
 import io.github.rybalkinsd.kohttp.client.client
 import io.github.rybalkinsd.kohttp.configuration.SslConfig
-import nl.altindag.sslcontext.SSLFactory
+import nl.altindag.ssl.SSLFactory
 
 class App {
 

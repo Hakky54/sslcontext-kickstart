@@ -3,7 +3,7 @@
 ```java
 import feign.Client;
 import feign.Feign;
-import nl.altindag.sslcontext.SSLFactory;
+import nl.altindag.ssl.SSLFactory;
 
 public class App {
 

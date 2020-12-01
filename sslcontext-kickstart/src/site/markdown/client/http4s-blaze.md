@@ -2,7 +2,7 @@
 
 ```scala
 import cats.effect.{IO, IOApp}
-import nl.altindag.sslcontext.SSLFactory
+import nl.altindag.ssl.SSLFactory
 import org.http4s.client.blaze.BlazeClientBuilder
 
 import scala.concurrent.ExecutionContext.Implicits.global

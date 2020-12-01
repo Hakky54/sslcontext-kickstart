@@ -2,7 +2,7 @@
 
 ```kotlin
 import com.github.kittinunf.fuel.core.FuelManager
-import nl.altindag.sslcontext.SSLFactory
+import nl.altindag.ssl.SSLFactory
 
 class App {
     

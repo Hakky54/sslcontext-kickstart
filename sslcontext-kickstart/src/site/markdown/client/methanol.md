@@ -2,7 +2,7 @@
 
 ```java
 import com.github.mizosoft.methanol.Methanol;
-import nl.altindag.sslcontext.SSLFactory;
+import nl.altindag.ssl.SSLFactory;
 
 public class App {
 

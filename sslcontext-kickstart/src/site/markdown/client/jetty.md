@@ -1,8 +1,8 @@
 ## Jetty Reactive HttpClient - Example SSL Client Configuration
 
 ```java
-import nl.altindag.sslcontext.SSLFactory;
-import nl.altindag.sslcontext.util.JettySslContextUtils;
+import nl.altindag.ssl.SSLFactory;
+import nl.altindag.ssl.util.JettySslUtils;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
@@ -14,7 +14,7 @@ public class App {
                 .withTrustMaterial("truststore.jks", "password".toCharArray())
                 .build();
 
-        SslContextFactory.Client sslContextFactory = JettySslContextUtils.forClient(sslFactory);
+        SslContextFactory.Client sslContextFactory = JettySslUtils.forClient(sslFactory);
 
         HttpClient httpClient = new HttpClient(sslContextFactory);
     }

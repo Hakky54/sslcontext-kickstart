@@ -71,17 +71,17 @@ An alternative for the traditional creation of SSLContext can be simplified if y
 The sslcontext-kickstart library is taking the responsibility of creating an instance of SSLContext from the provided arguments, and it will provide you all the ssl materials which are required to configure [30+ different Http Client](#tested-http-clients) for Java, Scala and Kotlin. 
 I wanted the library to be as easy as possible to use for all developers to give them a kickstart when configuring their Http Client. So feel free to provide feedback or feature requests.
 The library also provides other utilities such as:
-- [CertificateUtils](sslcontext-kickstart/src/main/java/nl/altindag/sslcontext/util/CertificateUtils.java)
-- [KeyStoreUtils](sslcontext-kickstart/src/main/java/nl/altindag/sslcontext/util/KeyStoreUtils.java)
-- [KeyManagerUtils](sslcontext-kickstart/src/main/java/nl/altindag/sslcontext/util/KeyManagerUtils.java)
-- [TrustManagerUtils](sslcontext-kickstart/src/main/java/nl/altindag/sslcontext/util/TrustManagerUtils.java)
-- [PemUtils](sslcontext-kickstart-for-pem/src/main/java/nl/altindag/sslcontext/util/PemUtils.java)
+- [CertificateUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/CertificateUtils.java)
+- [KeyStoreUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/KeyStoreUtils.java)
+- [KeyManagerUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/KeyManagerUtils.java)
+- [TrustManagerUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/TrustManagerUtils.java)
+- [PemUtils](sslcontext-kickstart-for-pem/src/main/java/nl/altindag/ssl/util/PemUtils.java)
 
 See the [javadoc](https://sslcontext-kickstart.com/apidocs/index.html) for all the options.
 
 ### Acknowledgement
 I would like to thank [Cody A. Ray](https://github.com/codyaray) for his contribution to the community regarding loading multiple Keystores into the SSLContext. The limitation of the JDK is to only support one keystore for the KeyManagerFactory and only one keystore for the TrustManagerFactory.
-The code snippets which Cody has shared are now available within this library and can be found here: [CompositeX509KeyManager](sslcontext-kickstart/src/main/java/nl/altindag/sslcontext/keymanager/CompositeX509ExtendedKeyManager.java) and [CompositeX509TrustManager](sslcontext-kickstart/src/main/java/nl/altindag/sslcontext/trustmanager/CompositeX509ExtendedTrustManager.java) 
+The code snippets which Cody has shared are now available within this library and can be found here: [CompositeX509KeyManager](sslcontext-kickstart/src/main/java/nl/altindag/ssl/keymanager/CompositeX509ExtendedKeyManager.java) and [CompositeX509TrustManager](sslcontext-kickstart/src/main/java/nl/altindag/ssl/trustmanager/CompositeX509ExtendedTrustManager.java) 
 
 The original content can be found here:
 - [Codyaray - Java SSL with Multiple KeyStores](http://codyaray.com/2013/04/java-ssl-with-multiple-keystores)
@@ -111,7 +111,7 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import nl.altindag.sslcontext.SSLFactory;
+import nl.altindag.ssl.SSLFactory;
 
 public class App {
 
@@ -226,7 +226,7 @@ SSLFactory.builder()
 ```
 
 ##### Using PEM Files
-Support for using pem formatted private key and certificates from classpath, any directory or as an InputStream. See [PemUtilsShould](sslcontext-kickstart-for-pem/src/test/java/nl/altindag/sslcontext/util/PemUtilsShould.java) for detailed usages.
+Support for using pem formatted private key and certificates from classpath, any directory or as an InputStream. See [PemUtilsShould](sslcontext-kickstart-for-pem/src/test/java/nl/altindag/ssl/util/PemUtilsShould.java) for detailed usages.
 Add the dependency below to use this feature, it also includes the core features from the library such as SSLFactory.
 ```xml
 <dependency>
@@ -277,8 +277,8 @@ SSLFactory.builder()
 ### Returnable values from the SSLFactory
 The SSLFactory provides different kinds of returnable values, see below for all the options:
 ```java
-import nl.altindag.sslcontext.SSLFactory;
-import nl.altindag.sslcontext.model.KeyStoreHolder;
+import nl.altindag.ssl.SSLFactory;
+import nl.altindag.ssl.model.KeyStoreHolder;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -332,8 +332,8 @@ Some know http clients which relay on netty libraries are: [Spring WebFlux WebCl
 Example setup for Spring WebClient with Netty:
 ```java
 import io.netty.handler.ssl.SslContext;
-import nl.altindag.sslcontext.SSLFactory;
-import nl.altindag.sslcontext.util.NettySslContextUtils;
+import nl.altindag.ssl.SSLFactory;
+import nl.altindag.ssl.util.NettySslUtils;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
@@ -347,7 +347,7 @@ public class App {
                 .withDefaultTrustMaterial()
                 .build();
 
-        SslContext sslContext = NettySslContextUtils.forClient(sslFactory).build();
+        SslContext sslContext = NettySslUtils.forClient(sslFactory).build();
         HttpClient httpClient = HttpClient.create()
                 .secure(sslSpec -> sslSpec.sslContext(sslContext));
 
@@ -369,8 +369,8 @@ public class App {
 ```
 Example setup for [Spring WebFlux WebClient Jetty](https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html):
 ```java
-import nl.altindag.sslcontext.SSLFactory;
-import nl.altindag.sslcontext.util.JettySslContextUtils;
+import nl.altindag.ssl.SSLFactory;
+import nl.altindag.ssl.util.JettySslUtils;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.springframework.http.client.reactive.JettyClientHttpConnector;
@@ -383,7 +383,7 @@ public class App {
                 .withDefaultTrustMaterial()
                 .build();
         
-        SslContextFactory.Client sslContextFactory = JettySslContextUtils.forClient(sslFactory);
+        SslContextFactory.Client sslContextFactory = JettySslUtils.forClient(sslFactory);
         HttpClient httpClient = new HttpClient(sslContextFactory);
 
         WebClient webClient = WebClient.builder()
@@ -405,8 +405,8 @@ However it is still possible to configure the http client with their custom conf
 </dependency>
 ```
 ```java
-import nl.altindag.sslcontext.SSLFactory;
-import nl.altindag.sslcontext.util.ApacheSslContextUtils;
+import nl.altindag.ssl.SSLFactory;
+import nl.altindag.ssl.util.ApacheSslUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.impl.client.HttpClients;
@@ -418,7 +418,7 @@ public class App {
                 .withDefaultTrustMaterial()
                 .build();
 
-        LayeredConnectionSocketFactory socketFactory = ApacheSslContextUtils.toSocketFactory(sslFactory);
+        LayeredConnectionSocketFactory socketFactory = ApacheSslUtils.toSocketFactory(sslFactory);
 
         HttpClient httpClient = HttpClients.custom()
                 .setSSLSocketFactory(socketFactory)

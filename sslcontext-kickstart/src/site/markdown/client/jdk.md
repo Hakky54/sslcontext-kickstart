@@ -1,7 +1,7 @@
 ## JDK HttpClient - Example SSL Client Configuration
 
 ```java
-import nl.altindag.sslcontext.SSLFactory;
+import nl.altindag.ssl.SSLFactory;
 
 import java.net.http.HttpClient;
 

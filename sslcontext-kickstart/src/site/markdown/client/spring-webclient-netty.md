@@ -2,8 +2,8 @@
 
 ```java
 import io.netty.handler.ssl.SslContext;
-import nl.altindag.sslcontext.SSLFactory;
-import nl.altindag.sslcontext.util.NettySslContextUtils;
+import nl.altindag.ssl.SSLFactory;
+import nl.altindag.ssl.util.NettySslUtils;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
@@ -16,7 +16,7 @@ public class App {
                 .withTrustMaterial("truststore.jks", "password".toCharArray())
                 .build();
 
-        SslContext sslContext = NettySslContextUtils.forClient(sslFactory).build();
+        SslContext sslContext = NettySslUtils.forClient(sslFactory).build();
         HttpClient httpClient = HttpClient.create().secure(sslSpec -> sslSpec.sslContext(sslContext));
         
         WebClient webClient = WebClient.builder()

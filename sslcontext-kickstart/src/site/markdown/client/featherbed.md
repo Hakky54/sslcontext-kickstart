@@ -5,7 +5,7 @@ import java.net.{URI, URL}
 import java.nio.charset.{Charset, StandardCharsets}
 
 import com.twitter.finagle.Http
-import nl.altindag.sslcontext.SSLFactory
+import nl.altindag.ssl.SSLFactory
 
 class App {
 

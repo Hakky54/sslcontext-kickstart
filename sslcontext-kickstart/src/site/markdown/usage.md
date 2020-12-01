@@ -87,7 +87,7 @@ SSLFactory.builder()
 ```
 
 ##### Using PEM Files
-Support for using pem formatted private key and certificates from classpath, any directory or as an InputStream. See [PemUtilsShould](sslcontext-kickstart-for-pem/src/test/java/nl/altindag/sslcontext/util/PemUtilsShould.java) for detailed usages.
+Support for using pem formatted private key and certificates from classpath, any directory or as an InputStream. See [PemUtilsShould](sslcontext-kickstart-for-pem/src/test/java/nl/altindag/ssl/util/PemUtilsShould.java) for detailed usages.
 Add the dependency below to use this feature, it also includes the core features from the library such as SSLFactory.
 ```xml
 <dependency>
@@ -150,8 +150,8 @@ Some know http clients which relay on netty libraries are: [Spring WebFlux WebCl
 Example setup for Spring WebClient with Netty:
 ```java
 import io.netty.handler.ssl.SslContext;
-import nl.altindag.sslcontext.SSLFactory;
-import nl.altindag.sslcontext.util.NettySslContextUtils;
+import nl.altindag.ssl.SSLFactory;
+import nl.altindag.ssl.util.NettySslUtils;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
@@ -165,7 +165,7 @@ public class App {
                 .withDefaultJdkTrustStore()
                 .build();
 
-        SslContext sslContext = NettySslContextUtils.forClient(sslFactory).build();
+        SslContext sslContext = NettySslUtils.forClient(sslFactory).build();
         HttpClient httpClient = HttpClient.create()
                 .secure(sslSpec -> sslSpec.sslContext(sslContext));
 
@@ -186,8 +186,8 @@ public class App {
 ```
 Example setup for [Spring WebFlux WebClient Jetty](https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html):
 ```java
-import nl.altindag.sslcontext.SSLFactory;
-import nl.altindag.sslcontext.util.JettySslContextUtils;
+import nl.altindag.ssl.SSLFactory;
+import nl.altindag.ssl.util.JettySslUtils;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.springframework.http.client.reactive.JettyClientHttpConnector;
@@ -200,7 +200,7 @@ public class App {
                 .withDefaultJdkTrustStore()
                 .build();
         
-        SslContextFactory.Client sslContextFactory = JettySslContextUtils.forClient(sslFactory);
+        SslContextFactory.Client sslContextFactory = JettySslUtils.forClient(sslFactory);
         HttpClient httpClient = new HttpClient(sslContextFactory);
 
         WebClient webClient = WebClient.builder()
@@ -221,8 +221,8 @@ However it is still possible to configure the http client with their custom conf
 </dependency>
 ```
 ```java
-import nl.altindag.sslcontext.SSLFactory;
-import nl.altindag.sslcontext.util.ApacheSslContextUtils;
+import nl.altindag.ssl.SSLFactory;
+import nl.altindag.ssl.util.ApacheSslUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.impl.client.HttpClients;
@@ -234,7 +234,7 @@ public class App {
                 .withDefaultJdkTrustStore()
                 .build();
 
-        LayeredConnectionSocketFactory socketFactory = ApacheSslContextUtils.toLayeredConnectionSocketFactory(sslFactory);
+        LayeredConnectionSocketFactory socketFactory = ApacheSslUtils.toLayeredConnectionSocketFactory(sslFactory);
 
         HttpClient httpClient = HttpClients.custom()
                 .setSSLSocketFactory(socketFactory)

@@ -13,7 +13,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClients;
 
-import nl.altindag.sslcontext.SSLFactory;
+import nl.altindag.ssl.SSLFactory;
 
 public class App {
 
@@ -36,8 +36,8 @@ public class App {
 
 The SSLFactory provides different kinds of returnable values, see below for all the options:
 ```java
-import nl.altindag.sslcontext.SSLFactory;
-import nl.altindag.sslcontext.model.KeyStoreHolder;
+import nl.altindag.ssl.SSLFactory;
+import nl.altindag.ssl.model.KeyStoreHolder;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;

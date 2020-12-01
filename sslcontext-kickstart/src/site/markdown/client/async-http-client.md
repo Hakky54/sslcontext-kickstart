@@ -3,8 +3,8 @@
 ```java
 import dispatch.Http;
 import io.netty.handler.ssl.SslContext;
-import nl.altindag.sslcontext.SSLFactory;
-import nl.altindag.sslcontext.util.NettySslContextUtils;
+import nl.altindag.ssl.SSLFactory;
+import nl.altindag.ssl.util.NettySslUtils;
 import org.asynchttpclient.AsyncHttpClient;
 import org.asynchttpclient.DefaultAsyncHttpClientConfig;
 import org.asynchttpclient.Dsl;
@@ -17,7 +17,7 @@ public class App {
                 .withTrustMaterial("truststore.jks", "password".toCharArray())
                 .build();
 
-        SslContext sslContext = NettySslContextUtils.forClient(sslFactory).build();
+        SslContext sslContext = NettySslUtils.forClient(sslFactory).build();
         DefaultAsyncHttpClientConfig.Builder clientConfigBuilder = Http.defaultClientBuilder()
                 .setSslContext(sslContext);
 

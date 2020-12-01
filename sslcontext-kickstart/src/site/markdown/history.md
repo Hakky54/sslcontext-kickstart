@@ -9,10 +9,10 @@ The sslcontext-kickstart library is taking the responsibility of creating an ins
 I wanted the library to be as easy as possible to use for all developers to give them a kickstart when configuring their Http Client. So feel free to provide feedback or feature requests.
 The library also provides other utilities such as:
 
-* [CertificateUtils](https://github.com/Hakky54/sslcontext-kickstart/blob/master/sslcontext-kickstart/src/main/java/nl/altindag/sslcontext/util/CertificateUtils.java)
-* [KeyStoreUtils](https://github.com/Hakky54/sslcontext-kickstart/blob/master/sslcontext-kickstart/src/main/java/nl/altindag/sslcontext/util/KeyStoreUtils.java)
-* [KeyManagerUtils](https://github.com/Hakky54/sslcontext-kickstart/blob/master/sslcontext-kickstart/src/main/java/nl/altindag/sslcontext/util/KeyManagerUtils.java)
-* [TrustManagerUtils](https://github.com/Hakky54/sslcontext-kickstart/blob/master/sslcontext-kickstart/src/main/java/nl/altindag/sslcontext/util/TrustManagerUtils.java)
-* [PemUtils](https://github.com/Hakky54/sslcontext-kickstart/blob/master/sslcontext-kickstart-for-pem/src/main/java/nl/altindag/sslcontext/util/PemUtils.java)
+* [CertificateUtils](https://github.com/Hakky54/sslcontext-kickstart/blob/master/sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/CertificateUtils.java)
+* [KeyStoreUtils](https://github.com/Hakky54/sslcontext-kickstart/blob/master/sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/KeyStoreUtils.java)
+* [KeyManagerUtils](https://github.com/Hakky54/sslcontext-kickstart/blob/master/sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/KeyManagerUtils.java)
+* [TrustManagerUtils](https://github.com/Hakky54/sslcontext-kickstart/blob/master/sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/TrustManagerUtils.java)
+* [PemUtils](https://github.com/Hakky54/sslcontext-kickstart/blob/master/sslcontext-kickstart-for-pem/src/main/java/nl/altindag/ssl/util/PemUtils.java)
 
 See the [javadoc](https://sslcontext-kickstart.com/apidocs/index.html) for all the options.
