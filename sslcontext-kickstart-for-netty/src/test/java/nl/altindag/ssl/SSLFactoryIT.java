@@ -2,7 +2,7 @@ package nl.altindag.ssl;
 
 import io.netty.handler.ssl.SslContext;
 import nl.altindag.log.LogCaptor;
-import nl.altindag.ssl.util.NettySslContextUtils;
+import nl.altindag.ssl.util.NettySslUtils;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +28,7 @@ class SSLFactoryIT {
                 .withTrustMaterial("keystores-for-unit-tests/badssl-truststore.p12", "badssl.com".toCharArray())
                 .build();
 
-        SslContext sslContext = NettySslContextUtils.forClient(sslFactory).build();
+        SslContext sslContext = NettySslUtils.forClient(sslFactory).build();
         HttpClient httpClient = HttpClient.create().secure(sslSpec -> sslSpec.sslContext(sslContext));
 
         Integer statusCode = httpClient.get()

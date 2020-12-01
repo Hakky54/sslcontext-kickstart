@@ -2,7 +2,7 @@
 
 ```java
 import nl.altindag.ssl.SSLFactory;
-import nl.altindag.ssl.util.JettySslContextUtils;
+import nl.altindag.ssl.util.JettySslUtils;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.springframework.http.client.reactive.JettyClientHttpConnector;
@@ -16,7 +16,7 @@ public class App {
                 .withTrustMaterial("truststore.jks", "password".toCharArray())
                 .build();
 
-        SslContextFactory.Client sslContextFactory = JettySslContextUtils.forClient(sslFactory);
+        SslContextFactory.Client sslContextFactory = JettySslUtils.forClient(sslFactory);
         HttpClient httpClient = new HttpClient(sslContextFactory);
 
         WebClient webClient = WebClient.builder()

@@ -12,7 +12,7 @@ import java.security.cert.CertificateException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class JettySslContextUtilsShould {
+class JettySslUtilsShould {
 
     private static final String IDENTITY_FILE_NAME = "identity.jks";
     private static final String TRUSTSTORE_FILE_NAME = "truststore.jks";
@@ -41,7 +41,7 @@ class JettySslContextUtilsShould {
         assertThat(sslFactory.getTrustManager()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
 
-        SslContextFactory.Client sslContextFactory = JettySslContextUtils.forClient(sslFactory);
+        SslContextFactory.Client sslContextFactory = JettySslUtils.forClient(sslFactory);
         assertThat(sslContextFactory.getSslContext()).isEqualTo(sslFactory.getSslContext());
         assertThat(sslContextFactory.getHostnameVerifier()).isEqualTo(sslContextFactory.getHostnameVerifier());
 
@@ -75,7 +75,7 @@ class JettySslContextUtilsShould {
         assertThat(sslFactory.getTrustManager()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
 
-        SslContextFactory.Client sslContextFactory = JettySslContextUtils.forClient(sslFactory);
+        SslContextFactory.Client sslContextFactory = JettySslUtils.forClient(sslFactory);
         assertThat(sslContextFactory.getSslContext()).isEqualTo(sslFactory.getSslContext());
         assertThat(sslContextFactory.getHostnameVerifier()).isEqualTo(sslContextFactory.getHostnameVerifier());
 
@@ -108,7 +108,7 @@ class JettySslContextUtilsShould {
         assertThat(sslFactory.getTrustManager()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
 
-        SslContextFactory.Server sslContextFactory = JettySslContextUtils.forServer(sslFactory);
+        SslContextFactory.Server sslContextFactory = JettySslUtils.forServer(sslFactory);
         assertThat(sslContextFactory.getSslContext()).isEqualTo(sslFactory.getSslContext());
         assertThat(sslContextFactory.getHostnameVerifier()).isEqualTo(sslContextFactory.getHostnameVerifier());
 

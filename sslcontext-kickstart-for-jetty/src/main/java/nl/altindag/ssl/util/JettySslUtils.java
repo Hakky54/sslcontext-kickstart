@@ -3,9 +3,9 @@ package nl.altindag.ssl.util;
 import nl.altindag.ssl.SSLFactory;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
-public final class JettySslContextUtils {
+public final class JettySslUtils {
 
-    private JettySslContextUtils() {}
+    private JettySslUtils() {}
 
     /**
      * Creates a basic {@link SslContextFactory.Client Client SslContextFactory}

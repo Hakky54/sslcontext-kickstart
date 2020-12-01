@@ -3,7 +3,7 @@
 ```java
 import io.netty.handler.ssl.SslContext;
 import nl.altindag.ssl.SSLFactory;
-import nl.altindag.ssl.util.NettySslContextUtils;
+import nl.altindag.ssl.util.NettySslUtils;
 import reactor.netty.http.client.HttpClient;
 
 public class App {
@@ -14,7 +14,7 @@ public class App {
                 .withTrustMaterial("truststore.jks", "password".toCharArray())
                 .build();
 
-        SslContext sslContext = NettySslContextUtils.forClient(sslFactory).build();
+        SslContext sslContext = NettySslUtils.forClient(sslFactory).build();
         
         HttpClient httpClient = HttpClient.create()
                 .secure(sslSpec -> sslSpec.sslContext(sslContext));

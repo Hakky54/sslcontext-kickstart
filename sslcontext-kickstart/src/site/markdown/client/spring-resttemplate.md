@@ -2,7 +2,7 @@
 
 ```java
 import nl.altindag.ssl.SSLFactory;
-import nl.altindag.ssl.util.ApacheSslContextUtils;
+import nl.altindag.ssl.util.ApacheSslUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.impl.client.HttpClients;
@@ -17,7 +17,7 @@ public class App {
                 .withTrustMaterial("truststore.jks", "password".toCharArray())
                 .build();
 
-        LayeredConnectionSocketFactory socketFactory = ApacheSslContextUtils.toLayeredConnectionSocketFactory(sslFactory);
+        LayeredConnectionSocketFactory socketFactory = ApacheSslUtils.toLayeredConnectionSocketFactory(sslFactory);
 
         HttpClient httpClient = HttpClients.custom()
                 .setSSLSocketFactory(socketFactory)

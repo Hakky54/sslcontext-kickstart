@@ -13,7 +13,7 @@ import java.security.cert.CertificateException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class NettySslContextUtilsShould {
+class NettySslUtilsShould {
 
     private static final String IDENTITY_FILE_NAME = "identity.jks";
     private static final String TRUSTSTORE_FILE_NAME = "truststore.jks";
@@ -42,7 +42,7 @@ class NettySslContextUtilsShould {
         assertThat(sslFactory.getTrustManager()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
 
-        SslContext sslContext = NettySslContextUtils.forClient(sslFactory).build();
+        SslContext sslContext = NettySslUtils.forClient(sslFactory).build();
         assertThat(sslContext.isClient()).isTrue();
         assertThat(sslContext.isServer()).isFalse();
         assertThat(sslContext.cipherSuites()).containsExactlyInAnyOrder(sslFactory.getSslContext().getDefaultSSLParameters().getCipherSuites());
@@ -72,7 +72,7 @@ class NettySslContextUtilsShould {
         assertThat(sslFactory.getTrustManager()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
 
-        SslContext sslContext = NettySslContextUtils.forClient(sslFactory).build();
+        SslContext sslContext = NettySslUtils.forClient(sslFactory).build();
         assertThat(sslContext.isClient()).isTrue();
         assertThat(sslContext.isServer()).isFalse();
         assertThat(sslContext.cipherSuites()).containsExactlyInAnyOrder(sslFactory.getSslContext().getDefaultSSLParameters().getCipherSuites());
@@ -101,7 +101,7 @@ class NettySslContextUtilsShould {
         assertThat(sslFactory.getTrustManager()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
 
-        SslContext sslContext = NettySslContextUtils.forServer(sslFactory).build();
+        SslContext sslContext = NettySslUtils.forServer(sslFactory).build();
         assertThat(sslContext.isClient()).isFalse();
         assertThat(sslContext.isServer()).isTrue();
         assertThat(sslContext.cipherSuites()).containsExactlyInAnyOrder(sslFactory.getSslContext().getDefaultSSLParameters().getCipherSuites());
@@ -114,7 +114,7 @@ class NettySslContextUtilsShould {
                 .withTrustMaterial(trustStore, TRUSTSTORE_PASSWORD)
                 .build();
 
-        assertThatThrownBy(() -> NettySslContextUtils.forServer(sslFactory))
+        assertThatThrownBy(() -> NettySslUtils.forServer(sslFactory))
                 .isInstanceOf(NullPointerException.class);
 
     }

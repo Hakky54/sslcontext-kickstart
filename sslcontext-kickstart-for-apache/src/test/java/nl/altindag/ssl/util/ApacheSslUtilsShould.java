@@ -12,7 +12,7 @@ import java.security.cert.CertificateException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class ApacheSslContextUtilsShould {
+class ApacheSslUtilsShould {
 
     private static final String IDENTITY_FILE_NAME = "identity.jks";
     private static final String TRUSTSTORE_FILE_NAME = "truststore.jks";
@@ -41,7 +41,7 @@ class ApacheSslContextUtilsShould {
         assertThat(sslFactory.getTrustManager()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
 
-        LayeredConnectionSocketFactory socketFactory = ApacheSslContextUtils.toLayeredConnectionSocketFactory(sslFactory);
+        LayeredConnectionSocketFactory socketFactory = ApacheSslUtils.toLayeredConnectionSocketFactory(sslFactory);
         assertThat(socketFactory).isNotNull();
     }
 
@@ -69,7 +69,7 @@ class ApacheSslContextUtilsShould {
         assertThat(sslFactory.getTrustManager()).isNotNull();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
 
-        LayeredConnectionSocketFactory socketFactory = ApacheSslContextUtils.toLayeredConnectionSocketFactory(sslFactory);
+        LayeredConnectionSocketFactory socketFactory = ApacheSslUtils.toLayeredConnectionSocketFactory(sslFactory);
         assertThat(socketFactory).isNotNull();
     }
 

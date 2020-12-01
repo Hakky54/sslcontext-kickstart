@@ -6,9 +6,9 @@ import nl.altindag.ssl.SSLFactory;
 
 import javax.net.ssl.X509ExtendedKeyManager;
 
-public final class NettySslContextUtils {
+public final class NettySslUtils {
 
-    private NettySslContextUtils() {}
+    private NettySslUtils() {}
 
     /**
      * Creates a basic {@link SslContextBuilder Client SslContextBuilder}

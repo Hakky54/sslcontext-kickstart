@@ -1,7 +1,7 @@
 package nl.altindag.ssl;
 
 import nl.altindag.log.LogCaptor;
-import nl.altindag.ssl.util.JettySslContextUtils;
+import nl.altindag.ssl.util.JettySslUtils;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.http.HttpMethod;
@@ -25,7 +25,7 @@ class SSLFactoryIT {
                 .withTrustMaterial("keystores-for-unit-tests/badssl-truststore.p12", "badssl.com".toCharArray())
                 .build();
 
-        SslContextFactory.Client sslContextFactory = JettySslContextUtils.forClient(sslFactory);
+        SslContextFactory.Client sslContextFactory = JettySslUtils.forClient(sslFactory);
 
         HttpClient httpClient = new HttpClient(sslContextFactory);
         httpClient.start();

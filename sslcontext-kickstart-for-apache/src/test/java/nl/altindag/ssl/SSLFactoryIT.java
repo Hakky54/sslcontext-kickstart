@@ -1,7 +1,7 @@
 package nl.altindag.ssl;
 
 import nl.altindag.log.LogCaptor;
-import nl.altindag.ssl.util.ApacheSslContextUtils;
+import nl.altindag.ssl.util.ApacheSslUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -28,7 +28,7 @@ class SSLFactoryIT {
                 .withTrustMaterial("keystores-for-unit-tests/badssl-truststore.p12", "badssl.com".toCharArray())
                 .build();
 
-        LayeredConnectionSocketFactory socketFactory = ApacheSslContextUtils.toLayeredConnectionSocketFactory(sslFactory);
+        LayeredConnectionSocketFactory socketFactory = ApacheSslUtils.toLayeredConnectionSocketFactory(sslFactory);
 
         HttpClient httpClient = HttpClients.custom()
                 .setSSLSocketFactory(socketFactory)

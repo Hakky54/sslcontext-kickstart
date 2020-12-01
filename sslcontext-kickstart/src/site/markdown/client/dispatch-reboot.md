@@ -3,7 +3,7 @@
 ```scala
 import dispatch.Http
 import nl.altindag.ssl.SSLFactory
-import nl.altindag.ssl.util.NettySslContextUtils
+import nl.altindag.ssl.util.NettySslUtils
 
 object App {
 
@@ -13,7 +13,7 @@ object App {
                 .withTrustMaterial("truststore.jks", "password".toCharArray)
                 .build()
         
-        val sslContext = NettySslContextUtils.forClient(sslFactory).build
+        val sslContext = NettySslUtils.forClient(sslFactory).build
         val client = Http.withConfiguration(builder => builder.setSslContext(sslContext))
     }
 
