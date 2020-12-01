@@ -17,20 +17,20 @@
 <dependency>
     <groupId>io.github.hakky54</groupId>
     <artifactId>sslcontext-kickstart</artifactId>
-    <version>5.3.0</version>
+    <version>5.4.0</version>
 </dependency>
 ```
 ### Install with Gradle
 ```groovy
-implementation 'io.github.hakky54:sslcontext-kickstart:5.3.0'
+implementation 'io.github.hakky54:sslcontext-kickstart:5.4.0'
 ```
 ### Install with Scala SBT
 ```
-libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "5.3.0"
+libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "5.4.0"
 ```
 ### Install with Apache Ivy
 ```xml
-<dependency org="io.github.hakky54" name="sslcontext-kickstart" rev="5.3.0" />
+<dependency org="io.github.hakky54" name="sslcontext-kickstart" rev="5.4.0" />
 ```
 
 ## Table of contents
@@ -232,7 +232,7 @@ Add the dependency below to use this feature, it also includes the core features
 <dependency>
     <groupId>io.github.hakky54</groupId>
     <artifactId>sslcontext-kickstart-for-pem</artifactId>
-    <version>5.3.0</version>
+    <version>5.4.0</version>
 </dependency>
 ```
 ```text
@@ -326,7 +326,7 @@ Some know http clients which relay on netty libraries are: [Spring WebFlux WebCl
 <dependency>
     <groupId>io.github.hakky54</groupId>
     <artifactId>sslcontext-kickstart-for-netty</artifactId>
-    <version>5.3.0</version>
+    <version>5.4.0</version>
 </dependency>
 ```
 Example setup for Spring WebClient with Netty:
@@ -364,7 +364,7 @@ public class App {
 <dependency>
     <groupId>io.github.hakky54</groupId>
     <artifactId>sslcontext-kickstart-for-jetty</artifactId>
-    <version>5.3.0</version>
+    <version>5.4.0</version>
 </dependency>
 ```
 Example setup for [Spring WebFlux WebClient Jetty](https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html):
@@ -401,7 +401,7 @@ However it is still possible to configure the http client with their custom conf
 <dependency>
     <groupId>io.github.hakky54</groupId>
     <artifactId>sslcontext-kickstart-for-apache</artifactId>
-    <version>5.3.0</version>
+    <version>5.4.0</version>
 </dependency>
 ```
 ```java
