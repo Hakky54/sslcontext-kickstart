@@ -100,14 +100,14 @@ public final class PemUtils {
         while (object != null && privateKeyInfo == null) {
             if (object instanceof PrivateKeyInfo) {
                 privateKeyInfo = (PrivateKeyInfo) object;
-            } else if (object instanceof PEMKeyPair) {
-                privateKeyInfo = ((PEMKeyPair) object).getPrivateKeyInfo();
             } else if (object instanceof PKCS8EncryptedPrivateKeyInfo) {
                 InputDecryptorProvider inputDecryptorProvider = new JceOpenSSLPKCS8DecryptorProviderBuilder()
                         .setProvider(BOUNCY_CASTLE_PROVIDER)
                         .build(Objects.requireNonNull(keyPassword));
 
                 privateKeyInfo = ((PKCS8EncryptedPrivateKeyInfo) object).decryptPrivateKeyInfo(inputDecryptorProvider);
+            } else if (object instanceof PEMKeyPair) {
+                privateKeyInfo = ((PEMKeyPair) object).getPrivateKeyInfo();
             } else if (object instanceof PEMEncryptedKeyPair) {
                 PEMDecryptorProvider pemDecryptorProvider = new JcePEMDecryptorProviderBuilder()
                         .setProvider(BOUNCY_CASTLE_PROVIDER)
