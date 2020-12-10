@@ -36,7 +36,7 @@ class SSLFactoryIT {
                 .build();
 
         HttpsURLConnection connection = (HttpsURLConnection) new URL("https://client.badssl.com/").openConnection();
-        connection.setSSLSocketFactory(sslFactory.getSslContext().getSocketFactory());
+        connection.setSSLSocketFactory(sslFactory.getSslSocketFactory());
         connection.setHostnameVerifier(sslFactory.getHostnameVerifier());
         connection.setRequestMethod("GET");
 
