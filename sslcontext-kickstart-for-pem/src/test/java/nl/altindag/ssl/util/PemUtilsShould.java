@@ -7,9 +7,11 @@ import org.junit.jupiter.api.Test;
 
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509ExtendedTrustManager;
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -19,6 +21,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -29,6 +32,34 @@ class PemUtilsShould {
 
     private static final String PEM_LOCATION = "pems-for-unit-tests/";
     private static final String TEMPORALLY_PEM_LOCATION = System.getProperty("user.home");
+
+    @Test
+    void parseSingleTrustMaterialFromContent() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        String certificateContent = getResourceContent(PEM_LOCATION + "github-certificate.pem");
+        X509ExtendedTrustManager trustManager = PemUtils.parseTrustMaterial(certificateContent);
+
+        assertThat(trustManager).isNotNull();
+        assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
+    }
+
+    @Test
+    void parseMultipleTrustMaterialsFromContentAsMultipleStrings() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        String certificateContentOne = getResourceContent(PEM_LOCATION + "github-certificate.pem");
+        String certificateContentTwo = getResourceContent(PEM_LOCATION + "stackexchange.pem");
+        X509ExtendedTrustManager trustManager = PemUtils.parseTrustMaterial(certificateContentOne, certificateContentTwo);
+
+        assertThat(trustManager).isNotNull();
+        assertThat(trustManager.getAcceptedIssuers()).hasSize(2);
+    }
+
+    @Test
+    void parseMultipleTrustMaterialsFromContentAsSingleString() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        String certificateContent = getResourceContent(PEM_LOCATION + "multiple-certificates.pem");
+        X509ExtendedTrustManager trustManager = PemUtils.parseTrustMaterial(certificateContent);
+
+        assertThat(trustManager).isNotNull();
+        assertThat(trustManager.getAcceptedIssuers()).hasSize(3);
+    }
 
     @Test
     void loadSingleTrustMaterialFromClassPathAsSingleFile() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
@@ -272,6 +303,25 @@ class PemUtilsShould {
     }
 
     @Test
+    void parseEncryptedIdentityMaterialFromContent() throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException {
+        String identityContent = getResourceContent(PEM_LOCATION + "encrypted-identity.pem");
+
+        X509ExtendedKeyManager keyManager = PemUtils.parseIdentityMaterial(identityContent, "secret".toCharArray());
+
+        assertThat(keyManager).isNotNull();
+    }
+
+    @Test
+    void parseUnencryptedPrivateKeyAndCertificateAsIdentity() throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException {
+        String certificateContent = getResourceContent(PEM_LOCATION + "splitted-unencrypted-identity-containing-certificate.pem");
+        String privateKeyContent = getResourceContent(PEM_LOCATION + "splitted-unencrypted-identity-containing-private-key.pem");
+
+        X509ExtendedKeyManager keyManager = PemUtils.parseIdentityMaterial(certificateContent, privateKeyContent, null);
+
+        assertThat(keyManager).isNotNull();
+    }
+
+    @Test
     void throwPrivateKeyParseExceptionWhenAnUnknownPrivateKeyHasBeenSupplied() throws IOException {
         try(InputStream inputStream = new ByteArrayInputStream("Hello there friend!".getBytes(StandardCharsets.UTF_8))) {
             assertThatThrownBy(() -> PemUtils.loadIdentityMaterial(inputStream))
@@ -285,6 +335,17 @@ class PemUtilsShould {
             Path destination = Paths.get(TEMPORALLY_PEM_LOCATION, fileName);
             Files.copy(Objects.requireNonNull(file), destination, REPLACE_EXISTING);
             return destination;
+        }
+    }
+
+    private String getResourceContent(String path) {
+        try(InputStream resource = getResource(path);
+            InputStreamReader inputStreamReader = new InputStreamReader(resource, StandardCharsets.UTF_8);
+            BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
+            return bufferedReader.lines()
+                    .collect(Collectors.joining("\n"));
+        } catch (IOException e) {
+           throw new UncheckedIOException(e);
         }
     }
 

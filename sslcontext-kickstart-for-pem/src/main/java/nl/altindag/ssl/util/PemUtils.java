@@ -29,6 +29,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -45,18 +46,26 @@ public final class PemUtils {
     private PemUtils() {}
 
     public static X509ExtendedTrustManager loadTrustMaterial(String... certificatePaths) throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        return loadTrustMaterial(CertificateUtils.loadCertificate(certificatePaths));
+        return mapTrustMaterial(CertificateUtils.loadCertificate(certificatePaths));
     }
 
     public static X509ExtendedTrustManager loadTrustMaterial(Path... certificatePaths) throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        return loadTrustMaterial(CertificateUtils.loadCertificate(certificatePaths));
+        return mapTrustMaterial(CertificateUtils.loadCertificate(certificatePaths));
     }
 
     public static X509ExtendedTrustManager loadTrustMaterial(InputStream... certificateStreams) throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        return loadTrustMaterial(CertificateUtils.loadCertificate(certificateStreams));
+        return mapTrustMaterial(CertificateUtils.loadCertificate(certificateStreams));
     }
 
-    private static X509ExtendedTrustManager loadTrustMaterial(List<Certificate> certificates) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException {
+    public static X509ExtendedTrustManager parseTrustMaterial(String... certificateContents) throws IOException, CertificateException, KeyStoreException, NoSuchAlgorithmException {
+        List<Certificate> certificates = new ArrayList<>();
+        for (String certificateContent : certificateContents) {
+            certificates.addAll(CertificateUtils.parseCertificate(certificateContent));
+        }
+        return mapTrustMaterial(certificates);
+    }
+
+    private static X509ExtendedTrustManager mapTrustMaterial(List<Certificate> certificates) throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException {
         KeyStore trustStore = KeyStoreUtils.createTrustStore(certificates);
         return TrustManagerUtils.createTrustManager(trustStore);
     }
@@ -82,7 +91,11 @@ public final class PemUtils {
         return parseIdentityMaterial(certificateContent, privateKeyContent, keyPassword);
     }
 
-    private static X509ExtendedKeyManager parseIdentityMaterial(String certificateContent, String privateKeyContent, char[] keyPassword) throws IOException, CertificateException, NoSuchAlgorithmException, PKCSException, OperatorCreationException, KeyStoreException {
+    public static X509ExtendedKeyManager parseIdentityMaterial(String identityPath, char[] keyPassword) throws IOException, CertificateException, NoSuchAlgorithmException, PKCSException, OperatorCreationException, KeyStoreException {
+        return parseIdentityMaterial(identityPath, identityPath, keyPassword);
+    }
+
+    public static X509ExtendedKeyManager parseIdentityMaterial(String certificateContent, String privateKeyContent, char[] keyPassword) throws IOException, CertificateException, NoSuchAlgorithmException, PKCSException, OperatorCreationException, KeyStoreException {
         PrivateKey privateKey = parsePrivateKey(privateKeyContent, keyPassword);
         Certificate[] certificates = CertificateUtils.parseCertificate(certificateContent)
                 .toArray(new Certificate[]{});
