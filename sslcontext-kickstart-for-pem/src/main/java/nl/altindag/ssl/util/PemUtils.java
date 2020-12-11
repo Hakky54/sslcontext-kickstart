@@ -39,7 +39,7 @@ import java.util.Objects;
  */
 public final class PemUtils {
 
-    private static final char[] EMPTY_PASSWORD_PLACEHOLDER = null;
+    private static final char[] DUMMY_PASSWORD = KeyStoreUtils.DUMMY_PASSWORD.toCharArray();
     private static final BouncyCastleProvider BOUNCY_CASTLE_PROVIDER = new BouncyCastleProvider();
     private static final JcaPEMKeyConverter KEY_CONVERTER = new JcaPEMKeyConverter().setProvider(BOUNCY_CASTLE_PROVIDER);
 
@@ -71,7 +71,7 @@ public final class PemUtils {
     }
 
     public static X509ExtendedKeyManager loadIdentityMaterial(String certificatePath, String privateKeyPath) throws IOException, CertificateException, NoSuchAlgorithmException, PKCSException, OperatorCreationException, KeyStoreException {
-        return loadIdentityMaterial(certificatePath, privateKeyPath, EMPTY_PASSWORD_PLACEHOLDER);
+        return loadIdentityMaterial(certificatePath, privateKeyPath, DUMMY_PASSWORD);
     }
 
     public static X509ExtendedKeyManager loadIdentityMaterial(String certificatePath, String privateKeyPath, char[] keyPassword) throws IOException, CertificateException, NoSuchAlgorithmException, PKCSException, OperatorCreationException, KeyStoreException {
@@ -82,7 +82,7 @@ public final class PemUtils {
     }
 
     public static X509ExtendedKeyManager loadIdentityMaterial(InputStream certificateStream, InputStream privateKeyStream) throws IOException, CertificateException, NoSuchAlgorithmException, PKCSException, OperatorCreationException, KeyStoreException {
-        return loadIdentityMaterial(certificateStream, privateKeyStream, EMPTY_PASSWORD_PLACEHOLDER);
+        return loadIdentityMaterial(certificateStream, privateKeyStream, DUMMY_PASSWORD);
     }
 
     public static X509ExtendedKeyManager loadIdentityMaterial(InputStream certificateStream, InputStream privateKeyStream, char[] keyPassword) throws IOException, CertificateException, NoSuchAlgorithmException, PKCSException, OperatorCreationException, KeyStoreException {
@@ -147,12 +147,12 @@ public final class PemUtils {
 
     private static X509ExtendedKeyManager parseIdentityMaterial(Certificate[] certificates, PrivateKey privateKey) throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore keyStore = KeyStoreUtils.createKeyStore();
-        keyStore.setKeyEntry(CertificateUtils.generateAlias(certificates[0]), privateKey, EMPTY_PASSWORD_PLACEHOLDER, certificates);
-        return KeyManagerUtils.createKeyManager(keyStore, EMPTY_PASSWORD_PLACEHOLDER);
+        keyStore.setKeyEntry(CertificateUtils.generateAlias(certificates[0]), privateKey, DUMMY_PASSWORD, certificates);
+        return KeyManagerUtils.createKeyManager(keyStore, DUMMY_PASSWORD);
     }
 
     public static X509ExtendedKeyManager loadIdentityMaterial(Path certificatePath, Path privateKeyPath) throws CertificateException, NoSuchAlgorithmException, IOException, OperatorCreationException, PKCSException, KeyStoreException {
-        return loadIdentityMaterial(certificatePath, privateKeyPath, EMPTY_PASSWORD_PLACEHOLDER);
+        return loadIdentityMaterial(certificatePath, privateKeyPath, DUMMY_PASSWORD);
     }
 
     public static X509ExtendedKeyManager loadIdentityMaterial(Path certificatePath, Path privateKeyPath, char[] keyPassword) throws IOException, NoSuchAlgorithmException, CertificateException, PKCSException, OperatorCreationException, KeyStoreException {
@@ -163,7 +163,7 @@ public final class PemUtils {
     }
 
     public static X509ExtendedKeyManager loadIdentityMaterial(String identityPath) throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException {
-        return loadIdentityMaterial(identityPath, EMPTY_PASSWORD_PLACEHOLDER);
+        return loadIdentityMaterial(identityPath, DUMMY_PASSWORD);
     }
 
     public static X509ExtendedKeyManager loadIdentityMaterial(String identityPath, char[] keyPassword) throws IOException, CertificateException, NoSuchAlgorithmException, OperatorCreationException, KeyStoreException, PKCSException {
@@ -174,7 +174,7 @@ public final class PemUtils {
     }
 
     public static X509ExtendedKeyManager loadIdentityMaterial(Path identityPath) throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException {
-        return loadIdentityMaterial(identityPath, EMPTY_PASSWORD_PLACEHOLDER);
+        return loadIdentityMaterial(identityPath, DUMMY_PASSWORD);
     }
 
     public static X509ExtendedKeyManager loadIdentityMaterial(Path identityPath, char[] keyPassword) throws IOException, CertificateException, NoSuchAlgorithmException, OperatorCreationException, KeyStoreException, PKCSException {
@@ -185,7 +185,7 @@ public final class PemUtils {
     }
 
     public static X509ExtendedKeyManager loadIdentityMaterial(InputStream identityStream) throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException {
-        return loadIdentityMaterial(identityStream, EMPTY_PASSWORD_PLACEHOLDER);
+        return loadIdentityMaterial(identityStream, DUMMY_PASSWORD);
     }
 
     public static X509ExtendedKeyManager loadIdentityMaterial(InputStream identityStream, char[] keyPassword) throws IOException, CertificateException, NoSuchAlgorithmException, OperatorCreationException, KeyStoreException, PKCSException {
