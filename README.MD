@@ -57,6 +57,7 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "5.4.0"
    - [Jetty](#jetty)
    - [Apache](#apache)
 4. [Tested HTTP Clients](#tested-http-clients)
+5. [Contributing](#contributing)
 
 ## Introduction
 SSLContext Kickstart is a library which provides a High-Level SSLFactory class for configuring a http client to communicate over SSL/TLS for one way authentication or two-way authentication.
@@ -476,3 +477,11 @@ There is a github project available named [Mutual-tls-ssl](https://github.com/Ha
 * Two way authentication with trusting the Certificate Authority
 
 It will also explain how to create KeyStores, Certificates, Certificate Signing Requests and how to implement it.
+
+## Contributing
+
+There are plenty of ways to contribute to this project:
+
+* Give it a star
+* Join the [Gitter room](https://gitter.im/hakky54/sslcontext-kickstart) and leave a feedback or help with answering users questions
+* Submit a PR
