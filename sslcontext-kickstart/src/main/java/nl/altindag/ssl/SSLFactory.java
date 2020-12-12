@@ -8,7 +8,6 @@ import nl.altindag.ssl.model.KeyStoreHolder;
 import nl.altindag.ssl.socket.CompositeSSLServerSocketFactory;
 import nl.altindag.ssl.socket.CompositeSSLSocketFactory;
 import nl.altindag.ssl.trustmanager.CompositeX509ExtendedTrustManager;
-import nl.altindag.ssl.trustmanager.UnsafeX509ExtendedTrustManager;
 import nl.altindag.ssl.util.KeyStoreUtils;
 import nl.altindag.ssl.util.TrustManagerUtils;
 import org.slf4j.Logger;
@@ -516,7 +515,7 @@ public final class SSLFactory {
 
         public Builder withTrustingAllCertificatesWithoutValidation() {
             LOGGER.warn("UnsafeTrustManager is being used. Client/Server certificates will be accepted without validation. Please don't use this configuration at production.");
-            trustManagers.add(UnsafeX509ExtendedTrustManager.INSTANCE);
+            trustManagers.add(TrustManagerUtils.createUnsafeTrustManager());
             return this;
         }
 

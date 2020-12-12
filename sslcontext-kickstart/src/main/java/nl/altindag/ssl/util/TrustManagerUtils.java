@@ -3,6 +3,7 @@ package nl.altindag.ssl.util;
 import nl.altindag.ssl.exception.GenericSecurityException;
 import nl.altindag.ssl.model.KeyStoreHolder;
 import nl.altindag.ssl.trustmanager.CompositeX509ExtendedTrustManager;
+import nl.altindag.ssl.trustmanager.UnsafeX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.X509TrustManagerWrapper;
 
 import javax.net.ssl.TrustManagerFactory;
@@ -105,6 +106,10 @@ public final class TrustManagerUtils {
         } catch (KeyStoreException e) {
             throw new GenericSecurityException(e);
         }
+    }
+
+    public static X509ExtendedTrustManager createUnsafeTrustManager() {
+        return UnsafeX509ExtendedTrustManager.INSTANCE;
     }
 
     public static X509ExtendedTrustManager wrapIfNeeded(X509TrustManager trustManager) {

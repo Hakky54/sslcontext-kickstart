@@ -2,6 +2,7 @@ package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.exception.GenericSecurityException;
 import nl.altindag.ssl.model.KeyStoreHolder;
+import nl.altindag.ssl.trustmanager.UnsafeX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.X509TrustManagerWrapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -167,6 +168,16 @@ class TrustManagerUtilsShould {
 
         assertThat(trustManager).isNotNull();
         assertThat((trustManager).getAcceptedIssuers()).hasSize(1);
+    }
+
+    @Test
+    void createUnsafeTrustManager() {
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.createUnsafeTrustManager();
+
+        assertThat(trustManager)
+                .isNotNull()
+                .isInstanceOf(UnsafeX509ExtendedTrustManager.class)
+                .isEqualTo(TrustManagerUtils.createUnsafeTrustManager());
     }
 
     @Test
