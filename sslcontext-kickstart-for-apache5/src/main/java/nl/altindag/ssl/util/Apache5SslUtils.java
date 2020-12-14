@@ -1,4 +1,4 @@
-package util;
+package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.SSLFactory;
 import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;

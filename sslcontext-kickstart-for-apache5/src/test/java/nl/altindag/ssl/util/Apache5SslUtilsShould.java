@@ -1,11 +1,11 @@
-package ssl.util;
+package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.SSLFactory;
 import nl.altindag.ssl.util.KeyStoreUtils;
 import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.junit.jupiter.api.Test;
-import util.Apache5SslUtils;
+import nl.altindag.ssl.util.Apache5SslUtils;
 
 import java.io.IOException;
 import java.security.KeyStore;

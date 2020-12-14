@@ -1,7 +1,7 @@
-package ssl;
+package nl.altindag.ssl;
 
 import nl.altindag.log.LogCaptor;
-import nl.altindag.ssl.SSLFactory;
+import nl.altindag.ssl.util.Apache5SslUtils;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleResponseConsumer;
 import org.apache.hc.client5.http.classic.HttpClient;
@@ -20,7 +20,6 @@ import org.apache.hc.core5.http.nio.support.BasicRequestProducer;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import util.Apache5SslUtils;
 
 import java.io.IOException;
 import java.net.URI;
