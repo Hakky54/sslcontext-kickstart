@@ -396,18 +396,19 @@ public class App {
 ```
 
 #### Apache
+##### Apache 4
 Apache Http Client works with javax.net.ssl.SSLContext, so an additional mapping to their library is not required, [see here](#example-configuration).
 However it is still possible to configure the http client with their custom configuration class. you can find below an example configuration for that use case:
 ```xml
 <dependency>
     <groupId>io.github.hakky54</groupId>
-    <artifactId>sslcontext-kickstart-for-apache</artifactId>
+    <artifactId>sslcontext-kickstart-for-apache4</artifactId>
     <version>5.4.0</version>
 </dependency>
 ```
 ```java
 import nl.altindag.ssl.SSLFactory;
-import nl.altindag.ssl.util.ApacheSslUtils;
+import nl.altindag.ssl.util.Apache4SslUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.impl.client.HttpClients;
@@ -419,13 +420,61 @@ public class App {
                 .withDefaultTrustMaterial()
                 .build();
 
-        LayeredConnectionSocketFactory socketFactory = ApacheSslUtils.toSocketFactory(sslFactory);
+        LayeredConnectionSocketFactory socketFactory = Apache4SslUtils.toSocketFactory(sslFactory);
 
         HttpClient httpClient = HttpClients.custom()
                 .setSSLSocketFactory(socketFactory)
                 .build();
     }
 
+}
+```
+##### Apache 5
+```xml
+<dependency>
+    <groupId>io.github.hakky54</groupId>
+    <artifactId>sslcontext-kickstart-for-apache5</artifactId>
+    <version>5.4.0</version>
+</dependency>
+```
+```java
+import nl.altindag.ssl.SSLFactory;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
+import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
+import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
+import util.Apache5SslUtils;
+
+class App {
+
+    public static void main(String[] args) {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withDefaultTrustMaterial()
+                .build();
+
+        LayeredConnectionSocketFactory socketFactory = Apache5SslUtils.toSocketFactory(sslFactory);
+        PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+                .setSSLSocketFactory(socketFactory)
+                .build();
+
+        HttpClient httpClient = HttpClients.custom()
+                .setConnectionManager(connectionManager)
+                .build();
+
+        PoolingAsyncClientConnectionManager asyncConnectionManager = PoolingAsyncClientConnectionManagerBuilder.create()
+                .setTlsStrategy(Apache5SslUtils.toTlsStrategy(sslFactory))
+                .build();
+
+        CloseableHttpAsyncClient httpAsyncClient = HttpAsyncClients.custom()
+                .setConnectionManager(asyncConnectionManager)
+                .build();
+    }
+    
 }
 ```
 

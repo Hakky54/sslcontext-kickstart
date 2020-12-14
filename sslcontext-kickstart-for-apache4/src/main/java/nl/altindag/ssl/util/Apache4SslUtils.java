@@ -4,9 +4,9 @@ import nl.altindag.ssl.SSLFactory;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 
-public final class ApacheSslUtils {
+public final class Apache4SslUtils {
 
-    private ApacheSslUtils() {}
+    private Apache4SslUtils() {}
 
     public static LayeredConnectionSocketFactory toSocketFactory(SSLFactory sslFactory) {
         return new SSLConnectionSocketFactory(

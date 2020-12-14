@@ -15,7 +15,8 @@
         <module>sslcontext-kickstart</module>
         <module>sslcontext-kickstart-for-netty</module>
         <module>sslcontext-kickstart-for-jetty</module>
-        <module>sslcontext-kickstart-for-apache</module>
+        <module>sslcontext-kickstart-for-apache4</module>
+        <module>sslcontext-kickstart-for-apache5</module>
         <module>sslcontext-kickstart-for-pem</module>
     </modules>
 
