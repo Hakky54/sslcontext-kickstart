@@ -8,6 +8,7 @@ import nl.altindag.ssl.model.KeyStoreHolder;
 import nl.altindag.ssl.socket.CompositeSSLServerSocketFactory;
 import nl.altindag.ssl.socket.CompositeSSLSocketFactory;
 import nl.altindag.ssl.trustmanager.CompositeX509ExtendedTrustManager;
+import nl.altindag.ssl.util.KeyManagerUtils;
 import nl.altindag.ssl.util.KeyStoreUtils;
 import nl.altindag.ssl.util.TrustManagerUtils;
 import org.slf4j.Logger;
@@ -24,6 +25,8 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509ExtendedTrustManager;
+import javax.net.ssl.X509KeyManager;
+import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.security.KeyManagementException;
@@ -282,8 +285,8 @@ public final class SSLFactory {
             return this;
         }
 
-        public <T extends X509ExtendedTrustManager> Builder withTrustMaterial(T trustManager) {
-            trustManagers.add(trustManager);
+        public <T extends X509TrustManager> Builder withTrustMaterial(T trustManager) {
+            trustManagers.add(TrustManagerUtils.wrapIfNeeded(trustManager));
             return this;
         }
 
@@ -292,8 +295,8 @@ public final class SSLFactory {
 
             boolean isTrustManagerAdded = false;
             for (TrustManager trustManager : trustManagersFromFactory) {
-                if (trustManager instanceof X509ExtendedTrustManager) {
-                    trustManagers.add((X509ExtendedTrustManager) trustManager);
+                if (trustManager instanceof X509TrustManager) {
+                    trustManagers.add(TrustManagerUtils.wrapIfNeeded((X509TrustManager) trustManager));
                     isTrustManagerAdded = true;
                 }
             }
@@ -449,8 +452,8 @@ public final class SSLFactory {
             return this;
         }
 
-        public <T extends X509ExtendedKeyManager> Builder withIdentityMaterial(T keyManager) {
-            identityManagers.add(keyManager);
+        public <T extends X509KeyManager> Builder withIdentityMaterial(T keyManager) {
+            identityManagers.add(KeyManagerUtils.wrapIfNeeded(keyManager));
             return this;
         }
 
@@ -459,8 +462,8 @@ public final class SSLFactory {
 
             boolean isKeyManagerAdded = false;
             for (KeyManager keyManager : keyManagersFromFactory) {
-                if (keyManager instanceof X509ExtendedKeyManager) {
-                    identityManagers.add((X509ExtendedKeyManager) keyManager);
+                if (keyManager instanceof X509KeyManager) {
+                    identityManagers.add(KeyManagerUtils.wrapIfNeeded((X509KeyManager) keyManager));
                     isKeyManagerAdded = true;
                 }
             }

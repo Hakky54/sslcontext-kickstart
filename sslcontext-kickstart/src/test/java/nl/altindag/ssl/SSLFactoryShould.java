@@ -1028,12 +1028,12 @@ class SSLFactoryShould {
     }
 
     @Test
-    void throwExceptionWhenKeyManagerFactoryDoesNotContainsKeyManagersOfX509ExtendedKeyManagerType() throws Exception {
+    void throwExceptionWhenKeyManagerFactoryDoesNotContainsKeyManagersOfX509KeyManagerType() throws Exception {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyManagerFactory keyManagerFactory = spy(KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm()));
         keyManagerFactory.init(identity, IDENTITY_PASSWORD);
 
-        when(keyManagerFactory.getKeyManagers()).thenReturn(new KeyManager[] { mock(X509KeyManager.class) });
+        when(keyManagerFactory.getKeyManagers()).thenReturn(new KeyManager[] { mock(KeyManager.class) });
         SSLFactory.Builder sslFactoryBuilder = SSLFactory.builder();
 
         assertThatThrownBy(() -> sslFactoryBuilder.withIdentityMaterial(keyManagerFactory))
@@ -1042,12 +1042,12 @@ class SSLFactoryShould {
     }
 
     @Test
-    void throwExceptionWhenTrustManagerFactoryDoesNotContainsTrustManagersOfX509ExtendedTrustManagerType() throws Exception {
+    void throwExceptionWhenTrustManagerFactoryDoesNotContainsTrustManagersOfX509TrustManagerType() throws Exception {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         TrustManagerFactory trustManagerFactory = spy(TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm()));
         trustManagerFactory.init(trustStore);
 
-        when(trustManagerFactory.getTrustManagers()).thenReturn(new TrustManager[] { mock(X509TrustManager.class) });
+        when(trustManagerFactory.getTrustManagers()).thenReturn(new TrustManager[] { mock(TrustManager.class) });
         SSLFactory.Builder sslFactoryBuilder = SSLFactory.builder();
 
         assertThatThrownBy(() -> sslFactoryBuilder.withTrustMaterial(trustManagerFactory))
