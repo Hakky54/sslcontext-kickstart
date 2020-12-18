@@ -63,11 +63,11 @@
         <version.slf4j>1.7.30</version.slf4j>
         <version.junit>5.7.0</version.junit>
         <version.assertj-core>3.18.1</version.assertj-core>
-        <version.logcaptor>2.2.0</version.logcaptor>
-        <version.jacoco-maven-plugin>0.8.6</version.jacoco-maven-plugin>
-        <version.maven-surefire-plugin>2.22.2</version.maven-surefire-plugin>
+        <version.logcaptor>2.3.0</version.logcaptor>
         <version.mockito>3.6.28</version.mockito>
-        <version.maven-fail-safe>2.22.2</version.maven-fail-safe>
+        <version.jacoco-maven-plugin>0.8.6</version.jacoco-maven-plugin>
+        <version.maven-surefire-plugin>3.0.0-M5</version.maven-surefire-plugin>
+        <version.maven-fail-safe>3.0.0-M5</version.maven-fail-safe>
         <version.maven-compiler-plugin>3.8.1</version.maven-compiler-plugin>
         <version.maven-enforcer-plugin>3.0.0-M3</version.maven-enforcer-plugin>
         <version.maven-jar-plugin>3.2.0</version.maven-jar-plugin>
@@ -212,6 +212,9 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <version>${version.maven-fail-safe}</version>
+                <configuration>
+                    <useModulePath>false</useModulePath>
+                </configuration>
                 <executions>
                     <execution>
                         <id>integration-test</id>
