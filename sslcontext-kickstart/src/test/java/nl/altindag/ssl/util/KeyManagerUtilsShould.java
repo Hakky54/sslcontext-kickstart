@@ -122,6 +122,15 @@ class KeyManagerUtilsShould {
     }
 
     @Test
+    void createKeyManagerFactory() {
+        X509ExtendedKeyManager keyManager = mock(X509ExtendedKeyManager.class);
+        KeyManagerFactory keyManagerFactory = KeyManagerUtils.createKeyManagerFactory(keyManager);
+
+        assertThat(keyManagerFactory).isNotNull();
+        assertThat(keyManagerFactory.getKeyManagers()).containsExactly(keyManager);
+    }
+
+    @Test
     void throwExceptionWhenCreatingKeyManagerWithInvalidAlgorithm() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
 

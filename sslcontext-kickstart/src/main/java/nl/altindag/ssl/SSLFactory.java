@@ -89,10 +89,12 @@ public final class SSLFactory {
     private final SSLParameters sslParameters;
 
     private SSLContext sslContext;
-    private CompositeSSLSocketFactory sslSocketFactory;
-    private CompositeSSLServerSocketFactory sslServerSocketFactory;
-    private CompositeX509ExtendedTrustManager trustManager;
-    private CompositeX509ExtendedKeyManager keyManager;
+    private SSLSocketFactory sslSocketFactory;
+    private SSLServerSocketFactory sslServerSocketFactory;
+    private X509ExtendedTrustManager trustManager;
+    private X509ExtendedKeyManager keyManager;
+    private KeyManagerFactory keyManagerFactory;
+    private TrustManagerFactory trustManagerFactory;
     private List<X509Certificate> trustedCertificates;
     private List<String> ciphers;
     private List<String> protocols;
@@ -198,6 +200,14 @@ public final class SSLFactory {
                 .flatMap(x509Certificates -> Optional.of(Arrays.asList(x509Certificates)))
                 .map(Collections::unmodifiableList)
                 .orElse(Collections.emptyList());
+
+        keyManagerFactory = getKeyManager()
+                .map(KeyManagerUtils::createKeyManagerFactory)
+                .orElse(null);
+
+        trustManagerFactory = getTrustManager()
+                .map(TrustManagerUtils::createTrustManagerFactory)
+                .orElse(null);
     }
 
     private void reinitializeSslParameters() {
@@ -240,8 +250,16 @@ public final class SSLFactory {
         return Optional.ofNullable(keyManager);
     }
 
+    public Optional<KeyManagerFactory> getKeyManagerFactory() {
+        return Optional.ofNullable(keyManagerFactory);
+    }
+
     public Optional<X509ExtendedTrustManager> getTrustManager() {
         return Optional.ofNullable(trustManager);
+    }
+
+    public Optional<TrustManagerFactory> getTrustManagerFactory() {
+        return Optional.ofNullable(trustManagerFactory);
     }
 
     public List<X509Certificate> getTrustedCertificates() {

@@ -19,9 +19,11 @@ package nl.altindag.ssl.util;
 import nl.altindag.ssl.exception.GenericSecurityException;
 import nl.altindag.ssl.model.KeyStoreHolder;
 import nl.altindag.ssl.trustmanager.CompositeX509ExtendedTrustManager;
+import nl.altindag.ssl.trustmanager.TrustManagerFactoryWrapper;
 import nl.altindag.ssl.trustmanager.UnsafeX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.X509TrustManagerWrapper;
 
+import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509ExtendedTrustManager;
 import javax.net.ssl.X509TrustManager;
@@ -137,6 +139,10 @@ public final class TrustManagerUtils {
         } else {
             return new X509TrustManagerWrapper(trustManager);
         }
+    }
+
+    public static TrustManagerFactory createTrustManagerFactory(TrustManager trustManager) {
+        return new TrustManagerFactoryWrapper(trustManager);
     }
 
 }

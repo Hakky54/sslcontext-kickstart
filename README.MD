@@ -304,6 +304,8 @@ public class App {
         HostnameVerifier hostnameVerifier = sslFactory.getHostnameVerifier();
         Optional<X509ExtendedKeyManager> keyManager = sslFactory.getKeyManager();
         Optional<X509ExtendedTrustManager> trustManager = sslFactory.getTrustManager();
+        Optional<KeyManagerFactory> keyManagerFactory = sslFactory.getKeyManagerFactory();
+        Optional<TrustManagerFactory> trustManagerFactory = sslFactory.getTrustManagerFactory();
         List<X509Certificate> trustedCertificates = sslFactory.getTrustedCertificates();
         List<KeyStoreHolder> identities = sslFactory.getIdentities();
         List<KeyStoreHolder> trustStores = sslFactory.getTrustStores();
