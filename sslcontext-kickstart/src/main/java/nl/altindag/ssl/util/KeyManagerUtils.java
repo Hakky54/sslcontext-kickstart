@@ -101,7 +101,7 @@ public final class KeyManagerUtils {
         try {
             keyManagerFactory.init(keyStore, keyPassword);
             return Arrays.stream(keyManagerFactory.getKeyManagers())
-                    .filter(keyManager -> keyManager instanceof X509KeyManager)
+                    .filter(X509KeyManager.class::isInstance)
                     .map(X509KeyManager.class::cast)
                     .map(KeyManagerUtils::wrapIfNeeded)
                     .collect(Collectors.collectingAndThen(Collectors.toList(), KeyManagerUtils::combine));
