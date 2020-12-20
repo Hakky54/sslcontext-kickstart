@@ -121,7 +121,7 @@ public final class TrustManagerUtils {
             trustManagerFactory.init(trustStore);
             return Arrays.stream(trustManagerFactory.getTrustManagers())
                     .filter(trustManager -> trustManager instanceof X509TrustManager)
-                    .map(trustManager -> (X509TrustManager) trustManager)
+                    .map(X509TrustManager.class::cast)
                     .map(TrustManagerUtils::wrapIfNeeded)
                     .collect(Collectors.collectingAndThen(Collectors.toList(), TrustManagerUtils::combine));
         } catch (KeyStoreException e) {

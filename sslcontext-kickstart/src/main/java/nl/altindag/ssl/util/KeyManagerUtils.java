@@ -102,7 +102,7 @@ public final class KeyManagerUtils {
             keyManagerFactory.init(keyStore, keyPassword);
             return Arrays.stream(keyManagerFactory.getKeyManagers())
                     .filter(keyManager -> keyManager instanceof X509KeyManager)
-                    .map(keyManager -> (X509KeyManager) keyManager)
+                    .map(X509KeyManager.class::cast)
                     .map(KeyManagerUtils::wrapIfNeeded)
                     .collect(Collectors.collectingAndThen(Collectors.toList(), KeyManagerUtils::combine));
         } catch (KeyStoreException | NoSuchAlgorithmException | UnrecoverableKeyException e) {
