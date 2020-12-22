@@ -25,6 +25,7 @@ import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.TrustManagerFactorySpi;
 import java.security.KeyStore;
 import java.security.Provider;
+import java.util.Objects;
 
 /**
  * @author Hakan Altindag
@@ -44,6 +45,7 @@ public class TrustManagerFactoryWrapper extends TrustManagerFactory {
         private final TrustManager[] trustManagers;
 
         public TrustManagerFactorySpiWrapper(TrustManager trustManager) {
+            Objects.requireNonNull(trustManager);
             this.trustManagers = new TrustManager[]{trustManager};
         }
 
