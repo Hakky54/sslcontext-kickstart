@@ -9,7 +9,7 @@
 
 [![SonarCloud](https://sonarcloud.io/images/project_badges/sonarcloud-white.svg)](https://sonarcloud.io/dashboard?id=io.github.hakky54%3Asslcontext-kickstart-parent)
 
-# SSLContext Kickstart 🔐 [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Easily%20configure%20ssl/tls%20for%20your%20favourite%20http%20client%20with%20sslcontext-kickstart.%20Works%20with%20over%2040%20different%20java,%20scala,%20kotlin%20clients&url=https://github.com/Hakky54/sslcontext-kickstart&via=hakky541&hashtags=encryption,security,https,ssl,tls,certificate,developer,java,scala,kotlin)
+# SSLContext Kickstart 🔐 [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Easily%20configure%20ssl/tls%20for%20your%20favourite%20http%20client%20with%20sslcontext-kickstart.%20Works%20with%20over%2040%20different%20java,%20scala,%20kotlin%20clients&url=https://github.com/Hakky54/sslcontext-kickstart&via=hakky541&hashtags=encryption,security,https,ssl,tls,certificate,developer,java,scala,kotlin,sslcontextkickstart)
 
 # Install library with:
 ### Install with [Maven](https://mvnrepository.com/artifact/io.github.hakky54/sslcontext-kickstart)
@@ -544,6 +544,6 @@ It will also explain how to create KeyStores, Certificates, Certificate Signing 
 There are plenty of ways to contribute to this project:
 
 * Give it a star
-* Share it with a [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Easily%20configure%20ssl/tls%20for%20your%20favourite%20http%20client%20with%20sslcontext-kickstart.%20Works%20with%20over%2040%20different%20java,%20scala,%20kotlin%20clients&url=https://github.com/Hakky54/sslcontext-kickstart&via=hakky541&hashtags=encryption,security,https,ssl,tls,certificate,developer,java,scala,kotlin)
+* Share it with a [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Easily%20configure%20ssl/tls%20for%20your%20favourite%20http%20client%20with%20sslcontext-kickstart.%20Works%20with%20over%2040%20different%20java,%20scala,%20kotlin%20clients&url=https://github.com/Hakky54/sslcontext-kickstart&via=hakky541&hashtags=encryption,security,https,ssl,tls,certificate,developer,java,scala,kotlin,sslcontextkickstart)
 * Join the [Gitter room](https://gitter.im/hakky54/sslcontext-kickstart) and leave a feedback or help with answering users questions
 * Submit a PR
