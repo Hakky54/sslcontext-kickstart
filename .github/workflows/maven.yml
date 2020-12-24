@@ -22,7 +22,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      - name: Build with Maven
+      - name: Build and test
         run: mvn clean verify
 
   build-on-linux-with-jdk-11:
@@ -43,8 +43,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      - name: Build with Maven
-        run: mvn clean verify
+      - name: Build, test and quality scan
+        run: mvn clean verify sonar:sonar -Dsonar.organization=hakky54 -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-on-windows-with-jdk-8:
     runs-on: windows-latest
@@ -64,7 +66,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      - name: Build with Maven
+      - name: Build and test
         run: mvn clean verify
 
   build-on-windows-with-jdk-11:
@@ -85,7 +87,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      - name: Build with Maven
+      - name: Build and test
         run: mvn clean verify
 
   build-on-mac-with-jdk-8:
@@ -106,7 +108,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      - name: Build with Maven
+      - name: Build and test
         run: mvn clean verify
 
   build-on-mac-with-jdk-11:
@@ -127,5 +129,5 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      - name: Build with Maven
+      - name: Build and test
         run: mvn clean verify
