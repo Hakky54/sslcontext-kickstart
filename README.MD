@@ -44,6 +44,7 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "6.0.0"
    - [Other possible configurations](#other-possible-configurations)
      - [Loading keystore from the classpath](#loading-keystore-and-truststore-from-the-classpath)
      - [Loading keystore from the file system](#loading-keystore-and-trust-store-from-anywhere-on-the-filesystem)
+     - [Loading keystore from InputStream](#loading-keystore-and-trust-store-from-inputstream)
      - [Skip certificate validation](#trusting-all-certificates-without-validation-not-recommended-to-use-at-production)
      - [Loading JDK and OS trusted certificates](#loading-jdk-and-os-trusted-certificates)
      - [Using specific protocols and ciphers with custom secure-random and hostname-verifier](#using-specific-protocols-ciphers-with-custom-secure-random-and-hostname-verifier)
@@ -157,6 +158,17 @@ SSLFactory.builder()
 SSLFactory.builder()
           .withIdentityMaterial(Paths.get("/path/to/your/identity.jks"), "password".toCharArray())
           .withTrustMaterial(Paths.get("/path/to/your/truststore.jks"), "password".toCharArray())
+          .build();
+```
+
+##### Loading keystore and trust store from InputStream
+```text
+InputStream keyStoreStream = ...
+InputStream trustStoreStream = ...
+
+SSLFactory.builder()
+          .withIdentityMaterial(keyStoreStream, "password".toCharArray())
+          .withTrustMaterial(trustStoreStream, "password".toCharArray())
           .build();
 ```
 
