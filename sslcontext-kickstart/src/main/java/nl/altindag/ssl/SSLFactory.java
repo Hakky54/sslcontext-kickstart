@@ -44,6 +44,7 @@ import javax.net.ssl.X509ExtendedTrustManager;
 import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
@@ -385,6 +386,22 @@ public final class SSLFactory {
             return this;
         }
 
+        public Builder withTrustMaterial(InputStream trustStoreStream, char[] trustStorePassword) {
+            return withTrustMaterial(trustStoreStream, trustStorePassword, KeyStore.getDefaultType());
+        }
+
+        public Builder withTrustMaterial(InputStream trustStoreStream, char[] trustStorePassword, String trustStoreType) {
+            try {
+                KeyStore trustStore = KeyStoreUtils.loadKeyStore(trustStoreStream, trustStorePassword, trustStoreType);
+                KeyStoreHolder trustStoreHolder = new KeyStoreHolder(trustStore, trustStorePassword);
+                trustStores.add(trustStoreHolder);
+            } catch (KeyStoreException | CertificateException | NoSuchAlgorithmException | IOException e) {
+                throw new GenericKeyStoreException(KEY_STORE_LOADING_EXCEPTION, e);
+            }
+
+            return this;
+        }
+
         public Builder withTrustMaterial(KeyStore trustStore) {
             withTrustMaterial(trustStore, EMPTY_PASSWORD);
             return this;
@@ -465,6 +482,34 @@ public final class SSLFactory {
             } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
                 throw new GenericKeyStoreException(KEY_STORE_LOADING_EXCEPTION, e);
             }
+            return this;
+        }
+
+        public Builder withIdentityMaterial(InputStream identityStorePath, char[] identityStorePassword) {
+            return withIdentityMaterial(identityStorePath, identityStorePassword, identityStorePassword);
+        }
+
+        public Builder withIdentityMaterial(InputStream identityStorePath, char[] identityStorePassword, char[] identityPassword) {
+            return withIdentityMaterial(identityStorePath, identityStorePassword, identityPassword, KeyStore.getDefaultType());
+        }
+
+        public Builder withIdentityMaterial(InputStream identityStorePath, char[] identityStorePassword, String identityStoreType) {
+            return withIdentityMaterial(identityStorePath, identityStorePassword, identityStorePassword, identityStoreType);
+        }
+
+        public Builder withIdentityMaterial(InputStream identityStream, char[] identityStorePassword, char[] identityPassword, String identityStoreType) {
+            if (isNull(identityStream) || isBlank(identityStoreType)) {
+                throw new GenericKeyStoreException(IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
+            }
+
+            try {
+                KeyStore identity = KeyStoreUtils.loadKeyStore(identityStream, identityStorePassword, identityStoreType);
+                KeyStoreHolder identityHolder = new KeyStoreHolder(identity, identityStorePassword, identityPassword);
+                identities.add(identityHolder);
+            } catch (KeyStoreException | CertificateException | NoSuchAlgorithmException | IOException e) {
+                throw new GenericKeyStoreException(KEY_STORE_LOADING_EXCEPTION, e);
+            }
+
             return this;
         }
 

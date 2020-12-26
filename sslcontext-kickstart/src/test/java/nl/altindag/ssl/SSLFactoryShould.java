@@ -148,6 +148,25 @@ class SSLFactoryShould {
     }
 
     @Test
+    void buildSSLFactoryWithTrustMaterialFromInputStream() {
+        InputStream trustStoreStream = getResourceAsStream(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withTrustMaterial(trustStoreStream, TRUSTSTORE_PASSWORD)
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+
+        assertThat(sslFactory.getTrustManager()).isPresent();
+        assertThat(sslFactory.getTrustManagerFactory()).isPresent();
+        assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
+        assertThat(sslFactory.getTrustStores()).isNotEmpty();
+        assertThat(sslFactory.getHostnameVerifier()).isNotNull();
+        assertThat(sslFactory.getKeyManager()).isNotPresent();
+        assertThat(sslFactory.getKeyManagerFactory()).isNotPresent();
+    }
+
+    @Test
     void buildSSLFactoryWithTrustMaterialFromKeyStore() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 
@@ -422,6 +441,52 @@ class SSLFactoryShould {
         assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
         assertThat(sslFactory.getTrustStores()).isNotEmpty();
         assertThat(sslFactory.getTrustStores().get(0).getKeyStorePassword()).isEqualTo(TRUSTSTORE_PASSWORD);
+        assertThat(sslFactory.getHostnameVerifier()).isNotNull();
+    }
+
+    @Test
+    void buildSSLFactoryWithIdentityMaterialAndTrustMaterialFromInputStream() {
+        InputStream identityStream = getResourceAsStream(KEYSTORE_LOCATION, IDENTITY_FILE_NAME);
+        InputStream trustStoreStream = getResourceAsStream(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(identityStream, IDENTITY_PASSWORD)
+                .withTrustMaterial(trustStoreStream, TRUSTSTORE_PASSWORD)
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+
+        assertThat(sslFactory.getKeyManager()).isPresent();
+        assertThat(sslFactory.getKeyManagerFactory()).isPresent();
+        assertThat(sslFactory.getIdentities()).isNotEmpty();
+
+        assertThat(sslFactory.getTrustManager()).isPresent();
+        assertThat(sslFactory.getTrustManagerFactory()).isPresent();
+        assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
+        assertThat(sslFactory.getTrustStores()).isNotEmpty();
+        assertThat(sslFactory.getHostnameVerifier()).isNotNull();
+    }
+
+    @Test
+    void buildSSLFactoryWithIdentityMaterialAndTrustMaterialFromInputStreamWithCustomKeyStoreType() {
+        InputStream identityStream = getResourceAsStream(KEYSTORE_LOCATION, IDENTITY_FILE_NAME);
+        InputStream trustStoreStream = getResourceAsStream(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(identityStream, IDENTITY_PASSWORD, KeyStore.getDefaultType())
+                .withTrustMaterial(trustStoreStream, TRUSTSTORE_PASSWORD)
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+
+        assertThat(sslFactory.getKeyManager()).isPresent();
+        assertThat(sslFactory.getKeyManagerFactory()).isPresent();
+        assertThat(sslFactory.getIdentities()).isNotEmpty();
+
+        assertThat(sslFactory.getTrustManager()).isPresent();
+        assertThat(sslFactory.getTrustManagerFactory()).isPresent();
+        assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
+        assertThat(sslFactory.getTrustStores()).isNotEmpty();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
     }
 
@@ -1048,6 +1113,45 @@ class SSLFactoryShould {
     }
 
     @Test
+    void throwExceptionWhenIdentityStreamIsNull() {
+        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
+
+        assertThatThrownBy(() -> factoryBuilder.withIdentityMaterial((InputStream) null, IDENTITY_PASSWORD))
+                .isInstanceOf(GenericKeyStoreException.class)
+                .hasMessage(GENERIC_IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
+    }
+
+    @Test
+    void throwExceptionWhenIdentityTypeIsNotProvidedWhileUsingInputStream() {
+        InputStream identityStream = getResourceAsStream(KEYSTORE_LOCATION, IDENTITY_FILE_NAME);
+        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
+
+        assertThatThrownBy(() -> factoryBuilder.withIdentityMaterial(identityStream, IDENTITY_PASSWORD, EMPTY))
+                .isInstanceOf(GenericKeyStoreException.class)
+                .hasMessage(GENERIC_IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
+    }
+
+    @Test
+    void throwExceptionWhenUnknownIdentityTypeIsProvidedWhileUsingInputStream() {
+        InputStream identityStream = getResourceAsStream(KEYSTORE_LOCATION, IDENTITY_FILE_NAME);
+        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
+
+        assertThatThrownBy(() -> factoryBuilder.withIdentityMaterial(identityStream, IDENTITY_PASSWORD, "KABOOM"))
+                .isInstanceOf(GenericKeyStoreException.class)
+                .hasMessage("Failed to load the keystore");
+    }
+
+    @Test
+    void throwExceptionWhenUnknownTrustStoreTypeIsProvidedWhileUsingInputStream() {
+        InputStream trustStoreStream = getResourceAsStream(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
+        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
+
+        assertThatThrownBy(() -> factoryBuilder.withTrustMaterial(trustStoreStream, TRUSTSTORE_PASSWORD, "KABOOM"))
+                .isInstanceOf(GenericKeyStoreException.class)
+                .hasMessage("Failed to load the keystore");
+    }
+
+    @Test
     void throwExceptionWhenProvidingWrongKeyPassword() {
         SSLFactory.Builder factoryBuilder = SSLFactory.builder()
                 .withIdentityMaterial(
@@ -1093,7 +1197,7 @@ class SSLFactoryShould {
 
         assertThatThrownBy(() -> sslFactoryBuilder.withIdentityMaterial(null, IDENTITY_PASSWORD, certificateChain))
                 .isInstanceOf(GenericSecurityException.class)
-                .hasMessage("java.security.KeyStoreException: Key protection  algorithm not found: java.security.KeyStoreException: Unsupported Key type");
+                .hasMessageContaining("Unsupported Key type");
     }
 
     @Test
@@ -1141,11 +1245,15 @@ class SSLFactoryShould {
 
     @SuppressWarnings("SameParameterValue")
     private Path copyKeystoreToHomeDirectory(String path, String fileName) throws IOException {
-        try (InputStream keystoreInputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(path + fileName)) {
+        try (InputStream keystoreInputStream = getResourceAsStream(path, fileName)) {
             Path destination = Paths.get(TEMPORALLY_KEYSTORE_LOCATION, fileName);
             Files.copy(Objects.requireNonNull(keystoreInputStream), destination, REPLACE_EXISTING);
             return destination;
         }
+    }
+
+    private InputStream getResourceAsStream(String path, String fileName) {
+        return Thread.currentThread().getContextClassLoader().getResourceAsStream(path + fileName);
     }
 
 }

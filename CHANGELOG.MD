@@ -3,6 +3,15 @@
 This list is not intended to be all-encompassing - it will document major and breaking API 
 changes with their rationale when appropriate:
 
+### v6.1.0
+- Added license header
+- Added author
+- Added option to create TrustManagerFactory from SSLFactory and TrustManagerUtils
+- Added option to create KeyManagerFactory from SSLFactory and KeyManagerUtils
+- Made SSLFactory less strict by supporting X509KeyManager and X509TrustManager
+- Added option to supply identity as a InputStream for the SSLFactory Builder
+- Added option to supply trustStore as a InputStream for the SSLFactory Builder
+
 ### v6.0.0
 - Renamed package from nl.altindag.sslcontext to nl.altindag.ssl
 - Added UnsafeTrustManager into the TrustManagerUtils
