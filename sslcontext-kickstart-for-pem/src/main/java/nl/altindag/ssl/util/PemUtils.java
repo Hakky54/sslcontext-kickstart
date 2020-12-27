@@ -166,7 +166,7 @@ public final class PemUtils {
     }
 
     private static X509ExtendedKeyManager parseIdentityMaterial(Certificate[] certificatesChain, PrivateKey privateKey) throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        if (certificatesChain == null || certificatesChain.length == 0) {
+        if (certificatesChain.length == 0) {
             throw new PublicKeyParseException("Certificate chain is not present");
         }
 
