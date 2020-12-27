@@ -36,18 +36,30 @@ import java.security.cert.X509Certificate;
  *                                  This TrustManager doesn't validate certificates and should not be used at production.
  *                                  It is just meant to be used for testing purposes and it is designed not to verify server certificates.
  *
+ * <p>
+ * <br>
+ * <strong>NOTE:</strong>
+ * Please don't use this class directly as it is part of the internal API. Class name and methods can be changed any time.
+ * Instead use the {@link nl.altindag.ssl.util.TrustManagerUtils TrustManagerUtils} which provides the same functionality
+ * while it has a stable API because it is part of the public API.
+ * </p>
+ *
  * @author Hakan Altindag
  */
 @SuppressWarnings("java:S4830")
 public final class UnsafeX509ExtendedTrustManager extends X509ExtendedTrustManager {
 
-    public static final UnsafeX509ExtendedTrustManager INSTANCE = new UnsafeX509ExtendedTrustManager();
+    private static final X509ExtendedTrustManager INSTANCE = new UnsafeX509ExtendedTrustManager();
     private static final Logger LOGGER = LoggerFactory.getLogger(UnsafeX509ExtendedTrustManager.class);
     private static final X509Certificate[] EMPTY_X509_CERTIFICATES = new X509Certificate[0];
     private static final String CLIENT_CERTIFICATE_LOG_MESSAGE = "Accepting a client certificate: [{}]";
     private static final String SERVER_CERTIFICATE_LOG_MESSAGE = "Accepting a server certificate: [{}]";
 
     private UnsafeX509ExtendedTrustManager() {}
+
+    public static X509ExtendedTrustManager getInstance() {
+        return INSTANCE;
+    }
 
     @Override
     public void checkClientTrusted(X509Certificate[] x509Certificates, String authType) {

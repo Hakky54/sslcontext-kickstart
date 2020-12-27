@@ -131,7 +131,7 @@ public final class TrustManagerUtils {
     }
 
     public static X509ExtendedTrustManager createUnsafeTrustManager() {
-        return UnsafeX509ExtendedTrustManager.INSTANCE;
+        return UnsafeX509ExtendedTrustManager.getInstance();
     }
 
     public static X509ExtendedTrustManager wrapIfNeeded(X509TrustManager trustManager) {
