@@ -35,7 +35,6 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * @author Hakan Altindag
@@ -83,7 +82,8 @@ public final class KeyStoreUtils {
 
     public static KeyStore createIdentityStore(Key privateKey, char[] privateKeyPassword, Certificate... certificateChain) throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore keyStore = createKeyStore();
-        keyStore.setKeyEntry(UUID.randomUUID().toString(), privateKey, privateKeyPassword, certificateChain);
+        String alias = CertificateUtils.generateAlias(certificateChain[0]);
+        keyStore.setKeyEntry(alias, privateKey, privateKeyPassword, certificateChain);
         return keyStore;
     }
 
