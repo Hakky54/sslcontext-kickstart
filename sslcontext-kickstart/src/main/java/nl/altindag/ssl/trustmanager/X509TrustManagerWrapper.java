@@ -25,6 +25,11 @@ import java.security.cert.X509Certificate;
 import java.util.Objects;
 
 /**
+ * <strong>NOTE:</strong>
+ * Please don't use this class directly as it is part of the internal API. Class name and methods can be changed any time.
+ * Instead use the {@link nl.altindag.ssl.util.TrustManagerUtils TrustManagerUtils} which provides the same functionality
+ * while it has a stable API because it is part of the public API.
+ *
  * @author Hakan Altindag
  */
 public class X509TrustManagerWrapper extends X509ExtendedTrustManager{
