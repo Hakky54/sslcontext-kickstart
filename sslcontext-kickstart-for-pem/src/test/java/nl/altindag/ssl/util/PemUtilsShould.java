@@ -17,6 +17,7 @@
 package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.exception.PrivateKeyParseException;
+import nl.altindag.ssl.exception.PublicKeyParseException;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.pkcs.PKCSException;
 import org.junit.jupiter.api.Test;
@@ -347,6 +348,13 @@ class PemUtilsShould {
                     .isInstanceOf(PrivateKeyParseException.class)
                     .hasMessage("Received an unsupported private key type");
         }
+    }
+
+    @Test
+    void throwPublicKeyParseExceptionWhenPublicKeyIsMissing() throws IOException {
+        assertThatThrownBy(() -> PemUtils.loadIdentityMaterial(PEM_LOCATION + "splitted-unencrypted-identity-containing-private-key.pem"))
+                .isInstanceOf(PublicKeyParseException.class)
+                .hasMessage("Certificate chain is not present");
     }
 
     private Path copyFileToHomeDirectory(String path, String fileName) throws IOException {

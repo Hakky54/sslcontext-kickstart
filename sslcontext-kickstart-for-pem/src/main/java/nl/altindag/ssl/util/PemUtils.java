@@ -17,6 +17,7 @@
 package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.exception.PrivateKeyParseException;
+import nl.altindag.ssl.exception.PublicKeyParseException;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMDecryptorProvider;
@@ -58,6 +59,7 @@ import java.util.Objects;
 public final class PemUtils {
 
     private static final char[] DUMMY_PASSWORD = KeyStoreUtils.DUMMY_PASSWORD.toCharArray();
+    private static final char[] NO_PASSWORD = null;
     private static final BouncyCastleProvider BOUNCY_CASTLE_PROVIDER = new BouncyCastleProvider();
     private static final JcaPEMKeyConverter KEY_CONVERTER = new JcaPEMKeyConverter().setProvider(BOUNCY_CASTLE_PROVIDER);
 
@@ -88,37 +90,37 @@ public final class PemUtils {
         return TrustManagerUtils.createTrustManager(trustStore);
     }
 
-    public static X509ExtendedKeyManager loadIdentityMaterial(String certificatePath, String privateKeyPath) throws IOException, CertificateException, NoSuchAlgorithmException, PKCSException, OperatorCreationException, KeyStoreException {
-        return loadIdentityMaterial(certificatePath, privateKeyPath, DUMMY_PASSWORD);
+    public static X509ExtendedKeyManager loadIdentityMaterial(String certificateChainPath, String privateKeyPath) throws IOException, CertificateException, NoSuchAlgorithmException, PKCSException, OperatorCreationException, KeyStoreException {
+        return loadIdentityMaterial(certificateChainPath, privateKeyPath, NO_PASSWORD);
     }
 
-    public static X509ExtendedKeyManager loadIdentityMaterial(String certificatePath, String privateKeyPath, char[] keyPassword) throws IOException, CertificateException, NoSuchAlgorithmException, PKCSException, OperatorCreationException, KeyStoreException {
-        try (InputStream certificateStream = PemUtils.class.getClassLoader().getResourceAsStream(certificatePath);
+    public static X509ExtendedKeyManager loadIdentityMaterial(String certificateChainPath, String privateKeyPath, char[] keyPassword) throws IOException, CertificateException, NoSuchAlgorithmException, PKCSException, OperatorCreationException, KeyStoreException {
+        try (InputStream certificateChainStream = PemUtils.class.getClassLoader().getResourceAsStream(certificateChainPath);
              InputStream privateKeyStream = PemUtils.class.getClassLoader().getResourceAsStream(privateKeyPath)) {
-            return loadIdentityMaterial(certificateStream, privateKeyStream, keyPassword);
+            return loadIdentityMaterial(certificateChainStream, privateKeyStream, keyPassword);
         }
     }
 
-    public static X509ExtendedKeyManager loadIdentityMaterial(InputStream certificateStream, InputStream privateKeyStream) throws IOException, CertificateException, NoSuchAlgorithmException, PKCSException, OperatorCreationException, KeyStoreException {
-        return loadIdentityMaterial(certificateStream, privateKeyStream, DUMMY_PASSWORD);
+    public static X509ExtendedKeyManager loadIdentityMaterial(InputStream certificateChainStream, InputStream privateKeyStream) throws IOException, CertificateException, NoSuchAlgorithmException, PKCSException, OperatorCreationException, KeyStoreException {
+        return loadIdentityMaterial(certificateChainStream, privateKeyStream, NO_PASSWORD);
     }
 
-    public static X509ExtendedKeyManager loadIdentityMaterial(InputStream certificateStream, InputStream privateKeyStream, char[] keyPassword) throws IOException, CertificateException, NoSuchAlgorithmException, PKCSException, OperatorCreationException, KeyStoreException {
-        String certificateContent = IOUtils.getContent(certificateStream);
+    public static X509ExtendedKeyManager loadIdentityMaterial(InputStream certificateChainStream, InputStream privateKeyStream, char[] keyPassword) throws IOException, CertificateException, NoSuchAlgorithmException, PKCSException, OperatorCreationException, KeyStoreException {
+        String certificateChainContent = IOUtils.getContent(certificateChainStream);
         String privateKeyContent = IOUtils.getContent(privateKeyStream);
-        return parseIdentityMaterial(certificateContent, privateKeyContent, keyPassword);
+        return parseIdentityMaterial(certificateChainContent, privateKeyContent, keyPassword);
     }
 
     public static X509ExtendedKeyManager parseIdentityMaterial(String identityPath, char[] keyPassword) throws IOException, CertificateException, NoSuchAlgorithmException, PKCSException, OperatorCreationException, KeyStoreException {
         return parseIdentityMaterial(identityPath, identityPath, keyPassword);
     }
 
-    public static X509ExtendedKeyManager parseIdentityMaterial(String certificateContent, String privateKeyContent, char[] keyPassword) throws IOException, CertificateException, NoSuchAlgorithmException, PKCSException, OperatorCreationException, KeyStoreException {
+    public static X509ExtendedKeyManager parseIdentityMaterial(String certificateChainContent, String privateKeyContent, char[] keyPassword) throws IOException, CertificateException, NoSuchAlgorithmException, PKCSException, OperatorCreationException, KeyStoreException {
         PrivateKey privateKey = parsePrivateKey(privateKeyContent, keyPassword);
-        Certificate[] certificates = CertificateUtils.parseCertificate(certificateContent)
+        Certificate[] certificateChain = CertificateUtils.parseCertificate(certificateChainContent)
                 .toArray(new Certificate[]{});
 
-        return parseIdentityMaterial(certificates, privateKey);
+        return parseIdentityMaterial(certificateChain, privateKey);
     }
 
     private static PrivateKey parsePrivateKey(String identityContent, char[] keyPassword) throws IOException, PKCSException, OperatorCreationException {
@@ -163,25 +165,29 @@ public final class PemUtils {
         return KEY_CONVERTER.getPrivateKey(privateKeyInfo);
     }
 
-    private static X509ExtendedKeyManager parseIdentityMaterial(Certificate[] certificates, PrivateKey privateKey) throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    private static X509ExtendedKeyManager parseIdentityMaterial(Certificate[] certificatesChain, PrivateKey privateKey) throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        if (certificatesChain == null || certificatesChain.length == 0) {
+            throw new PublicKeyParseException("Certificate chain is not present");
+        }
+
         KeyStore keyStore = KeyStoreUtils.createKeyStore();
-        keyStore.setKeyEntry(CertificateUtils.generateAlias(certificates[0]), privateKey, DUMMY_PASSWORD, certificates);
+        keyStore.setKeyEntry(CertificateUtils.generateAlias(certificatesChain[0]), privateKey, DUMMY_PASSWORD, certificatesChain);
         return KeyManagerUtils.createKeyManager(keyStore, DUMMY_PASSWORD);
     }
 
-    public static X509ExtendedKeyManager loadIdentityMaterial(Path certificatePath, Path privateKeyPath) throws CertificateException, NoSuchAlgorithmException, IOException, OperatorCreationException, PKCSException, KeyStoreException {
-        return loadIdentityMaterial(certificatePath, privateKeyPath, DUMMY_PASSWORD);
+    public static X509ExtendedKeyManager loadIdentityMaterial(Path certificateChainPath, Path privateKeyPath) throws CertificateException, NoSuchAlgorithmException, IOException, OperatorCreationException, PKCSException, KeyStoreException {
+        return loadIdentityMaterial(certificateChainPath, privateKeyPath, NO_PASSWORD);
     }
 
-    public static X509ExtendedKeyManager loadIdentityMaterial(Path certificatePath, Path privateKeyPath, char[] keyPassword) throws IOException, NoSuchAlgorithmException, CertificateException, PKCSException, OperatorCreationException, KeyStoreException {
-        try(InputStream certificateStream = Files.newInputStream(certificatePath, StandardOpenOption.READ);
+    public static X509ExtendedKeyManager loadIdentityMaterial(Path certificateChainPath, Path privateKeyPath, char[] keyPassword) throws IOException, NoSuchAlgorithmException, CertificateException, PKCSException, OperatorCreationException, KeyStoreException {
+        try(InputStream certificateChainStream = Files.newInputStream(certificateChainPath, StandardOpenOption.READ);
             InputStream privateKeyStream = Files.newInputStream(privateKeyPath, StandardOpenOption.READ)) {
-            return loadIdentityMaterial(certificateStream, privateKeyStream, keyPassword);
+            return loadIdentityMaterial(certificateChainStream, privateKeyStream, keyPassword);
         }
     }
 
     public static X509ExtendedKeyManager loadIdentityMaterial(String identityPath) throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException {
-        return loadIdentityMaterial(identityPath, DUMMY_PASSWORD);
+        return loadIdentityMaterial(identityPath, NO_PASSWORD);
     }
 
     public static X509ExtendedKeyManager loadIdentityMaterial(String identityPath, char[] keyPassword) throws IOException, CertificateException, NoSuchAlgorithmException, OperatorCreationException, KeyStoreException, PKCSException {
@@ -192,7 +198,7 @@ public final class PemUtils {
     }
 
     public static X509ExtendedKeyManager loadIdentityMaterial(Path identityPath) throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException {
-        return loadIdentityMaterial(identityPath, DUMMY_PASSWORD);
+        return loadIdentityMaterial(identityPath, NO_PASSWORD);
     }
 
     public static X509ExtendedKeyManager loadIdentityMaterial(Path identityPath, char[] keyPassword) throws IOException, CertificateException, NoSuchAlgorithmException, OperatorCreationException, KeyStoreException, PKCSException {
@@ -203,7 +209,7 @@ public final class PemUtils {
     }
 
     public static X509ExtendedKeyManager loadIdentityMaterial(InputStream identityStream) throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException {
-        return loadIdentityMaterial(identityStream, DUMMY_PASSWORD);
+        return loadIdentityMaterial(identityStream, NO_PASSWORD);
     }
 
     public static X509ExtendedKeyManager loadIdentityMaterial(InputStream identityStream, char[] keyPassword) throws IOException, CertificateException, NoSuchAlgorithmException, OperatorCreationException, KeyStoreException, PKCSException {
