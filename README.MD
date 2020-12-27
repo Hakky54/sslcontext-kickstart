@@ -78,6 +78,7 @@ The library also provides other utilities such as:
 - [KeyManagerUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/KeyManagerUtils.java)
 - [TrustManagerUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/TrustManagerUtils.java)
 - [PemUtils](sslcontext-kickstart-for-pem/src/main/java/nl/altindag/ssl/util/PemUtils.java)
+- [SocketUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/SocketUtils.java)
 
 See the [javadoc](https://sslcontext-kickstart.com/apidocs/index.html) for all the options.
 

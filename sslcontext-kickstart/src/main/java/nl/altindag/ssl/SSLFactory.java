@@ -20,10 +20,9 @@ import nl.altindag.ssl.exception.GenericKeyStoreException;
 import nl.altindag.ssl.exception.GenericSSLContextException;
 import nl.altindag.ssl.exception.GenericSecurityException;
 import nl.altindag.ssl.model.KeyStoreHolder;
-import nl.altindag.ssl.socket.CompositeSSLServerSocketFactory;
-import nl.altindag.ssl.socket.CompositeSSLSocketFactory;
 import nl.altindag.ssl.util.KeyManagerUtils;
 import nl.altindag.ssl.util.KeyStoreUtils;
+import nl.altindag.ssl.util.SocketUtils;
 import nl.altindag.ssl.util.TrustManagerUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -192,8 +191,8 @@ public final class SSLFactory {
 
     private void postConstructRemainingSslMaterials() {
         reinitializeSslParameters();
-        sslSocketFactory = new CompositeSSLSocketFactory(sslContext.getSocketFactory(), sslParameters);
-        sslServerSocketFactory = new CompositeSSLServerSocketFactory(sslContext.getServerSocketFactory(), sslParameters);
+        sslSocketFactory = SocketUtils.createSslSocketFactory(sslContext.getSocketFactory(), sslParameters);
+        sslServerSocketFactory = SocketUtils.createSslServerSocketFactory(sslContext.getServerSocketFactory(), sslParameters);
         trustedCertificates = Optional.ofNullable(trustManager)
                 .map(X509ExtendedTrustManager::getAcceptedIssuers)
                 .flatMap(x509Certificates -> Optional.of(Arrays.asList(x509Certificates)))

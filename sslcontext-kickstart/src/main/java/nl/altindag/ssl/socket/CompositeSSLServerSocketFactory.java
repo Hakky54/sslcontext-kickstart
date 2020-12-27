@@ -22,8 +22,14 @@ import javax.net.ssl.SSLServerSocketFactory;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
+import java.util.Objects;
 
 /**
+ * <strong>NOTE:</strong>
+ * Please don't use this class directly as it is part of the internal API. Class name and methods can be changed any time.
+ * Instead use the {@link nl.altindag.ssl.util.SocketUtils SocketUtils} which provides the same functionality
+ * while it has a stable API because it is part of the public API.
+ *
  * @author Hakan Altindag
  */
 public final class CompositeSSLServerSocketFactory extends SSLServerSocketFactory {
@@ -32,8 +38,8 @@ public final class CompositeSSLServerSocketFactory extends SSLServerSocketFactor
     private final SSLParameters sslParameters;
 
     public CompositeSSLServerSocketFactory(SSLServerSocketFactory sslServerSocketFactory, SSLParameters sslParameters) {
-        this.sslServerSocketFactory = sslServerSocketFactory;
-        this.sslParameters = sslParameters;
+        this.sslServerSocketFactory = Objects.requireNonNull(sslServerSocketFactory);
+        this.sslParameters = Objects.requireNonNull(sslParameters);
     }
 
     @Override
