@@ -11,6 +11,9 @@ changes with their rationale when appropriate:
 - Made SSLFactory less strict by supporting X509KeyManager and X509TrustManager
 - Added option to supply identity as a InputStream for the SSLFactory Builder
 - Added option to supply trustStore as a InputStream for the SSLFactory Builder
+- Moved KeyManagerBuilder to KeyManagerUtils
+- Moved TrustManagerBuilder to TrustManagerUtils
+- Added SocketUtils
 
 ### v6.0.0
 - Renamed package from nl.altindag.sslcontext to nl.altindag.ssl
