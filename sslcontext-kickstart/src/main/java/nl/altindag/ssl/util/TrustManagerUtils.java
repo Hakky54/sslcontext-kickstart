@@ -34,6 +34,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.Provider;
 import java.security.cert.CertificateException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -54,7 +55,7 @@ public final class TrustManagerUtils {
             return trustManagers.get(0);
         }
 
-        return CompositeX509ExtendedTrustManager.builder()
+        return TrustManagerUtils.trustManagerBuilder()
                 .withTrustManagers(trustManagers)
                 .build();
     }
@@ -143,6 +144,62 @@ public final class TrustManagerUtils {
 
     public static TrustManagerFactory createTrustManagerFactory(TrustManager trustManager) {
         return new TrustManagerFactoryWrapper(trustManager);
+    }
+
+    public static TrustManagerBuilder trustManagerBuilder() {
+        return new TrustManagerBuilder();
+    }
+
+    public static final class TrustManagerBuilder {
+
+        private TrustManagerBuilder() {}
+
+        private final List<X509ExtendedTrustManager> trustManagers = new ArrayList<>();
+
+        public <T extends X509TrustManager> TrustManagerBuilder withTrustManagers(T... trustManagers) {
+            for (T trustManager : trustManagers) {
+                withTrustManager(trustManager);
+            }
+            return this;
+        }
+
+        public <T extends X509TrustManager> TrustManagerBuilder withTrustManagers(List<T> trustManagers) {
+            for (X509TrustManager trustManager : trustManagers) {
+                withTrustManager(trustManager);
+            }
+            return this;
+        }
+
+        public <T extends X509TrustManager> TrustManagerBuilder withTrustManager(T trustManager) {
+            this.trustManagers.add(TrustManagerUtils.wrapIfNeeded(trustManager));
+            return this;
+        }
+
+        public <T extends KeyStore> TrustManagerBuilder withTrustStores(T... trustStores) {
+            return withTrustStores(Arrays.asList(trustStores));
+        }
+
+        public TrustManagerBuilder withTrustStores(List<? extends KeyStore> trustStores) {
+            for (KeyStore trustStore : trustStores) {
+                this.trustManagers.add(TrustManagerUtils.createTrustManager(trustStore));
+            }
+            return this;
+        }
+
+        public <T extends KeyStore> TrustManagerBuilder withTrustStore(T trustStore) {
+            this.trustManagers.add(TrustManagerUtils.createTrustManager(trustStore));
+            return this;
+        }
+
+        public <T extends KeyStore> TrustManagerBuilder withTrustStore(T trustStore, String trustManagerAlgorithm) {
+            this.trustManagers.add(TrustManagerUtils.createTrustManager(trustStore, trustManagerAlgorithm));
+            return this;
+        }
+
+        public X509ExtendedTrustManager build() {
+            return new CompositeX509ExtendedTrustManager(trustManagers);
+        }
+
     }
 
 }

@@ -16,14 +16,12 @@
 
 package nl.altindag.ssl.trustmanager;
 
-import nl.altindag.ssl.util.TrustManagerUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedTrustManager;
 import java.net.Socket;
-import java.security.KeyStore;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -35,13 +33,20 @@ import java.util.List;
  * {@link CompositeX509ExtendedTrustManager} is a wrapper for a collection of TrustManagers.
  * It has the ability to validate a certificate chain against multiple TrustManagers.
  * If any one of the composed managers trusts a certificate chain, then it is trusted by the composite manager.
- * The TrustManager can be build from one or more of any combination provided within the {@link Builder CompositeX509ExtendedTrustManager.Builder}.
+ * The TrustManager can be build from one or more of any combination provided within the {@link nl.altindag.ssl.util.TrustManagerUtils.TrustManagerBuilder TrustManagerUtils.TrustManagerBuilder}.
  * <br><br>
  * This includes:
  * <pre>
  *     - Any amount of custom TrustManagers
  *     - Any amount of custom TrustStores
  * </pre>
+ *
+ * <p>
+ * <strong>NOTE:</strong>
+ * Please don't use this class directly as it is part of the internal API. Class name and methods can be changed any time.
+ * Instead use the {@link nl.altindag.ssl.util.TrustManagerUtils TrustManagerUtils} which provides the same functionality
+ * while it has a stable API because it is part of the public API.
+ * </p>
  *
  * @see <a href="http://stackoverflow.com/questions/1793979/registering-multiple-keystores-in-jvm">
  *     http://stackoverflow.com/questions/1793979/registering-multiple-keystores-in-jvm
@@ -211,50 +216,6 @@ public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustMa
 
     public int size() {
         return trustManagers.size();
-    }
-
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    public static final class Builder {
-
-        private final List<X509ExtendedTrustManager> trustManagers = new ArrayList<>();
-
-        public <T extends X509ExtendedTrustManager> Builder withTrustManagers(T... trustManagers) {
-            return withTrustManagers(Arrays.asList(trustManagers));
-        }
-
-        public Builder withTrustManagers(List<? extends X509ExtendedTrustManager> trustManagers) {
-            this.trustManagers.addAll(trustManagers);
-            return this;
-        }
-
-        public <T extends KeyStore> Builder withTrustStores(T... trustStores) {
-            return withTrustStores(Arrays.asList(trustStores));
-        }
-
-        public Builder withTrustStores(List<? extends KeyStore> trustStores) {
-            for (KeyStore trustStore : trustStores) {
-                this.trustManagers.add(TrustManagerUtils.createTrustManager(trustStore));
-            }
-            return this;
-        }
-
-        public <T extends KeyStore> Builder withTrustStore(T trustStore) {
-            this.trustManagers.add(TrustManagerUtils.createTrustManager(trustStore));
-            return this;
-        }
-
-        public <T extends KeyStore> Builder withTrustStore(T trustStore, String trustManagerAlgorithm) {
-            this.trustManagers.add(TrustManagerUtils.createTrustManager(trustStore, trustManagerAlgorithm));
-            return this;
-        }
-
-        public CompositeX509ExtendedTrustManager build() {
-            return new CompositeX509ExtendedTrustManager(trustManagers);
-        }
-
     }
 
 }

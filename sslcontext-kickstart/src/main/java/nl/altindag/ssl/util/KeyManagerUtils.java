@@ -32,6 +32,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.Provider;
 import java.security.UnrecoverableKeyException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -55,7 +56,7 @@ public final class KeyManagerUtils {
             return keyManagers.get(0);
         }
 
-        return CompositeX509ExtendedKeyManager.builder()
+        return KeyManagerUtils.keyManagerBuilder()
                 .withKeyManagers(keyManagers)
                 .build();
     }
@@ -120,6 +121,57 @@ public final class KeyManagerUtils {
 
     public static KeyManagerFactory createKeyManagerFactory(KeyManager keyManager) {
         return new KeyManagerFactoryWrapper(keyManager);
+    }
+
+    public static KeyManagerBuilder keyManagerBuilder() {
+        return new KeyManagerBuilder();
+    }
+
+    public static final class KeyManagerBuilder {
+
+        private KeyManagerBuilder() {}
+
+        private final List<X509ExtendedKeyManager> keyManagers = new ArrayList<>();
+
+        public <T extends X509KeyManager> KeyManagerBuilder withKeyManagers(T... keyManagers) {
+            for (X509KeyManager keyManager : keyManagers) {
+                withKeyManager(keyManager);
+            }
+            return this;
+        }
+
+        public <T extends X509KeyManager> KeyManagerBuilder withKeyManagers(List<T> keyManagers) {
+            for (X509KeyManager keyManager : keyManagers) {
+                withKeyManager(keyManager);
+            }
+            return this;
+        }
+
+        public <T extends X509KeyManager> KeyManagerBuilder withKeyManager(T keyManager) {
+            this.keyManagers.add(KeyManagerUtils.wrapIfNeeded(keyManager));
+            return this;
+        }
+
+        public <T extends KeyStoreHolder> KeyManagerBuilder withIdentities(T... identities) {
+            return withIdentities(Arrays.asList(identities));
+        }
+
+        public KeyManagerBuilder withIdentities(List<? extends KeyStoreHolder> identities) {
+            for (KeyStoreHolder identity : identities) {
+                this.keyManagers.add(KeyManagerUtils.createKeyManager(identity.getKeyStore(), identity.getKeyPassword()));
+            }
+            return this;
+        }
+
+        public <T extends KeyStore> KeyManagerBuilder withIdentity(T identity, char[] identityPassword, String keyManagerAlgorithm) {
+            this.keyManagers.add(KeyManagerUtils.createKeyManager(identity, identityPassword, keyManagerAlgorithm));
+            return this;
+        }
+
+        public X509ExtendedKeyManager build() {
+            return new CompositeX509ExtendedKeyManager(keyManagers);
+        }
+
     }
 
 }

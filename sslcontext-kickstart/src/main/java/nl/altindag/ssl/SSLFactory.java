@@ -19,11 +19,9 @@ package nl.altindag.ssl;
 import nl.altindag.ssl.exception.GenericKeyStoreException;
 import nl.altindag.ssl.exception.GenericSSLContextException;
 import nl.altindag.ssl.exception.GenericSecurityException;
-import nl.altindag.ssl.keymanager.CompositeX509ExtendedKeyManager;
 import nl.altindag.ssl.model.KeyStoreHolder;
 import nl.altindag.ssl.socket.CompositeSSLServerSocketFactory;
 import nl.altindag.ssl.socket.CompositeSSLSocketFactory;
-import nl.altindag.ssl.trustmanager.CompositeX509ExtendedTrustManager;
 import nl.altindag.ssl.util.KeyManagerUtils;
 import nl.altindag.ssl.util.KeyStoreUtils;
 import nl.altindag.ssl.util.TrustManagerUtils;
@@ -156,7 +154,7 @@ public final class SSLFactory {
     }
 
     private KeyManager[] createKeyManager() {
-        keyManager = CompositeX509ExtendedKeyManager.builder()
+        keyManager = KeyManagerUtils.keyManagerBuilder()
                 .withKeyManagers(identityManagers)
                 .withIdentities(identities)
                 .build();
@@ -169,7 +167,7 @@ public final class SSLFactory {
     }
 
     private TrustManager[] createTrustManagers() {
-        trustManager = CompositeX509ExtendedTrustManager.builder()
+        trustManager = TrustManagerUtils.trustManagerBuilder()
                 .withTrustManagers(trustManagers)
                 .withTrustStores(trustStores.stream()
                         .map(KeyStoreHolder::getKeyStore)

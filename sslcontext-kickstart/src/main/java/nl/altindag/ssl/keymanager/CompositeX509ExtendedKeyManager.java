@@ -16,14 +16,9 @@
 
 package nl.altindag.ssl.keymanager;
 
-import nl.altindag.ssl.model.KeyStoreHolder;
-import nl.altindag.ssl.util.KeyManagerUtils;
-
-import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedKeyManager;
 import java.net.Socket;
-import java.security.KeyStore;
 import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
@@ -36,16 +31,23 @@ import java.util.Optional;
 /**
  * Represents an ordered list of {@link X509ExtendedKeyManager} with most-preferred managers first.
  *
- * This is necessary because of the fine-print on {@link SSLContext#init}:
+ * This is necessary because of the fine-print on {@link javax.net.ssl.SSLContext#init}:
  * Only the first instance of a particular key and/or key manager implementation type in the
  * array is used. (For example, only the first javax.net.ssl.X509KeyManager in the array will be used.)
- * The KeyManager can be build from one or more of any combination provided within the {@link Builder CompositeX509ExtendedKeyManager.Builder}.
+ * The KeyManager can be build from one or more of any combination provided within the {@link nl.altindag.ssl.util.KeyManagerUtils.KeyManagerBuilder KeyManagerUtils.KeyManagerBuilder}.
  * <br><br>
  * This includes:
  * <pre>
  *     - Any amount of custom KeyManagers
  *     - Any amount of custom Identities
  * </pre>
+ *
+ * <p>
+ * <strong>NOTE:</strong>
+ * Please don't use this class directly as it is part of the internal API. Class name and methods can be changed any time.
+ * Instead use the {@link nl.altindag.ssl.util.KeyManagerUtils KeyManagerUtils} which provides the same functionality
+ * while it has a stable API because it is part of the public API.
+ * </p>
  *
  * @see <a href="http://stackoverflow.com/questions/1793979/registering-multiple-keystores-in-jvm">
  *     http://stackoverflow.com/questions/1793979/registering-multiple-keystores-in-jvm
@@ -188,50 +190,12 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
         return emptyToNull(serverAliases.toArray(new String[]{}));
     }
 
-    public int size() {
-        return keyManagers.size();
-    }
-
     private <T> T[] emptyToNull(T[] arr) {
         return (arr.length == 0) ? null : arr;
     }
 
-    public static Builder builder() {
-        return new Builder();
+    protected int size() {
+        return keyManagers.size();
     }
 
-    public static final class Builder {
-
-        private final List<X509ExtendedKeyManager> keyManagers = new ArrayList<>();
-
-        public <T extends X509ExtendedKeyManager> Builder withKeyManagers(T... keyManagers) {
-            return withKeyManagers(Arrays.asList(keyManagers));
-        }
-
-        public Builder withKeyManagers(List<? extends X509ExtendedKeyManager> keyManagers) {
-            this.keyManagers.addAll(keyManagers);
-            return this;
-        }
-
-        public <T extends KeyStoreHolder> Builder withIdentities(T... identities) {
-            return withIdentities(Arrays.asList(identities));
-        }
-
-        public Builder withIdentities(List<? extends KeyStoreHolder> identities) {
-            for (KeyStoreHolder identity : identities) {
-                this.keyManagers.add(KeyManagerUtils.createKeyManager(identity.getKeyStore(), identity.getKeyPassword()));
-            }
-            return this;
-        }
-
-        public <T extends KeyStore> Builder withIdentity(T identity, char[] identityPassword, String keyManagerAlgorithm) {
-            this.keyManagers.add(KeyManagerUtils.createKeyManager(identity, identityPassword, keyManagerAlgorithm));
-            return this;
-        }
-
-        public CompositeX509ExtendedKeyManager build() {
-            return new CompositeX509ExtendedKeyManager(keyManagers);
-        }
-
-    }
 }

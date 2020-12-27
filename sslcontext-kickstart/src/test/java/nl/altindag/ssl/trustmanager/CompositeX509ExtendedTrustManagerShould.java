@@ -21,7 +21,6 @@ import nl.altindag.ssl.util.KeyStoreUtils;
 import nl.altindag.ssl.util.TrustManagerUtils;
 import org.junit.jupiter.api.Test;
 
-import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLException;
@@ -61,84 +60,6 @@ class CompositeX509ExtendedTrustManagerShould {
     private static final SSLEngine SSL_ENGINE = new MockedSSLEngine();
 
     @Test
-    void createCompositeX509TrustManagerFromKeyStore() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        KeyStore trustStoreOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
-        KeyStore trustStoreTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD);
-
-        CompositeX509ExtendedTrustManager trustManager = CompositeX509ExtendedTrustManager.builder()
-                .withTrustStores(trustStoreOne)
-                .withTrustStores(trustStoreTwo)
-                .build();
-
-        assertThat(trustManager).isNotNull();
-
-        assertThat(trustStoreOne.size()).isEqualTo(1);
-        assertThat(trustStoreTwo.size()).isEqualTo(1);
-        assertThat(trustManager.getAcceptedIssuers()).hasSize(2);
-        assertThat(trustManager.size()).isEqualTo(2);
-    }
-
-    @Test
-    void createCompositeX509TrustManagerWithKeyStoreAndTrustManagerAlgorithm() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
-
-        CompositeX509ExtendedTrustManager trustManager = CompositeX509ExtendedTrustManager.builder()
-                .withTrustStore(trustStore, KeyManagerFactory.getDefaultAlgorithm())
-                .build();
-
-        assertThat(trustManager.size()).isEqualTo(1);
-        assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
-    }
-
-    @Test
-    void createCompositeX509TrustManagerWithKeyStore() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
-
-        CompositeX509ExtendedTrustManager trustManager = CompositeX509ExtendedTrustManager.builder()
-                .withTrustStore(trustStore)
-                .build();
-
-        assertThat(trustManager.size()).isEqualTo(1);
-        assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
-    }
-
-    @Test
-    void createCompositeX509TrustManagerFromKeyStoreWithBuilderPattern() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        KeyStore trustStoreOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
-        KeyStore trustStoreTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD);
-
-        CompositeX509ExtendedTrustManager trustManager = CompositeX509ExtendedTrustManager.builder()
-                .withTrustStores(trustStoreOne, trustStoreTwo)
-                .build();
-
-        assertThat(trustManager).isNotNull();
-
-        assertThat(trustStoreOne.size()).isEqualTo(1);
-        assertThat(trustStoreTwo.size()).isEqualTo(1);
-        assertThat(trustManager.getAcceptedIssuers()).hasSize(2);
-        assertThat(trustManager.size()).isEqualTo(2);
-    }
-
-    @Test
-    void createCompositeX509TrustManagerFromListOfTrustManagersWithBuilderPattern() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        KeyStore trustStoreOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
-        KeyStore trustStoreTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD);
-
-        CompositeX509ExtendedTrustManager trustManager = CompositeX509ExtendedTrustManager.builder()
-                .withTrustManagers(
-                        Arrays.asList(TrustManagerUtils.createTrustManager(trustStoreOne),
-                                TrustManagerUtils.createTrustManager(trustStoreTwo)))
-                .build();
-
-        assertThat(trustManager).isNotNull();
-
-        assertThat(trustStoreOne.size()).isEqualTo(1);
-        assertThat(trustStoreTwo.size()).isEqualTo(1);
-        assertThat(trustManager.getAcceptedIssuers()).hasSize(2);
-        assertThat(trustManager.size()).isEqualTo(2);
-    }
-
-    @Test
     void checkClientTrusted() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
@@ -151,6 +72,7 @@ class CompositeX509ExtendedTrustManagerShould {
         assertThat(trustManager).isNotNull();
         assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
         assertThat(trustedCerts).hasSize(1);
+        assertThat(compositeX509ExtendedTrustManager.size()).isEqualTo(1);
 
         assertThatCode(() -> compositeX509ExtendedTrustManager.checkClientTrusted(trustedCerts, "RSA"))
                 .doesNotThrowAnyException();
@@ -272,9 +194,7 @@ class CompositeX509ExtendedTrustManagerShould {
         LogCaptor logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
         logCaptor.setLogLevelToInfo();
 
-        CompositeX509ExtendedTrustManager trustManager = CompositeX509ExtendedTrustManager.builder()
-                .withTrustStores(trustStore)
-                .build();
+        CompositeX509ExtendedTrustManager trustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(TrustManagerUtils.createTrustManager(trustStore)));
         assertThat(trustedCerts).hasSize(1);
         assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
 
@@ -293,9 +213,7 @@ class CompositeX509ExtendedTrustManagerShould {
         LogCaptor logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
         logCaptor.setLogLevelToInfo();
 
-        CompositeX509ExtendedTrustManager trustManager = CompositeX509ExtendedTrustManager.builder()
-                .withTrustStores(trustStore)
-                .build();
+        CompositeX509ExtendedTrustManager trustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(TrustManagerUtils.createTrustManager(trustStore)));
         assertThat(trustedCerts).hasSize(1);
         assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
 
@@ -314,9 +232,7 @@ class CompositeX509ExtendedTrustManagerShould {
         LogCaptor logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
         logCaptor.setLogLevelToInfo();
 
-        CompositeX509ExtendedTrustManager trustManager = CompositeX509ExtendedTrustManager.builder()
-                .withTrustStores(trustStore)
-                .build();
+        CompositeX509ExtendedTrustManager trustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(TrustManagerUtils.createTrustManager(trustStore)));
         assertThat(trustedCerts).hasSize(1);
         assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
 
@@ -334,9 +250,7 @@ class CompositeX509ExtendedTrustManagerShould {
 
         LogCaptor logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
 
-        CompositeX509ExtendedTrustManager trustManager = CompositeX509ExtendedTrustManager.builder()
-                .withTrustStores(trustStore)
-                .build();
+        CompositeX509ExtendedTrustManager trustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(TrustManagerUtils.createTrustManager(trustStore)));
         assertThat(trustedCerts).hasSize(1);
         assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
 
@@ -355,9 +269,7 @@ class CompositeX509ExtendedTrustManagerShould {
 
         LogCaptor logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
 
-        CompositeX509ExtendedTrustManager trustManager = CompositeX509ExtendedTrustManager.builder()
-                .withTrustStores(trustStore)
-                .build();
+        CompositeX509ExtendedTrustManager trustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(TrustManagerUtils.createTrustManager(trustStore)));
         assertThat(trustedCerts).hasSize(1);
         assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
 
@@ -376,9 +288,7 @@ class CompositeX509ExtendedTrustManagerShould {
 
         LogCaptor logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
 
-        CompositeX509ExtendedTrustManager trustManager = CompositeX509ExtendedTrustManager.builder()
-                .withTrustStores(trustStore)
-                .build();
+        CompositeX509ExtendedTrustManager trustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(TrustManagerUtils.createTrustManager(trustStore)));
         assertThat(trustedCerts).hasSize(1);
         assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
 
@@ -395,9 +305,7 @@ class CompositeX509ExtendedTrustManagerShould {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
-        CompositeX509ExtendedTrustManager trustManager = CompositeX509ExtendedTrustManager.builder()
-                .withTrustManagers(TrustManagerUtils.createTrustManager(trustStore))
-                .build();
+        CompositeX509ExtendedTrustManager trustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(TrustManagerUtils.createTrustManager(trustStore)));
         assertThat(trustedCerts).hasSize(1);
         assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
 
@@ -411,9 +319,7 @@ class CompositeX509ExtendedTrustManagerShould {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
-        CompositeX509ExtendedTrustManager trustManager = CompositeX509ExtendedTrustManager.builder()
-                .withTrustManagers(TrustManagerUtils.createTrustManager(trustStore))
-                .build();
+        CompositeX509ExtendedTrustManager trustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(TrustManagerUtils.createTrustManager(trustStore)));
         assertThat(trustedCerts).hasSize(1);
         assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
 
@@ -427,9 +333,7 @@ class CompositeX509ExtendedTrustManagerShould {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
-        CompositeX509ExtendedTrustManager trustManager = CompositeX509ExtendedTrustManager.builder()
-                .withTrustManagers(TrustManagerUtils.createTrustManager(trustStore))
-                .build();
+        CompositeX509ExtendedTrustManager trustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(TrustManagerUtils.createTrustManager(trustStore)));
         assertThat(trustedCerts).hasSize(1);
         assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
 

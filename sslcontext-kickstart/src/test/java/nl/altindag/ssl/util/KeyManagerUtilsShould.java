@@ -34,6 +34,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.Provider;
 import java.security.Security;
 import java.security.cert.CertificateException;
+import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -128,6 +129,95 @@ class KeyManagerUtilsShould {
 
         assertThat(keyManagerFactory).isNotNull();
         assertThat(keyManagerFactory.getKeyManagers()).containsExactly(keyManager);
+    }
+
+    @Test
+    void createKeyManagerFromMultipleKeyManagers() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager keyManager = KeyManagerUtils.keyManagerBuilder()
+                .withKeyManager(keyManagerOne)
+                .withKeyManager(keyManagerTwo)
+                .build();
+
+        assertThat(keyManager).isNotNull();
+    }
+
+    @Test
+    void createKeyManagerFromMultipleKeyManagersUsingVarArgs() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager keyManager = KeyManagerUtils.keyManagerBuilder()
+                .withKeyManagers(keyManagerOne, keyManagerTwo)
+                .build();
+
+        assertThat(keyManager).isNotNull();
+    }
+
+    @Test
+    void createKeyManagerFromMultipleKeyManagersUsingList() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager keyManager = KeyManagerUtils.keyManagerBuilder()
+                .withKeyManagers(Arrays.asList(keyManagerOne, keyManagerTwo))
+                .build();
+
+        assertThat(keyManager).isNotNull();
+    }
+
+    @Test
+    void createKeyManagerFromMultipleKeyStoreHoldersAsVarArgs() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
+
+        KeyStoreHolder keyStoreHolderOne = new KeyStoreHolder(identityOne, IDENTITY_PASSWORD, IDENTITY_PASSWORD);
+        KeyStoreHolder keyStoreHolderTwo = new KeyStoreHolder(identityTwo, IDENTITY_PASSWORD, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager keyManager = KeyManagerUtils.keyManagerBuilder()
+                .withIdentities(keyStoreHolderOne, keyStoreHolderTwo)
+                .build();
+
+        assertThat(keyManager).isNotNull();
+    }
+
+    @Test
+    void createKeyManagerFromMultipleKeyStoreHoldersAsList() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
+
+        KeyStoreHolder keyStoreHolderOne = new KeyStoreHolder(identityOne, IDENTITY_PASSWORD, IDENTITY_PASSWORD);
+        KeyStoreHolder keyStoreHolderTwo = new KeyStoreHolder(identityTwo, IDENTITY_PASSWORD, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager keyManager = KeyManagerUtils.keyManagerBuilder()
+                .withIdentities(Arrays.asList(keyStoreHolderOne, keyStoreHolderTwo))
+                .build();
+
+        assertThat(keyManager).isNotNull();
+    }
+
+    @Test
+    void createKeyManagerFromAMultipleKeyStores() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager keyManager = KeyManagerUtils.keyManagerBuilder()
+                .withIdentity(identityOne, IDENTITY_PASSWORD, KeyManagerFactory.getDefaultAlgorithm())
+                .withIdentity(identityTwo, IDENTITY_PASSWORD, KeyManagerFactory.getDefaultAlgorithm())
+                .build();
+
+        assertThat(keyManager).isNotNull();
     }
 
     @Test
