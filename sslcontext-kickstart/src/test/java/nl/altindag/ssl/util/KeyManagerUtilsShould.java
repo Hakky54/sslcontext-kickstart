@@ -35,6 +35,8 @@ import java.security.Provider;
 import java.security.Security;
 import java.security.cert.CertificateException;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -218,6 +220,68 @@ class KeyManagerUtilsShould {
                 .build();
 
         assertThat(keyManager).isNotNull();
+    }
+
+    @Test
+    void createKeyManagerFromKeyStoreContainingMultipleKeysWithDifferentPasswords() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "identity-with-multiple-keys.jks", IDENTITY_PASSWORD);
+
+        assertThat(identity.size()).isEqualTo(2);
+
+        assertThat(identity.containsAlias("kaiba")).isTrue();
+        assertThat(identity.isKeyEntry("kaiba")).isTrue();
+
+        assertThat(identity.containsAlias("yugioh")).isTrue();
+        assertThat(identity.isKeyEntry("yugioh")).isTrue();
+
+
+        Map<String, char[]> aliasToPassword = new HashMap<>();
+        aliasToPassword.put("kaiba", "kazuki".toCharArray());
+        aliasToPassword.put("yugioh", "takahashi".toCharArray());
+
+        X509ExtendedKeyManager keyManager = KeyManagerUtils.createKeyManager(identity, aliasToPassword);
+
+        assertThat(keyManager).isNotNull();
+    }
+
+    @Test
+    void throwExceptionWhenCreatingKeyManagerFromKeyStoreWhichDoesNotHaveMatchingAlias() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "identity-with-multiple-keys.jks", IDENTITY_PASSWORD);
+
+        assertThat(identity.size()).isEqualTo(2);
+
+        assertThat(identity.containsAlias("Jessie")).isFalse();
+        assertThat(identity.containsAlias("James")).isFalse();
+
+
+        Map<String, char[]> aliasToPassword = new HashMap<>();
+        aliasToPassword.put("Jessie", "team-rocket".toCharArray());
+        aliasToPassword.put("James", "team-rocket".toCharArray());
+
+        assertThatThrownBy(() -> KeyManagerUtils.createKeyManager(identity, aliasToPassword))
+                .isInstanceOf(GenericSecurityException.class)
+                .hasMessage("Could not create any KeyManager from the given KeyStore, Alias and Password");
+    }
+
+    @Test
+    void throwExceptionWhenCreatingKeyManagerFromKeyStoreWhithIncorrectKeyPassword() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "identity-with-multiple-keys.jks", IDENTITY_PASSWORD);
+
+        assertThat(identity.size()).isEqualTo(2);
+
+        assertThat(identity.containsAlias("kaiba")).isTrue();
+        assertThat(identity.isKeyEntry("kaiba")).isTrue();
+
+        assertThat(identity.containsAlias("yugioh")).isTrue();
+        assertThat(identity.isKeyEntry("yugioh")).isTrue();
+
+
+        Map<String, char[]> aliasToPassword = new HashMap<>();
+        aliasToPassword.put("kaiba", "team-rocket".toCharArray());
+        aliasToPassword.put("yugioh", "team-rocket".toCharArray());
+
+        assertThatThrownBy(() -> KeyManagerUtils.createKeyManager(identity, aliasToPassword))
+                .isInstanceOf(GenericSecurityException.class);
     }
 
     @Test

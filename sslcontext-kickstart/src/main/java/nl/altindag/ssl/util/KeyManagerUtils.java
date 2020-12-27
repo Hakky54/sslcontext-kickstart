@@ -26,15 +26,21 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509KeyManager;
+import java.io.IOException;
+import java.security.Key;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.Provider;
 import java.security.UnrecoverableKeyException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.collectingAndThen;
@@ -109,6 +115,34 @@ public final class KeyManagerUtils {
         } catch (KeyStoreException | NoSuchAlgorithmException | UnrecoverableKeyException e) {
             throw new GenericSecurityException(e);
         }
+    }
+
+    public static X509ExtendedKeyManager createKeyManager(KeyStore keyStore, Map<String, char[]> aliasToPassword) {
+        List<X509ExtendedKeyManager> keyManagers = new ArrayList<>();
+
+        for (Entry<String, char[]> entry : aliasToPassword.entrySet()) {
+            try {
+                String alias = entry.getKey();
+                char[] password = entry.getValue();
+
+                if (keyStore.isKeyEntry(alias)) {
+                    Key key = keyStore.getKey(alias, password);
+                    Certificate[] certificateChain = keyStore.getCertificateChain(alias);
+
+                    KeyStore identityStore = KeyStoreUtils.createIdentityStore(key, password, certificateChain);
+                    X509ExtendedKeyManager keyManager = KeyManagerUtils.createKeyManager(identityStore, password);
+                    keyManagers.add(keyManager);
+                }
+            } catch (KeyStoreException | NoSuchAlgorithmException | UnrecoverableKeyException | CertificateException | IOException e) {
+                throw new GenericSecurityException(e);
+            }
+        }
+
+        if (keyManagers.isEmpty()) {
+            throw new GenericSecurityException("Could not create any KeyManager from the given KeyStore, Alias and Password");
+        }
+
+        return KeyManagerUtils.combine(keyManagers);
     }
 
     public static X509ExtendedKeyManager wrapIfNeeded(X509KeyManager keyManager) {
