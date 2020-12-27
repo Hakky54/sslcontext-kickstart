@@ -329,10 +329,8 @@ public final class SSLFactory {
         }
 
         public <T extends TrustManagerFactory> Builder withTrustMaterial(T trustManagerFactory) {
-            TrustManager[] trustManagersFromFactory = trustManagerFactory.getTrustManagers();
-
             boolean isTrustManagerAdded = false;
-            for (TrustManager trustManager : trustManagersFromFactory) {
+            for (TrustManager trustManager : trustManagerFactory.getTrustManagers()) {
                 if (trustManager instanceof X509TrustManager) {
                     trustManagers.add(TrustManagerUtils.wrapIfNeeded((X509TrustManager) trustManager));
                     isTrustManagerAdded = true;
@@ -540,10 +538,8 @@ public final class SSLFactory {
         }
 
         public <T extends KeyManagerFactory> Builder withIdentityMaterial(T keyManagerFactory) {
-            KeyManager[] keyManagersFromFactory = keyManagerFactory.getKeyManagers();
-
             boolean isKeyManagerAdded = false;
-            for (KeyManager keyManager : keyManagersFromFactory) {
+            for (KeyManager keyManager : keyManagerFactory.getKeyManagers()) {
                 if (keyManager instanceof X509KeyManager) {
                     identityManagers.add(KeyManagerUtils.wrapIfNeeded((X509KeyManager) keyManager));
                     isKeyManagerAdded = true;
