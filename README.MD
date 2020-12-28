@@ -52,6 +52,11 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "6.0.0"
      - [Using custom KeyManager and TrustManager](#support-for-using-x509extendedkeymanager-and-x509extendedtrustmanager)
      - [Using custom PrivateKey and Certificates](#support-for-using-privatekey-and-certificates)
      - [Using PEM Files](#using-pem-files)
+       - [Loading pem files from the classpath](#loading-pem-files-from-the-classpath)
+       - [Loading pem files from the file system](#loading-pem-files-from-anywhere-on-the-filesystem)
+       - [Loading pem files from InputStream](#loading-pem-files-from-inputstream)
+       - [Loading pem files from string content](#loading-pem-files-from-string-content)
+       - [Loading encrypted pem files](#loading-encrypted-pem-files)
    - [Returnable values from the SSLFactory](#returnable-values-from-the-sslfactory)
 3. [Additional mappers for specific libraries](#additional-mappers-for-specific-libraries)
    - [Netty](#netty)
@@ -239,7 +244,7 @@ SSLFactory.builder()
           .build();
 ```
 
-##### Using PEM Files
+#### Using PEM Files
 Support for using pem formatted private key and certificates from classpath, any directory or as an InputStream. See [PemUtilsShould](sslcontext-kickstart-for-pem/src/test/java/nl/altindag/ssl/util/PemUtilsShould.java) for detailed usages.
 Add the dependency below to use this feature, it also includes the core features from the library such as SSLFactory.
 ```xml
@@ -249,35 +254,7 @@ Add the dependency below to use this feature, it also includes the core features
     <version>6.0.0</version>
 </dependency>
 ```
-```text
- * EXAMPLE FILES
- *
- * [some-trusted-certificate.pem]
- * -----BEGIN CERTIFICATE-----
- *             ...
- *             ...
- * -----END CERTIFICATE-----
- *
- * [private-key.pem]
- * -----BEGIN PRIVATE KEY-----
- *             ...
- *             ...
- * -----END PRIVATE KEY-----
- *
- * [private-key.pem]
- * -----BEGIN RSA PRIVATE KEY-----
- *             ...
- *             ...
- * -----END RSA PRIVATE KEY-----
- *
- * [private-key.pem]
- * -----BEGIN ENCRYPTED PRIVATE KEY-----
- *             ...
- *             ...
- * -----END ENCRYPTED PRIVATE KEY-----
- */
-```
-Example usage:
+##### Loading pem files from the classpath
 ```
 X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial("certificate.pem", "private-key.pem");
 X509ExtendedTrustManager trustManager = PemUtils.loadTrustMaterial("some-trusted-certificate.pem");
@@ -286,6 +263,44 @@ SSLFactory.builder()
           .withIdentityMaterial(keyManager)
           .withTrustMaterial(trustManager)
           .build();
+```
+##### Loading pem files from anywhere on the filesystem
+```
+X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(Paths.get("/path/to/your/certificate.pem"), Paths.get("/path/to/your/"private-key.pem"));
+X509ExtendedTrustManager trustManager = PemUtils.loadTrustMaterial(Paths.get("/path/to/your/"some-trusted-certificate.pem"));
+```
+##### Loading pem files from InputStream
+```
+InputStream privateKey = ...
+InputStream certificate = ...
+InputStream trustedCertificates = ...
+
+X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(certificate, privateKey);
+X509ExtendedTrustManager trustManager = PemUtils.loadTrustMaterial(trustedCertificates);
+```
+##### Loading pem files from string content
+```
+String privateKey =
+        "-----BEGIN ENCRYPTED PRIVATE KEY-----\n" +
+        "MIIFHDBOBgkqhkiG9w0BBQ0wQTApBgkqhkiG9w0BBQwwHAQIy3Fposf+2ccCAggA\n" +
+        "-----END ENCRYPTED PRIVATE KEY-----\n";
+
+String certificate =
+        "-----BEGIN CERTIFICATE-----\n" +
+        "g0Y2YBH5v0xmi8sYU7weOcwynkjZARpUltBUQ0pWCF5uJsEB8uE8PPDD3c4=\n" +
+        "-----END CERTIFICATE-----\n";
+
+String trustedCertificates =
+        "-----BEGIN CERTIFICATE-----\n" +
+        "CC01zojqS10nGowxzOiqyB4m6wytmzf0QwjpMw==\n" +
+        "-----END CERTIFICATE-----\n";
+
+X509ExtendedKeyManager keyManager = PemUtils.parseIdentityMaterial(certificate, privateKey, "secret".toCharArray());
+X509ExtendedTrustManager trustManager = PemUtils.parseTrustMaterial(trustedCertificates);
+```
+##### Loading encrypted pem files
+```
+X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial("certificate.pem", "private-key.pem", "secret".toCharArray());
 ```
 
 ### Returnable values from the SSLFactory
