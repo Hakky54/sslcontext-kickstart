@@ -17,6 +17,7 @@
 package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.SSLFactory;
+import nl.altindag.ssl.exception.GenericKeyStoreException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
@@ -27,24 +28,28 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
+import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
+import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static nl.altindag.ssl.TestConstants.IDENTITY_FILE_NAME;
 import static nl.altindag.ssl.TestConstants.KEYSTORE_LOCATION;
 import static nl.altindag.ssl.TestConstants.TRUSTSTORE_FILE_NAME;
 import static nl.altindag.ssl.TestConstants.TRUSTSTORE_PASSWORD;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.spy;
 
 /**
  * @author Hakan Altindag
@@ -57,39 +62,35 @@ class KeyStoreUtilsShould {
     private static final String NON_EXISTING_KEYSTORE_FILE_NAME = "black-hole.jks";
 
     private static final char[] KEYSTORE_PASSWORD = new char[] {'s', 'e', 'c', 'r', 'e', 't'};
-    private static final String TEMPORALLY_KEYSTORE_LOCATION = System.getProperty("user.home");
     private static final String ORIGINAL_OS_NAME = System.getProperty("os.name");
+    private static final String TEST_RESOURCES_LOCATION = "src/test/resources/";
 
     @Test
-    void loadKeyStoreFromClasspath() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void loadKeyStoreFromClasspath() {
         KeyStore keyStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, KEYSTORE_PASSWORD);
         assertThat(keyStore).isNotNull();
     }
 
     @Test
-    void loadJCEKSKeyStoreFromClasspath() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void loadJCEKSKeyStoreFromClasspath() {
         KeyStore keyStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + JCEKS_KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD, "JCEKS");
         assertThat(keyStore).isNotNull();
     }
 
     @Test
-    void loadPKCS12KeyStoreFromClasspath() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void loadPKCS12KeyStoreFromClasspath() {
         KeyStore keyStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + PKCS12_KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD, "PKCS12");
         assertThat(keyStore).isNotNull();
     }
 
     @Test
-    void loadKeyStoreWithPathFromDirectory() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        Path keystorePath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, IDENTITY_FILE_NAME);
-
-        KeyStore keyStore = KeyStoreUtils.loadKeyStore(keystorePath, KEYSTORE_PASSWORD);
+    void loadKeyStoreWithPathFromDirectory() {
+        KeyStore keyStore = KeyStoreUtils.loadKeyStore(Paths.get(TEST_RESOURCES_LOCATION + KEYSTORE_LOCATION + IDENTITY_FILE_NAME).toAbsolutePath(), KEYSTORE_PASSWORD);
         assertThat(keyStore).isNotNull();
-
-        Files.delete(keystorePath);
     }
 
     @Test
-    void loadKeyStoreAsInputStream() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void loadKeyStoreAsInputStream() throws IOException {
         KeyStore keyStore;
         try(InputStream inputStream = getResource(KEYSTORE_LOCATION + IDENTITY_FILE_NAME)) {
             keyStore = KeyStoreUtils.loadKeyStore(inputStream, "secret".toCharArray());
@@ -99,7 +100,7 @@ class KeyStoreUtilsShould {
     }
 
     @Test
-    void loadSystemKeyStore() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void loadSystemKeyStore() {
         List<KeyStore> keyStores = KeyStoreUtils.loadSystemKeyStores();
 
         String operatingSystem = System.getProperty("os.name").toLowerCase();
@@ -109,7 +110,7 @@ class KeyStoreUtilsShould {
     }
 
     @Test
-    void loadWindowsSystemKeyStore() throws Exception {
+    void loadWindowsSystemKeyStore() {
         System.setProperty("os.name", "windows");
         KeyStore windowsRootKeyStore = mock(KeyStore.class);
         KeyStore windowsMyKeyStore = mock(KeyStore.class);
@@ -133,7 +134,7 @@ class KeyStoreUtilsShould {
     }
 
     @Test
-    void loadMacSystemKeyStore() throws Exception {
+    void loadMacSystemKeyStore() {
         System.setProperty("os.name", "mac");
         KeyStore macKeyStore = mock(KeyStore.class);
 
@@ -155,7 +156,7 @@ class KeyStoreUtilsShould {
     }
 
     @Test
-    void createTrustStoreFromX509CertificatesAsList() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void createTrustStoreFromX509CertificatesAsList() throws KeyStoreException {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
                 .withDefaultTrustMaterial()
@@ -170,7 +171,7 @@ class KeyStoreUtilsShould {
     }
 
     @Test
-    void createTrustStoreFromX509CertificatesAsArray() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void createTrustStoreFromX509CertificatesAsArray() throws KeyStoreException {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
                 .withDefaultTrustMaterial()
@@ -185,7 +186,7 @@ class KeyStoreUtilsShould {
     }
 
     @Test
-    void createTrustStoreFromMultipleTrustManagers() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void createTrustStoreFromMultipleTrustManagers() throws KeyStoreException {
         X509ExtendedTrustManager jdkTrustManager = TrustManagerUtils.createTrustManagerWithJdkTrustedCertificates();
         X509ExtendedTrustManager customTrustManager = TrustManagerUtils.createTrustManager(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD));
 
@@ -198,17 +199,76 @@ class KeyStoreUtilsShould {
     }
 
     @Test
-    void throwExceptionWhenLoadingNonExistingKeystore() {
-        assertThatThrownBy(() -> KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + NON_EXISTING_KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD))
-                  .isInstanceOf(IOException.class)
-                  .hasMessage("KeyStore is not present for the giving input");
+    void throwExceptionWhenLoadingNonExistingKeystoreType() {
+        assertThatThrownBy(() -> KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, KEYSTORE_PASSWORD, "unknown"))
+                .isInstanceOf(GenericKeyStoreException.class)
+                .hasMessageContaining("unknown not found");
     }
 
-    private Path copyKeystoreToHomeDirectory(String path, String fileName) throws IOException {
-        try(InputStream keystoreInputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(path + fileName)) {
-            Path destination = Paths.get(TEMPORALLY_KEYSTORE_LOCATION, fileName);
-            Files.copy(keystoreInputStream, destination, REPLACE_EXISTING);
-            return destination;
+    @Test
+    void throwExceptionWhenLoadingNonExistingKeystore() {
+        assertThatThrownBy(() -> KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + NON_EXISTING_KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD))
+                  .isInstanceOf(GenericKeyStoreException.class)
+                  .hasMessageContaining("KeyStore is not present for the giving input");
+    }
+
+    @Test
+    void throwGenericKeyStoreExceptionWhenFailingToCloseStreamProperly() throws IOException {
+        String keystoreType = KeyStore.getDefaultType();
+        Path keystorePath = Paths.get(TEST_RESOURCES_LOCATION + KEYSTORE_LOCATION + IDENTITY_FILE_NAME).toAbsolutePath();
+        InputStream inputStream = spy(Files.newInputStream(keystorePath, StandardOpenOption.READ));
+
+        try (MockedStatic<Files> filesMockedStatic = mockStatic(Files.class, invocation -> {
+            Method method = invocation.getMethod();
+            if ("newInputStream".equals(method.getName())) {
+                return invocation.getMock();
+            } else {
+                return invocation.callRealMethod();
+            }
+        })) {
+
+            doThrow(new IOException("Could not close the stream")).when(inputStream).close();
+
+            filesMockedStatic.when(() -> Files.newInputStream(any(Path.class), any(OpenOption.class))).thenReturn(inputStream);
+
+            assertThatThrownBy(() -> KeyStoreUtils.loadKeyStore(keystorePath, KEYSTORE_PASSWORD, keystoreType))
+                    .isInstanceOf(GenericKeyStoreException.class)
+                    .hasMessageContaining("Could not close the stream");
+        }
+    }
+
+    @Test
+    void throwExceptionWhenCreateKeyStoreForUnknownType() {
+        assertThatThrownBy(() -> KeyStoreUtils.createKeyStore("unknown", KEYSTORE_PASSWORD))
+                .isInstanceOf(GenericKeyStoreException.class)
+                .hasMessageContaining("unknown not found");
+    }
+
+    @Test
+    void throwGenericKeyStoreWhenSetCertificateEntryThrowsKeyStoreException() throws KeyStoreException {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
+                .withDefaultTrustMaterial()
+                .build();
+
+        X509Certificate[] trustedCertificates = sslFactory.getTrustedCertificates().toArray(new X509Certificate[0]);
+
+        KeyStore keyStore = mock(KeyStore.class);
+        doThrow(new KeyStoreException("lazy")).when(keyStore).setCertificateEntry(anyString(), any(Certificate.class));
+
+        try (MockedStatic<KeyStoreUtils> keyStoreUtilsMock = mockStatic(KeyStoreUtils.class, invocation -> {
+            Method method = invocation.getMethod();
+            if ("createKeyStore".equals(method.getName()) && method.getParameterCount() == 0) {
+                return invocation.getMock();
+            } else {
+                return invocation.callRealMethod();
+            }
+        })) {
+            keyStoreUtilsMock.when(KeyStoreUtils::createKeyStore).thenReturn(keyStore);
+
+            assertThatThrownBy(() -> KeyStoreUtils.createTrustStore(trustedCertificates))
+                    .isInstanceOf(GenericKeyStoreException.class)
+                    .hasMessageContaining("lazy");
         }
     }
 

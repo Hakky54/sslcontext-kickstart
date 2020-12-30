@@ -19,14 +19,10 @@ package nl.altindag.ssl.exception;
 /**
  * @author Hakan Altindag
  */
-public final class PrivateKeyParseException extends GenericSecurityException {
+public final class GenericIOException extends GenericSecurityException {
 
-    public PrivateKeyParseException(Throwable cause) {
+    public GenericIOException(Throwable cause) {
         super(cause);
-    }
-
-    public PrivateKeyParseException(String message) {
-        super(message);
     }
 
 }

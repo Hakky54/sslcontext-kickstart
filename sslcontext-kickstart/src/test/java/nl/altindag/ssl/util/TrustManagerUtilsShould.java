@@ -22,19 +22,15 @@ import nl.altindag.ssl.trustmanager.UnsafeX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.X509TrustManagerWrapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509ExtendedTrustManager;
 import javax.net.ssl.X509TrustManager;
-import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
 import java.security.Provider;
 import java.security.Security;
-import java.security.cert.CertificateException;
 import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,7 +38,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
 
 /**
  * @author Hakan Altindag
@@ -55,7 +50,7 @@ class TrustManagerUtilsShould {
     private static final String KEYSTORE_LOCATION = "keystores-for-unit-tests/";
 
     @Test
-    void combineTrustManagers() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void combineTrustManagers() throws KeyStoreException {
         KeyStore trustStoreOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         KeyStore trustStoreTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD);
         X509ExtendedTrustManager trustManager = TrustManagerUtils
@@ -67,7 +62,7 @@ class TrustManagerUtilsShould {
     }
 
     @Test
-    void combineTrustManagersWithTrustStoreHolders() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void combineTrustManagersWithTrustStoreHolders() throws KeyStoreException {
         KeyStore trustStoreOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         KeyStore trustStoreTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD);
 
@@ -83,7 +78,7 @@ class TrustManagerUtilsShould {
     }
 
     @Test
-    void combineTrustManagersWithKeyStores() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void combineTrustManagersWithKeyStores() throws KeyStoreException {
         KeyStore trustStoreOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         KeyStore trustStoreTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD);
 
@@ -96,7 +91,7 @@ class TrustManagerUtilsShould {
     }
 
     @Test
-    void combineTrustManagersWhileFilteringDuplicateCertificates() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void combineTrustManagersWhileFilteringDuplicateCertificates() throws KeyStoreException {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         X509ExtendedTrustManager trustManager = TrustManagerUtils
                 .combine(TrustManagerUtils.createTrustManager(trustStore), TrustManagerUtils.createTrustManager(trustStore));
@@ -124,7 +119,7 @@ class TrustManagerUtilsShould {
     }
 
     @Test
-    void createTrustManagerWithCustomSecurityProviderBasedOnTheName() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void createTrustManagerWithCustomSecurityProviderBasedOnTheName() {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 
         X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore, TrustManagerFactory.getDefaultAlgorithm(), "SunJSSE");
@@ -133,7 +128,7 @@ class TrustManagerUtilsShould {
     }
 
     @Test
-    void createTrustManagerWithCustomSecurityProvider() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void createTrustManagerWithCustomSecurityProvider() {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         Provider sunJSSE = Security.getProvider("SunJSSE");
 
@@ -171,18 +166,7 @@ class TrustManagerUtilsShould {
     }
 
     @Test
-    void createTrustManagerWithSystemTrustedCertificateWrapsCheckedExceptionIntoGenericSecurityException() {
-        try (MockedStatic<KeyStoreUtils> keyStoreUtilsMock = mockStatic(KeyStoreUtils.class)) {
-            keyStoreUtilsMock.when(KeyStoreUtils::loadSystemKeyStores).thenThrow(new KeyStoreException("KABOOOM!"));
-
-            assertThatThrownBy(TrustManagerUtils::createTrustManagerWithSystemTrustedCertificates)
-                    .hasMessageContaining("KABOOOM!")
-                    .isInstanceOf(GenericSecurityException.class);
-        }
-    }
-
-    @Test
-    void createTrustManagerWhenProvidingACustomTrustStore() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void createTrustManagerWhenProvidingACustomTrustStore() {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
 
@@ -201,7 +185,7 @@ class TrustManagerUtilsShould {
     }
 
     @Test
-    void createTrustManagerFromMultipleTrustManagers() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void createTrustManagerFromMultipleTrustManagers() {
         KeyStore trustStoreOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         KeyStore trustStoreTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD);
 
@@ -217,7 +201,7 @@ class TrustManagerUtilsShould {
     }
 
     @Test
-    void createTrustManagerFromMultipleTrustManagersUsingVarArgs() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void createTrustManagerFromMultipleTrustManagersUsingVarArgs() {
         KeyStore trustStoreOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         KeyStore trustStoreTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD);
 
@@ -232,7 +216,7 @@ class TrustManagerUtilsShould {
     }
 
     @Test
-    void createTrustManagerFromMultipleTrustManagersUsingList() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void createTrustManagerFromMultipleTrustManagersUsingList() {
         KeyStore trustStoreOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         KeyStore trustStoreTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD);
 
@@ -247,7 +231,7 @@ class TrustManagerUtilsShould {
     }
 
     @Test
-    void createTrustManagerFromMultipleTrustStoresUsingVarArgs() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void createTrustManagerFromMultipleTrustStoresUsingVarArgs() {
         KeyStore trustStoreOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         KeyStore trustStoreTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD);
 
@@ -259,7 +243,7 @@ class TrustManagerUtilsShould {
     }
 
     @Test
-    void createTrustManagerFromMultipleTrustStoresUsingList() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void createTrustManagerFromMultipleTrustStoresUsingList() {
         KeyStore trustStoreOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         KeyStore trustStoreTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD);
 
@@ -271,7 +255,7 @@ class TrustManagerUtilsShould {
     }
 
     @Test
-    void createTrustManagerFromMultipleTrustStores() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void createTrustManagerFromMultipleTrustStores() {
         KeyStore trustStoreOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         KeyStore trustStoreTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD);
 
@@ -284,7 +268,7 @@ class TrustManagerUtilsShould {
     }
 
     @Test
-    void createTrustManagerFromMultipleTrustStoresWithTrustManagerFactoryAlgorithm() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void createTrustManagerFromMultipleTrustStoresWithTrustManagerFactoryAlgorithm() {
         KeyStore trustStoreOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         KeyStore trustStoreTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD);
 
@@ -297,7 +281,7 @@ class TrustManagerUtilsShould {
     }
 
     @Test
-    void throwExceptionWhenInvalidTrustManagerAlgorithmIsProvided() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void throwExceptionWhenInvalidTrustManagerAlgorithmIsProvided() {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 
         assertThatThrownBy(() -> TrustManagerUtils.createTrustManager(trustStore, "ABCD"))
@@ -306,7 +290,7 @@ class TrustManagerUtilsShould {
     }
 
     @Test
-    void throwExceptionWhenInvalidSecurityProviderNameIsProvided() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void throwExceptionWhenInvalidSecurityProviderNameIsProvided() {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         String trustManagerFactoryAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
 
@@ -316,7 +300,7 @@ class TrustManagerUtilsShould {
     }
 
     @Test
-    void throwExceptionWhenInvalidSecurityProviderNameIsProvidedForTheTrustManagerFactoryAlgorithm() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void throwExceptionWhenInvalidSecurityProviderNameIsProvidedForTheTrustManagerFactoryAlgorithm() {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         String trustManagerFactoryAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
 
@@ -326,7 +310,7 @@ class TrustManagerUtilsShould {
     }
 
     @Test
-    void throwExceptionWhenInvalidSecurityProviderIsProvidedForTheTrustManagerFactoryAlgorithm() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void throwExceptionWhenInvalidSecurityProviderIsProvidedForTheTrustManagerFactoryAlgorithm() {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         String trustManagerFactoryAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
         Provider sunSecurityProvider = Security.getProvider("SUN");
@@ -337,12 +321,11 @@ class TrustManagerUtilsShould {
     }
 
     @Test
-    void throwGenericSecurityExceptionWhenTrustManagerFactoryCanNotInitializeWithTheProvidedTrustStore() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void throwGenericSecurityExceptionWhenTrustManagerFactoryCanNotInitializeWithTheProvidedTrustStore() throws KeyStoreException {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         TrustManagerFactory trustManagerFactory = mock(TrustManagerFactory.class);
 
         doThrow(new KeyStoreException("KABOOOM!")).when(trustManagerFactory).init(any(KeyStore.class));
-
 
         assertThatThrownBy(() -> TrustManagerUtils.createTrustManager(trustStore, trustManagerFactory))
                 .isInstanceOf(GenericSecurityException.class)

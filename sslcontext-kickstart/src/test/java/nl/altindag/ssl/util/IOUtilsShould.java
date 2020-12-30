@@ -16,23 +16,40 @@
 
 package nl.altindag.ssl.util;
 
+import nl.altindag.ssl.exception.GenericIOException;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.doThrow;
 
 /**
  * @author Hakan Altindag
  */
+@ExtendWith(MockitoExtension.class)
 class IOUtilsShould {
 
     @Test
-    void getContent() throws IOException {
+    void getContent() {
         ByteArrayInputStream inputStream = new ByteArrayInputStream("Hello".getBytes());
         String content = IOUtils.getContent(inputStream);
         assertThat(content).isEqualTo("Hello");
+    }
+
+    @Test
+    void bla() throws IOException {
+        ByteArrayInputStream inputStream = Mockito.spy(new ByteArrayInputStream("Hello".getBytes()));
+        doThrow(new IOException("Could not read the content")).when(inputStream).close();
+
+        assertThatThrownBy(() -> IOUtils.getContent(inputStream))
+                .isInstanceOf(GenericIOException.class)
+                .hasRootCauseMessage("Could not read the content");
     }
 
 }
