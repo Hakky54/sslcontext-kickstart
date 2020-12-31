@@ -35,7 +35,6 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
@@ -124,12 +123,10 @@ public final class CertificateUtils {
     public static List<Certificate> getSystemTrustedCertificates() {
         try {
             List<Certificate> certificates = new ArrayList<>();
-            for (KeyStore trustStore : KeyStoreUtils.loadSystemKeyStores()) {
-                Enumeration<String> aliases = trustStore.aliases();
-                while (aliases.hasMoreElements()) {
-                    String alias = aliases.nextElement();
-                    if (trustStore.isCertificateEntry(alias)) {
-                        Certificate certificate = trustStore.getCertificate(alias);
+            for (KeyStore keyStore : KeyStoreUtils.loadSystemKeyStores()) {
+                for (String alias : Collections.list(keyStore.aliases())) {
+                    if (keyStore.isCertificateEntry(alias)) {
+                        Certificate certificate = keyStore.getCertificate(alias);
                         certificates.add(certificate);
                     }
                 }
