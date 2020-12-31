@@ -211,10 +211,10 @@ public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustMa
 
     @Override
     public X509Certificate[] getAcceptedIssuers() {
-        return acceptedIssuers;
+        return Arrays.copyOf(acceptedIssuers, acceptedIssuers.length);
     }
 
-    public int size() {
+    protected int size() {
         return trustManagers.size();
     }
 

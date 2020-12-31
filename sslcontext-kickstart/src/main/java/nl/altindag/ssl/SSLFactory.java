@@ -16,10 +16,8 @@
 
 package nl.altindag.ssl;
 
-import nl.altindag.ssl.exception.GenericKeyManagerException;
 import nl.altindag.ssl.exception.GenericKeyStoreException;
 import nl.altindag.ssl.exception.GenericSecurityException;
-import nl.altindag.ssl.exception.GenericTrustManagerException;
 import nl.altindag.ssl.model.IdentityMaterial;
 import nl.altindag.ssl.model.KeyStoreHolder;
 import nl.altindag.ssl.model.SSLMaterial;
@@ -137,8 +135,6 @@ public final class SSLFactory {
 
         private static final String TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE = "TrustStore details are empty, which are required to be present when SSL/TLS is enabled";
         private static final String IDENTITY_VALIDATION_EXCEPTION_MESSAGE = "Identity details are empty, which are required to be present when SSL/TLS is enabled";
-        private static final String KEY_MANAGER_FACTORY_EXCEPTION = "KeyManagerFactory does not contain any KeyManagers of type X509ExtendedKeyManager";
-        private static final String TRUST_MANAGER_FACTORY_EXCEPTION = "TrustManagerFactory does not contain any TrustManagers of type X509ExtendedTrustManager";
         private static final String IDENTITY_AND_TRUST_MATERIAL_VALIDATION_EXCEPTION_MESSAGE = "Could not create instance of SSLFactory because Identity " +
                 "and Trust material are not present. Please provide at least a Trust material.";
 
@@ -176,17 +172,8 @@ public final class SSLFactory {
         }
 
         public <T extends TrustManagerFactory> Builder withTrustMaterial(T trustManagerFactory) {
-            List<X509ExtendedTrustManager> tm = Arrays.stream(trustManagerFactory.getTrustManagers())
-                    .filter(X509TrustManager.class::isInstance)
-                    .map(X509TrustManager.class::cast)
-                    .map(TrustManagerUtils::wrapIfNeeded)
-                    .collect(toList());
-
-            if (tm.isEmpty()) {
-                throw new GenericTrustManagerException(TRUST_MANAGER_FACTORY_EXCEPTION);
-            }
-
-            this.trustManagers.addAll(tm);
+            X509ExtendedTrustManager trustManager = TrustManagerUtils.getTrustManager(trustManagerFactory);
+            this.trustManagers.add(trustManager);
             return this;
         }
 
@@ -350,17 +337,8 @@ public final class SSLFactory {
         }
 
         public <T extends KeyManagerFactory> Builder withIdentityMaterial(T keyManagerFactory) {
-            List<X509ExtendedKeyManager> km = Arrays.stream(keyManagerFactory.getKeyManagers())
-                    .filter(X509KeyManager.class::isInstance)
-                    .map(X509KeyManager.class::cast)
-                    .map(KeyManagerUtils::wrapIfNeeded)
-                    .collect(toList());
-
-            if (km.isEmpty()) {
-                throw new GenericKeyManagerException(KEY_MANAGER_FACTORY_EXCEPTION);
-            }
-
-            this.identityManagers.addAll(km);
+            X509ExtendedKeyManager keyManager = KeyManagerUtils.getKeyManager(keyManagerFactory);
+            this.identityManagers.add(keyManager);
             return this;
         }
 

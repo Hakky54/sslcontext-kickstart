@@ -39,7 +39,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toList;
@@ -49,6 +48,8 @@ import static java.util.stream.Collectors.toList;
  */
 public final class KeyManagerUtils {
 
+    private static final String EMPTY_KEY_MANAGER_EXCEPTION = "Input does not contain KeyManagers";
+
     private KeyManagerUtils() {}
 
     public static X509ExtendedKeyManager combine(X509KeyManager... keyManagers) {
@@ -56,6 +57,10 @@ public final class KeyManagerUtils {
     }
 
     public static X509ExtendedKeyManager combine(List<? extends X509KeyManager> keyManagers) {
+        if (keyManagers.isEmpty()) {
+            throw new GenericKeyManagerException(EMPTY_KEY_MANAGER_EXCEPTION);
+        }
+
         if (keyManagers.size() == 1) {
             return KeyManagerUtils.wrapIfNeeded(keyManagers.get(0));
         }
@@ -109,11 +114,7 @@ public final class KeyManagerUtils {
     public static X509ExtendedKeyManager createKeyManager(KeyStore keyStore, char[] keyPassword, KeyManagerFactory keyManagerFactory) {
         try {
             keyManagerFactory.init(keyStore, keyPassword);
-            return Arrays.stream(keyManagerFactory.getKeyManagers())
-                    .filter(X509KeyManager.class::isInstance)
-                    .map(X509KeyManager.class::cast)
-                    .map(KeyManagerUtils::wrapIfNeeded)
-                    .collect(Collectors.collectingAndThen(Collectors.toList(), KeyManagerUtils::combine));
+            return KeyManagerUtils.getKeyManager(keyManagerFactory);
         } catch (KeyStoreException | NoSuchAlgorithmException | UnrecoverableKeyException e) {
             throw new GenericKeyManagerException(e);
         }
@@ -157,6 +158,14 @@ public final class KeyManagerUtils {
 
     public static KeyManagerFactory createKeyManagerFactory(KeyManager keyManager) {
         return new KeyManagerFactoryWrapper(keyManager);
+    }
+
+    public static <T extends KeyManagerFactory> X509ExtendedKeyManager getKeyManager(T keyManagerFactory) {
+        return Arrays.stream(keyManagerFactory.getKeyManagers())
+                .filter(X509KeyManager.class::isInstance)
+                .map(X509KeyManager.class::cast)
+                .map(KeyManagerUtils::wrapIfNeeded)
+                .collect(collectingAndThen(toList(), KeyManagerUtils::combine));
     }
 
     public static KeyManagerBuilder keyManagerBuilder() {

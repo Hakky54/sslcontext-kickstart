@@ -17,8 +17,10 @@
 package nl.altindag.ssl;
 
 import nl.altindag.log.LogCaptor;
+import nl.altindag.ssl.exception.GenericKeyManagerException;
 import nl.altindag.ssl.exception.GenericKeyStoreException;
 import nl.altindag.ssl.exception.GenericSecurityException;
+import nl.altindag.ssl.exception.GenericTrustManagerException;
 import nl.altindag.ssl.trustmanager.CompositeX509ExtendedTrustManager;
 import nl.altindag.ssl.util.KeyManagerUtils;
 import nl.altindag.ssl.util.KeyStoreUtils;
@@ -289,24 +291,30 @@ class SSLFactoryShould {
 
     @Test
     void buildSSLFactoryWithTrustMaterialFromOnlySystemTrustedCertificates() {
-        SSLFactory sslFactory = SSLFactory.builder()
-                .withSystemTrustMaterial()
-                .build();
-
-        assertThat(sslFactory.getSslContext()).isNotNull();
-
-        assertThat(sslFactory.getTrustManager()).isPresent();
-        assertThat(sslFactory.getTrustManagerFactory()).isPresent();
-        assertThat(sslFactory.getTrustStores()).isEmpty();
-
         String operatingSystem = System.getProperty("os.name").toLowerCase();
         if (operatingSystem.contains("mac") || operatingSystem.contains("windows")) {
+            SSLFactory sslFactory = SSLFactory.builder()
+                    .withSystemTrustMaterial()
+                    .build();
+
+            assertThat(sslFactory.getSslContext()).isNotNull();
+
+            assertThat(sslFactory.getTrustManager()).isPresent();
+            assertThat(sslFactory.getTrustManagerFactory()).isPresent();
+            assertThat(sslFactory.getTrustStores()).isEmpty();
+
             assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
+            assertThat(sslFactory.getKeyManager()).isNotPresent();
+            assertThat(sslFactory.getKeyManagerFactory()).isNotPresent();
+            assertThat(sslFactory.getIdentities()).isEmpty();
         }
 
-        assertThat(sslFactory.getKeyManager()).isNotPresent();
-        assertThat(sslFactory.getKeyManagerFactory()).isNotPresent();
-        assertThat(sslFactory.getIdentities()).isEmpty();
+        if (operatingSystem.contains("linux")) {
+            SSLFactory.Builder sslFactoryBuilder = SSLFactory.builder();
+            assertThatThrownBy(sslFactoryBuilder::withSystemTrustMaterial)
+                    .isInstanceOf(GenericTrustManagerException.class)
+                    .hasMessage("Input does not contain TrustManager");
+        }
     }
 
     @Test
@@ -1205,8 +1213,8 @@ class SSLFactoryShould {
         SSLFactory.Builder sslFactoryBuilder = SSLFactory.builder();
 
         assertThatThrownBy(() -> sslFactoryBuilder.withIdentityMaterial(keyManagerFactory))
-                .isInstanceOf(GenericSecurityException.class)
-                .hasMessage("KeyManagerFactory does not contain any KeyManagers of type X509ExtendedKeyManager");
+                .isInstanceOf(GenericKeyManagerException.class)
+                .hasMessage("Input does not contain KeyManagers");
     }
 
     @Test
@@ -1219,8 +1227,8 @@ class SSLFactoryShould {
         SSLFactory.Builder sslFactoryBuilder = SSLFactory.builder();
 
         assertThatThrownBy(() -> sslFactoryBuilder.withTrustMaterial(trustManagerFactory))
-                .isInstanceOf(GenericSecurityException.class)
-                .hasMessage("TrustManagerFactory does not contain any TrustManagers of type X509ExtendedTrustManager");
+                .isInstanceOf(GenericTrustManagerException.class)
+                .hasMessage("Input does not contain TrustManager");
     }
 
     @SuppressWarnings("SameParameterValue")

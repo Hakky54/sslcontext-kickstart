@@ -17,6 +17,7 @@
 package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.exception.GenericSecurityException;
+import nl.altindag.ssl.exception.GenericTrustManagerException;
 import nl.altindag.ssl.model.KeyStoreHolder;
 import nl.altindag.ssl.trustmanager.UnsafeX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.X509TrustManagerWrapper;
@@ -155,13 +156,18 @@ class TrustManagerUtilsShould {
 
     @Test
     void createTrustManagerWithSystemTrustedCertificate() {
-        X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManagerWithSystemTrustedCertificates();
-
-        assertThat(trustManager).isNotNull();
-
         String operatingSystem = System.getProperty("os.name").toLowerCase();
         if (operatingSystem.contains("mac") || operatingSystem.contains("windows")) {
+            X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManagerWithSystemTrustedCertificates();
+            assertThat(trustManager).isNotNull();
+
             assertThat((trustManager).getAcceptedIssuers()).hasSizeGreaterThan(0);
+        }
+
+        if (operatingSystem.contains("linux")) {
+            assertThatThrownBy(TrustManagerUtils::createTrustManagerWithSystemTrustedCertificates)
+                    .isInstanceOf(GenericTrustManagerException.class)
+                    .hasMessage("Input does not contain TrustManager");
         }
     }
 

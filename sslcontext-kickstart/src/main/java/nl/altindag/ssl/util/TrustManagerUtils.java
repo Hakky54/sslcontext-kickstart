@@ -35,12 +35,16 @@ import java.security.Provider;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.toList;
 
 /**
  * @author Hakan Altindag
  */
 public final class TrustManagerUtils {
+
+    private static final String EMPTY_TRUST_MANAGER_EXCEPTION = "Input does not contain TrustManager";
 
     private TrustManagerUtils() {}
 
@@ -49,6 +53,10 @@ public final class TrustManagerUtils {
     }
 
     public static X509ExtendedTrustManager combine(List<? extends X509TrustManager> trustManagers) {
+        if (trustManagers.isEmpty()) {
+            throw new GenericTrustManagerException(EMPTY_TRUST_MANAGER_EXCEPTION);
+        }
+
         if (trustManagers.size() == 1) {
             return TrustManagerUtils.wrapIfNeeded(trustManagers.get(0));
         }
@@ -75,13 +83,13 @@ public final class TrustManagerUtils {
         return Arrays.stream(trustStoreHolders)
                 .map(KeyStoreHolder::getKeyStore)
                 .map(TrustManagerUtils::createTrustManager)
-                .collect(Collectors.collectingAndThen(Collectors.toList(), TrustManagerUtils::combine));
+                .collect(collectingAndThen(toList(), TrustManagerUtils::combine));
     }
 
     public static X509ExtendedTrustManager createTrustManager(KeyStore... trustStores) {
         return Arrays.stream(trustStores)
                 .map(TrustManagerUtils::createTrustManager)
-                .collect(Collectors.collectingAndThen(Collectors.toList(), TrustManagerUtils::combine));
+                .collect(collectingAndThen(toList(), TrustManagerUtils::combine));
     }
 
     public static X509ExtendedTrustManager createTrustManager(KeyStore trustStore) {
@@ -118,11 +126,7 @@ public final class TrustManagerUtils {
     public static X509ExtendedTrustManager createTrustManager(KeyStore trustStore, TrustManagerFactory trustManagerFactory) {
         try {
             trustManagerFactory.init(trustStore);
-            return Arrays.stream(trustManagerFactory.getTrustManagers())
-                    .filter(X509TrustManager.class::isInstance)
-                    .map(X509TrustManager.class::cast)
-                    .map(TrustManagerUtils::wrapIfNeeded)
-                    .collect(Collectors.collectingAndThen(Collectors.toList(), TrustManagerUtils::combine));
+            return TrustManagerUtils.getTrustManager(trustManagerFactory);
         } catch (KeyStoreException e) {
             throw new GenericTrustManagerException(e);
         }
@@ -142,6 +146,14 @@ public final class TrustManagerUtils {
 
     public static TrustManagerFactory createTrustManagerFactory(TrustManager trustManager) {
         return new TrustManagerFactoryWrapper(trustManager);
+    }
+
+    public static <T extends TrustManagerFactory> X509ExtendedTrustManager getTrustManager(T trustManagerFactory) {
+        return Arrays.stream(trustManagerFactory.getTrustManagers())
+                .filter(X509TrustManager.class::isInstance)
+                .map(X509TrustManager.class::cast)
+                .map(TrustManagerUtils::wrapIfNeeded)
+                .collect(collectingAndThen(toList(), TrustManagerUtils::combine));
     }
 
     public static TrustManagerBuilder trustManagerBuilder() {
