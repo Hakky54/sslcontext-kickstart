@@ -157,7 +157,7 @@ public final class SSLFactory {
         private Builder() {}
 
         public Builder withSystemTrustMaterial() {
-            trustManagers.add(TrustManagerUtils.createTrustManagerWithSystemTrustedCertificates());
+            TrustManagerUtils.createTrustManagerWithSystemTrustedCertificates().ifPresent(trustManagers::add);
             return this;
         }
 

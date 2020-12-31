@@ -310,10 +310,12 @@ class SSLFactoryShould {
         }
 
         if (operatingSystem.contains("linux")) {
-            SSLFactory.Builder sslFactoryBuilder = SSLFactory.builder();
-            assertThatThrownBy(sslFactoryBuilder::withSystemTrustMaterial)
-                    .isInstanceOf(GenericTrustManagerException.class)
-                    .hasMessage("Input does not contain TrustManager");
+            SSLFactory.Builder sslFactoryBuilder = SSLFactory.builder()
+                    .withSystemTrustMaterial();
+
+            assertThatThrownBy(sslFactoryBuilder::build)
+                    .isInstanceOf(GenericSecurityException.class)
+                    .hasMessage("Could not create instance of SSLFactory because Identity and Trust material are not present. Please provide at least a Trust material.");
         }
     }
 

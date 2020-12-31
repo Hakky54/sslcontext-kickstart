@@ -26,6 +26,8 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
@@ -33,6 +35,7 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
@@ -116,6 +119,25 @@ public final class CertificateUtils {
         }
 
         return certificates;
+    }
+
+    public static List<Certificate> getSystemTrustedCertificates() {
+        try {
+            List<Certificate> certificates = new ArrayList<>();
+            for (KeyStore trustStore : KeyStoreUtils.loadSystemKeyStores()) {
+                Enumeration<String> aliases = trustStore.aliases();
+                while (aliases.hasMoreElements()) {
+                    String alias = aliases.nextElement();
+                    if (trustStore.isCertificateEntry(alias)) {
+                        Certificate certificate = trustStore.getCertificate(alias);
+                        certificates.add(certificate);
+                    }
+                }
+            }
+            return certificates;
+        } catch (KeyStoreException e) {
+            throw new GenericCertificateException(e);
+        }
     }
 
 }

@@ -18,6 +18,8 @@ package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.exception.GenericKeyStoreException;
 import nl.altindag.ssl.model.KeyStoreHolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.X509TrustManager;
 
@@ -44,6 +46,8 @@ import java.util.List;
  * @author Hakan Altindag
  */
 public final class KeyStoreUtils {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(KeyStoreUtils.class);
 
     public static final String DUMMY_PASSWORD = "dummy-password";
     private static final char[] EMPTY_PASSWORD = {};
@@ -162,6 +166,10 @@ public final class KeyStoreUtils {
         if (operatingSystem.contains("mac")) {
             KeyStore macKeyStore = createKeyStore("KeychainStore", null);
             keyStores.add(macKeyStore);
+        }
+
+        if (keyStores.isEmpty()) {
+            LOGGER.warn("No system trusted certificates available for [{}]", operatingSystem);
         }
 
         return keyStores;

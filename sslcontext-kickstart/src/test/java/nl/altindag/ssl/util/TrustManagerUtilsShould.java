@@ -33,6 +33,9 @@ import java.security.KeyStoreException;
 import java.security.Provider;
 import java.security.Security;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -49,6 +52,7 @@ class TrustManagerUtilsShould {
     private static final String TRUSTSTORE_FILE_NAME = "truststore.jks";
     private static final char[] TRUSTSTORE_PASSWORD = new char[] {'s', 'e', 'c', 'r', 'e', 't'};
     private static final String KEYSTORE_LOCATION = "keystores-for-unit-tests/";
+    private static final String ORIGINAL_OS_NAME = System.getProperty("os.name");
 
     @Test
     void combineTrustManagers() throws KeyStoreException {
@@ -157,17 +161,14 @@ class TrustManagerUtilsShould {
     @Test
     void createTrustManagerWithSystemTrustedCertificate() {
         String operatingSystem = System.getProperty("os.name").toLowerCase();
+        Optional<X509ExtendedTrustManager> trustManager = TrustManagerUtils.createTrustManagerWithSystemTrustedCertificates();
         if (operatingSystem.contains("mac") || operatingSystem.contains("windows")) {
-            X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManagerWithSystemTrustedCertificates();
-            assertThat(trustManager).isNotNull();
-
-            assertThat((trustManager).getAcceptedIssuers()).hasSizeGreaterThan(0);
+            assertThat(trustManager).isPresent();
+            assertThat((trustManager).get().getAcceptedIssuers()).hasSizeGreaterThan(0);
         }
 
         if (operatingSystem.contains("linux")) {
-            assertThatThrownBy(TrustManagerUtils::createTrustManagerWithSystemTrustedCertificates)
-                    .isInstanceOf(GenericTrustManagerException.class)
-                    .hasMessage("Input does not contain TrustManager");
+            assertThat(trustManager).isNotPresent();
         }
     }
 
@@ -274,6 +275,16 @@ class TrustManagerUtilsShould {
     }
 
     @Test
+    void loadLinuxSystemKeyStoreReturnsOptionalOfEmpty() {
+        System.setProperty("os.name", "linux");
+
+        Optional<X509ExtendedTrustManager> trustManager = TrustManagerUtils.createTrustManagerWithSystemTrustedCertificates();
+        assertThat(trustManager).isNotPresent();
+
+        resetOsName();
+    }
+
+    @Test
     void createTrustManagerFromMultipleTrustStoresWithTrustManagerFactoryAlgorithm() {
         KeyStore trustStoreOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         KeyStore trustStoreTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD);
@@ -336,6 +347,18 @@ class TrustManagerUtilsShould {
         assertThatThrownBy(() -> TrustManagerUtils.createTrustManager(trustStore, trustManagerFactory))
                 .isInstanceOf(GenericSecurityException.class)
                 .hasMessage("java.security.KeyStoreException: KABOOOM!");
+    }
+
+    @Test
+    void throwGenericTrustManagerExceptionWhenProvidingEmptyListOfTrustManagersWhenCombining() {
+        List<X509TrustManager> trustManagers = Collections.emptyList();
+        assertThatThrownBy(() -> TrustManagerUtils.combine(trustManagers))
+                .isInstanceOf(GenericTrustManagerException.class)
+                .hasMessage("Input does not contain TrustManager");
+    }
+
+    private void resetOsName() {
+        System.setProperty("os.name", ORIGINAL_OS_NAME);
     }
 
 }

@@ -16,6 +16,7 @@
 
 package nl.altindag.ssl.util;
 
+import nl.altindag.log.LogCaptor;
 import nl.altindag.ssl.SSLFactory;
 import nl.altindag.ssl.exception.GenericKeyStoreException;
 import org.junit.jupiter.api.Test;
@@ -151,6 +152,22 @@ class KeyStoreUtilsShould {
             List<KeyStore> keyStores = KeyStoreUtils.loadSystemKeyStores();
             assertThat(keyStores).containsExactly(macKeyStore);
         }
+
+        resetOsName();
+    }
+
+    @Test
+    void loadLinuxSystemKeyStoreReturnsEmptyList() {
+        System.setProperty("os.name", "linux");
+
+        LogCaptor logCaptor = LogCaptor.forClass(KeyStoreUtils.class);
+
+        List<KeyStore> trustStores = KeyStoreUtils.loadSystemKeyStores();
+
+        assertThat(trustStores).isEmpty();
+        assertThat(logCaptor.getWarnLogs())
+                .hasSize(1)
+                .contains("No system trusted certificates available for [linux]");
 
         resetOsName();
     }

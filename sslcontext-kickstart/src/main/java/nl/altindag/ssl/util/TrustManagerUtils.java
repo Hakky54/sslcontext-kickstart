@@ -35,6 +35,7 @@ import java.security.Provider;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toList;
@@ -74,9 +75,14 @@ public final class TrustManagerUtils {
         return createTrustManager((KeyStore) null);
     }
 
-    public static X509ExtendedTrustManager createTrustManagerWithSystemTrustedCertificates() {
-        KeyStore[] trustStores = KeyStoreUtils.loadSystemKeyStores().toArray(new KeyStore[]{});
-        return createTrustManager(trustStores);
+    public static Optional<X509ExtendedTrustManager> createTrustManagerWithSystemTrustedCertificates() {
+        List<KeyStore> trustStores = KeyStoreUtils.loadSystemKeyStores();
+        if (trustStores.isEmpty()) {
+            return Optional.empty();
+        }
+
+        X509ExtendedTrustManager trustManager = createTrustManager(trustStores.toArray(new KeyStore[]{}));
+        return Optional.of(trustManager);
     }
 
     public static X509ExtendedTrustManager createTrustManager(KeyStoreHolder... trustStoreHolders) {

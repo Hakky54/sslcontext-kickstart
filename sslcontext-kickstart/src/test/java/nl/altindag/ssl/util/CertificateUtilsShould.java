@@ -30,10 +30,13 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -122,6 +125,34 @@ class CertificateUtilsShould {
     }
 
     @Test
+    void getSystemTrustedCertificates() {
+        String operatingSystem = System.getProperty("os.name").toLowerCase();
+        List<Certificate> certificates = CertificateUtils.getSystemTrustedCertificates();
+        if (operatingSystem.contains("mac") || operatingSystem.contains("windows")) {
+            assertThat(certificates).isNotEmpty();
+        }
+
+        if (operatingSystem.contains("linux")) {
+            assertThat(certificates).isEmpty();
+        }
+    }
+
+    @Test
+    void getSystemTrustedCertificatesDoesNotReturnCertificateIfNotACertificateEntry() throws KeyStoreException {
+        KeyStore keyStore = mock(KeyStore.class);
+        try (MockedStatic<KeyStoreUtils> keyStoreUtilsMockedStatic = mockStatic(KeyStoreUtils.class, InvocationOnMock::getMock)) {
+
+            keyStoreUtilsMockedStatic.when(KeyStoreUtils::loadSystemKeyStores).thenReturn(Collections.singletonList(keyStore));
+            when(keyStore.aliases()).thenReturn(Collections.enumeration(Collections.singletonList("client")));
+            when(keyStore.isCertificateEntry("client")).thenReturn(false);
+
+            List<Certificate> certificates = CertificateUtils.getSystemTrustedCertificates();
+
+            assertThat(certificates).isEmpty();
+        }
+    }
+
+    @Test
     void throwsGenericIOExceptionWhenCloseOfTheStreamFails() throws IOException {
         InputStream inputStream = spy(getResource(PEM_LOCATION + "multiple-certificates.pem"));
 
@@ -143,6 +174,20 @@ class CertificateUtilsShould {
             String content = IOUtils.getContent(resource);
 
             assertThatThrownBy(() -> CertificateUtils.parseCertificate(content))
+                    .isInstanceOf(GenericCertificateException.class)
+                    .hasMessageContaining("KABOOM!!!");
+        }
+    }
+
+    @Test
+    void throwsGenericCertificateExceptionWhenGettingSystemTrustedCertificatesFails() throws KeyStoreException {
+        KeyStore keyStore = mock(KeyStore.class);
+        try (MockedStatic<KeyStoreUtils> keyStoreUtilsMockedStatic = mockStatic(KeyStoreUtils.class, InvocationOnMock::getMock)) {
+
+            keyStoreUtilsMockedStatic.when(KeyStoreUtils::loadSystemKeyStores).thenReturn(Collections.singletonList(keyStore));
+            when(keyStore.aliases()).thenThrow(new KeyStoreException("KABOOM!!!"));
+
+            assertThatThrownBy(CertificateUtils::getSystemTrustedCertificates)
                     .isInstanceOf(GenericCertificateException.class)
                     .hasMessageContaining("KABOOM!!!");
         }
