@@ -16,7 +16,7 @@
 
 package nl.altindag.ssl.util;
 
-import nl.altindag.ssl.exception.GenericSecurityException;
+import nl.altindag.ssl.exception.GenericKeyManagerException;
 import nl.altindag.ssl.keymanager.CompositeX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.X509KeyManagerWrapper;
 import nl.altindag.ssl.model.KeyStoreHolder;
@@ -27,13 +27,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509KeyManager;
-import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
 import java.security.Provider;
 import java.security.Security;
-import java.security.cert.CertificateException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -54,7 +51,7 @@ class KeyManagerUtilsShould {
     private static final String KEYSTORE_LOCATION = "keystores-for-unit-tests/";
 
     @Test
-    void createKeyManagerWithKeyStoreAndCustomAlgorithm() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void createKeyManagerWithKeyStoreAndCustomAlgorithm() {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         X509ExtendedKeyManager keyManager = KeyManagerUtils.createKeyManager(identity, IDENTITY_PASSWORD, KeyManagerFactory.getDefaultAlgorithm());
 
@@ -62,7 +59,7 @@ class KeyManagerUtilsShould {
     }
 
     @Test
-    void createKeyManagerWithKeyStoreHolders() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void createKeyManagerWithKeyStoreHolders() {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
@@ -75,7 +72,7 @@ class KeyManagerUtilsShould {
     }
 
     @Test
-    void createKeyManagerWithCustomSecurityProviderName() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void createKeyManagerWithCustomSecurityProviderName() {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
 
         X509ExtendedKeyManager keyManager = KeyManagerUtils.createKeyManager(identity, IDENTITY_PASSWORD, KeyManagerFactory.getDefaultAlgorithm(), "SunJSSE");
@@ -84,7 +81,7 @@ class KeyManagerUtilsShould {
     }
 
     @Test
-    void createKeyManagerWithCustomSecurityProvider() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void createKeyManagerWithCustomSecurityProvider() {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         Provider sunJsseSecurityProvider = Security.getProvider("SunJSSE");
 
@@ -112,7 +109,7 @@ class KeyManagerUtilsShould {
     }
 
     @Test
-    void combineMultipleKeyManagersIntoOne() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void combineMultipleKeyManagersIntoOne() {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
@@ -134,7 +131,7 @@ class KeyManagerUtilsShould {
     }
 
     @Test
-    void createKeyManagerFromMultipleKeyManagers() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void createKeyManagerFromMultipleKeyManagers() {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
@@ -150,7 +147,7 @@ class KeyManagerUtilsShould {
     }
 
     @Test
-    void createKeyManagerFromMultipleKeyManagersUsingVarArgs() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void createKeyManagerFromMultipleKeyManagersUsingVarArgs() {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
@@ -165,7 +162,7 @@ class KeyManagerUtilsShould {
     }
 
     @Test
-    void createKeyManagerFromMultipleKeyManagersUsingList() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void createKeyManagerFromMultipleKeyManagersUsingList() {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
@@ -180,7 +177,7 @@ class KeyManagerUtilsShould {
     }
 
     @Test
-    void createKeyManagerFromMultipleKeyStoreHoldersAsVarArgs() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void createKeyManagerFromMultipleKeyStoreHoldersAsVarArgs() {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
@@ -195,7 +192,7 @@ class KeyManagerUtilsShould {
     }
 
     @Test
-    void createKeyManagerFromMultipleKeyStoreHoldersAsList() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void createKeyManagerFromMultipleKeyStoreHoldersAsList() {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
@@ -210,7 +207,7 @@ class KeyManagerUtilsShould {
     }
 
     @Test
-    void createKeyManagerFromAMultipleKeyStores() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void createKeyManagerFromAMultipleKeyStores() {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
@@ -223,7 +220,7 @@ class KeyManagerUtilsShould {
     }
 
     @Test
-    void createKeyManagerFromKeyStoreContainingMultipleKeysWithDifferentPasswords() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void createKeyManagerFromKeyStoreContainingMultipleKeysWithDifferentPasswords() throws KeyStoreException {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "identity-with-multiple-keys.jks", IDENTITY_PASSWORD);
 
         assertThat(identity.size()).isEqualTo(2);
@@ -245,7 +242,18 @@ class KeyManagerUtilsShould {
     }
 
     @Test
-    void throwExceptionWhenCreatingKeyManagerFromKeyStoreWhichDoesNotHaveMatchingAlias() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void toArray() {
+        KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManager = KeyManagerUtils.createKeyManager(identity, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager[] keyManagers = KeyManagerUtils.toArray(keyManager);
+        assertThat(keyManagers)
+                .hasSize(1)
+                .contains(keyManager);
+    }
+
+    @Test
+    void throwExceptionWhenCreatingKeyManagerFromKeyStoreWhichDoesNotHaveMatchingAlias() throws KeyStoreException {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "identity-with-multiple-keys.jks", IDENTITY_PASSWORD);
 
         assertThat(identity.size()).isEqualTo(2);
@@ -259,12 +267,12 @@ class KeyManagerUtilsShould {
         aliasToPassword.put("James", "team-rocket".toCharArray());
 
         assertThatThrownBy(() -> KeyManagerUtils.createKeyManager(identity, aliasToPassword))
-                .isInstanceOf(GenericSecurityException.class)
+                .isInstanceOf(GenericKeyManagerException.class)
                 .hasMessage("Could not create any KeyManager from the given KeyStore, Alias and Password");
     }
 
     @Test
-    void throwExceptionWhenCreatingKeyManagerFromKeyStoreWhithIncorrectKeyPassword() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void throwExceptionWhenCreatingKeyManagerFromKeyStoreWhithIncorrectKeyPassword() throws KeyStoreException {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "identity-with-multiple-keys.jks", IDENTITY_PASSWORD);
 
         assertThat(identity.size()).isEqualTo(2);
@@ -281,36 +289,46 @@ class KeyManagerUtilsShould {
         aliasToPassword.put("yugioh", "team-rocket".toCharArray());
 
         assertThatThrownBy(() -> KeyManagerUtils.createKeyManager(identity, aliasToPassword))
-                .isInstanceOf(GenericSecurityException.class);
+                .isInstanceOf(GenericKeyManagerException.class);
     }
 
     @Test
-    void throwExceptionWhenCreatingKeyManagerWithInvalidAlgorithm() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void throwExceptionWhenCreatingKeyManagerWithIncorrectKeyPassword() {
+        KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        char[] keyPassword = "no-password".toCharArray();
+        String keyManagerFactoryAlgorithm = KeyManagerFactory.getDefaultAlgorithm();
+
+        assertThatThrownBy(() -> KeyManagerUtils.createKeyManager(identity, keyPassword, keyManagerFactoryAlgorithm))
+                .isInstanceOf(GenericKeyManagerException.class);
+    }
+
+    @Test
+    void throwExceptionWhenCreatingKeyManagerWithInvalidAlgorithm() {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
 
         assertThatThrownBy(() -> KeyManagerUtils.createKeyManager(identity, IDENTITY_PASSWORD, "NONE"))
-                .isInstanceOf(GenericSecurityException.class)
+                .isInstanceOf(GenericKeyManagerException.class)
                 .hasMessage("java.security.NoSuchAlgorithmException: NONE KeyManagerFactory not available");
     }
 
     @Test
-    void throwExceptionWhenCreatingKeyManagerWithInvalidSecurityProviderName() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void throwExceptionWhenCreatingKeyManagerWithInvalidSecurityProviderName() {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         String keyManagerFactoryAlgorithm = KeyManagerFactory.getDefaultAlgorithm();
 
         assertThatThrownBy(() -> KeyManagerUtils.createKeyManager(identity, IDENTITY_PASSWORD, keyManagerFactoryAlgorithm, "test"))
-                .isInstanceOf(GenericSecurityException.class)
+                .isInstanceOf(GenericKeyManagerException.class)
                 .hasMessage("java.security.NoSuchProviderException: no such provider: test");
     }
 
     @Test
-    void throwExceptionWhenInvalidSecurityProviderIsProvidedForTheKeyManagerFactoryAlgorithm() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void throwExceptionWhenInvalidSecurityProviderIsProvidedForTheKeyManagerFactoryAlgorithm() {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         String keyManagerFactoryAlgorithm = KeyManagerFactory.getDefaultAlgorithm();
         Provider sunSecurityProvider = Security.getProvider("SUN");
 
         assertThatThrownBy(() -> KeyManagerUtils.createKeyManager(identity, IDENTITY_PASSWORD, keyManagerFactoryAlgorithm, sunSecurityProvider))
-                .isInstanceOf(GenericSecurityException.class)
+                .isInstanceOf(GenericKeyManagerException.class)
                 .hasMessage("java.security.NoSuchAlgorithmException: no such algorithm: SunX509 for provider SUN");
     }
 

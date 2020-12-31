@@ -16,8 +16,9 @@
 
 package nl.altindag.ssl.util;
 
+import nl.altindag.ssl.exception.GenericIOException;
+
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -33,12 +34,14 @@ public final class IOUtils {
 
     private IOUtils() {}
 
-    public static String getContent(InputStream inputStream) throws IOException {
+    public static String getContent(InputStream inputStream) {
         try (InputStreamReader inputStreamReader = new InputStreamReader(Objects.requireNonNull(inputStream), StandardCharsets.UTF_8);
              BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
 
             return bufferedReader.lines()
                     .collect(Collectors.joining(NEW_LINE));
+        } catch (Exception e) {
+            throw new GenericIOException(e);
         }
     }
 

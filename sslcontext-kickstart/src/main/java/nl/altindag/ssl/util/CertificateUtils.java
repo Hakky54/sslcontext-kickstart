@@ -16,6 +16,9 @@
 
 package nl.altindag.ssl.util;
 
+import nl.altindag.ssl.exception.GenericCertificateException;
+import nl.altindag.ssl.exception.GenericIOException;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -59,11 +62,11 @@ public final class CertificateUtils {
         }
     }
 
-    public static List<Certificate> loadCertificate(String... certificatePaths) throws CertificateException, IOException {
+    public static List<Certificate> loadCertificate(String... certificatePaths) {
         return loadCertificate(certificatePath -> CertificateUtils.class.getClassLoader().getResourceAsStream(certificatePath), certificatePaths);
     }
 
-    public static List<Certificate> loadCertificate(Path... certificatePaths) throws CertificateException, IOException {
+    public static List<Certificate> loadCertificate(Path... certificatePaths) {
         return loadCertificate(certificatePath -> {
             try {
                 return Files.newInputStream(certificatePath, StandardOpenOption.READ);
@@ -73,28 +76,30 @@ public final class CertificateUtils {
         }, certificatePaths);
     }
 
-    public static List<Certificate> loadCertificate(InputStream... certificateStreams) throws CertificateException, IOException {
+    public static List<Certificate> loadCertificate(InputStream... certificateStreams) {
         return loadCertificate(Function.identity(), certificateStreams);
     }
 
     @SafeVarargs
-    private static <T> List<Certificate> loadCertificate(Function<T, InputStream> resourceMapper, T... resources) throws IOException, CertificateException {
+    private static <T> List<Certificate> loadCertificate(Function<T, InputStream> resourceMapper, T... resources) {
         List<Certificate> certificates = new ArrayList<>();
         for (T resource : resources) {
             try (InputStream certificateStream = resourceMapper.apply(resource)) {
                 certificates.addAll(parseCertificate(certificateStream));
+            } catch (Exception e) {
+                throw new GenericIOException(e);
             }
         }
 
         return Collections.unmodifiableList(certificates);
     }
 
-    private static List<Certificate> parseCertificate(InputStream certificateStream) throws IOException, CertificateException {
+    private static List<Certificate> parseCertificate(InputStream certificateStream) {
         String content = IOUtils.getContent(certificateStream);
         return parseCertificate(content);
     }
 
-    public static List<Certificate> parseCertificate(String certificateContent) throws IOException, CertificateException {
+    public static List<Certificate> parseCertificate(String certificateContent) {
         List<Certificate> certificates = new ArrayList<>();
         Matcher certificateMatcher = CERTIFICATE_PATTERN.matcher(certificateContent);
 
@@ -105,6 +110,8 @@ public final class CertificateUtils {
                 CertificateFactory certificateFactory = CertificateFactory.getInstance(CERTIFICATE_TYPE);
                 Certificate certificate = certificateFactory.generateCertificate(certificateAsInputStream);
                 certificates.add(certificate);
+            } catch (IOException | CertificateException e) {
+                throw new GenericCertificateException(e);
             }
         }
 

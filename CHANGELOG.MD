@@ -14,6 +14,9 @@ changes with their rationale when appropriate:
 - Moved KeyManagerBuilder to KeyManagerUtils
 - Moved TrustManagerBuilder to TrustManagerUtils
 - Added SocketUtils
+- Added SSLContextUtils
+- Simplified SSLFactory
+- Wrapped checked exceptions with unchecked exceptions
 
 ### v6.0.0
 - Renamed package from nl.altindag.sslcontext to nl.altindag.ssl

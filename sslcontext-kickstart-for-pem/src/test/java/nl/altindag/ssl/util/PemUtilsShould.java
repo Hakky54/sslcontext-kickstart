@@ -16,11 +16,15 @@
 
 package nl.altindag.ssl.util;
 
+import nl.altindag.ssl.exception.GenericIOException;
+import nl.altindag.ssl.exception.GenericKeyStoreException;
 import nl.altindag.ssl.exception.PrivateKeyParseException;
 import nl.altindag.ssl.exception.PublicKeyParseException;
-import org.bouncycastle.operator.OperatorCreationException;
-import org.bouncycastle.pkcs.PKCSException;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.MockedStatic;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509ExtendedTrustManager;
@@ -30,31 +34,39 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
+import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.security.Key;
+import java.security.KeyStore;
 import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.spy;
 
 /**
  * @author Hakan Altindag
  */
 @SuppressWarnings("SameParameterValue")
+@ExtendWith(MockitoExtension.class)
 class PemUtilsShould {
 
     private static final String PEM_LOCATION = "pems-for-unit-tests/";
-    private static final String TEMPORALLY_PEM_LOCATION = System.getProperty("user.home");
+    private static final String TEST_RESOURCES_LOCATION = "src/test/resources/";
 
     @Test
-    void parseSingleTrustMaterialFromContent() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void parseSingleTrustMaterialFromContent() {
         String certificateContent = getResourceContent(PEM_LOCATION + "github-certificate.pem");
         X509ExtendedTrustManager trustManager = PemUtils.parseTrustMaterial(certificateContent);
 
@@ -63,7 +75,7 @@ class PemUtilsShould {
     }
 
     @Test
-    void parseMultipleTrustMaterialsFromContentAsMultipleStrings() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void parseMultipleTrustMaterialsFromContentAsMultipleStrings() {
         String certificateContentOne = getResourceContent(PEM_LOCATION + "github-certificate.pem");
         String certificateContentTwo = getResourceContent(PEM_LOCATION + "stackexchange.pem");
         X509ExtendedTrustManager trustManager = PemUtils.parseTrustMaterial(certificateContentOne, certificateContentTwo);
@@ -73,7 +85,7 @@ class PemUtilsShould {
     }
 
     @Test
-    void parseMultipleTrustMaterialsFromContentAsSingleString() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void parseMultipleTrustMaterialsFromContentAsSingleString() {
         String certificateContent = getResourceContent(PEM_LOCATION + "multiple-certificates.pem");
         X509ExtendedTrustManager trustManager = PemUtils.parseTrustMaterial(certificateContent);
 
@@ -82,7 +94,7 @@ class PemUtilsShould {
     }
 
     @Test
-    void loadSingleTrustMaterialFromClassPathAsSingleFile() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void loadSingleTrustMaterialFromClassPathAsSingleFile() {
         X509ExtendedTrustManager trustManager = PemUtils.loadTrustMaterial(PEM_LOCATION + "github-certificate.pem");
 
         assertThat(trustManager).isNotNull();
@@ -90,7 +102,7 @@ class PemUtilsShould {
     }
 
     @Test
-    void loadMultipleTrustMaterialsFromClassPathAsMultipleFiles() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void loadMultipleTrustMaterialsFromClassPathAsMultipleFiles() {
         X509ExtendedTrustManager trustManager = PemUtils.loadTrustMaterial(
                 PEM_LOCATION + "github-certificate.pem",
                 PEM_LOCATION + "stackexchange.pem"
@@ -101,7 +113,7 @@ class PemUtilsShould {
     }
 
     @Test
-    void loadMultipleTrustMaterialsFromClassPathAsSingleFile() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void loadMultipleTrustMaterialsFromClassPathAsSingleFile() {
         X509ExtendedTrustManager trustManager = PemUtils.loadTrustMaterial(PEM_LOCATION + "multiple-certificates.pem");
 
         assertThat(trustManager).isNotNull();
@@ -109,53 +121,46 @@ class PemUtilsShould {
     }
 
     @Test
-    void loadSingleTrustMaterialWithPathFromDirectoryAsSingleFile() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
-        Path certificatePath = copyFileToHomeDirectory(PEM_LOCATION, "github-certificate.pem");
+    void loadSingleTrustMaterialWithPathFromDirectoryAsSingleFile() {
+        Path certificatePath = Paths.get(TEST_RESOURCES_LOCATION + PEM_LOCATION + "github-certificate.pem").toAbsolutePath();
 
         X509ExtendedTrustManager trustManager = PemUtils.loadTrustMaterial(certificatePath);
 
         assertThat(trustManager).isNotNull();
         assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
-
-        Files.delete(certificatePath);
     }
 
     @Test
-    void loadMultipleTrustMaterialsWithPathFromDirectoryAsMultipleFiles() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
-        Path certificatePathOne = copyFileToHomeDirectory(PEM_LOCATION, "github-certificate.pem");
-        Path certificatePathTwo = copyFileToHomeDirectory(PEM_LOCATION, "stackexchange.pem");
+    void loadMultipleTrustMaterialsWithPathFromDirectoryAsMultipleFiles() throws IOException {
+        Path certificatePathOne = Paths.get(TEST_RESOURCES_LOCATION + PEM_LOCATION, "github-certificate.pem").toAbsolutePath();
+        Path certificatePathTwo = Paths.get(TEST_RESOURCES_LOCATION + PEM_LOCATION, "stackexchange.pem").toAbsolutePath();
 
         X509ExtendedTrustManager trustManager = PemUtils.loadTrustMaterial(certificatePathOne, certificatePathTwo);
 
         assertThat(trustManager).isNotNull();
         assertThat(trustManager.getAcceptedIssuers()).hasSize(2);
-
-        Files.delete(certificatePathOne);
-        Files.delete(certificatePathTwo);
     }
 
     @Test
-    void loadMultipleTrustMaterialsWithPathFromDirectoryAsSingleFile() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
-        Path certificatePath = copyFileToHomeDirectory(PEM_LOCATION, "multiple-certificates.pem");
+    void loadMultipleTrustMaterialsWithPathFromDirectoryAsSingleFile() throws IOException {
+        Path certificatePath = Paths.get(TEST_RESOURCES_LOCATION + PEM_LOCATION, "multiple-certificates.pem");
 
         X509ExtendedTrustManager trustManager = PemUtils.loadTrustMaterial(certificatePath);
 
         assertThat(trustManager).isNotNull();
         assertThat(trustManager.getAcceptedIssuers()).hasSize(3);
-
-        Files.delete(certificatePath);
     }
 
     @Test
     void loadingNonExistingTrustMaterialFromDirectoryThrowsException() {
         Path nonExistingCertificate = Paths.get("somewhere-in-space.pem");
         assertThatThrownBy(() -> PemUtils.loadTrustMaterial(nonExistingCertificate))
-                .isInstanceOf(UncheckedIOException.class)
-                .hasMessage("java.nio.file.NoSuchFileException: somewhere-in-space.pem");
+                .isInstanceOf(GenericIOException.class)
+                .hasMessageContaining("java.nio.file.NoSuchFileException: somewhere-in-space.pem");
     }
 
     @Test
-    void loadSingleTrustMaterialFromSingleInputStream() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
+    void loadSingleTrustMaterialFromSingleInputStream() throws IOException {
         X509ExtendedTrustManager trustManager;
         try(InputStream inputStream = getResource(PEM_LOCATION + "github-certificate.pem")) {
             trustManager = PemUtils.loadTrustMaterial(inputStream);
@@ -166,7 +171,7 @@ class PemUtilsShould {
     }
 
     @Test
-    void loadMultipleTrustMaterialsFromMultipleInputStream() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
+    void loadMultipleTrustMaterialsFromMultipleInputStream() throws IOException {
         X509ExtendedTrustManager trustManager;
         try(InputStream inputStreamOne = getResource(PEM_LOCATION + "github-certificate.pem");
             InputStream inputStreamTwo = getResource(PEM_LOCATION + "stackexchange.pem")) {
@@ -178,7 +183,7 @@ class PemUtilsShould {
     }
 
     @Test
-    void loadMultipleTrustMaterialsFromSingleInputStream() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
+    void loadMultipleTrustMaterialsFromSingleInputStream() throws IOException {
         X509ExtendedTrustManager trustManager;
         try(InputStream inputStream = getResource(PEM_LOCATION + "multiple-certificates.pem")) {
             trustManager = PemUtils.loadTrustMaterial(inputStream);
@@ -189,25 +194,23 @@ class PemUtilsShould {
     }
 
     @Test
-    void loadUnencryptedIdentityMaterialFromClassPath() throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException {
+    void loadUnencryptedIdentityMaterialFromClassPath() {
         X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(PEM_LOCATION + "unencrypted-identity.pem");
 
         assertThat(keyManager).isNotNull();
     }
 
     @Test
-    void loadUnencryptedIdentityMaterialFromDirectory() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException, OperatorCreationException, PKCSException {
-        Path identityPath = copyFileToHomeDirectory(PEM_LOCATION, "unencrypted-identity.pem");
+    void loadUnencryptedIdentityMaterialFromDirectory() throws IOException {
+        Path identityPath = Paths.get(TEST_RESOURCES_LOCATION + PEM_LOCATION, "unencrypted-identity.pem").toAbsolutePath();
 
         X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(identityPath);
 
         assertThat(keyManager).isNotNull();
-
-        Files.delete(identityPath);
     }
 
     @Test
-    void loadUnencryptedIdentityMaterialFromInputStream() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException, OperatorCreationException, PKCSException {
+    void loadUnencryptedIdentityMaterialFromInputStream() throws IOException {
         X509ExtendedKeyManager keyManager;
         try(InputStream inputStream = getResource(PEM_LOCATION + "unencrypted-identity.pem")) {
             keyManager = PemUtils.loadIdentityMaterial(inputStream);
@@ -217,7 +220,7 @@ class PemUtilsShould {
     }
 
     @Test
-    void loadUnencryptedPrivateKeyAndCertificateAsIdentityFromClassPath() throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException {
+    void loadUnencryptedPrivateKeyAndCertificateAsIdentityFromClassPath() {
         X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(
                 PEM_LOCATION + "splitted-unencrypted-identity-containing-certificate.pem",
                 PEM_LOCATION + "splitted-unencrypted-identity-containing-private-key.pem"
@@ -227,20 +230,17 @@ class PemUtilsShould {
     }
 
     @Test
-    void loadUnencryptedPrivateKeyAndCertificateAsIdentityFromDirectory() throws IOException, CertificateException, NoSuchAlgorithmException, OperatorCreationException, KeyStoreException, PKCSException {
-        Path certificatePath = copyFileToHomeDirectory(PEM_LOCATION, "splitted-unencrypted-identity-containing-certificate.pem");
-        Path privateKeyPath = copyFileToHomeDirectory(PEM_LOCATION, "splitted-unencrypted-identity-containing-private-key.pem");
+    void loadUnencryptedPrivateKeyAndCertificateAsIdentityFromDirectory() throws IOException {
+        Path certificatePath = Paths.get(TEST_RESOURCES_LOCATION + PEM_LOCATION, "splitted-unencrypted-identity-containing-certificate.pem").toAbsolutePath();
+        Path privateKeyPath = Paths.get(TEST_RESOURCES_LOCATION + PEM_LOCATION, "splitted-unencrypted-identity-containing-private-key.pem").toAbsolutePath();
 
         X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(certificatePath, privateKeyPath);
 
         assertThat(keyManager).isNotNull();
-
-        Files.delete(privateKeyPath);
-        Files.delete(certificatePath);
     }
 
     @Test
-    void loadUnencryptedPrivateKeyAndCertificateAsIdentityInputStream() throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException {
+    void loadUnencryptedPrivateKeyAndCertificateAsIdentityInputStream() throws IOException {
         try(InputStream certificateStream = getResource(PEM_LOCATION + "splitted-unencrypted-identity-containing-certificate.pem");
             InputStream privateKeyStream = getResource(PEM_LOCATION + "splitted-unencrypted-identity-containing-private-key.pem")) {
             X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(certificateStream, privateKeyStream);
@@ -249,7 +249,7 @@ class PemUtilsShould {
     }
 
     @Test
-    void loadEncryptedPrivateKeyAndCertificateAsIdentityFromClassPath() throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException {
+    void loadEncryptedPrivateKeyAndCertificateAsIdentityFromClassPath() {
         X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(
                 PEM_LOCATION + "splitted-unencrypted-identity-containing-certificate.pem",
                 PEM_LOCATION + "splitted-unencrypted-identity-containing-private-key.pem",
@@ -260,53 +260,51 @@ class PemUtilsShould {
     }
 
     @Test
-    void loadRsaUnencryptedIdentityMaterialFromClassPath() throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException {
+    void loadRsaUnencryptedIdentityMaterialFromClassPath() {
         X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(PEM_LOCATION + "rsa-unencrypted-identity.pem");
 
         assertThat(keyManager).isNotNull();
     }
 
     @Test
-    void loadRsaEncryptedIdentityMaterialFromClassPath() throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException {
+    void loadRsaEncryptedIdentityMaterialFromClassPath() {
         X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(PEM_LOCATION + "encrypted-rsa-identity.pem", "secret".toCharArray());
 
         assertThat(keyManager).isNotNull();
     }
 
     @Test
-    void loadEcUnencryptedIdentityMaterialFromClassPath() throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException {
+    void loadEcUnencryptedIdentityMaterialFromClassPath() {
         X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(PEM_LOCATION + "unencrypted-ec-identity.pem", "secret".toCharArray());
 
         assertThat(keyManager).isNotNull();
     }
 
     @Test
-    void loadEcEncryptedIdentityMaterialFromClassPath() throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException {
+    void loadEcEncryptedIdentityMaterialFromClassPath() {
         X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(PEM_LOCATION + "encrypted-ec-identity.pem", "secret".toCharArray());
 
         assertThat(keyManager).isNotNull();
     }
 
     @Test
-    void loadEncryptedIdentityMaterialFromClassPath() throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException {
+    void loadEncryptedIdentityMaterialFromClassPath() {
         X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(PEM_LOCATION + "encrypted-identity.pem", "secret".toCharArray());
 
         assertThat(keyManager).isNotNull();
     }
 
     @Test
-    void loadEncryptedIdentityMaterialFromDirectory() throws IOException, CertificateException, NoSuchAlgorithmException, OperatorCreationException, KeyStoreException, PKCSException {
-        Path identityPath = copyFileToHomeDirectory(PEM_LOCATION, "encrypted-identity.pem");
+    void loadEncryptedIdentityMaterialFromDirectory() throws IOException {
+        Path identityPath = Paths.get(TEST_RESOURCES_LOCATION + PEM_LOCATION, "encrypted-identity.pem").toAbsolutePath();
 
         X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(identityPath, "secret".toCharArray());
 
         assertThat(keyManager).isNotNull();
-
-        Files.delete(identityPath);
     }
 
     @Test
-    void loadEncryptedIdentityMaterialFromInputStream() throws IOException, CertificateException, NoSuchAlgorithmException, OperatorCreationException, KeyStoreException, PKCSException {
+    void loadEncryptedIdentityMaterialFromInputStream() throws IOException {
         X509ExtendedKeyManager keyManager;
         try(InputStream inputStream = getResource(PEM_LOCATION + "encrypted-identity.pem")) {
             keyManager = PemUtils.loadIdentityMaterial(inputStream, "secret".toCharArray());
@@ -316,14 +314,14 @@ class PemUtilsShould {
     }
 
     @Test
-    void loadUnencryptedIdentityMaterialFromClassPathWhichFirstContainsTheCertificate() throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException {
+    void loadUnencryptedIdentityMaterialFromClassPathWhichFirstContainsTheCertificate() {
         X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(PEM_LOCATION + "unencrypted-identity-with-certificate-first.pem");
 
         assertThat(keyManager).isNotNull();
     }
 
     @Test
-    void parseEncryptedIdentityMaterialFromContent() throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException {
+    void parseEncryptedIdentityMaterialFromContent() {
         String identityContent = getResourceContent(PEM_LOCATION + "encrypted-identity.pem");
 
         X509ExtendedKeyManager keyManager = PemUtils.parseIdentityMaterial(identityContent, "secret".toCharArray());
@@ -332,7 +330,7 @@ class PemUtilsShould {
     }
 
     @Test
-    void parseUnencryptedPrivateKeyAndCertificateAsIdentity() throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, OperatorCreationException, PKCSException {
+    void parseUnencryptedPrivateKeyAndCertificateAsIdentity() {
         String certificateContent = getResourceContent(PEM_LOCATION + "splitted-unencrypted-identity-containing-certificate.pem");
         String privateKeyContent = getResourceContent(PEM_LOCATION + "splitted-unencrypted-identity-containing-private-key.pem");
 
@@ -351,17 +349,106 @@ class PemUtilsShould {
     }
 
     @Test
-    void throwPublicKeyParseExceptionWhenPublicKeyIsMissing() throws IOException {
+    void throwPublicKeyParseExceptionWhenPublicKeyIsMissing() {
         assertThatThrownBy(() -> PemUtils.loadIdentityMaterial(PEM_LOCATION + "splitted-unencrypted-identity-containing-private-key.pem"))
-                .isInstanceOf(PublicKeyParseException.class)
-                .hasMessage("Certificate chain is not present");
+                .hasRootCauseInstanceOf(PublicKeyParseException.class)
+                .hasMessageContaining("Certificate chain is not present");
     }
 
-    private Path copyFileToHomeDirectory(String path, String fileName) throws IOException {
-        try (InputStream file = Thread.currentThread().getContextClassLoader().getResourceAsStream(path + fileName)) {
-            Path destination = Paths.get(TEMPORALLY_PEM_LOCATION, fileName);
-            Files.copy(Objects.requireNonNull(file), destination, REPLACE_EXISTING);
-            return destination;
+    @Test
+    void throwGenericIOExceptionWhenStreamCannotBeClosed() throws IOException {
+        Path identityPath = Paths.get(TEST_RESOURCES_LOCATION + PEM_LOCATION, "unencrypted-identity.pem").toAbsolutePath();
+        InputStream inputStream = spy(Files.newInputStream(identityPath, StandardOpenOption.READ));
+
+        try (MockedStatic<Files> filesMockedStatic = mockStatic(Files.class, InvocationOnMock::getMock)) {
+            doThrow(new IOException("Could not close the stream")).when(inputStream).close();
+
+            filesMockedStatic.when(() -> Files.newInputStream(any(Path.class), any(OpenOption.class))).thenReturn(inputStream);
+
+            assertThatThrownBy(() -> PemUtils.loadIdentityMaterial(identityPath))
+                    .isInstanceOf(GenericIOException.class)
+                    .hasRootCauseMessage("Could not close the stream");
+        }
+    }
+
+    @Test
+    void throwGenericIOExceptionWhenStreamCannotBeClosedForAnotherMethod() throws IOException {
+        Path certificatePath = Paths.get(TEST_RESOURCES_LOCATION + PEM_LOCATION, "splitted-unencrypted-identity-containing-certificate.pem").toAbsolutePath();
+        Path privateKeyPath = Paths.get(TEST_RESOURCES_LOCATION + PEM_LOCATION, "splitted-unencrypted-identity-containing-private-key.pem").toAbsolutePath();
+
+        InputStream inputStream = spy(Files.newInputStream(privateKeyPath, StandardOpenOption.READ));
+
+        try (MockedStatic<Files> filesMockedStatic = mockStatic(Files.class, InvocationOnMock::getMock)) {
+            doThrow(new IOException("Could not close the stream")).when(inputStream).close();
+
+            filesMockedStatic.when(() -> Files.newInputStream(any(Path.class), any(OpenOption.class))).thenReturn(inputStream);
+
+            assertThatThrownBy(() -> PemUtils.loadIdentityMaterial(certificatePath, privateKeyPath))
+                    .isInstanceOf(GenericIOException.class)
+                    .hasRootCauseMessage("Could not close the stream");
+        }
+    }
+
+    @Test
+    void throwGenericIOExceptionWhenStreamCannotBeClosedForAnotherAnotherMethod() throws IOException {
+        String certificatePath = PEM_LOCATION + "splitted-unencrypted-identity-containing-certificate.pem";
+        String privateKeyPath = PEM_LOCATION + "splitted-unencrypted-identity-containing-private-key.pem";
+
+        InputStream certificateStream = spy(getResource(certificatePath));
+        InputStream privateKeyStream = spy(getResource(privateKeyPath));
+
+        try (MockedStatic<PemUtils> pemUtilsMockedStatic = mockStatic(PemUtils.class, invocation -> {
+            Method method = invocation.getMethod();
+            if ("getResourceAsStream".equals(method.getName()) && method.getParameterCount() == 0) {
+                return invocation.getMock();
+            } else {
+                return invocation.callRealMethod();
+            }
+        })) {
+
+            doThrow(new IOException("Could not close the stream")).when(certificateStream).close();
+            doThrow(new IOException("Could not close the stream")).when(privateKeyStream).close();
+            pemUtilsMockedStatic.when(() -> PemUtils.getResourceAsStream(certificatePath)).thenReturn(certificateStream);
+            pemUtilsMockedStatic.when(() -> PemUtils.getResourceAsStream(privateKeyPath)).thenReturn(privateKeyStream);
+
+            assertThatThrownBy(() -> PemUtils.loadIdentityMaterial(certificatePath, privateKeyPath))
+                    .isInstanceOf(GenericIOException.class)
+                    .hasRootCauseMessage("Could not close the stream");
+        }
+    }
+
+    @Test
+    void throwPrivateKeyParseExceptionWhenInvalidPrivateKeyContentIsSupplied() {
+        String invalidPrivateKey = "" +
+                "-----BEGIN ENCRYPTED PRIVATE KEY-----\n" +
+                "MIIFHDBOBgkqhkiG9w0BBQ0wQTApBgkqhkiG9w0BBQwwHAQIy3Fposf+2ccCAggA\n" +
+                "FHeRMpMdlCLXw78iQ6HjJw==\n" +
+                "-----END ENCRYPTED PRIVATE KEY-----";
+
+        assertThatThrownBy(() -> PemUtils.parseIdentityMaterial(invalidPrivateKey, null))
+                .isInstanceOf(PrivateKeyParseException.class)
+                .hasMessageContaining("problem parsing ENCRYPTED PRIVATE KEY");
+    }
+
+    @Test
+    void throwGenericKeyStoreWhenSetKeyEntryThrowsKeyStoreException() throws KeyStoreException {
+        KeyStore keyStore = mock(KeyStore.class);
+        doThrow(new KeyStoreException("lazy")).when(keyStore).setKeyEntry(anyString(), any(Key.class), any(), any());
+
+        try (MockedStatic<KeyStoreUtils> keyStoreUtilsMock = mockStatic(KeyStoreUtils.class, invocation -> {
+            Method method = invocation.getMethod();
+            if ("createKeyStore".equals(method.getName()) && method.getParameterCount() == 0) {
+                return invocation.getMock();
+            } else {
+                return invocation.callRealMethod();
+            }
+        })) {
+
+            keyStoreUtilsMock.when(KeyStoreUtils::createKeyStore).thenReturn(keyStore);
+
+            assertThatThrownBy(() -> PemUtils.loadIdentityMaterial(PEM_LOCATION + "unencrypted-identity.pem"))
+                    .hasCauseInstanceOf(GenericKeyStoreException.class)
+                    .hasMessageContaining("lazy");
         }
     }
 

@@ -25,7 +25,6 @@ import nl.altindag.ssl.util.KeyStoreUtils;
 import nl.altindag.ssl.util.TrustManagerUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,8 +53,6 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -71,9 +68,7 @@ import static nl.altindag.ssl.TestConstants.TRUSTSTORE_PASSWORD;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
@@ -167,7 +162,7 @@ class SSLFactoryShould {
     }
 
     @Test
-    void buildSSLFactoryWithTrustMaterialFromKeyStore() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void buildSSLFactoryWithTrustMaterialFromKeyStore() {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 
         SSLFactory sslFactory = SSLFactory.builder()
@@ -188,7 +183,7 @@ class SSLFactoryShould {
     }
 
     @Test
-    void buildSSLFactoryWithTrustMaterialFromKeyStoreWithoutAdditionalPassword() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void buildSSLFactoryWithTrustMaterialFromKeyStoreWithoutAdditionalPassword() {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 
         SSLFactory sslFactory = SSLFactory.builder()
@@ -209,7 +204,7 @@ class SSLFactoryShould {
     }
 
     @Test
-    void buildSSLFactoryWithTrustMaterialFromTrustManager() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void buildSSLFactoryWithTrustMaterialFromTrustManager() {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
 
@@ -231,7 +226,7 @@ class SSLFactoryShould {
     }
 
     @Test
-    void buildSSLFactoryWithTrustMaterialFromTrustManagerFactory() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void buildSSLFactoryWithTrustMaterialFromTrustManagerFactory() throws NoSuchAlgorithmException, KeyStoreException {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
         trustManagerFactory.init(trustStore);
@@ -491,7 +486,7 @@ class SSLFactoryShould {
     }
 
     @Test
-    void buildSSLFactoryWithIdentityMaterialAndTrustMaterialFromIdentityManagerAndTrustStore() throws Exception {
+    void buildSSLFactoryWithIdentityMaterialAndTrustMaterialFromIdentityManagerAndTrustStore() {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         X509ExtendedKeyManager identityManager = KeyManagerUtils.createKeyManager(identity, IDENTITY_PASSWORD);
 
@@ -540,7 +535,7 @@ class SSLFactoryShould {
     }
 
     @Test
-    void buildSSLFactoryWithIdentityMaterialAndTrustMaterialFromKeyStoreAndOnlyJdkTrustedCertificates() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    void buildSSLFactoryWithIdentityMaterialAndTrustMaterialFromKeyStoreAndOnlyJdkTrustedCertificates() {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         SSLFactory sslFactory = SSLFactory.builder()
                 .withIdentityMaterial(identity, IDENTITY_PASSWORD)
@@ -562,7 +557,7 @@ class SSLFactoryShould {
     }
 
     @Test
-    void buildSSLFactoryWithIdentityMaterialAndTrustMaterialFromPrivateKey() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException, UnrecoverableKeyException {
+    void buildSSLFactoryWithIdentityMaterialAndTrustMaterialFromPrivateKey() throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         PrivateKey privateKey = (PrivateKey) identity.getKey("dummy-client", IDENTITY_PASSWORD);
         Certificate[] certificateChain = identity.getCertificateChain("dummy-client");
@@ -695,7 +690,7 @@ class SSLFactoryShould {
     }
 
     @Test
-    void buildSSLFactoryWithIdentityMaterialAndTrustMaterialFromKeyStoreAndTrustStore() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
+    void buildSSLFactoryWithIdentityMaterialAndTrustMaterialFromKeyStoreAndTrustStore() {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 
@@ -721,7 +716,7 @@ class SSLFactoryShould {
     }
 
     @Test
-    void buildSSLFactoryWithIdentityMaterialAndTrustMaterialFromKeyStoreAndTrustStoreWithoutCachingPasswords() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
+    void buildSSLFactoryWithIdentityMaterialAndTrustMaterialFromKeyStoreAndTrustStoreWithoutCachingPasswords() {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 
@@ -959,7 +954,7 @@ class SSLFactoryShould {
 
         assertThatThrownBy(() -> factoryBuilder.withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, trustStorePassword))
                 .isInstanceOf(GenericKeyStoreException.class)
-                .hasMessage("Failed to load the keystore");
+                .hasMessageContaining("keystore password was incorrect");
     }
 
     @Test
@@ -970,7 +965,7 @@ class SSLFactoryShould {
 
         assertThatThrownBy(() -> factoryBuilder.withTrustMaterial(trustStorePath, trustStorePassword))
                 .isInstanceOf(GenericKeyStoreException.class)
-                .hasMessage("Failed to load the keystore");
+                .hasMessageContaining("keystore password was incorrect");
 
         Files.delete(trustStorePath);
     }
@@ -982,7 +977,7 @@ class SSLFactoryShould {
 
         assertThatThrownBy(() -> factoryBuilder.withIdentityMaterial(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, identityStorePassword))
                 .isInstanceOf(GenericKeyStoreException.class)
-                .hasMessage("Failed to load the keystore");
+                .hasMessageContaining("keystore password was incorrect");
     }
 
     @Test
@@ -993,7 +988,7 @@ class SSLFactoryShould {
 
         assertThatThrownBy(() -> factoryBuilder.withIdentityMaterial(identityPath, identityStorePassword))
                 .isInstanceOf(GenericKeyStoreException.class)
-                .hasMessage("Failed to load the keystore");
+                .hasMessageContaining("keystore password was incorrect");
 
         Files.delete(identityPath);
     }
@@ -1034,7 +1029,7 @@ class SSLFactoryShould {
 
         assertThatThrownBy(() -> factoryBuilder.withTrustMaterial(KEYSTORE_LOCATION + "not-existing-truststore.jks", TRUSTSTORE_PASSWORD))
                 .isInstanceOf(GenericKeyStoreException.class)
-                .hasMessage("Failed to load the keystore");
+                .hasMessageContaining("KeyStore is not present for the giving input");
     }
 
     @Test
@@ -1138,7 +1133,7 @@ class SSLFactoryShould {
 
         assertThatThrownBy(() -> factoryBuilder.withIdentityMaterial(identityStream, IDENTITY_PASSWORD, "KABOOM"))
                 .isInstanceOf(GenericKeyStoreException.class)
-                .hasMessage("Failed to load the keystore");
+                .hasMessageContaining("KABOOM not found");
     }
 
     @Test
@@ -1148,7 +1143,7 @@ class SSLFactoryShould {
 
         assertThatThrownBy(() -> factoryBuilder.withTrustMaterial(trustStoreStream, TRUSTSTORE_PASSWORD, "KABOOM"))
                 .isInstanceOf(GenericKeyStoreException.class)
-                .hasMessage("Failed to load the keystore");
+                .hasMessageContaining("KABOOM not found");
     }
 
     @Test
@@ -1226,21 +1221,6 @@ class SSLFactoryShould {
         assertThatThrownBy(() -> sslFactoryBuilder.withTrustMaterial(trustManagerFactory))
                 .isInstanceOf(GenericSecurityException.class)
                 .hasMessage("TrustManagerFactory does not contain any TrustManagers of type X509ExtendedTrustManager");
-    }
-
-    @Test
-    void throwGenericSecurityExceptionWhenSomethingUnexpectedIsHappeningWhileUsingCertificateAsTrustMaterial() {
-        SSLFactory.Builder sslFactoryBuilder = SSLFactory.builder();
-        Certificate certificate = mock(Certificate.class);
-
-        try (MockedStatic<KeyStoreUtils> keyStoreUtilsMock = mockStatic(KeyStoreUtils.class)) {
-            keyStoreUtilsMock.when(() -> KeyStoreUtils.createTrustStore(any(List.class))).thenThrow(new CertificateException("KABOOM!"));
-            List<Certificate> certificates = Collections.singletonList(certificate);
-
-            assertThatThrownBy(() -> sslFactoryBuilder.withTrustMaterial(certificates))
-                    .isInstanceOf(GenericSecurityException.class)
-                    .hasMessage("java.security.cert.CertificateException: KABOOM!");
-        }
     }
 
     @SuppressWarnings("SameParameterValue")

@@ -16,7 +16,7 @@
 
 package nl.altindag.ssl.util;
 
-import nl.altindag.ssl.exception.GenericSecurityException;
+import nl.altindag.ssl.exception.GenericKeyManagerException;
 import nl.altindag.ssl.keymanager.CompositeX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.KeyManagerFactoryWrapper;
 import nl.altindag.ssl.keymanager.X509KeyManagerWrapper;
@@ -26,7 +26,6 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509KeyManager;
-import java.io.IOException;
 import java.security.Key;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -35,7 +34,6 @@ import java.security.NoSuchProviderException;
 import java.security.Provider;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -53,18 +51,22 @@ public final class KeyManagerUtils {
 
     private KeyManagerUtils() {}
 
-    public static X509ExtendedKeyManager combine(X509ExtendedKeyManager... keyManagers) {
+    public static X509ExtendedKeyManager combine(X509KeyManager... keyManagers) {
         return combine(Arrays.asList(keyManagers));
     }
 
-    public static X509ExtendedKeyManager combine(List<? extends X509ExtendedKeyManager> keyManagers) {
+    public static X509ExtendedKeyManager combine(List<? extends X509KeyManager> keyManagers) {
         if (keyManagers.size() == 1) {
-            return keyManagers.get(0);
+            return KeyManagerUtils.wrapIfNeeded(keyManagers.get(0));
         }
 
         return KeyManagerUtils.keyManagerBuilder()
                 .withKeyManagers(keyManagers)
                 .build();
+    }
+
+    public static <T extends X509KeyManager> X509ExtendedKeyManager[] toArray(T keyManager) {
+        return new X509ExtendedKeyManager[]{KeyManagerUtils.wrapIfNeeded(keyManager)};
     }
 
     public static X509ExtendedKeyManager createKeyManager(KeyStoreHolder... keyStoreHolders) {
@@ -82,7 +84,7 @@ public final class KeyManagerUtils {
             KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(keyManagerFactoryAlgorithm);
             return createKeyManager(keyStore, keyPassword, keyManagerFactory);
         } catch (NoSuchAlgorithmException e) {
-            throw new GenericSecurityException(e);
+            throw new GenericKeyManagerException(e);
         }
     }
 
@@ -91,7 +93,7 @@ public final class KeyManagerUtils {
             KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(keyManagerFactoryAlgorithm, securityProviderName);
             return createKeyManager(keyStore, keyPassword, keyManagerFactory);
         } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
-            throw new GenericSecurityException(e);
+            throw new GenericKeyManagerException(e);
         }
     }
 
@@ -100,7 +102,7 @@ public final class KeyManagerUtils {
             KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(keyManagerFactoryAlgorithm, securityProvider);
             return createKeyManager(keyStore, keyPassword, keyManagerFactory);
         } catch (NoSuchAlgorithmException e) {
-            throw new GenericSecurityException(e);
+            throw new GenericKeyManagerException(e);
         }
     }
 
@@ -113,7 +115,7 @@ public final class KeyManagerUtils {
                     .map(KeyManagerUtils::wrapIfNeeded)
                     .collect(Collectors.collectingAndThen(Collectors.toList(), KeyManagerUtils::combine));
         } catch (KeyStoreException | NoSuchAlgorithmException | UnrecoverableKeyException e) {
-            throw new GenericSecurityException(e);
+            throw new GenericKeyManagerException(e);
         }
     }
 
@@ -133,13 +135,13 @@ public final class KeyManagerUtils {
                     X509ExtendedKeyManager keyManager = KeyManagerUtils.createKeyManager(identityStore, password);
                     keyManagers.add(keyManager);
                 }
-            } catch (KeyStoreException | NoSuchAlgorithmException | UnrecoverableKeyException | CertificateException | IOException e) {
-                throw new GenericSecurityException(e);
+            } catch (KeyStoreException | NoSuchAlgorithmException | UnrecoverableKeyException e) {
+                throw new GenericKeyManagerException(e);
             }
         }
 
         if (keyManagers.isEmpty()) {
-            throw new GenericSecurityException("Could not create any KeyManager from the given KeyStore, Alias and Password");
+            throw new GenericKeyManagerException("Could not create any KeyManager from the given KeyStore, Alias and Password");
         }
 
         return KeyManagerUtils.combine(keyManagers);

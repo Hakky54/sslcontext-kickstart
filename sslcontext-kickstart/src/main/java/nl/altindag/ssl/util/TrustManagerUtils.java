@@ -16,7 +16,7 @@
 
 package nl.altindag.ssl.util;
 
-import nl.altindag.ssl.exception.GenericSecurityException;
+import nl.altindag.ssl.exception.GenericTrustManagerException;
 import nl.altindag.ssl.model.KeyStoreHolder;
 import nl.altindag.ssl.trustmanager.CompositeX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.TrustManagerFactoryWrapper;
@@ -27,13 +27,11 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509ExtendedTrustManager;
 import javax.net.ssl.X509TrustManager;
-import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.Provider;
-import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -46,13 +44,13 @@ public final class TrustManagerUtils {
 
     private TrustManagerUtils() {}
 
-    public static X509ExtendedTrustManager combine(X509ExtendedTrustManager... trustManagers) {
+    public static X509ExtendedTrustManager combine(X509TrustManager... trustManagers) {
         return combine(Arrays.asList(trustManagers));
     }
 
-    public static X509ExtendedTrustManager combine(List<? extends X509ExtendedTrustManager> trustManagers) {
+    public static X509ExtendedTrustManager combine(List<? extends X509TrustManager> trustManagers) {
         if (trustManagers.size() == 1) {
-            return trustManagers.get(0);
+            return TrustManagerUtils.wrapIfNeeded(trustManagers.get(0));
         }
 
         return TrustManagerUtils.trustManagerBuilder()
@@ -60,17 +58,17 @@ public final class TrustManagerUtils {
                 .build();
     }
 
+    public static <T extends X509TrustManager> X509ExtendedTrustManager[] toArray(T trustManager) {
+        return new X509ExtendedTrustManager[]{TrustManagerUtils.wrapIfNeeded(trustManager)};
+    }
+
     public static X509ExtendedTrustManager createTrustManagerWithJdkTrustedCertificates() {
         return createTrustManager((KeyStore) null);
     }
 
     public static X509ExtendedTrustManager createTrustManagerWithSystemTrustedCertificates() {
-        try {
-            KeyStore[] trustStores = KeyStoreUtils.loadSystemKeyStores().toArray(new KeyStore[]{});
-            return createTrustManager(trustStores);
-        } catch (IOException | CertificateException | NoSuchAlgorithmException | KeyStoreException e) {
-            throw new GenericSecurityException(e);
-        }
+        KeyStore[] trustStores = KeyStoreUtils.loadSystemKeyStores().toArray(new KeyStore[]{});
+        return createTrustManager(trustStores);
     }
 
     public static X509ExtendedTrustManager createTrustManager(KeyStoreHolder... trustStoreHolders) {
@@ -95,7 +93,7 @@ public final class TrustManagerUtils {
             TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(trustManagerFactoryAlgorithm);
             return createTrustManager(trustStore, trustManagerFactory);
         } catch (NoSuchAlgorithmException e) {
-            throw new GenericSecurityException(e);
+            throw new GenericTrustManagerException(e);
         }
     }
 
@@ -104,7 +102,7 @@ public final class TrustManagerUtils {
             TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(trustManagerFactoryAlgorithm, securityProviderName);
             return createTrustManager(trustStore, trustManagerFactory);
         } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
-            throw new GenericSecurityException(e);
+            throw new GenericTrustManagerException(e);
         }
     }
 
@@ -113,7 +111,7 @@ public final class TrustManagerUtils {
             TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(trustManagerFactoryAlgorithm, securityProvider);
             return createTrustManager(trustStore, trustManagerFactory);
         } catch (NoSuchAlgorithmException e) {
-            throw new GenericSecurityException(e);
+            throw new GenericTrustManagerException(e);
         }
     }
 
@@ -126,7 +124,7 @@ public final class TrustManagerUtils {
                     .map(TrustManagerUtils::wrapIfNeeded)
                     .collect(Collectors.collectingAndThen(Collectors.toList(), TrustManagerUtils::combine));
         } catch (KeyStoreException e) {
-            throw new GenericSecurityException(e);
+            throw new GenericTrustManagerException(e);
         }
     }
 

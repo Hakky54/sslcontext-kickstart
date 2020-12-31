@@ -16,43 +16,40 @@
 
 package nl.altindag.ssl;
 
+import nl.altindag.ssl.exception.GenericKeyManagerException;
 import nl.altindag.ssl.exception.GenericKeyStoreException;
-import nl.altindag.ssl.exception.GenericSSLContextException;
 import nl.altindag.ssl.exception.GenericSecurityException;
+import nl.altindag.ssl.exception.GenericTrustManagerException;
+import nl.altindag.ssl.model.IdentityMaterial;
 import nl.altindag.ssl.model.KeyStoreHolder;
+import nl.altindag.ssl.model.SSLMaterial;
+import nl.altindag.ssl.model.TrustMaterial;
 import nl.altindag.ssl.util.KeyManagerUtils;
 import nl.altindag.ssl.util.KeyStoreUtils;
+import nl.altindag.ssl.util.SSLContextUtils;
 import nl.altindag.ssl.util.SocketUtils;
 import nl.altindag.ssl.util.TrustManagerUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509ExtendedTrustManager;
 import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.security.Key;
-import java.security.KeyManagementException;
 import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.Provider;
 import java.security.SecureRandom;
 import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -61,7 +58,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -70,214 +66,67 @@ import static java.util.stream.Collectors.toList;
 public final class SSLFactory {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SSLFactory.class);
-    private static final char[] EMPTY_PASSWORD = {};
 
-    private final String sslContextProtocol;
-    private final Provider securityProvider;
-    private final String securityProviderName;
-    private final SecureRandom secureRandom;
-    private final HostnameVerifier hostnameVerifier;
+    private final SSLMaterial sslMaterial;
 
-    private final List<KeyStoreHolder> identities = new ArrayList<>();
-    private final List<X509ExtendedKeyManager> identityManagers = new ArrayList<>();
-
-    private final List<KeyStoreHolder> trustStores = new ArrayList<>();
-    private final List<X509ExtendedTrustManager> trustManagers = new ArrayList<>();
-    private final boolean passwordCachingEnabled;
-    private final SSLParameters sslParameters;
-
-    private SSLContext sslContext;
-    private SSLSocketFactory sslSocketFactory;
-    private SSLServerSocketFactory sslServerSocketFactory;
-    private X509ExtendedTrustManager trustManager;
-    private X509ExtendedKeyManager keyManager;
-    private KeyManagerFactory keyManagerFactory;
-    private TrustManagerFactory trustManagerFactory;
-    private List<X509Certificate> trustedCertificates;
-    private List<String> ciphers;
-    private List<String> protocols;
-
-    @SuppressWarnings("java:S107")
-    private SSLFactory(String sslContextProtocol,
-                       Provider securityProvider,
-                       String securityProviderName,
-                       SecureRandom secureRandom,
-                       HostnameVerifier hostnameVerifier,
-                       List<KeyStoreHolder> identities,
-                       List<X509ExtendedKeyManager> identityManagers,
-                       List<KeyStoreHolder> trustStores,
-                       List<X509ExtendedTrustManager> trustManagers,
-                       boolean passwordCachingEnabled,
-                       SSLParameters sslParameters) {
-
-        this.sslContextProtocol = sslContextProtocol;
-        this.securityProvider = securityProvider;
-        this.securityProviderName = securityProviderName;
-        this.secureRandom = secureRandom;
-        this.hostnameVerifier = hostnameVerifier;
-        this.identities.addAll(identities);
-        this.identityManagers.addAll(identityManagers);
-        this.trustStores.addAll(trustStores);
-        this.trustManagers.addAll(trustManagers);
-        this.passwordCachingEnabled = passwordCachingEnabled;
-        this.sslParameters = sslParameters;
-    }
-
-    private void createSSLContextWithIdentityMaterial() {
-        createSSLContext(createKeyManager(), null);
-    }
-
-    private void createSSLContextWithTrustMaterial() {
-        createSSLContext(null, createTrustManagers());
-    }
-
-    private void createSSLContextWithIdentityMaterialAndTrustMaterial() {
-        createSSLContext(createKeyManager(), createTrustManagers());
-    }
-
-    private void createSSLContext(KeyManager[] keyManagers, TrustManager[] trustManagers)  {
-        try {
-            if (nonNull(securityProvider)) {
-                sslContext = SSLContext.getInstance(sslContextProtocol, securityProvider);
-            } else if (nonNull(securityProviderName)) {
-                sslContext = SSLContext.getInstance(sslContextProtocol, securityProviderName);
-            } else {
-                sslContext = SSLContext.getInstance(sslContextProtocol);
-            }
-
-            sslContext.init(keyManagers, trustManagers, secureRandom);
-            postConstructRemainingSslMaterials();
-        } catch (NoSuchAlgorithmException | NoSuchProviderException | KeyManagementException e) {
-            throw new GenericSSLContextException(e);
-        }
-    }
-
-    private KeyManager[] createKeyManager() {
-        keyManager = KeyManagerUtils.keyManagerBuilder()
-                .withKeyManagers(identityManagers)
-                .withIdentities(identities)
-                .build();
-
-        if (!passwordCachingEnabled && !identities.isEmpty()) {
-            sanitizeKeyStores(identities);
-        }
-
-        return new X509ExtendedKeyManager[] {keyManager};
-    }
-
-    private TrustManager[] createTrustManagers() {
-        trustManager = TrustManagerUtils.trustManagerBuilder()
-                .withTrustManagers(trustManagers)
-                .withTrustStores(trustStores.stream()
-                        .map(KeyStoreHolder::getKeyStore)
-                        .collect(toList())
-                ).build();
-
-        if (!passwordCachingEnabled && !trustStores.isEmpty()) {
-            sanitizeKeyStores(trustStores);
-        }
-
-        return new TrustManager[] {trustManager};
-    }
-
-    private void sanitizeKeyStores(List<KeyStoreHolder> keyStores) {
-        List<KeyStoreHolder> sanitizedKeyStores = keyStores.stream()
-                .map(keyStoreHolder -> new KeyStoreHolder(keyStoreHolder.getKeyStore(), EMPTY_PASSWORD, EMPTY_PASSWORD))
-                .collect(toList());
-
-        keyStores.clear();
-        keyStores.addAll(sanitizedKeyStores);
-    }
-
-    private void postConstructRemainingSslMaterials() {
-        reinitializeSslParameters();
-        sslSocketFactory = SocketUtils.createSslSocketFactory(sslContext.getSocketFactory(), sslParameters);
-        sslServerSocketFactory = SocketUtils.createSslServerSocketFactory(sslContext.getServerSocketFactory(), sslParameters);
-        trustedCertificates = Optional.ofNullable(trustManager)
-                .map(X509ExtendedTrustManager::getAcceptedIssuers)
-                .flatMap(x509Certificates -> Optional.of(Arrays.asList(x509Certificates)))
-                .map(Collections::unmodifiableList)
-                .orElse(Collections.emptyList());
-
-        keyManagerFactory = getKeyManager()
-                .map(KeyManagerUtils::createKeyManagerFactory)
-                .orElse(null);
-
-        trustManagerFactory = getTrustManager()
-                .map(TrustManagerUtils::createTrustManagerFactory)
-                .orElse(null);
-    }
-
-    private void reinitializeSslParameters() {
-        SSLParameters defaultSSLParameters = sslContext.getDefaultSSLParameters();
-
-        String[] someCiphers = Optional.ofNullable(sslParameters.getCipherSuites())
-                .orElse(defaultSSLParameters.getCipherSuites());
-
-        String[] someProtocols = Optional.ofNullable(sslParameters.getProtocols())
-                .orElse(defaultSSLParameters.getProtocols());
-
-        sslParameters.setCipherSuites(someCiphers);
-        sslParameters.setProtocols(someProtocols);
-
-        ciphers = Collections.unmodifiableList(Arrays.asList(someCiphers));
-        protocols = Collections.unmodifiableList(Arrays.asList(someProtocols));
+    private SSLFactory(SSLMaterial sslMaterial) {
+        this.sslMaterial = sslMaterial;
     }
 
     public List<KeyStoreHolder> getIdentities() {
-        return Collections.unmodifiableList(identities);
+        return sslMaterial.getIdentityMaterial().getIdentities();
     }
 
     public List<KeyStoreHolder> getTrustStores() {
-        return Collections.unmodifiableList(trustStores);
+        return sslMaterial.getTrustMaterial().getTrustStores();
     }
 
     public SSLContext getSslContext() {
-        return sslContext;
+        return sslMaterial.getSslContext();
     }
 
     public SSLSocketFactory getSslSocketFactory() {
-        return sslSocketFactory;
+        return sslMaterial.getSslSocketFactory();
     }
 
     public SSLServerSocketFactory getSslServerSocketFactory() {
-        return sslServerSocketFactory;
+        return sslMaterial.getSslServerSocketFactory();
     }
 
     public Optional<X509ExtendedKeyManager> getKeyManager() {
-        return Optional.ofNullable(keyManager);
+        return Optional.ofNullable(sslMaterial.getIdentityMaterial().getKeyManager());
     }
 
     public Optional<KeyManagerFactory> getKeyManagerFactory() {
-        return Optional.ofNullable(keyManagerFactory);
+        return Optional.ofNullable(sslMaterial.getIdentityMaterial().getKeyManagerFactory());
     }
 
     public Optional<X509ExtendedTrustManager> getTrustManager() {
-        return Optional.ofNullable(trustManager);
+        return Optional.ofNullable(sslMaterial.getTrustMaterial().getTrustManager());
     }
 
     public Optional<TrustManagerFactory> getTrustManagerFactory() {
-        return Optional.ofNullable(trustManagerFactory);
+        return Optional.ofNullable(sslMaterial.getTrustMaterial().getTrustManagerFactory());
     }
 
     public List<X509Certificate> getTrustedCertificates() {
-        return trustedCertificates;
+        return sslMaterial.getTrustMaterial().getTrustedCertificates();
     }
 
     public HostnameVerifier getHostnameVerifier() {
-        return hostnameVerifier;
+        return sslMaterial.getHostnameVerifier();
     }
 
     public List<String> getCiphers() {
-        return ciphers;
+        return sslMaterial.getCiphers();
     }
 
     public List<String> getProtocols() {
-        return protocols;
+        return sslMaterial.getProtocols();
     }
 
     public SSLParameters getSslParameters() {
-        return sslParameters;
+        return sslMaterial.getSslParameters();
     }
 
     public static Builder builder() {
@@ -288,11 +137,12 @@ public final class SSLFactory {
 
         private static final String TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE = "TrustStore details are empty, which are required to be present when SSL/TLS is enabled";
         private static final String IDENTITY_VALIDATION_EXCEPTION_MESSAGE = "Identity details are empty, which are required to be present when SSL/TLS is enabled";
-        private static final String KEY_STORE_LOADING_EXCEPTION = "Failed to load the keystore";
         private static final String KEY_MANAGER_FACTORY_EXCEPTION = "KeyManagerFactory does not contain any KeyManagers of type X509ExtendedKeyManager";
         private static final String TRUST_MANAGER_FACTORY_EXCEPTION = "TrustManagerFactory does not contain any TrustManagers of type X509ExtendedTrustManager";
         private static final String IDENTITY_AND_TRUST_MATERIAL_VALIDATION_EXCEPTION_MESSAGE = "Could not create instance of SSLFactory because Identity " +
                 "and Trust material are not present. Please provide at least a Trust material.";
+
+        private static final char[] EMPTY_PASSWORD = {};
 
         private String sslContextProtocol = "TLS";
         private Provider securityProvider = null;
@@ -326,18 +176,17 @@ public final class SSLFactory {
         }
 
         public <T extends TrustManagerFactory> Builder withTrustMaterial(T trustManagerFactory) {
-            boolean isTrustManagerAdded = false;
-            for (TrustManager trustManager : trustManagerFactory.getTrustManagers()) {
-                if (trustManager instanceof X509TrustManager) {
-                    trustManagers.add(TrustManagerUtils.wrapIfNeeded((X509TrustManager) trustManager));
-                    isTrustManagerAdded = true;
-                }
+            List<X509ExtendedTrustManager> tm = Arrays.stream(trustManagerFactory.getTrustManagers())
+                    .filter(X509TrustManager.class::isInstance)
+                    .map(X509TrustManager.class::cast)
+                    .map(TrustManagerUtils::wrapIfNeeded)
+                    .collect(toList());
+
+            if (tm.isEmpty()) {
+                throw new GenericTrustManagerException(TRUST_MANAGER_FACTORY_EXCEPTION);
             }
 
-            if (!isTrustManagerAdded) {
-                throw new GenericSecurityException(TRUST_MANAGER_FACTORY_EXCEPTION);
-            }
-
+            this.trustManagers.addAll(tm);
             return this;
         }
 
@@ -350,13 +199,9 @@ public final class SSLFactory {
                 throw new GenericKeyStoreException(TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
             }
 
-            try {
-                KeyStore trustStore = KeyStoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType);
-                KeyStoreHolder trustStoreHolder = new KeyStoreHolder(trustStore, trustStorePassword);
-                trustStores.add(trustStoreHolder);
-            } catch (IOException | KeyStoreException | NoSuchAlgorithmException | CertificateException e) {
-                throw new GenericKeyStoreException(KEY_STORE_LOADING_EXCEPTION, e);
-            }
+            KeyStore trustStore = KeyStoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType);
+            KeyStoreHolder trustStoreHolder = new KeyStoreHolder(trustStore, trustStorePassword);
+            trustStores.add(trustStoreHolder);
 
             return this;
         }
@@ -370,13 +215,9 @@ public final class SSLFactory {
                 throw new GenericKeyStoreException(TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
             }
 
-            try {
-                KeyStore trustStore = KeyStoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType);
-                KeyStoreHolder trustStoreHolder = new KeyStoreHolder(trustStore, trustStorePassword);
-                trustStores.add(trustStoreHolder);
-            } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
-                throw new GenericKeyStoreException(KEY_STORE_LOADING_EXCEPTION, e);
-            }
+            KeyStore trustStore = KeyStoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType);
+            KeyStoreHolder trustStoreHolder = new KeyStoreHolder(trustStore, trustStorePassword);
+            trustStores.add(trustStoreHolder);
 
             return this;
         }
@@ -386,14 +227,9 @@ public final class SSLFactory {
         }
 
         public Builder withTrustMaterial(InputStream trustStoreStream, char[] trustStorePassword, String trustStoreType) {
-            try {
-                KeyStore trustStore = KeyStoreUtils.loadKeyStore(trustStoreStream, trustStorePassword, trustStoreType);
-                KeyStoreHolder trustStoreHolder = new KeyStoreHolder(trustStore, trustStorePassword);
-                trustStores.add(trustStoreHolder);
-            } catch (KeyStoreException | CertificateException | NoSuchAlgorithmException | IOException e) {
-                throw new GenericKeyStoreException(KEY_STORE_LOADING_EXCEPTION, e);
-            }
-
+            KeyStore trustStore = KeyStoreUtils.loadKeyStore(trustStoreStream, trustStorePassword, trustStoreType);
+            KeyStoreHolder trustStoreHolder = new KeyStoreHolder(trustStore, trustStorePassword);
+            trustStores.add(trustStoreHolder);
             return this;
         }
 
@@ -416,13 +252,9 @@ public final class SSLFactory {
         }
 
         public <T extends Certificate> Builder withTrustMaterial(List<T> certificates) {
-            try {
-                KeyStore trustStore = KeyStoreUtils.createTrustStore(certificates);
-                KeyStoreHolder trustStoreHolder = new KeyStoreHolder(trustStore, KeyStoreUtils.DUMMY_PASSWORD.toCharArray());
-                trustStores.add(trustStoreHolder);
-            } catch (CertificateException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
-                throw new GenericKeyStoreException(e);
-            }
+            KeyStore trustStore = KeyStoreUtils.createTrustStore(certificates);
+            KeyStoreHolder trustStoreHolder = new KeyStoreHolder(trustStore, KeyStoreUtils.DUMMY_PASSWORD.toCharArray());
+            trustStores.add(trustStoreHolder);
             return this;
         }
 
@@ -443,13 +275,9 @@ public final class SSLFactory {
                 throw new GenericKeyStoreException(IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
             }
 
-            try {
-                KeyStore identity = KeyStoreUtils.loadKeyStore(identityStorePath, identityStorePassword, identityStoreType);
-                KeyStoreHolder identityHolder = new KeyStoreHolder(identity, identityStorePassword, identityPassword);
-                identities.add(identityHolder);
-            } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
-                throw new GenericKeyStoreException(KEY_STORE_LOADING_EXCEPTION, e);
-            }
+            KeyStore identity = KeyStoreUtils.loadKeyStore(identityStorePath, identityStorePassword, identityStoreType);
+            KeyStoreHolder identityHolder = new KeyStoreHolder(identity, identityStorePassword, identityPassword);
+            identities.add(identityHolder);
             return this;
         }
 
@@ -470,13 +298,9 @@ public final class SSLFactory {
                 throw new GenericKeyStoreException(IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
             }
 
-            try {
-                KeyStore identity = KeyStoreUtils.loadKeyStore(identityStorePath, identityStorePassword, identityStoreType);
-                KeyStoreHolder identityHolder = new KeyStoreHolder(identity, identityStorePassword, identityPassword);
-                identities.add(identityHolder);
-            } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
-                throw new GenericKeyStoreException(KEY_STORE_LOADING_EXCEPTION, e);
-            }
+            KeyStore identity = KeyStoreUtils.loadKeyStore(identityStorePath, identityStorePassword, identityStoreType);
+            KeyStoreHolder identityHolder = new KeyStoreHolder(identity, identityStorePassword, identityPassword);
+            identities.add(identityHolder);
             return this;
         }
 
@@ -497,14 +321,9 @@ public final class SSLFactory {
                 throw new GenericKeyStoreException(IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
             }
 
-            try {
-                KeyStore identity = KeyStoreUtils.loadKeyStore(identityStream, identityStorePassword, identityStoreType);
-                KeyStoreHolder identityHolder = new KeyStoreHolder(identity, identityStorePassword, identityPassword);
-                identities.add(identityHolder);
-            } catch (KeyStoreException | CertificateException | NoSuchAlgorithmException | IOException e) {
-                throw new GenericKeyStoreException(KEY_STORE_LOADING_EXCEPTION, e);
-            }
-
+            KeyStore identity = KeyStoreUtils.loadKeyStore(identityStream, identityStorePassword, identityStoreType);
+            KeyStoreHolder identityHolder = new KeyStoreHolder(identity, identityStorePassword, identityPassword);
+            identities.add(identityHolder);
             return this;
         }
 
@@ -520,12 +339,8 @@ public final class SSLFactory {
         }
 
         public Builder withIdentityMaterial(Key privateKey, char[] privateKeyPassword, Certificate... certificateChain) {
-            try {
-                KeyStore identityStore = KeyStoreUtils.createIdentityStore(privateKey, privateKeyPassword, certificateChain);
-                identities.add(new KeyStoreHolder(identityStore, KeyStoreUtils.DUMMY_PASSWORD.toCharArray(), privateKeyPassword));
-            } catch (CertificateException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
-                throw new GenericKeyStoreException(e);
-            }
+            KeyStore identityStore = KeyStoreUtils.createIdentityStore(privateKey, privateKeyPassword, certificateChain);
+            identities.add(new KeyStoreHolder(identityStore, KeyStoreUtils.DUMMY_PASSWORD.toCharArray(), privateKeyPassword));
             return this;
         }
 
@@ -535,18 +350,17 @@ public final class SSLFactory {
         }
 
         public <T extends KeyManagerFactory> Builder withIdentityMaterial(T keyManagerFactory) {
-            boolean isKeyManagerAdded = false;
-            for (KeyManager keyManager : keyManagerFactory.getKeyManagers()) {
-                if (keyManager instanceof X509KeyManager) {
-                    identityManagers.add(KeyManagerUtils.wrapIfNeeded((X509KeyManager) keyManager));
-                    isKeyManagerAdded = true;
-                }
+            List<X509ExtendedKeyManager> km = Arrays.stream(keyManagerFactory.getKeyManagers())
+                    .filter(X509KeyManager.class::isInstance)
+                    .map(X509KeyManager.class::cast)
+                    .map(KeyManagerUtils::wrapIfNeeded)
+                    .collect(toList());
+
+            if (km.isEmpty()) {
+                throw new GenericKeyManagerException(KEY_MANAGER_FACTORY_EXCEPTION);
             }
 
-            if (!isKeyManagerAdded) {
-                throw new GenericSecurityException(KEY_MANAGER_FACTORY_EXCEPTION);
-            }
-
+            this.identityManagers.addAll(km);
             return this;
         }
 
@@ -603,33 +417,71 @@ public final class SSLFactory {
         }
 
         public SSLFactory build() {
-            if (isIdentityMaterialNotPresent() && isTrustMaterialNotPresent()) {
+            if (!isIdentityMaterialPresent() && !isTrustMaterialPresent()) {
                 throw new GenericSecurityException(IDENTITY_AND_TRUST_MATERIAL_VALIDATION_EXCEPTION_MESSAGE);
             }
 
-            SSLFactory sslFactory = new SSLFactory(
-                    sslContextProtocol,
-                    securityProvider,
-                    securityProviderName,
+            X509ExtendedKeyManager keyManager = isIdentityMaterialPresent() ? createKeyManager() : null;
+            X509ExtendedTrustManager trustManager = isTrustMaterialPresent() ? createTrustManagers() : null;
+            SSLContext sslContext = SSLContextUtils.createSslContext(
+                    keyManager,
+                    trustManager,
                     secureRandom,
-                    hostnameVerifier,
-                    identities,
-                    identityManagers,
-                    trustStores,
-                    trustManagers,
-                    passwordCachingEnabled,
-                    sslParameters
+                    sslContextProtocol,
+                    securityProviderName,
+                    securityProvider
             );
 
-            if (isIdentityMaterialPresent() && isTrustMaterialPresent()) {
-                sslFactory.createSSLContextWithIdentityMaterialAndTrustMaterial();
-            } else if (isIdentityMaterialPresent()) {
-                sslFactory.createSSLContextWithIdentityMaterial();
-            } else {
-                sslFactory.createSSLContextWithTrustMaterial();
+            KeyManagerFactory keyManagerFactory = Optional.ofNullable(keyManager)
+                    .map(KeyManagerUtils::createKeyManagerFactory)
+                    .orElse(null);
+            TrustManagerFactory trustManagerFactory = Optional.ofNullable(trustManager)
+                    .map(TrustManagerUtils::createTrustManagerFactory)
+                    .orElse(null);
+
+            SSLParameters baseSslParameters = merge(sslContext.getDefaultSSLParameters(), sslParameters);
+            SSLSocketFactory sslSocketFactory = SocketUtils.createSslSocketFactory(sslContext.getSocketFactory(), baseSslParameters);
+            SSLServerSocketFactory sslServerSocketFactory = SocketUtils.createSslServerSocketFactory(sslContext.getServerSocketFactory(), baseSslParameters);
+            List<X509Certificate> trustedCertificates = Optional.ofNullable(trustManager)
+                    .map(X509ExtendedTrustManager::getAcceptedIssuers)
+                    .flatMap(x509Certificates -> Optional.of(Arrays.asList(x509Certificates)))
+                    .map(Collections::unmodifiableList)
+                    .orElse(Collections.emptyList());
+
+            if (!passwordCachingEnabled && !identities.isEmpty()) {
+                KeyStoreUtils.sanitizeKeyStores(identities);
             }
 
-            return sslFactory;
+            if (!passwordCachingEnabled && !trustStores.isEmpty()) {
+                KeyStoreUtils.sanitizeKeyStores(trustStores);
+            }
+
+            IdentityMaterial identityMaterial = new IdentityMaterial.Builder()
+                    .withKeyManager(keyManager)
+                    .withKeyManagerFactory(keyManagerFactory)
+                    .withIdentities(Collections.unmodifiableList(identities))
+                    .build();
+
+            TrustMaterial trustMaterial = new TrustMaterial.Builder()
+                    .withTrustManager(trustManager)
+                    .withTrustManagerFactory(trustManagerFactory)
+                    .withTrustStores(Collections.unmodifiableList(trustStores))
+                    .withTrustedCertificates(trustedCertificates)
+                    .build();
+
+            SSLMaterial sslMaterial = new SSLMaterial.Builder()
+                    .withSslContext(sslContext)
+                    .withSslSocketFactory(sslSocketFactory)
+                    .withSslServerSocketFactory(sslServerSocketFactory)
+                    .withIdentityMaterial(identityMaterial)
+                    .withTrustMaterial(trustMaterial)
+                    .withSslParameters(baseSslParameters)
+                    .withHostnameVerifier(hostnameVerifier)
+                    .withCiphers(Collections.unmodifiableList(Arrays.asList(baseSslParameters.getCipherSuites())))
+                    .withProtocols(Collections.unmodifiableList(Arrays.asList(baseSslParameters.getProtocols())))
+                    .build();
+
+            return new SSLFactory(sslMaterial);
         }
 
         private boolean isTrustMaterialPresent() {
@@ -637,17 +489,9 @@ public final class SSLFactory {
                     || !trustManagers.isEmpty();
         }
 
-        private boolean isTrustMaterialNotPresent() {
-            return !isTrustMaterialPresent();
-        }
-
         private boolean isIdentityMaterialPresent() {
             return !identities.isEmpty()
                     || !identityManagers.isEmpty();
-        }
-
-        private boolean isIdentityMaterialNotPresent() {
-            return !isIdentityMaterialPresent();
         }
 
         private boolean isBlank(CharSequence charSequence) {
@@ -662,5 +506,34 @@ public final class SSLFactory {
             return true;
         }
 
+        private X509ExtendedKeyManager createKeyManager() {
+            return KeyManagerUtils.keyManagerBuilder()
+                    .withKeyManagers(identityManagers)
+                    .withIdentities(identities)
+                    .build();
+        }
+
+        private X509ExtendedTrustManager createTrustManagers() {
+            return TrustManagerUtils.trustManagerBuilder()
+                    .withTrustManagers(trustManagers)
+                    .withTrustStores(trustStores.stream()
+                            .map(KeyStoreHolder::getKeyStore)
+                            .collect(toList())
+                    ).build();
+        }
+
+        private SSLParameters merge(SSLParameters defaultSslParameters, SSLParameters factorySslParameters) {
+            SSLParameters baseSslParameters = new SSLParameters();
+
+            String[] ciphers = Optional.ofNullable(factorySslParameters.getCipherSuites())
+                    .orElse(defaultSslParameters.getCipherSuites());
+            String[] protocols = Optional.ofNullable(factorySslParameters.getProtocols())
+                    .orElse(defaultSslParameters.getProtocols());
+
+            baseSslParameters.setCipherSuites(ciphers);
+            baseSslParameters.setProtocols(protocols);
+
+            return baseSslParameters;
+        }
     }
 }
