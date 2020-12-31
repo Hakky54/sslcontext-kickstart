@@ -169,7 +169,7 @@ public final class KeyStoreUtils {
         }
 
         if (keyStores.isEmpty()) {
-            LOGGER.warn("No system trusted certificates available for [{}]", operatingSystem);
+            LOGGER.warn("No system KeyStores available for [{}]", operatingSystem);
         }
 
         return keyStores;

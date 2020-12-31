@@ -167,7 +167,7 @@ class KeyStoreUtilsShould {
         assertThat(trustStores).isEmpty();
         assertThat(logCaptor.getWarnLogs())
                 .hasSize(1)
-                .contains("No system trusted certificates available for [linux]");
+                .contains("No system KeyStores available for [linux]");
 
         resetOsName();
     }
