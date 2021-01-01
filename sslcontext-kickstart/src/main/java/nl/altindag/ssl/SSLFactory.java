@@ -291,16 +291,16 @@ public final class SSLFactory {
             return this;
         }
 
-        public Builder withIdentityMaterial(InputStream identityStorePath, char[] identityStorePassword) {
-            return withIdentityMaterial(identityStorePath, identityStorePassword, identityStorePassword);
+        public Builder withIdentityMaterial(InputStream identityStream, char[] identityStorePassword) {
+            return withIdentityMaterial(identityStream, identityStorePassword, identityStorePassword);
         }
 
-        public Builder withIdentityMaterial(InputStream identityStorePath, char[] identityStorePassword, char[] identityPassword) {
-            return withIdentityMaterial(identityStorePath, identityStorePassword, identityPassword, KeyStore.getDefaultType());
+        public Builder withIdentityMaterial(InputStream identityStream, char[] identityStorePassword, char[] identityPassword) {
+            return withIdentityMaterial(identityStream, identityStorePassword, identityPassword, KeyStore.getDefaultType());
         }
 
-        public Builder withIdentityMaterial(InputStream identityStorePath, char[] identityStorePassword, String identityStoreType) {
-            return withIdentityMaterial(identityStorePath, identityStorePassword, identityStorePassword, identityStoreType);
+        public Builder withIdentityMaterial(InputStream identityStream, char[] identityStorePassword, String identityStoreType) {
+            return withIdentityMaterial(identityStream, identityStorePassword, identityStorePassword, identityStoreType);
         }
 
         public Builder withIdentityMaterial(InputStream identityStream, char[] identityStorePassword, char[] identityPassword, String identityStoreType) {
