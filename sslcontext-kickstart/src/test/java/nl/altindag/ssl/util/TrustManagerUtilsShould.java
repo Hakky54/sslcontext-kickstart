@@ -19,6 +19,7 @@ package nl.altindag.ssl.util;
 import nl.altindag.ssl.exception.GenericSecurityException;
 import nl.altindag.ssl.exception.GenericTrustManagerException;
 import nl.altindag.ssl.model.KeyStoreHolder;
+import nl.altindag.ssl.trustmanager.CompositeX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.UnsafeX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.X509TrustManagerWrapper;
 import org.junit.jupiter.api.Test;
@@ -64,6 +65,28 @@ class TrustManagerUtilsShould {
         assertThat(trustStoreOne.size()).isEqualTo(1);
         assertThat(trustStoreTwo.size()).isEqualTo(1);
         assertThat(trustManager.getAcceptedIssuers()).hasSize(2);
+    }
+
+    @Test
+    void unwrapCombinedTrustManagersAndRecombineIntoSingleBaseTrustManager() throws KeyStoreException {
+        KeyStore trustStoreOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+        KeyStore trustStoreTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD);
+
+        X509ExtendedTrustManager trustManagerOne = TrustManagerUtils.createTrustManager(trustStoreOne);
+        X509ExtendedTrustManager trustManagerTwo = TrustManagerUtils.createTrustManager(trustStoreTwo);
+
+        X509ExtendedTrustManager combinedTrustManager = TrustManagerUtils.combine(trustManagerOne, trustManagerTwo);
+        X509ExtendedTrustManager combinedCombinedTrustManager = TrustManagerUtils.combine(combinedTrustManager, trustManagerOne, trustManagerTwo);
+
+        assertThat(trustStoreOne.size()).isEqualTo(1);
+        assertThat(trustStoreTwo.size()).isEqualTo(1);
+        assertThat(combinedTrustManager.getAcceptedIssuers()).hasSize(2);
+        assertThat(combinedCombinedTrustManager.getAcceptedIssuers()).hasSize(2);
+
+        assertThat(combinedTrustManager).isInstanceOf(CompositeX509ExtendedTrustManager.class);
+        assertThat(combinedCombinedTrustManager).isInstanceOf(CompositeX509ExtendedTrustManager.class);
+        assertThat(((CompositeX509ExtendedTrustManager) combinedTrustManager).size()).isEqualTo(2);
+        assertThat(((CompositeX509ExtendedTrustManager) combinedCombinedTrustManager).size()).isEqualTo(4);
     }
 
     @Test

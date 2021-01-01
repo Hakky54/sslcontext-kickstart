@@ -17,6 +17,7 @@
 package nl.altindag.ssl;
 
 import nl.altindag.log.LogCaptor;
+import nl.altindag.ssl.util.KeyStoreUtils;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +43,7 @@ class SSLFactoryIT {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withIdentityMaterial(KEYSTORE_LOCATION + "badssl-identity.p12", "badssl.com".toCharArray())
                 .withTrustMaterial(KEYSTORE_LOCATION + "badssl-truststore.p12", "badssl.com".toCharArray())
+                .withTrustMaterial(KeyStoreUtils.createKeyStore()) // Adding additional trust material forces usage of CompositeX509ExtendedTrustManager and verbose logging
                 .build();
 
         HttpsURLConnection connection = (HttpsURLConnection) new URL("https://client.badssl.com/").openConnection();

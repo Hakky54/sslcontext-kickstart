@@ -18,6 +18,7 @@ package nl.altindag.ssl;
 
 import nl.altindag.log.LogCaptor;
 import nl.altindag.ssl.util.Apache5SslUtils;
+import nl.altindag.ssl.util.KeyStoreUtils;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleResponseConsumer;
 import org.apache.hc.client5.http.classic.HttpClient;
@@ -60,6 +61,7 @@ class SSLFactoryIT {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withIdentityMaterial("keystores-for-unit-tests/badssl-identity.p12", "badssl.com".toCharArray())
                 .withTrustMaterial("keystores-for-unit-tests/badssl-truststore.p12", "badssl.com".toCharArray())
+                .withTrustMaterial(KeyStoreUtils.createKeyStore()) // Adding additional trust material forces usage of CompositeX509ExtendedTrustManager and verbose logging
                 .build();
 
         LayeredConnectionSocketFactory socketFactory = Apache5SslUtils.toSocketFactory(sslFactory);
@@ -91,6 +93,7 @@ class SSLFactoryIT {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withIdentityMaterial("keystores-for-unit-tests/badssl-identity.p12", "badssl.com".toCharArray())
                 .withTrustMaterial("keystores-for-unit-tests/badssl-truststore.p12", "badssl.com".toCharArray())
+                .withTrustMaterial(KeyStoreUtils.createKeyStore()) // Adding additional trust material forces usage of CompositeX509ExtendedTrustManager and verbose logging
                 .build();
 
         PoolingAsyncClientConnectionManager connectionManager = PoolingAsyncClientConnectionManagerBuilder.create()

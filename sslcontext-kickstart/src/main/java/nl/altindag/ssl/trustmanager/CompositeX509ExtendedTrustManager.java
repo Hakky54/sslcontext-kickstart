@@ -214,8 +214,12 @@ public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustMa
         return Arrays.copyOf(acceptedIssuers, acceptedIssuers.length);
     }
 
-    protected int size() {
+    public int size() {
         return trustManagers.size();
+    }
+
+    public List<X509ExtendedTrustManager> getTrustManagers() {
+        return Collections.unmodifiableList(trustManagers);
     }
 
 }

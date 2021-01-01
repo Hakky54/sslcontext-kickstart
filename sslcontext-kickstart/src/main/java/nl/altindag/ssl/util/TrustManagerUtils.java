@@ -34,8 +34,10 @@ import java.security.NoSuchProviderException;
 import java.security.Provider;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toList;
@@ -45,8 +47,6 @@ import static java.util.stream.Collectors.toList;
  */
 public final class TrustManagerUtils {
 
-    private static final String EMPTY_TRUST_MANAGER_EXCEPTION = "Input does not contain TrustManager";
-
     private TrustManagerUtils() {}
 
     public static X509ExtendedTrustManager combine(X509TrustManager... trustManagers) {
@@ -54,14 +54,6 @@ public final class TrustManagerUtils {
     }
 
     public static X509ExtendedTrustManager combine(List<? extends X509TrustManager> trustManagers) {
-        if (trustManagers.isEmpty()) {
-            throw new GenericTrustManagerException(EMPTY_TRUST_MANAGER_EXCEPTION);
-        }
-
-        if (trustManagers.size() == 1) {
-            return TrustManagerUtils.wrapIfNeeded(trustManagers.get(0));
-        }
-
         return TrustManagerUtils.trustManagerBuilder()
                 .withTrustManagers(trustManagers)
                 .build();
@@ -162,11 +154,26 @@ public final class TrustManagerUtils {
                 .collect(collectingAndThen(toList(), TrustManagerUtils::combine));
     }
 
+    private static List<X509ExtendedTrustManager> unwrapIfPossible(X509ExtendedTrustManager trustManager) {
+        List<X509ExtendedTrustManager> trustManagers = new ArrayList<>();
+        if (trustManager instanceof CompositeX509ExtendedTrustManager) {
+            for (X509ExtendedTrustManager innerTrustManager : ((CompositeX509ExtendedTrustManager) trustManager).getTrustManagers()) {
+                trustManagers.addAll(TrustManagerUtils.unwrapIfPossible(innerTrustManager));
+            }
+        } else {
+            trustManagers.add(trustManager);
+        }
+
+        return trustManagers;
+    }
+
     public static TrustManagerBuilder trustManagerBuilder() {
         return new TrustManagerBuilder();
     }
 
     public static final class TrustManagerBuilder {
+
+        private static final String EMPTY_TRUST_MANAGER_EXCEPTION = "Input does not contain TrustManager";
 
         private TrustManagerBuilder() {}
 
@@ -213,7 +220,18 @@ public final class TrustManagerUtils {
         }
 
         public X509ExtendedTrustManager build() {
-            return new CompositeX509ExtendedTrustManager(trustManagers);
+            if (trustManagers.isEmpty()) {
+                throw new GenericTrustManagerException(EMPTY_TRUST_MANAGER_EXCEPTION);
+            }
+
+            if (trustManagers.size() == 1) {
+                return trustManagers.get(0);
+            }
+
+            return trustManagers.stream()
+                    .map(TrustManagerUtils::unwrapIfPossible)
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.collectingAndThen(toList(), CompositeX509ExtendedTrustManager::new));
         }
 
     }

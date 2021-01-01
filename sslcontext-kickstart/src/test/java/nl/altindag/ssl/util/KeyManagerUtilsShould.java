@@ -122,6 +122,23 @@ class KeyManagerUtilsShould {
     }
 
     @Test
+    void unwrapCombinedKeyManagersAndRecombineIntoSingleBaseKeyManager() {
+        KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager combinedKeyManager = KeyManagerUtils.combine(keyManagerOne, keyManagerTwo);
+        X509ExtendedKeyManager combinedCombinedKeyManager = KeyManagerUtils.combine(combinedKeyManager, keyManagerOne, keyManagerTwo);
+
+        assertThat(combinedKeyManager).isInstanceOf(CompositeX509ExtendedKeyManager.class);
+        assertThat(combinedCombinedKeyManager).isInstanceOf(CompositeX509ExtendedKeyManager.class);
+        assertThat(((CompositeX509ExtendedKeyManager) combinedKeyManager).size()).isEqualTo(2);
+        assertThat(((CompositeX509ExtendedKeyManager) combinedCombinedKeyManager).size()).isEqualTo(4);
+    }
+
+    @Test
     void createKeyManagerFactory() {
         X509ExtendedKeyManager keyManager = mock(X509ExtendedKeyManager.class);
         KeyManagerFactory keyManagerFactory = KeyManagerUtils.createKeyManagerFactory(keyManager);

@@ -21,7 +21,7 @@ import nl.altindag.ssl.exception.GenericKeyManagerException;
 import nl.altindag.ssl.exception.GenericKeyStoreException;
 import nl.altindag.ssl.exception.GenericSecurityException;
 import nl.altindag.ssl.exception.GenericTrustManagerException;
-import nl.altindag.ssl.trustmanager.CompositeX509ExtendedTrustManager;
+import nl.altindag.ssl.trustmanager.UnsafeX509ExtendedTrustManager;
 import nl.altindag.ssl.util.KeyManagerUtils;
 import nl.altindag.ssl.util.KeyStoreUtils;
 import nl.altindag.ssl.util.TrustManagerUtils;
@@ -805,7 +805,7 @@ class SSLFactoryShould {
         assertThat(sslFactory.getTrustedCertificates()).isEmpty();
         assertThat(sslFactory.getTrustStores()).isEmpty();
         assertThat(sslFactory.getTrustManager()).isPresent();
-        assertThat(sslFactory.getTrustManager().get()).isInstanceOf(CompositeX509ExtendedTrustManager.class);
+        assertThat(sslFactory.getTrustManager().get()).isInstanceOf(UnsafeX509ExtendedTrustManager.class);
         assertThat(logCaptor.getWarnLogs()).contains("UnsafeTrustManager is being used. Client/Server certificates will be accepted without validation. Please don't use this configuration at production.");
     }
 

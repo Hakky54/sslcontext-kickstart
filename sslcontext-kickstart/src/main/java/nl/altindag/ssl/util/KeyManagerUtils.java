@@ -36,6 +36,7 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -48,8 +49,6 @@ import static java.util.stream.Collectors.toList;
  */
 public final class KeyManagerUtils {
 
-    private static final String EMPTY_KEY_MANAGER_EXCEPTION = "Input does not contain KeyManagers";
-
     private KeyManagerUtils() {}
 
     public static X509ExtendedKeyManager combine(X509KeyManager... keyManagers) {
@@ -57,14 +56,6 @@ public final class KeyManagerUtils {
     }
 
     public static X509ExtendedKeyManager combine(List<? extends X509KeyManager> keyManagers) {
-        if (keyManagers.isEmpty()) {
-            throw new GenericKeyManagerException(EMPTY_KEY_MANAGER_EXCEPTION);
-        }
-
-        if (keyManagers.size() == 1) {
-            return KeyManagerUtils.wrapIfNeeded(keyManagers.get(0));
-        }
-
         return KeyManagerUtils.keyManagerBuilder()
                 .withKeyManagers(keyManagers)
                 .build();
@@ -168,11 +159,26 @@ public final class KeyManagerUtils {
                 .collect(collectingAndThen(toList(), KeyManagerUtils::combine));
     }
 
+    private static List<X509ExtendedKeyManager> unwrapIfPossible(X509ExtendedKeyManager keyManager) {
+        List<X509ExtendedKeyManager> keyManagers = new ArrayList<>();
+        if (keyManager instanceof CompositeX509ExtendedKeyManager) {
+            for (X509ExtendedKeyManager innerKeyManager : ((CompositeX509ExtendedKeyManager) keyManager).getKeyManagers()) {
+                keyManagers.addAll(KeyManagerUtils.unwrapIfPossible(innerKeyManager));
+            }
+        } else {
+            keyManagers.add(keyManager);
+        }
+
+        return keyManagers;
+    }
+
     public static KeyManagerBuilder keyManagerBuilder() {
         return new KeyManagerBuilder();
     }
 
     public static final class KeyManagerBuilder {
+
+        private static final String EMPTY_KEY_MANAGER_EXCEPTION = "Input does not contain KeyManagers";
 
         private KeyManagerBuilder() {}
 
@@ -214,7 +220,18 @@ public final class KeyManagerUtils {
         }
 
         public X509ExtendedKeyManager build() {
-            return new CompositeX509ExtendedKeyManager(keyManagers);
+            if (keyManagers.isEmpty()) {
+                throw new GenericKeyManagerException(EMPTY_KEY_MANAGER_EXCEPTION);
+            }
+
+            if (keyManagers.size() == 1) {
+                return keyManagers.get(0);
+            }
+
+            return keyManagers.stream()
+                    .map(KeyManagerUtils::unwrapIfPossible)
+                    .flatMap(Collection::stream)
+                    .collect(collectingAndThen(toList(), CompositeX509ExtendedKeyManager::new));
         }
 
     }

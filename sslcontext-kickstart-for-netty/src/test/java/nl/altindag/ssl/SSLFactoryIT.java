@@ -18,6 +18,7 @@ package nl.altindag.ssl;
 
 import io.netty.handler.ssl.SslContext;
 import nl.altindag.log.LogCaptor;
+import nl.altindag.ssl.util.KeyStoreUtils;
 import nl.altindag.ssl.util.NettySslUtils;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -45,6 +46,7 @@ class SSLFactoryIT {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withIdentityMaterial("keystores-for-unit-tests/badssl-identity.p12", "badssl.com".toCharArray())
                 .withTrustMaterial("keystores-for-unit-tests/badssl-truststore.p12", "badssl.com".toCharArray())
+                .withTrustMaterial(KeyStoreUtils.createKeyStore()) // Adding additional trust material forces usage of CompositeX509ExtendedTrustManager and verbose logging
                 .build();
 
         SslContext sslContext = NettySslUtils.forClient(sslFactory).build();

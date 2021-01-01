@@ -194,8 +194,12 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
         return (arr.length == 0) ? null : arr;
     }
 
-    protected int size() {
+    public int size() {
         return keyManagers.size();
+    }
+
+    public List<X509ExtendedKeyManager> getKeyManagers() {
+        return Collections.unmodifiableList(keyManagers);
     }
 
 }
