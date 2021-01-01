@@ -50,6 +50,7 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "6.1.0"
      - [Using specific protocols and ciphers with custom secure-random and hostname-verifier](#using-specific-protocols-ciphers-with-custom-secure-random-and-hostname-verifier)
      - [Using multiple identity materials and trust materials](#support-for-using-multiple-identity-materials-and-trust-materials)
      - [Using custom KeyManager and TrustManager](#support-for-using-x509extendedkeymanager-and-x509extendedtrustmanager)
+     - [Using KeyStore with multiple keys having different passwords](#support-for-using-a-single-keystore-which-contains-multiple-keys-with-different-passwords)
      - [Using custom PrivateKey and Certificates](#support-for-using-privatekey-and-certificates)
      - [Using PEM Files](#using-pem-files)
        - [Loading pem files from the classpath](#loading-pem-files-from-the-classpath)
@@ -228,6 +229,21 @@ X509ExtendedTrustManager trustManager = ...
 SSLFactory.builder()
           .withIdentityMaterial(keyManager)
           .withTrustMaterial(trustManager)
+          .build();
+```
+
+##### Support for using a single KeyStore which contains multiple keys with different passwords
+```text
+KeyStore keyStore = ...
+X509ExtendedKeyManager keyManager = KeyManagerUtils.createKeyManager(keyStore, Map.of(
+        "foo","foo-password".toCharArray(),
+        "bar","bar-password".toCharArray(),
+        "lorum-ipsum","lorum-ipsum-password".toCharArray()
+));
+
+SSLFactory.builder()
+          .withIdentityMaterial(keyManager)
+          .withDefaultTrustMaterial()
           .build();
 ```
 
