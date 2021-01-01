@@ -12,7 +12,7 @@
     <version>6.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>SSLContext Kickstart</name>
+    <name>${project.artifactId}</name>
     <description>High level library to configure a SSLContext and other properties to enable SSL/TLS connection</description>
     <url>https://sslcontext-kickstart.com/</url>
 
