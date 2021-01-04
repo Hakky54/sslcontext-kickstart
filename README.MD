@@ -333,6 +333,7 @@ Although SSLContext has a lot of built-in objects which can help you to easily c
 So if you want your http client to communicate with a custom list of ciphers make sure the client has a separate method which accepts a list of chiphers or else only supplying the SSLContext won't do the trick for you.
 Every http client has his own solution. Some accept a list of ciphers and protocols and some accept a SSLSocketFactory.
 
+##### Using SSLContext and SSLParameters
 So lets assume that you have the following setup:
 ```java
 SSLFactory sslFactory = SSLFactory.builder()
@@ -365,8 +366,8 @@ SSLParameters sslParameters = new SSLParameters(
 )
 
 HttpClient httpClient = HttpClient.newBuilder()
-        .sslParameters(sslContext)
         .sslContext(sslParameters)
+        .sslParameters(sslContext)
         .build();
 ```
 As you can see the JDK Http Client requires an additional object called SSLParamters for configuring other properties such as ciphers, protocols and many more which is very good but you need to be aware of it.
@@ -379,10 +380,12 @@ SSLFactory sslFactory = SSLFactory.builder()
         .build();
 
 HttpClient httpClient = HttpClient.newBuilder()
-        .sslParameters(sslFactory.getSslParameters())
         .sslContext(sslFactory.getSslContext())
+        .sslParameters(sslFactory.getSslParameters())
         .build();
 ```
+
+##### Using SSLSocketFactory
 Let grab another example. Google Http Client does not support SSLContext and SSLParameters, it looks like they have chosen a different path when designing their api. As an end-user you can configure it by supplying a SSLSocketFactory.
 Unfortunately the default SSLSocketFactory within the SSLContext does not have aut-of-the-box capability of configuring it with custom ciphers and protocols. So the snippet below won't have support for custom ciphers and protocols.
 ```java
@@ -401,6 +404,7 @@ NetHttpTransport httpTransport = new NetHttpTransport.Builder()
 ```
 The SSLFactory provides a similar SocketFactory for configuring a server, see: [SSLServerSocketFactory](sslcontext-kickstart/src/main/java/nl/altindag/ssl/socket/CompositeSSLServerSocketFactory.java)
 
+##### Using SSLContext, ciphers and protocols
 Let's grab another example where we need to provide a list of ciphers and protocols directly. Unirest provides methods for the features you want regarding ciphers and protocols. It uses Apache Http Client as engine, which provides the same functionality.
 Unirest can be for example configured by directly supplying the ciphers and protocols at the highest level:
 ```java
@@ -412,6 +416,7 @@ Unirest.primaryInstance().config()
        .hostnameVerifier(sslFactory.getHostnameVerifier());
 ```
 
+##### Using KeyManager and TrustManager 
 Let's grab another example where we need to provide KeyManager and TrustManager instead of SSLContext or SSLSocketFactory. Netty Reactor uses a custom ssl context builder, luckily this builder accepts a-lot options.
 See below for the configuration:
 ```java
