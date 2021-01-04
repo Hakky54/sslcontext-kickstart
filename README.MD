@@ -417,8 +417,8 @@ Unirest.primaryInstance().config()
 ```
 
 ##### Using KeyManager and TrustManager 
-Let's grab another example where we need to provide KeyManager and TrustManager instead of SSLContext or SSLSocketFactory. Netty Reactor uses a custom ssl context builder, luckily this builder accepts a-lot options.
-See below for the configuration:
+Let's grab another example where we need to provide KeyManager and TrustManager instead of SSLContext or SSLSocketFactory. Netty Reactor uses a custom ssl context builder which does not accept SSLContext or SSLSocketFactory.
+Luckily this builder accepts a-lot of other options. See below for the configuration:
 ```java
 SSLFactory sslFactory = ...
 SslContext sslContextBuilder = SslContextBuilder.forClient()
