@@ -158,7 +158,8 @@ public final class TrustManagerUtils {
         List<X509ExtendedTrustManager> trustManagers = new ArrayList<>();
         if (trustManager instanceof CompositeX509ExtendedTrustManager) {
             for (X509ExtendedTrustManager innerTrustManager : ((CompositeX509ExtendedTrustManager) trustManager).getTrustManagers()) {
-                trustManagers.addAll(TrustManagerUtils.unwrapIfPossible(innerTrustManager));
+                List<X509ExtendedTrustManager> unwrappedTrustManagers = TrustManagerUtils.unwrapIfPossible(innerTrustManager);
+                trustManagers.addAll(unwrappedTrustManagers);
             }
         } else {
             trustManagers.add(trustManager);

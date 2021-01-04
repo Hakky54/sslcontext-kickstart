@@ -163,7 +163,8 @@ public final class KeyManagerUtils {
         List<X509ExtendedKeyManager> keyManagers = new ArrayList<>();
         if (keyManager instanceof CompositeX509ExtendedKeyManager) {
             for (X509ExtendedKeyManager innerKeyManager : ((CompositeX509ExtendedKeyManager) keyManager).getKeyManagers()) {
-                keyManagers.addAll(KeyManagerUtils.unwrapIfPossible(innerKeyManager));
+                List<X509ExtendedKeyManager> unwrappedKeyManagers = KeyManagerUtils.unwrapIfPossible(innerKeyManager);
+                keyManagers.addAll(unwrappedKeyManagers);
             }
         } else {
             keyManagers.add(keyManager);
