@@ -59,6 +59,8 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "6.1.0"
        - [Loading pem files from string content](#loading-pem-files-from-string-content)
        - [Loading encrypted pem files](#loading-encrypted-pem-files)
    - [Returnable values from the SSLFactory](#returnable-values-from-the-sslfactory)
+     - [SSLContext, SSLSocketFactory, KeyManager, TrustManager](#sslcontext-sslsocketfactory-keymanager-trustmanager)
+     - [Complete overview of all returnable values](#complete-overview-of-all-returnable-values)
 3. [Additional mappers for specific libraries](#additional-mappers-for-specific-libraries)
    - [Netty](#netty)
    - [Jetty](#jetty)
@@ -321,7 +323,118 @@ X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial("certificate.p
 ```
 
 ### Returnable values from the SSLFactory
-The SSLFactory provides different kinds of returnable values, see below for all the options:
+#### SSLContext, SSLSocketFactory, KeyManager, TrustManager
+The SSLContext instance is the base class which can provide useful objects such as SSLParameters, SocketFactory, SSLServerSocketFactory. 
+It will be constructed by the supplied identity or trust material, and it will use them under the covers during the ssl handshake.
+Although SSLContext has a lot of built-in objects which can help you to easily configure your http client it also has some limitations, such as:
+  - Not able to configure custom ciphers
+  - Not able to configure custom protocols
+
+So if you want your http client to communicate with a custom list of ciphers make sure the client has a separate method which accepts a list of chiphers or else only supplying the SSLContext won't do the trick for you.
+Every http client has his own solution. Some accept a list of ciphers and protocols and some accept a SSLSocketFactory.
+
+So lets assume that you have the following setup:
+```java
+SSLFactory sslFactory = SSLFactory.builder()
+        .withTrustMaterial("truststore.jks", "password".toCharArray())
+        .withDefaultTrustMaterial()
+        .withCiphers("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384")
+        .withProtocols("TLSv1.2")
+        .build();
+
+SSLContext sslContext = sslFactory.getSslContext();
+String[] ciphers = sslFactory.getSslContext().getDefaultSSLParameters().getCipherSuites()
+String[] protocols = sslFactory.getSslContext().getDefaultSSLParameters().getProtocols();
+```
+In the above setup the list of cipher from the sslContext won't match with the cipher which have been supplied to the SSLFactory. The list of protocols have the same behaviour.
+The main reason is that it is not configurable at all for the SSLContext instance... Let's grab the JDK Http Client which was introduced with Java 9:
+```java
+InputStream trustStoreStream = ...
+KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
+keystore.load(trustStoreStream, "password".toCharArray());
+
+TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
+trustManagerFactory.init(trustStore);
+
+SSLContext sslContext = SSLContext.getInstance("TLS");
+sslContext.init(null, trustManagerFactory.getTrustManagers(), null);
+
+SSLParameters sslParameters = new SSLParameters(
+    new String[] {"TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384"},
+    new String[] {"TLSv1.2"}
+)
+
+HttpClient httpClient = HttpClient.newBuilder()
+        .sslParameters(sslContext)
+        .sslContext(sslParameters)
+        .build();
+```
+As you can see the JDK Http Client requires an additional object called SSLParamters for configuring other properties such as ciphers, protocols and many more which is very good but you need to be aware of it.
+SSLFactory also provides SSLParameters as a returnable object and can be used exactly for this use case and so the above snippet could be refactored to the following snippet:
+```java
+SSLFactory sslFactory = SSLFactory.builder()
+        .withTrustMaterial("truststore.jks", "password".toCharArray())
+        .withCiphers("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384")
+        .withProtocols("TLSv1.2")
+        .build();
+
+HttpClient httpClient = HttpClient.newBuilder()
+        .sslParameters(sslFactory.getSslParameters())
+        .sslContext(sslFactory.getSslContext())
+        .build();
+```
+Let grab another example. Google Http Client does not support SSLContext and SSLParameters, it looks like they have chosen a different path when designing their api. As an end-user you can configure it by supplying a SSLSocketFactory.
+Unfortunately the default SSLSocketFactory within the SSLContext does not have aut-of-the-box capability of configuring it with custom ciphers and protocols. So the snippet below won't have support for custom ciphers and protocols.
+```java
+SSLContext sslContext = ...
+NetHttpTransport httpTransport = new NetHttpTransport.Builder()
+        .setSslSocketFactory(sslContext.getSocketFactory())
+        .build();
+```
+The SSLFactory creates an enriched [SSLSocketFactory](sslcontext-kickstart/src/main/java/nl/altindag/ssl/socket/CompositeSSLSocketFactory.java) from the supplied ciphers and protocols and enables this feature under the covers.
+The previous code snippet with a custom cipher and protocol can be achieved with the following snippet:
+```java
+SSLFactory sslFactory = ...
+NetHttpTransport httpTransport = new NetHttpTransport.Builder()
+        .setSslSocketFactory(sslFactory.getSslSocketFactory())
+        .build(); 
+```
+The SSLFactory provides a similar SocketFactory for configuring a server, see: [SSLServerSocketFactory](sslcontext-kickstart/src/main/java/nl/altindag/ssl/socket/CompositeSSLServerSocketFactory.java)
+
+Let's grab another example where we need to provide a list of ciphers and protocols directly. Unirest provides methods for the features you want regarding ciphers and protocols. It uses Apache Http Client as engine, which provides the same functionality.
+Unirest can be for example configured by directly supplying the ciphers and protocols at the highest level:
+```java
+SSLFactory sslFactory = ...
+Unirest.primaryInstance().config()
+       .sslContext(sslFactory.getSslContext())
+       .protocols(sslFactory.getSslParameters().getProtocols())
+       .ciphers(sslFactory.getSslParameters().getCipherSuites())
+       .hostnameVerifier(sslFactory.getHostnameVerifier());
+```
+
+Let's grab another example where we need to provide KeyManager and TrustManager instead of SSLContext or SSLSocketFactory. Netty Reactor uses a custom ssl context builder, luckily this builder accepts a-lot options.
+See below for the configuration:
+```java
+SSLFactory sslFactory = ...
+SslContext sslContextBuilder = SslContextBuilder.forClient()
+        .keyManager(sslFactory.getKeyManager().get())
+        .trustManager(sslFactory.getTrustManager().get())
+        .ciphers(sslFactory.getCiphers(), SupportedCipherSuiteFilter.INSTANCE)
+        .protocols(sslFactory.getProtocols())
+        .build();
+
+HttpClient httpClient = HttpClient.create()
+        .secure(sslSpec -> sslSpec.sslContext(sslContext));
+```
+The above snippet can be simplified with the built-in NettyUtils, see below:
+```
+SSLFactory sslFactory = ...
+SslContext sslContextBuilder = NettySslUtils.forClient(sslFactory).build();
+
+HttpClient httpClient = HttpClient.create()
+        .secure(sslSpec -> sslSpec.sslContext(sslContext));
+```
+#### Complete overview of all returnable values
 ```java
 import nl.altindag.ssl.SSLFactory;
 import nl.altindag.ssl.model.KeyStoreHolder;
