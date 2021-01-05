@@ -751,7 +751,7 @@ class SSLFactoryShould {
     }
 
     @Test
-    void buildSSLFactoryByDefaultWithTlsSslContextProtocol() {
+    void buildSSLFactoryByDefaultWithTlsSslContextAlgorithm() {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withDefaultTrustMaterial()
                 .build();
@@ -760,10 +760,10 @@ class SSLFactoryShould {
     }
 
     @Test
-    void buildSSLFactoryWithSslContextProtocol() {
+    void buildSSLFactoryWithSslContextAlgorithm() {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withDefaultTrustMaterial()
-                .withSslContextProtocol("TLSv1.2")
+                .withSslContextAlgorithm("TLSv1.2")
                 .build();
 
         assertThat(sslFactory.getSslContext().getProtocol()).isEqualTo("TLSv1.2");
@@ -1171,7 +1171,7 @@ class SSLFactoryShould {
     }
 
     @Test
-    void throwExceptionWhenUnknownSslContextProtocolIsProvided() {
+    void throwExceptionWhenUnknownSslContextAlgorithmIsProvided() {
         SSLFactory.Builder factoryBuilder = SSLFactory.builder()
                 .withDefaultTrustMaterial()
                 .withSslContextProtocol("KABOOM");

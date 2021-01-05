@@ -52,7 +52,7 @@ class SSLContextUtilsShould {
     }
 
     @Test
-    void createSslContextFromCustomSecureRandomAndAndSslContextProtocolAndSecurityProviderName() {
+    void createSslContextFromCustomSecureRandomAndAndSslContextAlgorithmAndSecurityProviderName() {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         X509ExtendedKeyManager keyManager = KeyManagerUtils.createKeyManager(identity, IDENTITY_PASSWORD);
 
@@ -70,7 +70,7 @@ class SSLContextUtilsShould {
     }
 
     @Test
-    void createSslContextFromCustomSecureRandomAndAndSslContextProtocolAndSecurityProvider() {
+    void createSslContextFromCustomSecureRandomAndAndSslContextAlgorithmAndSecurityProvider() {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         X509ExtendedKeyManager keyManager = KeyManagerUtils.createKeyManager(identity, IDENTITY_PASSWORD);
 

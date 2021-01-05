@@ -140,7 +140,7 @@ public final class SSLFactory {
 
         private static final char[] EMPTY_PASSWORD = {};
 
-        private String sslContextProtocol = "TLS";
+        private String sslContextAlgorithm = "TLS";
         private Provider securityProvider = null;
         private String securityProviderName = null;
         private SecureRandom secureRandom = null;
@@ -363,8 +363,17 @@ public final class SSLFactory {
             return this;
         }
 
+        /**
+         * @deprecated Please use {@link SSLFactory.Builder#withSslContextAlgorithm(String)}
+         *             This method will be removed from version 6.3 onwards.
+         */
+        @Deprecated
         public Builder withSslContextProtocol(String sslContextProtocol) {
-            this.sslContextProtocol = sslContextProtocol;
+            return withSslContextAlgorithm(sslContextProtocol);
+        }
+
+        public Builder withSslContextAlgorithm(String sslContextAlgorithm) {
+            this.sslContextAlgorithm = sslContextAlgorithm;
             return this;
         }
 
@@ -405,7 +414,7 @@ public final class SSLFactory {
                     keyManager,
                     trustManager,
                     secureRandom,
-                    sslContextProtocol,
+                    sslContextAlgorithm,
                     securityProviderName,
                     securityProvider
             );

@@ -35,7 +35,7 @@ import static java.util.Objects.nonNull;
  */
 public final class SSLContextUtils {
 
-    private static final String DEFAULT_SSL_CONTEXT_PROTOCOL = "TLS";
+    private static final String DEFAULT_SSL_CONTEXT_ALGORITHM = "TLS";
 
     private SSLContextUtils() {
     }
@@ -45,21 +45,21 @@ public final class SSLContextUtils {
     }
 
     public static SSLContext createSslContext(List<? extends X509KeyManager> keyManagers, List<? extends X509TrustManager> trustManagers, SecureRandom secureRandom) {
-        return createSslContext(keyManagers, trustManagers, secureRandom, DEFAULT_SSL_CONTEXT_PROTOCOL, (Provider) null);
+        return createSslContext(keyManagers, trustManagers, secureRandom, DEFAULT_SSL_CONTEXT_ALGORITHM, (Provider) null);
     }
 
     public static SSLContext createSslContext(
             List<? extends X509KeyManager> keyManagers,
             List<? extends X509TrustManager> trustManagers,
             SecureRandom secureRandom,
-            String sslContextProtocol,
+            String sslContextAlgorithm,
             Provider securityProvider) {
 
         return createSslContext(
                 !keyManagers.isEmpty() ? KeyManagerUtils.combine(keyManagers) : null,
                 !trustManagers.isEmpty() ? TrustManagerUtils.combine(trustManagers) : null,
                 secureRandom,
-                sslContextProtocol,
+                sslContextAlgorithm,
                 null,
                 securityProvider
         );
@@ -69,14 +69,14 @@ public final class SSLContextUtils {
             List<? extends X509KeyManager> keyManagers,
             List<? extends X509TrustManager> trustManagers,
             SecureRandom secureRandom,
-            String sslContextProtocol,
+            String sslContextAlgorithm,
             String securityProviderName) {
 
         return createSslContext(
                 !keyManagers.isEmpty() ? KeyManagerUtils.combine(keyManagers) : null,
                 !trustManagers.isEmpty() ? TrustManagerUtils.combine(trustManagers) : null,
                 secureRandom,
-                sslContextProtocol,
+                sslContextAlgorithm,
                 securityProviderName,
                 null
         );
@@ -86,7 +86,7 @@ public final class SSLContextUtils {
             X509KeyManager keyManager,
             X509TrustManager trustManager,
             SecureRandom secureRandom,
-            String sslContextProtocol,
+            String sslContextAlgorithm,
             String securityProviderName,
             Provider securityProvider) {
 
@@ -94,7 +94,7 @@ public final class SSLContextUtils {
                 keyManager != null ? KeyManagerUtils.toArray(keyManager) : null,
                 trustManager != null ? TrustManagerUtils.toArray(trustManager) : null,
                 secureRandom,
-                sslContextProtocol,
+                sslContextAlgorithm,
                 securityProviderName,
                 securityProvider
         );
@@ -104,18 +104,18 @@ public final class SSLContextUtils {
             X509KeyManager[] keyManagers,
             X509TrustManager[] trustManagers,
             SecureRandom secureRandom,
-            String sslContextProtocol,
+            String sslContextAlgorithm,
             String securityProviderName,
             Provider securityProvider) {
 
         try {
             SSLContext sslContext;
             if (nonNull(securityProvider)) {
-                sslContext = SSLContext.getInstance(sslContextProtocol, securityProvider);
+                sslContext = SSLContext.getInstance(sslContextAlgorithm, securityProvider);
             } else if (nonNull(securityProviderName)) {
-                sslContext = SSLContext.getInstance(sslContextProtocol, securityProviderName);
+                sslContext = SSLContext.getInstance(sslContextAlgorithm, securityProviderName);
             } else {
-                sslContext = SSLContext.getInstance(sslContextProtocol);
+                sslContext = SSLContext.getInstance(sslContextAlgorithm);
             }
 
             sslContext.init(keyManagers, trustManagers, secureRandom);
