@@ -83,20 +83,7 @@ public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustMa
             LOGGER.debug(CLIENT_CERTIFICATE_LOG_MESSAGE, chain[0].getSubjectDN());
         }
 
-        List<CertificateException> certificateExceptions = new ArrayList<>();
-        for (X509ExtendedTrustManager trustManager : trustManagers) {
-            try {
-                trustManager.checkClientTrusted(chain, authType);
-                return;
-            } catch (CertificateException e) {
-                certificateExceptions.add(e);
-            }
-        }
-
-        CertificateException certificateException = new CertificateException(CERTIFICATE_EXCEPTION_MESSAGE);
-        certificateExceptions.forEach(certificateException::addSuppressed);
-
-        throw certificateException;
+        checkTrusted(trustManager -> trustManager.checkClientTrusted(chain, authType));
     }
 
     @Override
@@ -105,20 +92,7 @@ public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustMa
             LOGGER.debug(CLIENT_CERTIFICATE_LOG_MESSAGE, chain[0].getSubjectDN());
         }
 
-        List<CertificateException> certificateExceptions = new ArrayList<>();
-        for (X509ExtendedTrustManager trustManager : trustManagers) {
-            try {
-                trustManager.checkClientTrusted(chain, authType, socket);
-                return;
-            } catch (CertificateException e) {
-                certificateExceptions.add(e);
-            }
-        }
-
-        CertificateException certificateException = new CertificateException(CERTIFICATE_EXCEPTION_MESSAGE);
-        certificateExceptions.forEach(certificateException::addSuppressed);
-
-        throw certificateException;
+        checkTrusted(trustManager -> trustManager.checkClientTrusted(chain, authType, socket));
     }
 
     @Override
@@ -127,20 +101,7 @@ public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustMa
             LOGGER.debug(CLIENT_CERTIFICATE_LOG_MESSAGE, chain[0].getSubjectDN());
         }
 
-        List<CertificateException> certificateExceptions = new ArrayList<>();
-        for (X509ExtendedTrustManager trustManager : trustManagers) {
-            try {
-                trustManager.checkClientTrusted(chain, authType, sslEngine);
-                return;
-            } catch (CertificateException e) {
-                certificateExceptions.add(e);
-            }
-        }
-
-        CertificateException certificateException = new CertificateException(CERTIFICATE_EXCEPTION_MESSAGE);
-        certificateExceptions.forEach(certificateException::addSuppressed);
-
-        throw certificateException;
+        checkTrusted(trustManager -> trustManager.checkClientTrusted(chain, authType, sslEngine));
     }
 
     @Override
@@ -149,20 +110,7 @@ public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustMa
             LOGGER.debug(SERVER_CERTIFICATE_LOG_MESSAGE, chain[0].getSubjectDN());
         }
 
-        List<CertificateException> certificateExceptions = new ArrayList<>();
-        for (X509ExtendedTrustManager trustManager : trustManagers) {
-            try {
-                trustManager.checkServerTrusted(chain, authType);
-                return;
-            } catch (CertificateException e) {
-                certificateExceptions.add(e);
-            }
-        }
-
-        CertificateException certificateException = new CertificateException(CERTIFICATE_EXCEPTION_MESSAGE);
-        certificateExceptions.forEach(certificateException::addSuppressed);
-
-        throw certificateException;
+        checkTrusted(trustManager -> trustManager.checkServerTrusted(chain, authType));
     }
 
     @Override
@@ -171,20 +119,7 @@ public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustMa
             LOGGER.debug(SERVER_CERTIFICATE_LOG_MESSAGE, chain[0].getSubjectDN());
         }
 
-        List<CertificateException> certificateExceptions = new ArrayList<>();
-        for (X509ExtendedTrustManager trustManager : trustManagers) {
-            try {
-                trustManager.checkServerTrusted(chain, authType, socket);
-                return;
-            } catch (CertificateException e) {
-                certificateExceptions.add(e);
-            }
-        }
-
-        CertificateException certificateException = new CertificateException(CERTIFICATE_EXCEPTION_MESSAGE);
-        certificateExceptions.forEach(certificateException::addSuppressed);
-
-        throw certificateException;
+        checkTrusted(trustManager -> trustManager.checkServerTrusted(chain, authType, socket));
     }
 
     @Override
@@ -193,20 +128,7 @@ public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustMa
             LOGGER.debug(SERVER_CERTIFICATE_LOG_MESSAGE, chain[0].getSubjectDN());
         }
 
-        List<CertificateException> certificateExceptions = new ArrayList<>();
-        for (X509ExtendedTrustManager trustManager : trustManagers) {
-            try {
-                trustManager.checkServerTrusted(chain, authType, sslEngine);
-                return;
-            } catch (CertificateException e) {
-                certificateExceptions.add(e);
-            }
-        }
-
-        CertificateException certificateException = new CertificateException(CERTIFICATE_EXCEPTION_MESSAGE);
-        certificateExceptions.forEach(certificateException::addSuppressed);
-
-        throw certificateException;
+        checkTrusted(trustManager -> trustManager.checkServerTrusted(chain, authType, sslEngine));
     }
 
     @Override
@@ -222,4 +144,24 @@ public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustMa
         return Collections.unmodifiableList(trustManagers);
     }
 
+    private void checkTrusted(TrustManagerConsumer callBackConsumer) throws CertificateException {
+        List<CertificateException> certificateExceptions = new ArrayList<>();
+        for (X509ExtendedTrustManager trustManager : trustManagers) {
+            try {
+                callBackConsumer.checkTrusted(trustManager);
+                return;
+            } catch (CertificateException e) {
+                certificateExceptions.add(e);
+            }
+        }
+
+        CertificateException certificateException = new CertificateException(CERTIFICATE_EXCEPTION_MESSAGE);
+        certificateExceptions.forEach(certificateException::addSuppressed);
+
+        throw certificateException;
+    }
+
+    private interface TrustManagerConsumer {
+        void checkTrusted(X509ExtendedTrustManager trustManager) throws CertificateException;
+    }
 }
