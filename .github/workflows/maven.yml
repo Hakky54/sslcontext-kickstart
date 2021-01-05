@@ -1,7 +1,6 @@
 name: Build
 
-on:
-  push:
+on: [push, pull_request]
 
 jobs:
   build-on-linux-with-jdk-8:
@@ -23,7 +22,7 @@ jobs:
             ${{ runner.os }}-maven-
 
       - name: Build and test
-        run: mvn clean verify
+        run: mvn clean verify --no-transfer-progress
 
   build-on-linux-with-jdk-11:
     runs-on: ubuntu-latest
@@ -44,7 +43,7 @@ jobs:
             ${{ runner.os }}-maven-
 
       - name: Build and test
-        run: mvn clean verify
+        run: mvn clean verify --no-transfer-progress
 
   build-on-windows-with-jdk-8:
     runs-on: windows-latest
@@ -65,7 +64,7 @@ jobs:
             ${{ runner.os }}-maven-
 
       - name: Build and test
-        run: mvn clean verify
+        run: mvn clean verify --no-transfer-progress
 
   build-on-windows-with-jdk-11:
     runs-on: windows-latest
@@ -86,7 +85,7 @@ jobs:
             ${{ runner.os }}-maven-
 
       - name: Build and test
-        run: mvn clean verify
+        run: mvn clean verify --no-transfer-progress
 
   build-on-mac-with-jdk-8:
     runs-on: macOS-latest
@@ -107,7 +106,7 @@ jobs:
             ${{ runner.os }}-maven-
 
       - name: Build and test
-        run: mvn clean verify
+        run: mvn clean verify --no-transfer-progress
 
   build-on-mac-with-jdk-11:
     runs-on: macOS-latest
@@ -126,8 +125,12 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
-
       - name: Build, test and quality scan
-        run: mvn clean verify sonar:sonar -Dsonar.organization=hakky54 -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+        run: mvn clean verify sonar:sonar -Dsonar.organization=hakky54 -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ secrets.SONAR_TOKEN }} --no-transfer-progress
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if: github.actor == 'Hakky54'
+
+      - name: Build and test
+        run: mvn clean verify --no-transfer-progress --no-transfer-progress
+        if: github.actor != 'Hakky54'
