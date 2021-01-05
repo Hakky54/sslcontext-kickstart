@@ -18,8 +18,6 @@ package nl.altindag.ssl;
 import nl.altindag.log.LogCaptor;
 import nl.altindag.ssl.util.KeyStoreUtils;
 import nl.altindag.ssl.util.PemUtils;
-import org.bouncycastle.operator.OperatorCreationException;
-import org.bouncycastle.pkcs.PKCSException;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,9 +27,6 @@ import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509ExtendedTrustManager;
 import java.io.IOException;
 import java.net.URL;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -45,7 +40,7 @@ class SSLFactoryIT {
     private static final char[] IDENTITY_PASSWORD = "badssl.com".toCharArray();
 
     @Test
-    void executeHttpsRequestWithMutualAuthentication() throws IOException, OperatorCreationException, CertificateException, NoSuchAlgorithmException, KeyStoreException, PKCSException {
+    void executeHttpsRequestWithMutualAuthentication() throws IOException {
         LogCaptor logCaptor = LogCaptor.forRoot();
 
         X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial("pems-for-unit-tests/badssl-identity.pem", IDENTITY_PASSWORD);
@@ -74,7 +69,7 @@ class SSLFactoryIT {
 
 
     @Test
-    void executeHttpsRequestWithMutualAuthenticationFromRawSslMaterial() throws IOException, OperatorCreationException, CertificateException, NoSuchAlgorithmException, KeyStoreException, PKCSException {
+    void executeHttpsRequestWithMutualAuthenticationFromRawSslMaterial() throws IOException {
         LogCaptor logCaptor = LogCaptor.forRoot();
 
         String identityMaterial =
