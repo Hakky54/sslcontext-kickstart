@@ -38,11 +38,11 @@ import java.util.Objects;
 public class TrustManagerFactoryWrapper extends TrustManagerFactory {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TrustManagerFactoryWrapper.class);
-    private static final String KEY_MANAGER_FACTORY_ALGORITHM = "no-algorithm";
+    private static final String TRUST_MANAGER_FACTORY_ALGORITHM = "no-algorithm";
     private static final Provider PROVIDER = new Provider("", 1.0, "") {};
 
     public TrustManagerFactoryWrapper(TrustManager trustManager) {
-        super(new TrustManagerFactorySpiWrapper(trustManager), PROVIDER, KEY_MANAGER_FACTORY_ALGORITHM);
+        super(new TrustManagerFactorySpiWrapper(trustManager), PROVIDER, TRUST_MANAGER_FACTORY_ALGORITHM);
     }
 
     private static class TrustManagerFactorySpiWrapper extends TrustManagerFactorySpi {
