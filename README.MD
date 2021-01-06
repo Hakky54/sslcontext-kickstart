@@ -58,6 +58,7 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "6.1.0"
        - [Loading pem files from InputStream](#loading-pem-files-from-inputstream)
        - [Loading pem files from string content](#loading-pem-files-from-string-content)
        - [Loading encrypted pem files](#loading-encrypted-pem-files)
+     - [Migrating from classic configuration](#migrating-from-classic-configuration)
    - [Returnable values from the SSLFactory](#returnable-values-from-the-sslfactory)
 3. [Additional mappers for specific libraries](#additional-mappers-for-specific-libraries)
    - [Netty](#netty)
@@ -319,6 +320,29 @@ X509ExtendedTrustManager trustManager = PemUtils.parseTrustMaterial(trustedCerti
 ```
 X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial("certificate.pem", "private-key.pem", "secret".toCharArray());
 ```
+
+##### Migrating from classic configuration
+Below is an example of the classic configuration for enabling ssl for your application.
+```
+-Djavax.net.ssl.trustStore=/path/to/truststore.jks
+-Djavax.net.ssl.trustStoreType=jks
+-Djavax.net.ssl.trustStorePassword=changeit
+-Djavax.net.ssl.keyStore=/path/to/keystore.jks
+-Djavax.net.ssl.keyStoreType=jks
+-Djavax.net.ssl.keyStorePassword=changeit
+-Djdk.tls.client.protocols=TLSv1.3
+-Dhttps.protocols=TLSv1.3
+```
+
+This can be refactored to the configuration below:
+```java
+SSLFactory sslFactory = SSLFactory.builder()
+        .withIdentityMaterial(Paths.get("/path/to/keystore.jks"), "changeit".toCharArray(), "jks")
+        .withTrustMaterial(Paths.get("/path/to/truststore.jks"), "changeit".toCharArray(), "jks")
+        .withProtocols("TLSv1.3")
+        .build();
+```
+The SSLFactory returnable values can be supplied to the http client as shown [here](#tested-http-clients)
 
 ### Returnable values from the SSLFactory
 The SSLFactory provides different kinds of returnable values, see below for all the options:
