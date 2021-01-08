@@ -25,6 +25,7 @@ import nl.altindag.ssl.model.TrustMaterial;
 import nl.altindag.ssl.util.KeyManagerUtils;
 import nl.altindag.ssl.util.KeyStoreUtils;
 import nl.altindag.ssl.util.SSLContextUtils;
+import nl.altindag.ssl.util.SSLParametersUtils;
 import nl.altindag.ssl.util.SocketUtils;
 import nl.altindag.ssl.util.TrustManagerUtils;
 import org.slf4j.Logger;
@@ -124,7 +125,7 @@ public final class SSLFactory {
     }
 
     public SSLParameters getSslParameters() {
-        return sslMaterial.getSslParameters();
+        return SSLParametersUtils.copy(sslMaterial.getSslParameters());
     }
 
     public static Builder builder() {
@@ -426,7 +427,7 @@ public final class SSLFactory {
                     .map(TrustManagerUtils::createTrustManagerFactory)
                     .orElse(null);
 
-            SSLParameters baseSslParameters = merge(sslContext.getDefaultSSLParameters(), sslParameters);
+            SSLParameters baseSslParameters = SSLParametersUtils.merge(sslParameters, sslContext.getDefaultSSLParameters());
             SSLSocketFactory sslSocketFactory = SocketUtils.createSslSocketFactory(sslContext.getSocketFactory(), baseSslParameters);
             SSLServerSocketFactory sslServerSocketFactory = SocketUtils.createSslServerSocketFactory(sslContext.getServerSocketFactory(), baseSslParameters);
             List<X509Certificate> trustedCertificates = Optional.ofNullable(trustManager)
@@ -509,18 +510,5 @@ public final class SSLFactory {
                     ).build();
         }
 
-        private SSLParameters merge(SSLParameters defaultSslParameters, SSLParameters factorySslParameters) {
-            SSLParameters baseSslParameters = new SSLParameters();
-
-            String[] ciphers = Optional.ofNullable(factorySslParameters.getCipherSuites())
-                    .orElse(defaultSslParameters.getCipherSuites());
-            String[] protocols = Optional.ofNullable(factorySslParameters.getProtocols())
-                    .orElse(defaultSslParameters.getProtocols());
-
-            baseSslParameters.setCipherSuites(ciphers);
-            baseSslParameters.setProtocols(protocols);
-
-            return baseSslParameters;
-        }
     }
 }
