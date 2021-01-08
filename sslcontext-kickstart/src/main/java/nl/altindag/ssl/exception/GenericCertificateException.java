@@ -25,4 +25,8 @@ public final class GenericCertificateException extends GenericSecurityException 
         super(cause);
     }
 
+    public GenericCertificateException(String message) {
+        super(message);
+    }
+
 }

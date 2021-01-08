@@ -16,10 +16,10 @@
 
 package nl.altindag.ssl.util;
 
+import nl.altindag.ssl.exception.GenericCertificateException;
 import nl.altindag.ssl.exception.GenericIOException;
 import nl.altindag.ssl.exception.GenericKeyStoreException;
 import nl.altindag.ssl.exception.PrivateKeyParseException;
-import nl.altindag.ssl.exception.PublicKeyParseException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
@@ -131,7 +131,7 @@ class PemUtilsShould {
     }
 
     @Test
-    void loadMultipleTrustMaterialsWithPathFromDirectoryAsMultipleFiles() throws IOException {
+    void loadMultipleTrustMaterialsWithPathFromDirectoryAsMultipleFiles() {
         Path certificatePathOne = Paths.get(TEST_RESOURCES_LOCATION + PEM_LOCATION, "github-certificate.pem").toAbsolutePath();
         Path certificatePathTwo = Paths.get(TEST_RESOURCES_LOCATION + PEM_LOCATION, "stackexchange.pem").toAbsolutePath();
 
@@ -142,7 +142,7 @@ class PemUtilsShould {
     }
 
     @Test
-    void loadMultipleTrustMaterialsWithPathFromDirectoryAsSingleFile() throws IOException {
+    void loadMultipleTrustMaterialsWithPathFromDirectoryAsSingleFile() {
         Path certificatePath = Paths.get(TEST_RESOURCES_LOCATION + PEM_LOCATION, "multiple-certificates.pem");
 
         X509ExtendedTrustManager trustManager = PemUtils.loadTrustMaterial(certificatePath);
@@ -201,7 +201,7 @@ class PemUtilsShould {
     }
 
     @Test
-    void loadUnencryptedIdentityMaterialFromDirectory() throws IOException {
+    void loadUnencryptedIdentityMaterialFromDirectory() {
         Path identityPath = Paths.get(TEST_RESOURCES_LOCATION + PEM_LOCATION, "unencrypted-identity.pem").toAbsolutePath();
 
         X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(identityPath);
@@ -230,7 +230,7 @@ class PemUtilsShould {
     }
 
     @Test
-    void loadUnencryptedPrivateKeyAndCertificateAsIdentityFromDirectory() throws IOException {
+    void loadUnencryptedPrivateKeyAndCertificateAsIdentityFromDirectory() {
         Path certificatePath = Paths.get(TEST_RESOURCES_LOCATION + PEM_LOCATION, "splitted-unencrypted-identity-containing-certificate.pem").toAbsolutePath();
         Path privateKeyPath = Paths.get(TEST_RESOURCES_LOCATION + PEM_LOCATION, "splitted-unencrypted-identity-containing-private-key.pem").toAbsolutePath();
 
@@ -295,7 +295,7 @@ class PemUtilsShould {
     }
 
     @Test
-    void loadEncryptedIdentityMaterialFromDirectory() throws IOException {
+    void loadEncryptedIdentityMaterialFromDirectory() {
         Path identityPath = Paths.get(TEST_RESOURCES_LOCATION + PEM_LOCATION, "encrypted-identity.pem").toAbsolutePath();
 
         X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(identityPath, "secret".toCharArray());
@@ -349,10 +349,27 @@ class PemUtilsShould {
     }
 
     @Test
+    void throwExceptionWhenParseTrustMaterialIsCalledWithoutValidCertificate() {
+        assertThatThrownBy(() -> PemUtils.parseTrustMaterial(""))
+                .isInstanceOf(GenericCertificateException.class)
+                .hasMessage(
+                        "There are no valid certificates present to parse. " +
+                        "Please make sure to supply at lease one valid pem formatted " +
+                        "certificate containing the header -----BEGIN CERTIFICATE----- " +
+                        "and the footer -----END CERTIFICATE-----"
+                );
+    }
+
+    @Test
     void throwPublicKeyParseExceptionWhenPublicKeyIsMissing() {
         assertThatThrownBy(() -> PemUtils.loadIdentityMaterial(PEM_LOCATION + "splitted-unencrypted-identity-containing-private-key.pem"))
-                .hasRootCauseInstanceOf(PublicKeyParseException.class)
-                .hasMessageContaining("Certificate chain is not present");
+                .hasRootCauseInstanceOf(GenericCertificateException.class)
+                .hasMessageContaining(
+                        "There are no valid certificates present to parse. " +
+                        "Please make sure to supply at lease one valid pem formatted " +
+                        "certificate containing the header -----BEGIN CERTIFICATE----- " +
+                        "and the footer -----END CERTIFICATE-----"
+                );
     }
 
     @Test

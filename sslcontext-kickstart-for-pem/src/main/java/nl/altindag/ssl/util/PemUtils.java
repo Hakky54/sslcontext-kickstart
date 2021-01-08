@@ -19,7 +19,6 @@ package nl.altindag.ssl.util;
 import nl.altindag.ssl.exception.GenericIOException;
 import nl.altindag.ssl.exception.GenericKeyStoreException;
 import nl.altindag.ssl.exception.PrivateKeyParseException;
-import nl.altindag.ssl.exception.PublicKeyParseException;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMDecryptorProvider;
@@ -172,10 +171,6 @@ public final class PemUtils {
     }
 
     private static X509ExtendedKeyManager parseIdentityMaterial(Certificate[] certificatesChain, PrivateKey privateKey) {
-        if (certificatesChain.length == 0) {
-            throw new PublicKeyParseException("Certificate chain is not present");
-        }
-
         try {
             KeyStore keyStore = KeyStoreUtils.createKeyStore();
             keyStore.setKeyEntry(CertificateUtils.generateAlias(certificatesChain[0]), privateKey, DUMMY_PASSWORD, certificatesChain);

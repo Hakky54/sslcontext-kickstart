@@ -117,6 +117,17 @@ public final class CertificateUtils {
             }
         }
 
+        if (certificates.isEmpty()) {
+            throw new GenericCertificateException(
+                    String.format(
+                        "There are no valid certificates present to parse. " +
+                        "Please make sure to supply at lease one valid pem formatted certificate containing the header %s and the footer %s",
+                        "-----BEGIN CERTIFICATE-----",
+                        "-----END CERTIFICATE-----"
+                    )
+            );
+        }
+
         return certificates;
     }
 
