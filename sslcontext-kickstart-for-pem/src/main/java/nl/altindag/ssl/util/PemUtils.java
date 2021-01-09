@@ -16,15 +16,19 @@
 
 package nl.altindag.ssl.util;
 
+import nl.altindag.ssl.exception.CertificateParseException;
 import nl.altindag.ssl.exception.GenericIOException;
 import nl.altindag.ssl.exception.GenericKeyStoreException;
 import nl.altindag.ssl.exception.PrivateKeyParseException;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMDecryptorProvider;
 import org.bouncycastle.openssl.PEMEncryptedKeyPair;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.openssl.X509TrustedCertificateBlock;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.openssl.jcajce.JceOpenSSLPKCS8DecryptorProviderBuilder;
 import org.bouncycastle.openssl.jcajce.JcePEMDecryptorProviderBuilder;
@@ -37,6 +41,7 @@ import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509ExtendedTrustManager;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
 import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -45,9 +50,13 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 
 /**
  * Reads PEM formatted private keys and certificates
@@ -61,30 +70,91 @@ public final class PemUtils {
     private static final char[] NO_PASSWORD = null;
     private static final BouncyCastleProvider BOUNCY_CASTLE_PROVIDER = new BouncyCastleProvider();
     private static final JcaPEMKeyConverter KEY_CONVERTER = new JcaPEMKeyConverter().setProvider(BOUNCY_CASTLE_PROVIDER);
+    private static final JcaX509CertificateConverter CERTIFICATE_CONVERTER = new JcaX509CertificateConverter().setProvider(BOUNCY_CASTLE_PROVIDER);
 
     private PemUtils() {}
 
     public static X509ExtendedTrustManager loadTrustMaterial(String... certificatePaths) {
-        return mapTrustMaterial(CertificateUtils.loadCertificate(certificatePaths));
+        List<X509Certificate> certificates = loadCertificate(certificatePath -> CertificateUtils.class.getClassLoader().getResourceAsStream(certificatePath), certificatePaths);
+        return mapTrustMaterial(certificates);
     }
 
     public static X509ExtendedTrustManager loadTrustMaterial(Path... certificatePaths) {
-        return mapTrustMaterial(CertificateUtils.loadCertificate(certificatePaths));
+        List<X509Certificate> certificates = loadCertificate(certificatePath -> {
+            try {
+                return Files.newInputStream(certificatePath, StandardOpenOption.READ);
+            } catch (IOException exception) {
+                throw new GenericIOException(exception);
+            }
+        }, certificatePaths);
+        return mapTrustMaterial(certificates);
     }
 
     public static X509ExtendedTrustManager loadTrustMaterial(InputStream... certificateStreams) {
-        return mapTrustMaterial(CertificateUtils.loadCertificate(certificateStreams));
+        List<X509Certificate> certificates = loadCertificate(Function.identity(), certificateStreams);
+        return mapTrustMaterial(certificates);
+    }
+
+    @SafeVarargs
+    private static <T> List<X509Certificate> loadCertificate(Function<T, InputStream> resourceMapper, T... resources) {
+        List<X509Certificate> certificates = new ArrayList<>();
+        for (T resource : resources) {
+            try {
+                InputStream certificateStream = resourceMapper.apply(resource);
+                certificates.addAll(PemUtils.parseCertificate(certificateStream));
+                certificateStream.close();
+            } catch (Exception e) {
+                throw new GenericIOException(e);
+            }
+        }
+
+        return Collections.unmodifiableList(certificates);
+    }
+
+    private static List<X509Certificate> parseCertificate(InputStream certificateStream) {
+        String content = IOUtils.getContent(certificateStream);
+        return parseCertificate(content);
+    }
+
+    private static List<X509Certificate> parseCertificate(String certContent) {
+        try {
+            Reader stringReader = new StringReader(certContent);
+            PEMParser pemParser = new PEMParser(stringReader);
+            List<X509Certificate> certificates = new ArrayList<>();
+
+            Object object = pemParser.readObject();
+            while (object != null) {
+                if (object instanceof X509CertificateHolder) {
+                    X509Certificate certificate = CERTIFICATE_CONVERTER.getCertificate((X509CertificateHolder) object);
+                    certificates.add(certificate);
+                } else if (object instanceof X509TrustedCertificateBlock) {
+                    X509CertificateHolder certificateHolder = ((X509TrustedCertificateBlock) object).getCertificateHolder();
+                    X509Certificate certificate = CERTIFICATE_CONVERTER.getCertificate(certificateHolder);
+                    certificates.add(certificate);
+                }
+
+                object = pemParser.readObject();
+            }
+
+            if (certificates.isEmpty()) {
+                throw new CertificateParseException("Received an unsupported certificate type");
+            }
+
+            return certificates;
+        } catch (IOException | CertificateException e) {
+            throw new CertificateParseException(e);
+        }
     }
 
     public static X509ExtendedTrustManager parseTrustMaterial(String... certificateContents) {
-        List<Certificate> certificates = new ArrayList<>();
+        List<X509Certificate> certificates = new ArrayList<>();
         for (String certificateContent : certificateContents) {
-            certificates.addAll(CertificateUtils.parseCertificate(certificateContent));
+            certificates.addAll(PemUtils.parseCertificate(certificateContent));
         }
         return mapTrustMaterial(certificates);
     }
 
-    private static X509ExtendedTrustManager mapTrustMaterial(List<Certificate> certificates) {
+    private static X509ExtendedTrustManager mapTrustMaterial(List<X509Certificate> certificates) {
         KeyStore trustStore = KeyStoreUtils.createTrustStore(certificates);
         return TrustManagerUtils.createTrustManager(trustStore);
     }
@@ -118,7 +188,7 @@ public final class PemUtils {
 
     public static X509ExtendedKeyManager parseIdentityMaterial(String certificateChainContent, String privateKeyContent, char[] keyPassword) {
         PrivateKey privateKey = parsePrivateKey(privateKeyContent, keyPassword);
-        Certificate[] certificateChain = CertificateUtils.parseCertificate(certificateChainContent)
+        Certificate[] certificateChain = PemUtils.parseCertificate(certificateChainContent)
                 .toArray(new Certificate[]{});
 
         return parseIdentityMaterial(certificateChain, privateKey);
@@ -126,7 +196,7 @@ public final class PemUtils {
 
     private static PrivateKey parsePrivateKey(String identityContent, char[] keyPassword) {
         try {
-            StringReader stringReader = new StringReader(identityContent);
+            Reader stringReader = new StringReader(identityContent);
             PEMParser pemParser = new PEMParser(stringReader);
             PrivateKeyInfo privateKeyInfo = null;
 

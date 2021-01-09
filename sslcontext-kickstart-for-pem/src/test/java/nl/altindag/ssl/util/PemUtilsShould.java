@@ -16,7 +16,7 @@
 
 package nl.altindag.ssl.util;
 
-import nl.altindag.ssl.exception.GenericCertificateException;
+import nl.altindag.ssl.exception.CertificateParseException;
 import nl.altindag.ssl.exception.GenericIOException;
 import nl.altindag.ssl.exception.GenericKeyStoreException;
 import nl.altindag.ssl.exception.PrivateKeyParseException;
@@ -68,6 +68,15 @@ class PemUtilsShould {
     @Test
     void parseSingleTrustMaterialFromContent() {
         String certificateContent = getResourceContent(PEM_LOCATION + "github-certificate.pem");
+        X509ExtendedTrustManager trustManager = PemUtils.parseTrustMaterial(certificateContent);
+
+        assertThat(trustManager).isNotNull();
+        assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
+    }
+
+    @Test
+    void parseSingleTrustMaterialAsOpenSslTrustedCertificateFormatFromContent() {
+        String certificateContent = getResourceContent(PEM_LOCATION + "alternative-certificate-type.pem");
         X509ExtendedTrustManager trustManager = PemUtils.parseTrustMaterial(certificateContent);
 
         assertThat(trustManager).isNotNull();
@@ -340,6 +349,19 @@ class PemUtilsShould {
     }
 
     @Test
+    void throwGenericIOExceptionWhenInputStreamCanNotBeClosed() throws IOException {
+        InputStream certificateStream = spy(getResource(PEM_LOCATION + "github-certificate.pem"));
+
+        doThrow(new IOException("KABOOM!!!"))
+                .when(certificateStream)
+                .close();
+
+        assertThatThrownBy(() -> PemUtils.loadTrustMaterial(certificateStream))
+                .isInstanceOf(GenericIOException.class)
+                .hasRootCauseMessage("KABOOM!!!");
+    }
+
+    @Test
     void throwPrivateKeyParseExceptionWhenAnUnknownPrivateKeyHasBeenSupplied() throws IOException {
         try(InputStream inputStream = new ByteArrayInputStream("Hello there friend!".getBytes(StandardCharsets.UTF_8))) {
             assertThatThrownBy(() -> PemUtils.loadIdentityMaterial(inputStream))
@@ -351,25 +373,15 @@ class PemUtilsShould {
     @Test
     void throwExceptionWhenParseTrustMaterialIsCalledWithoutValidCertificate() {
         assertThatThrownBy(() -> PemUtils.parseTrustMaterial(""))
-                .isInstanceOf(GenericCertificateException.class)
-                .hasMessage(
-                        "There are no valid certificates present to parse. " +
-                        "Please make sure to supply at least one valid pem formatted " +
-                        "certificate containing the header -----BEGIN CERTIFICATE----- " +
-                        "and the footer -----END CERTIFICATE-----"
-                );
+                .isInstanceOf(CertificateParseException.class)
+                .hasMessage("Received an unsupported certificate type");
     }
 
     @Test
     void throwPublicKeyParseExceptionWhenPublicKeyIsMissing() {
         assertThatThrownBy(() -> PemUtils.loadIdentityMaterial(PEM_LOCATION + "splitted-unencrypted-identity-containing-private-key.pem"))
-                .hasRootCauseInstanceOf(GenericCertificateException.class)
-                .hasMessageContaining(
-                        "There are no valid certificates present to parse. " +
-                        "Please make sure to supply at least one valid pem formatted " +
-                        "certificate containing the header -----BEGIN CERTIFICATE----- " +
-                        "and the footer -----END CERTIFICATE-----"
-                );
+                .hasRootCauseInstanceOf(CertificateParseException.class)
+                .hasMessageContaining("Received an unsupported certificate type");
     }
 
     @Test
@@ -445,6 +457,18 @@ class PemUtilsShould {
         assertThatThrownBy(() -> PemUtils.parseIdentityMaterial(invalidPrivateKey, null))
                 .isInstanceOf(PrivateKeyParseException.class)
                 .hasMessageContaining("problem parsing ENCRYPTED PRIVATE KEY");
+    }
+
+    @Test
+    void throwCertificateParseExceptionWhenInvalidCertificateContentIsSupplied() {
+        String invalidCertificate = "" +
+                "-----BEGIN CERTIFICATE-----\n" +
+                "MwdGrM6kt0lfJy/gvGVsgIKZocHdedPeECqAtq7FAJYanOsjNN9RbBOGhbwq0/FP\n" +
+                "CC01zojqS10nGowxzOiqyB4m6wytmzf0QwjpMw==\n" +
+                "-----END CERTIFICATE-----";
+
+        assertThatThrownBy(() -> PemUtils.parseTrustMaterial(invalidCertificate))
+                .isInstanceOf(CertificateParseException.class);
     }
 
     @Test

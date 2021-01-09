@@ -30,8 +30,6 @@ import java.util.stream.Collectors;
  */
 public final class IOUtils {
 
-    private static final String NEW_LINE = "\n";
-
     private IOUtils() {}
 
     public static String getContent(InputStream inputStream) {
@@ -39,7 +37,7 @@ public final class IOUtils {
              BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
 
             return bufferedReader.lines()
-                    .collect(Collectors.joining(NEW_LINE));
+                    .collect(Collectors.joining(System.lineSeparator()));
         } catch (Exception e) {
             throw new GenericIOException(e);
         }

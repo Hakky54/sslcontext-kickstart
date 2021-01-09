@@ -49,7 +49,6 @@ public final class CertificateUtils {
     private static final String CERTIFICATE_TYPE = "X.509";
     private static final Pattern CERTIFICATE_PATTERN = Pattern.compile("-----BEGIN CERTIFICATE-----(.*?)-----END CERTIFICATE-----", Pattern.DOTALL);
 
-    private static final String NEW_LINE = "\n";
     private static final String EMPTY = "";
 
     private CertificateUtils() {}
@@ -106,7 +105,7 @@ public final class CertificateUtils {
         Matcher certificateMatcher = CERTIFICATE_PATTERN.matcher(certificateContent);
 
         while (certificateMatcher.find()) {
-            String sanitizedCertificate = certificateMatcher.group(1).replace(NEW_LINE, EMPTY).trim();
+            String sanitizedCertificate = certificateMatcher.group(1).replace(System.lineSeparator(), EMPTY).trim();
             byte[] decodedCertificate = Base64.getDecoder().decode(sanitizedCertificate);
             try(ByteArrayInputStream certificateAsInputStream = new ByteArrayInputStream(decodedCertificate)) {
                 CertificateFactory certificateFactory = CertificateFactory.getInstance(CERTIFICATE_TYPE);
