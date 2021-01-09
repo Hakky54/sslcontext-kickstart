@@ -354,7 +354,7 @@ class PemUtilsShould {
                 .isInstanceOf(GenericCertificateException.class)
                 .hasMessage(
                         "There are no valid certificates present to parse. " +
-                        "Please make sure to supply at lease one valid pem formatted " +
+                        "Please make sure to supply at least one valid pem formatted " +
                         "certificate containing the header -----BEGIN CERTIFICATE----- " +
                         "and the footer -----END CERTIFICATE-----"
                 );
@@ -366,7 +366,7 @@ class PemUtilsShould {
                 .hasRootCauseInstanceOf(GenericCertificateException.class)
                 .hasMessageContaining(
                         "There are no valid certificates present to parse. " +
-                        "Please make sure to supply at lease one valid pem formatted " +
+                        "Please make sure to supply at least one valid pem formatted " +
                         "certificate containing the header -----BEGIN CERTIFICATE----- " +
                         "and the footer -----END CERTIFICATE-----"
                 );
