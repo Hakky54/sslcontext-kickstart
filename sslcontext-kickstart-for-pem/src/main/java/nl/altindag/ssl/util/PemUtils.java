@@ -99,10 +99,8 @@ public final class PemUtils {
     private static <T> List<X509Certificate> loadCertificate(Function<T, InputStream> resourceMapper, T... resources) {
         List<X509Certificate> certificates = new ArrayList<>();
         for (T resource : resources) {
-            try {
-                InputStream certificateStream = resourceMapper.apply(resource);
+            try(InputStream certificateStream = resourceMapper.apply(resource)) {
                 certificates.addAll(PemUtils.parseCertificate(certificateStream));
-                certificateStream.close();
             } catch (Exception e) {
                 throw new GenericIOException(e);
             }
