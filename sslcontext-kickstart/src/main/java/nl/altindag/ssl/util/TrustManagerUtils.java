@@ -37,7 +37,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toList;
@@ -232,7 +231,7 @@ public final class TrustManagerUtils {
             return trustManagers.stream()
                     .map(TrustManagerUtils::unwrapIfPossible)
                     .flatMap(Collection::stream)
-                    .collect(Collectors.collectingAndThen(toList(), CompositeX509ExtendedTrustManager::new));
+                    .collect(collectingAndThen(toList(), CompositeX509ExtendedTrustManager::new));
         }
 
     }
