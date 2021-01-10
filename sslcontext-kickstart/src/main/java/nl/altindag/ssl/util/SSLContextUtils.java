@@ -19,6 +19,8 @@ package nl.altindag.ssl.util;
 import nl.altindag.ssl.exception.GenericSSLContextException;
 
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.X509ExtendedKeyManager;
+import javax.net.ssl.X509ExtendedTrustManager;
 import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
 import java.security.KeyManagementException;
@@ -101,8 +103,8 @@ public final class SSLContextUtils {
     }
 
     private static SSLContext createSslContext(
-            X509KeyManager[] keyManagers,
-            X509TrustManager[] trustManagers,
+            X509ExtendedKeyManager[] keyManagers,
+            X509ExtendedTrustManager[] trustManagers,
             SecureRandom secureRandom,
             String sslContextAlgorithm,
             String securityProviderName,
