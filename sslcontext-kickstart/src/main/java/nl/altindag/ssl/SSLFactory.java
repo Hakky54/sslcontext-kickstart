@@ -420,12 +420,8 @@ public final class SSLFactory {
                     securityProvider
             );
 
-            KeyManagerFactory keyManagerFactory = Optional.ofNullable(keyManager)
-                    .map(KeyManagerUtils::createKeyManagerFactory)
-                    .orElse(null);
-            TrustManagerFactory trustManagerFactory = Optional.ofNullable(trustManager)
-                    .map(TrustManagerUtils::createTrustManagerFactory)
-                    .orElse(null);
+            KeyManagerFactory keyManagerFactory = keyManager != null ? KeyManagerUtils.createKeyManagerFactory(keyManager) : null;
+            TrustManagerFactory trustManagerFactory = trustManager != null ? TrustManagerUtils.createTrustManagerFactory(trustManager) : null;
 
             SSLParameters baseSslParameters = SSLParametersUtils.merge(sslParameters, sslContext.getDefaultSSLParameters());
             SSLSocketFactory sslSocketFactory = SocketUtils.createSslSocketFactory(sslContext.getSocketFactory(), baseSslParameters);
