@@ -3,6 +3,15 @@
 This list is not intended to be all-encompassing - it will document major and breaking API 
 changes with their rationale when appropriate:
 
+### v6.1.1
+- Switched to system line separator
+- Simplified TrustManager
+- Removed redundant wrapping of KeyManager and TrustManager
+- Renamed sslContextProtocol to sslContextAlgorithm
+- Marked sslContextProtocol method as deprecated
+- Fixed typos
+- Support for loading certificate with "-----BEGIN TRUSTED CERTIFICATE-----" header
+
 ### v6.1.0
 - Added license header
 - Added author
