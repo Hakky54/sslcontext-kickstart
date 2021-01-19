@@ -366,7 +366,7 @@ public final class SSLFactory {
 
         /**
          * @deprecated Please use {@link SSLFactory.Builder#withSslContextAlgorithm(String)}
-         *             This method will be removed from version 6.3 onwards.
+         *             This method will be removed from version 6.2 onwards.
          */
         @Deprecated
         public Builder withSslContextProtocol(String sslContextProtocol) {
