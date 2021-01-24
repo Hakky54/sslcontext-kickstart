@@ -19,6 +19,7 @@ package nl.altindag.ssl.util;
 import nl.altindag.ssl.exception.GenericTrustManagerException;
 import nl.altindag.ssl.model.KeyStoreHolder;
 import nl.altindag.ssl.trustmanager.CompositeX509ExtendedTrustManager;
+import nl.altindag.ssl.trustmanager.HotSwappableX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.TrustManagerFactoryWrapper;
 import nl.altindag.ssl.trustmanager.UnsafeX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.X509TrustManagerWrapper;
@@ -151,6 +152,36 @@ public final class TrustManagerUtils {
                 .map(X509TrustManager.class::cast)
                 .map(TrustManagerUtils::wrapIfNeeded)
                 .collect(collectingAndThen(toList(), TrustManagerUtils::combine));
+    }
+
+    /**
+     * Wraps the given TrustManager into an instance of a Hot Swappable TrustManager.
+     * This type of TrustManager has the capability of swapping in and out different TrustManagers at runtime.
+     */
+    public static X509ExtendedTrustManager createHotSwappableTrustManager(X509TrustManager trustManager) {
+        return new HotSwappableX509ExtendedTrustManager(TrustManagerUtils.wrapIfNeeded(trustManager));
+    }
+
+    /**
+     * Swaps the internal TrustManager instance with the given trustManager object.
+     * The baseTrustManager should be an instance of {@link HotSwappableX509ExtendedTrustManager}
+     * and can be created with {@link TrustManagerUtils#createHotSwappableTrustManager(X509TrustManager) TrustManagerUtils.createHotSwappableTrustManager(X509TrustManager)}
+     *
+     * @param baseTrustManager an instance of {@link HotSwappableX509ExtendedTrustManager}
+     * @param trustManager to be injected instance of a TrustManager
+     *
+     * @throws GenericTrustManagerException if {@code baseTrustManager} is not instance of {@link HotSwappableX509ExtendedTrustManager}
+     */
+    public static void swapTrustManager(X509TrustManager baseTrustManager, X509TrustManager trustManager) {
+        if (baseTrustManager instanceof HotSwappableX509ExtendedTrustManager) {
+            ((HotSwappableX509ExtendedTrustManager) baseTrustManager).setTrustManager(TrustManagerUtils.wrapIfNeeded(trustManager));
+        } else {
+            throw new GenericTrustManagerException(
+                    String.format("The baseTrustManager is from the instance of [%s] and should be an instance of [%s].",
+                            baseTrustManager.getClass().getName(),
+                            HotSwappableX509ExtendedTrustManager.class.getName())
+            );
+        }
     }
 
     private static List<X509ExtendedTrustManager> unwrapIfPossible(X509ExtendedTrustManager trustManager) {

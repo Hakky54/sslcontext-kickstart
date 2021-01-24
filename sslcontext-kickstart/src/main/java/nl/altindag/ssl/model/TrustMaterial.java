@@ -20,6 +20,7 @@ import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509ExtendedTrustManager;
 import java.security.cert.X509Certificate;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * <p>
@@ -33,7 +34,7 @@ public final class TrustMaterial {
 
     private X509ExtendedTrustManager trustManager;
     private TrustManagerFactory trustManagerFactory;
-    private List<X509Certificate> trustedCertificates;
+    private Supplier<List<X509Certificate>> trustedCertificates;
     private List<KeyStoreHolder> trustStores;
 
     private TrustMaterial() {}
@@ -47,7 +48,7 @@ public final class TrustMaterial {
     }
 
     public List<X509Certificate> getTrustedCertificates() {
-        return trustedCertificates;
+        return trustedCertificates.get();
     }
 
     public List<KeyStoreHolder> getTrustStores() {
@@ -58,7 +59,7 @@ public final class TrustMaterial {
 
         private X509ExtendedTrustManager trustManager;
         private TrustManagerFactory trustManagerFactory;
-        private List<X509Certificate> trustedCertificates;
+        private Supplier<List<X509Certificate>> trustedCertificates;
         private List<KeyStoreHolder> trustStores;
 
         public Builder withTrustManager(X509ExtendedTrustManager trustManager) {
@@ -72,6 +73,10 @@ public final class TrustMaterial {
         }
 
         public Builder withTrustedCertificates(List<X509Certificate> trustedCertificates) {
+            return withTrustedCertificates(() -> trustedCertificates);
+        }
+
+        public Builder withTrustedCertificates(Supplier<List<X509Certificate>> trustedCertificates) {
             this.trustedCertificates = trustedCertificates;
             return this;
         }

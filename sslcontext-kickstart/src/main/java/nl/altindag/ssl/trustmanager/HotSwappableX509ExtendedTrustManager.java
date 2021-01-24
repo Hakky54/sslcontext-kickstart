@@ -17,10 +17,11 @@
 package nl.altindag.ssl.trustmanager;
 
 import javax.net.ssl.SSLEngine;
-import javax.net.ssl.X509TrustManager;
+import javax.net.ssl.X509ExtendedTrustManager;
 import java.net.Socket;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.Objects;
 
 /**
  * <strong>NOTE:</strong>
@@ -30,30 +31,34 @@ import java.security.cert.X509Certificate;
  *
  * @author Hakan Altindag
  */
-public class X509TrustManagerWrapper extends DelegatingX509ExtendedTrustManager<X509TrustManager> {
+public class HotSwappableX509ExtendedTrustManager extends DelegatingX509ExtendedTrustManager<X509ExtendedTrustManager> {
 
-    public X509TrustManagerWrapper(X509TrustManager trustManager) {
+    public HotSwappableX509ExtendedTrustManager(X509ExtendedTrustManager trustManager) {
         super(trustManager);
     }
 
     @Override
     public void checkClientTrusted(X509Certificate[] chain, String authType, Socket socket) throws CertificateException {
-        trustManager.checkClientTrusted(chain, authType);
+        trustManager.checkClientTrusted(chain, authType, socket);
     }
 
     @Override
     public void checkClientTrusted(X509Certificate[] chain, String authType, SSLEngine sslEngine) throws CertificateException {
-        trustManager.checkClientTrusted(chain, authType);
+        trustManager.checkClientTrusted(chain, authType, sslEngine);
     }
 
     @Override
     public void checkServerTrusted(X509Certificate[] chain, String authType, Socket socket) throws CertificateException {
-        trustManager.checkServerTrusted(chain, authType);
+        trustManager.checkServerTrusted(chain, authType, socket);
     }
 
     @Override
     public void checkServerTrusted(X509Certificate[] chain, String authType, SSLEngine sslEngine) throws CertificateException {
-        trustManager.checkServerTrusted(chain, authType);
+        trustManager.checkServerTrusted(chain, authType, sslEngine);
+    }
+
+    public void setTrustManager(X509ExtendedTrustManager trustManager) {
+        this.trustManager = Objects.requireNonNull(trustManager);
     }
 
 }

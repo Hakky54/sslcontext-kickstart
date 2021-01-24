@@ -380,6 +380,20 @@ class TrustManagerUtilsShould {
                 .hasMessage("Input does not contain TrustManager");
     }
 
+    @Test
+    void throwExceptionWhenUnsupportedTrustManagerIsProvidedWhenSwappingTrustManager() {
+        KeyStore trustStoreOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+        KeyStore trustStoreTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD);
+
+        X509ExtendedTrustManager trustManagerOne = TrustManagerUtils.createTrustManager(trustStoreOne);
+        X509ExtendedTrustManager trustManagerTwo = TrustManagerUtils.createTrustManager(trustStoreTwo);
+
+        assertThatThrownBy(() -> TrustManagerUtils.swapTrustManager(trustManagerOne, trustManagerTwo))
+                .isInstanceOf(GenericTrustManagerException.class)
+                .hasMessage("The baseTrustManager is from the instance of [sun.security.ssl.X509TrustManagerImpl] " +
+                        "and should be an instance of [nl.altindag.ssl.trustmanager.HotSwappableX509ExtendedTrustManager].");
+    }
+
     private void resetOsName() {
         System.setProperty("os.name", ORIGINAL_OS_NAME);
     }

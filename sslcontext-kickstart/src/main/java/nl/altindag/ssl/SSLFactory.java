@@ -55,6 +55,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import static java.util.Objects.isNull;
 import static java.util.stream.Collectors.toList;
@@ -426,7 +427,7 @@ public final class SSLFactory {
             SSLParameters baseSslParameters = SSLParametersUtils.merge(sslParameters, sslContext.getDefaultSSLParameters());
             SSLSocketFactory sslSocketFactory = SocketUtils.createSslSocketFactory(sslContext.getSocketFactory(), baseSslParameters);
             SSLServerSocketFactory sslServerSocketFactory = SocketUtils.createSslServerSocketFactory(sslContext.getServerSocketFactory(), baseSslParameters);
-            List<X509Certificate> trustedCertificates = Optional.ofNullable(trustManager)
+            Supplier<List<X509Certificate>> trustedCertificates = () -> Optional.ofNullable(trustManager)
                     .map(X509ExtendedTrustManager::getAcceptedIssuers)
                     .flatMap(x509Certificates -> Optional.of(Arrays.asList(x509Certificates)))
                     .map(Collections::unmodifiableList)

@@ -18,6 +18,7 @@ package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.exception.GenericKeyManagerException;
 import nl.altindag.ssl.keymanager.CompositeX509ExtendedKeyManager;
+import nl.altindag.ssl.keymanager.HotSwappableX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.KeyManagerFactoryWrapper;
 import nl.altindag.ssl.keymanager.X509KeyManagerWrapper;
 import nl.altindag.ssl.model.KeyStoreHolder;
@@ -157,6 +158,36 @@ public final class KeyManagerUtils {
                 .map(X509KeyManager.class::cast)
                 .map(KeyManagerUtils::wrapIfNeeded)
                 .collect(collectingAndThen(toList(), KeyManagerUtils::combine));
+    }
+
+    /**
+     * Wraps the given KeyManager into an instance of a Hot Swappable KeyManager
+     * This type of KeyManager has the capability of swapping in and out different KeyManagers at runtime.
+     */
+    public static X509ExtendedKeyManager createHotSwappableKeyManager(X509KeyManager keyManager) {
+        return new HotSwappableX509ExtendedKeyManager(KeyManagerUtils.wrapIfNeeded(keyManager));
+    }
+
+    /**
+     * Swaps the internal TrustManager instance with the given keyManager object.
+     * The baseKeyManager should be an instance of {@link HotSwappableX509ExtendedKeyManager}
+     * and can be created with {@link KeyManagerUtils#createHotSwappableKeyManager(X509KeyManager) KeyManagerUtils.createHotSwappableKeyManager(X509KeyManager)}
+     *
+     * @param baseKeyManager an instance of {@link HotSwappableX509ExtendedKeyManager}
+     * @param keyManager to be injected instance of a TrustManager
+     *
+     * @throws GenericKeyManagerException if {@code baseKeyManager} is not instance of {@link HotSwappableX509ExtendedKeyManager}
+     */
+    public static void swapKeyManager(X509KeyManager baseKeyManager, X509KeyManager keyManager) {
+        if (baseKeyManager instanceof HotSwappableX509ExtendedKeyManager) {
+            ((HotSwappableX509ExtendedKeyManager) baseKeyManager).setKeyManager(KeyManagerUtils.wrapIfNeeded(keyManager));
+        } else {
+            throw new GenericKeyManagerException(
+                    String.format("The baseKeyManager is from the instance of [%s] and should be an instance of [%s].",
+                            baseKeyManager.getClass().getName(),
+                            HotSwappableX509ExtendedKeyManager.class.getName())
+            );
+        }
     }
 
     private static List<X509ExtendedKeyManager> unwrapIfPossible(X509ExtendedKeyManager keyManager) {

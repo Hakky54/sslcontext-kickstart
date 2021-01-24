@@ -349,4 +349,18 @@ class KeyManagerUtilsShould {
                 .hasMessage("java.security.NoSuchAlgorithmException: no such algorithm: SunX509 for provider SUN");
     }
 
+    @Test
+    void throwExceptionWhenUnsupportedKeyManagerIsProvidedWhenSwappingKeyManager() {
+        KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
+
+        assertThatThrownBy(() -> KeyManagerUtils.swapKeyManager(keyManagerOne, keyManagerTwo))
+                .isInstanceOf(GenericKeyManagerException.class)
+                .hasMessage("The baseKeyManager is from the instance of [sun.security.ssl.SunX509KeyManagerImpl] " +
+                        "and should be an instance of [nl.altindag.ssl.keymanager.HotSwappableX509ExtendedKeyManager].");
+    }
+
 }

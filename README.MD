@@ -50,6 +50,7 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "6.1.1"
      - [Using specific protocols and ciphers with custom secure-random and hostname-verifier](#using-specific-protocols-ciphers-with-custom-secure-random-and-hostname-verifier)
      - [Using multiple identity materials and trust materials](#support-for-using-multiple-identity-materials-and-trust-materials)
      - [Using custom KeyManager and TrustManager](#support-for-using-x509extendedkeymanager-and-x509extendedtrustmanager)
+     - [Hot swap KeyManager and TrustManager at runtime](#support-for-swapping-keymanager-and-trustmanager-at-runtime)
      - [Using KeyStore with multiple keys having different passwords](#support-for-using-a-single-keystore-which-contains-multiple-keys-with-different-passwords)
      - [Using custom PrivateKey and Certificates](#support-for-using-privatekey-and-certificates)
      - [Using PEM Files](#using-pem-files)
@@ -231,6 +232,32 @@ SSLFactory.builder()
           .withIdentityMaterial(keyManager)
           .withTrustMaterial(trustManager)
           .build();
+```
+
+##### Support for swapping KeyManager and TrustManager at runtime
+It is possible to swap a KeyManager and TrustManager from a SSLContext, SSLSocketFactory and SSLServerSocketFactory while already using it within your client or server at runtime. This option will enable to refresh the identity and trust material of a server or client without the need of restarting your application or recreating it with SSLFactory. The identity and trust material may expire at some point in time and needs to be replaced to be still functional.
+Restart of the application with a traditional setup is unavoidable and can result into a downtime for x amount of time. A restart is not needed when using the setup below.
+```text
+X509ExtendedKeyManager keyManager = KeyManagerUtils.createHotSwappableKeyManager(aKeyManager);
+X509ExtendedTrustManager trustManager = TrustManagerUtils.createHotSwappableTrustManager(aTrustManager);
+
+SSLFactory sslFactory = SSLFactory.builder()
+          .withIdentityMaterial(keyManager)
+          .withTrustMaterial(trustManager)
+          .build();
+          
+HttpClient httpClient = HttpClient.newBuilder()
+          .sslParameters(sslFactory.getSslParameters())
+          .sslContext(sslFactory.getSslContext())
+          .build()
+
+// execute https request
+HttpResponse<String> response = httpClient.send(aRequest, HttpResponse.BodyHandlers.ofString());
+
+// swap identity and trust materials and reuse existing http client
+KeyManagerUtils.swapKeyManager(keyManager, anotherKeyManager);
+TrustManagerUtils.swapTrustManager(trustManager, anotherTrustManager);
+HttpResponse<String> response = httpClient.send(aRequest, HttpResponse.BodyHandlers.ofString());
 ```
 
 ##### Support for using a single KeyStore which contains multiple keys with different passwords
