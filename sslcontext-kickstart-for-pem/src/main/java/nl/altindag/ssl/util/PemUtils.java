@@ -214,7 +214,7 @@ public final class PemUtils {
                 } else if (object instanceof PEMEncryptedKeyPair) {
                     PEMDecryptorProvider pemDecryptorProvider = new JcePEMDecryptorProviderBuilder()
                             .setProvider(BOUNCY_CASTLE_PROVIDER)
-                            .build(keyPassword);
+                            .build(Objects.requireNonNull(keyPassword));
 
                     PEMKeyPair pemKeyPair = ((PEMEncryptedKeyPair) object).decryptKeyPair(pemDecryptorProvider);
                     privateKeyInfo = pemKeyPair.getPrivateKeyInfo();
