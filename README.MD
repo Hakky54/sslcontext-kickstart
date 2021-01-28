@@ -259,6 +259,7 @@ KeyManagerUtils.swapKeyManager(keyManager, anotherKeyManager);
 TrustManagerUtils.swapTrustManager(trustManager, anotherTrustManager);
 HttpResponse<String> response = httpClient.send(aRequest, HttpResponse.BodyHandlers.ofString());
 ```
+See here for a basic reference implementation for a server: [GitHub - Instant SSL Reloading](https://github.com/Hakky54/instant-ssl-reloading)
 
 ##### Support for using a single KeyStore which contains multiple keys with different passwords
 ```text
