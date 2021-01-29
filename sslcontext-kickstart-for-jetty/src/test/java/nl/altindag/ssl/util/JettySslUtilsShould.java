@@ -41,7 +41,7 @@ class JettySslUtilsShould {
     private static final String KEYSTORE_LOCATION = "keystores-for-unit-tests/";
 
     @Test
-    void createJettySslContextFactoryForClientWithTrustMaterial() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
+    void createJettySslContextFactoryForClientWithTrustMaterial() {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 
         SSLFactory sslFactory = SSLFactory.builder()
@@ -71,7 +71,7 @@ class JettySslUtilsShould {
     }
 
     @Test
-    void createJettySslContextFactoryForClientWithIdentityMaterialAndTrustMaterial() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
+    void createJettySslContextFactoryForClientWithIdentityMaterialAndTrustMaterial() {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 
@@ -105,7 +105,7 @@ class JettySslUtilsShould {
     }
 
     @Test
-    void createJettySslContextFactoryForServerWithIdentityMaterialAndTrustMaterial() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
+    void createJettySslContextFactoryForServerWithIdentityMaterialAndTrustMaterial() {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 
@@ -135,6 +135,38 @@ class JettySslUtilsShould {
                 .containsExactlyInAnyOrder(sslFactory.getSslContext().getDefaultSSLParameters().getCipherSuites());
         assertThat(sslContextFactory.getIncludeProtocols())
                 .containsExactlyInAnyOrder(sslFactory.getSslContext().getDefaultSSLParameters().getProtocols());
+    }
+
+    @Test
+    void createJettySslContextFactoryForServerWithNeedClientAuthentication() {
+        KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(identity, IDENTITY_PASSWORD)
+                .withTrustMaterial(trustStore, TRUSTSTORE_PASSWORD)
+                .withNeedClientAuthentication()
+                .build();
+
+        SslContextFactory.Server sslContextFactory = JettySslUtils.forServer(sslFactory);
+        assertThat(sslContextFactory.getNeedClientAuth()).isTrue();
+        assertThat(sslContextFactory.getWantClientAuth()).isFalse();
+    }
+
+    @Test
+    void createJettySslContextFactoryForServerWithWantClientAuthentication() {
+        KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(identity, IDENTITY_PASSWORD)
+                .withTrustMaterial(trustStore, TRUSTSTORE_PASSWORD)
+                .withWantClientAuthentication()
+                .build();
+
+        SslContextFactory.Server sslContextFactory = JettySslUtils.forServer(sslFactory);
+        assertThat(sslContextFactory.getWantClientAuth()).isTrue();
+        assertThat(sslContextFactory.getNeedClientAuth()).isFalse();
     }
 
 }

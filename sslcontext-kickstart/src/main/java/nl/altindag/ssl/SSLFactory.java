@@ -365,6 +365,24 @@ public final class SSLFactory {
             return this;
         }
 
+        public Builder withNeedClientAuthentication() {
+            return withNeedClientAuthentication(true);
+        }
+
+        public Builder withNeedClientAuthentication(boolean needClientAuthentication) {
+            sslParameters.setNeedClientAuth(needClientAuthentication);
+            return this;
+        }
+
+        public Builder withWantClientAuthentication() {
+            return withWantClientAuthentication(true);
+        }
+
+        public Builder withWantClientAuthentication(boolean wantClientAuthentication) {
+            sslParameters.setWantClientAuth(wantClientAuthentication);
+            return this;
+        }
+
         /**
          * @deprecated Please use {@link SSLFactory.Builder#withSslContextAlgorithm(String)}
          *             This method will be removed from version 6.2 onwards.

@@ -5,12 +5,20 @@ import java.util.Optional;
 
 public final class SSLParametersUtils {
 
-    private SSLParametersUtils() {}
+    private SSLParametersUtils() {
+    }
 
     public static SSLParameters copy(SSLParameters source) {
         SSLParameters target = new SSLParameters();
         target.setProtocols(source.getProtocols());
         target.setCipherSuites(source.getCipherSuites());
+        if (source.getWantClientAuth()) {
+            target.setWantClientAuth(true);
+        }
+
+        if (source.getNeedClientAuth()) {
+            target.setNeedClientAuth(true);
+        }
         return target;
     }
 
@@ -24,6 +32,17 @@ public final class SSLParametersUtils {
 
         target.setCipherSuites(ciphers);
         target.setProtocols(protocols);
+
+        boolean wantClientAuth = baseSslParameters.getWantClientAuth() ? baseSslParameters.getWantClientAuth() : alternativeSslParameters.getWantClientAuth();
+        if (wantClientAuth) {
+            target.setWantClientAuth(true);
+        }
+
+        boolean needClientAuth = baseSslParameters.getNeedClientAuth() ? baseSslParameters.getNeedClientAuth() : alternativeSslParameters.getNeedClientAuth();
+        if (needClientAuth) {
+            target.setNeedClientAuth(true);
+        }
+
         return target;
     }
 

@@ -19,6 +19,8 @@ package nl.altindag.ssl.util;
 import nl.altindag.ssl.SSLFactory;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
+import javax.net.ssl.SSLParameters;
+
 /**
  * @author Hakan Altindag
  */
@@ -36,7 +38,9 @@ public final class JettySslUtils {
      * @return {@link SslContextFactory.Client}
      */
     public static SslContextFactory.Client forClient(SSLFactory sslFactory) {
-        return createSslContextFactory(sslFactory, new SslContextFactory.Client());
+        SslContextFactory.Client sslContextFactory = createSslContextFactory(sslFactory, new SslContextFactory.Client());
+        sslContextFactory.setHostnameVerifier(sslFactory.getHostnameVerifier());
+        return sslContextFactory;
     }
 
     /**
@@ -49,15 +53,22 @@ public final class JettySslUtils {
      * @return {@link SslContextFactory.Server}
      */
     public static SslContextFactory.Server forServer(SSLFactory sslFactory) {
-        return createSslContextFactory(sslFactory, new SslContextFactory.Server());
+        SslContextFactory.Server sslContextFactory = createSslContextFactory(sslFactory, new SslContextFactory.Server());
+        SSLParameters sslParameters = sslFactory.getSslParameters();
+        if (sslParameters.getNeedClientAuth()) {
+            sslContextFactory.setNeedClientAuth(true);
+        }
+        if (sslParameters.getWantClientAuth()) {
+            sslContextFactory.setWantClientAuth(true);
+        }
+        return sslContextFactory;
     }
 
     private static <T extends SslContextFactory> T createSslContextFactory(SSLFactory sslFactory, T sslContextFactory) {
         sslContextFactory.setSslContext(sslFactory.getSslContext());
-        sslContextFactory.setIncludeProtocols(sslFactory.getSslParameters().getProtocols());
-        sslContextFactory.setIncludeCipherSuites(sslFactory.getSslParameters().getCipherSuites());
-        sslContextFactory.setHostnameVerifier(sslFactory.getHostnameVerifier());
-
+        SSLParameters sslParameters = sslFactory.getSslParameters();
+        sslContextFactory.setIncludeProtocols(sslParameters.getProtocols());
+        sslContextFactory.setIncludeCipherSuites(sslParameters.getCipherSuites());
         return sslContextFactory;
     }
 

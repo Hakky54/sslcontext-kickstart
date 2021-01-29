@@ -16,10 +16,12 @@
 
 package nl.altindag.ssl.util;
 
+import io.netty.handler.ssl.ClientAuth;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SupportedCipherSuiteFilter;
 import nl.altindag.ssl.SSLFactory;
 
+import javax.net.ssl.SSLParameters;
 import javax.net.ssl.X509ExtendedKeyManager;
 
 /**
@@ -63,10 +65,21 @@ public final class NettySslUtils {
 
         SslContextBuilder sslContextBuilder = SslContextBuilder.forServer(keyManager)
                 .ciphers(sslFactory.getCiphers(), SupportedCipherSuiteFilter.INSTANCE)
-                .protocols(sslFactory.getProtocols());
+                .protocols(sslFactory.getProtocols())
+                .clientAuth(NettySslUtils.getClientAuth(sslFactory.getSslParameters()));
         sslFactory.getTrustManager().ifPresent(sslContextBuilder::trustManager);
 
         return sslContextBuilder;
+    }
+
+    private static ClientAuth getClientAuth(SSLParameters sslParameters) {
+        if (sslParameters.getNeedClientAuth()) {
+            return ClientAuth.REQUIRE;
+        } else if (sslParameters.getWantClientAuth()) {
+            return ClientAuth.OPTIONAL;
+        } else {
+            return ClientAuth.NONE;
+        }
     }
 
 }

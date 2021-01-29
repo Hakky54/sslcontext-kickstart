@@ -42,7 +42,7 @@ class NettySslUtilsShould {
     private static final String KEYSTORE_LOCATION = "keystores-for-unit-tests/";
 
     @Test
-    void createNettySslContextBuilderForClientWithTrustMaterial() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
+    void createNettySslContextBuilderForClientWithTrustMaterial() throws IOException {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 
         SSLFactory sslFactory = SSLFactory.builder()
@@ -68,7 +68,7 @@ class NettySslUtilsShould {
     }
 
     @Test
-    void createNettySslContextBuilderForClientWithIdentityMaterialAndTrustMaterial() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
+    void createNettySslContextBuilderForClientWithIdentityMaterialAndTrustMaterial() throws IOException {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 
@@ -98,7 +98,7 @@ class NettySslUtilsShould {
     }
 
     @Test
-    void createNettySslContextBuilderForServerWithIdentityMaterialAndTrustMaterial() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
+    void createNettySslContextBuilderForServerWithIdentityMaterialAndTrustMaterial() throws IOException {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 
@@ -124,10 +124,44 @@ class NettySslUtilsShould {
         assertThat(sslContext.isClient()).isFalse();
         assertThat(sslContext.isServer()).isTrue();
         assertThat(sslContext.cipherSuites()).containsExactlyInAnyOrder(sslFactory.getSslContext().getDefaultSSLParameters().getCipherSuites());
+        assertThat(sslContext.newEngine(null).getWantClientAuth()).isFalse();
+        assertThat(sslContext.newEngine(null).getNeedClientAuth()).isFalse();
     }
 
     @Test
-    void throwExceptionWhenCreatingNettySslContextBuilderForServerWithoutIdentity() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
+    void createNettySslContextBuilderForServerWithNeedClientAuthentication() throws IOException {
+        KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(identity, IDENTITY_PASSWORD)
+                .withTrustMaterial(trustStore, TRUSTSTORE_PASSWORD)
+                .withNeedClientAuthentication()
+                .build();
+
+        SslContext sslContext = NettySslUtils.forServer(sslFactory).build();
+        assertThat(sslContext.newEngine(null).getNeedClientAuth()).isTrue();
+        assertThat(sslContext.newEngine(null).getWantClientAuth()).isFalse();
+    }
+
+    @Test
+    void createNettySslContextBuilderForServerWithWantClientAuthentication() throws IOException {
+        KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(identity, IDENTITY_PASSWORD)
+                .withTrustMaterial(trustStore, TRUSTSTORE_PASSWORD)
+                .withWantClientAuthentication()
+                .build();
+
+        SslContext sslContext = NettySslUtils.forServer(sslFactory).build();
+        assertThat(sslContext.newEngine(null).getWantClientAuth()).isTrue();
+        assertThat(sslContext.newEngine(null).getNeedClientAuth()).isFalse();
+    }
+
+    @Test
+    void throwExceptionWhenCreatingNettySslContextBuilderForServerWithoutIdentity() {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         SSLFactory sslFactory = SSLFactory.builder()
                 .withTrustMaterial(trustStore, TRUSTSTORE_PASSWORD)

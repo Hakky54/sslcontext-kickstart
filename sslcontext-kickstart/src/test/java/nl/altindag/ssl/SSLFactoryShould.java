@@ -958,6 +958,50 @@ class SSLFactoryShould {
     }
 
     @Test
+    void returnSpecifiedNeedClientAuthenticationWithoutOptions() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withDefaultTrustMaterial()
+                .withNeedClientAuthentication()
+                .build();
+
+        assertThat(sslFactory.getSslParameters().getNeedClientAuth()).isTrue();
+        assertThat(sslFactory.getSslParameters().getWantClientAuth()).isFalse();
+    }
+
+    @Test
+    void returnSpecifiedNeedClientAuthenticationWithOptions() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withDefaultTrustMaterial()
+                .withNeedClientAuthentication(true)
+                .build();
+
+        assertThat(sslFactory.getSslParameters().getNeedClientAuth()).isTrue();
+        assertThat(sslFactory.getSslParameters().getWantClientAuth()).isFalse();
+    }
+
+    @Test
+    void returnSpecifiedWantClientAuthenticationWithoutOptions() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withDefaultTrustMaterial()
+                .withWantClientAuthentication()
+                .build();
+
+        assertThat(sslFactory.getSslParameters().getWantClientAuth()).isTrue();
+        assertThat(sslFactory.getSslParameters().getNeedClientAuth()).isFalse();
+    }
+
+    @Test
+    void returnSpecifiedWantClientAuthenticationWithOptions() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withDefaultTrustMaterial()
+                .withWantClientAuthentication(true)
+                .build();
+
+        assertThat(sslFactory.getSslParameters().getWantClientAuth()).isTrue();
+        assertThat(sslFactory.getSslParameters().getNeedClientAuth()).isFalse();
+    }
+
+    @Test
     void throwExceptionWhenBuildingSSLFactoryWithTrustStoreWhileProvidingWrongPassword() {
         SSLFactory.Builder factoryBuilder = SSLFactory.builder();
         char[] trustStorePassword = "password".toCharArray();
