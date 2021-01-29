@@ -34,6 +34,7 @@ import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.nio.support.BasicRequestProducer;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,9 +55,13 @@ class SSLFactoryIT {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SSLFactoryIT.class);
 
+    @BeforeAll
+    public static void disableApacheLogs() {
+        LogCaptor.forName("org.apache.hc").disableLogs();
+    }
+
     @Test
     void executeHttpsRequestWithMutualAuthentication() throws IOException {
-        LogCaptor.forName("org.apache.hc").disableLogs();
         LogCaptor logCaptor = LogCaptor.forName("nl.altindag.ssl");
 
         SSLFactory sslFactory = SSLFactory.builder()
@@ -89,7 +94,6 @@ class SSLFactoryIT {
 
     @Test
     void executeHttpsRequestWithMutualAuthenticationForAsyncClient() throws IOException, URISyntaxException, InterruptedException, ExecutionException, TimeoutException {
-        LogCaptor.forName("org.apache.hc").disableLogs();
         LogCaptor logCaptor = LogCaptor.forName("nl.altindag.ssl");
 
         SSLFactory sslFactory = SSLFactory.builder()
