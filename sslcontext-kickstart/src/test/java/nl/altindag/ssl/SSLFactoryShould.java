@@ -813,7 +813,7 @@ class SSLFactoryShould {
     void buildSSLFactoryWithSecurityProvider() {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withDefaultTrustMaterial()
-                .withSslContextProtocol("TLS")
+                .withSslContextAlgorithm("TLS")
                 .withSecurityProvider(Security.getProvider("SunJSSE"))
                 .build();
 
@@ -825,7 +825,7 @@ class SSLFactoryShould {
     void buildSSLFactoryWithSecurityProviderName() {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withDefaultTrustMaterial()
-                .withSslContextProtocol("TLS")
+                .withSslContextAlgorithm("TLS")
                 .withSecurityProvider("SunJSSE")
                 .build();
 
@@ -1218,7 +1218,7 @@ class SSLFactoryShould {
     void throwExceptionWhenUnknownSslContextAlgorithmIsProvided() {
         SSLFactory.Builder factoryBuilder = SSLFactory.builder()
                 .withDefaultTrustMaterial()
-                .withSslContextProtocol("KABOOM");
+                .withSslContextAlgorithm("KABOOM");
 
         assertThatThrownBy(factoryBuilder::build)
                 .isInstanceOf(GenericSecurityException.class)
@@ -1229,7 +1229,7 @@ class SSLFactoryShould {
     void throwExceptionWhenUnknownSecurityProviderNameIsProvided() {
         SSLFactory.Builder factoryBuilder = SSLFactory.builder()
                 .withDefaultTrustMaterial()
-                .withSslContextProtocol("TLS")
+                .withSslContextAlgorithm("TLS")
                 .withSecurityProvider("KABOOOM");
 
         assertThatThrownBy(factoryBuilder::build)
