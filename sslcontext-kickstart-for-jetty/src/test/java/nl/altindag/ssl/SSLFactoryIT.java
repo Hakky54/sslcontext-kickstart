@@ -38,7 +38,8 @@ class SSLFactoryIT {
 
     @Test
     void executeHttpsRequestWithMutualAuthentication() throws Exception {
-        LogCaptor logCaptor = LogCaptor.forRoot();
+        LogCaptor.forName("org.eclipse.jetty").disableLogs();
+        LogCaptor logCaptor = LogCaptor.forName("nl.altindag.ssl");
 
         SSLFactory sslFactory = SSLFactory.builder()
                 .withIdentityMaterial("keystores-for-unit-tests/badssl-identity.p12", "badssl.com".toCharArray())
