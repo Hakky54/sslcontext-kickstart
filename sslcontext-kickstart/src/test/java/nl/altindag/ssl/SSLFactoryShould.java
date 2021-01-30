@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
@@ -999,6 +1000,63 @@ class SSLFactoryShould {
 
         assertThat(sslFactory.getSslParameters().getWantClientAuth()).isTrue();
         assertThat(sslFactory.getSslParameters().getNeedClientAuth()).isFalse();
+    }
+
+    @Test
+    void returnSslEngineWithSslParameters() {
+        KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(identity, IDENTITY_PASSWORD)
+                .withTrustMaterial(trustStore, TRUSTSTORE_PASSWORD)
+                .withNeedClientAuthentication()
+                .build();
+
+        SSLEngine sslEngine = sslFactory.getSSLEngine();
+
+        assertThat(sslEngine).isNotNull();
+        assertThat(sslEngine.getPeerHost()).isNull();
+        assertThat(sslEngine.getPeerPort()).isEqualTo(-1);
+        assertThat(sslEngine.getNeedClientAuth()).isTrue();
+    }
+
+    @Test
+    void returnSslEngineWithoutHostAndPortIfOnlyHostIsDefined() {
+        KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(identity, IDENTITY_PASSWORD)
+                .withTrustMaterial(trustStore, TRUSTSTORE_PASSWORD)
+                .withNeedClientAuthentication()
+                .build();
+
+        SSLEngine sslEngine = sslFactory.getSSLEngine("localhost", null);
+
+        assertThat(sslEngine).isNotNull();
+        assertThat(sslEngine.getPeerHost()).isNull();
+        assertThat(sslEngine.getPeerPort()).isEqualTo(-1);
+        assertThat(sslEngine.getNeedClientAuth()).isTrue();
+    }
+
+    @Test
+    void returnSslEngineWithHostAndPortAndWithSslParameters() {
+        KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(identity, IDENTITY_PASSWORD)
+                .withTrustMaterial(trustStore, TRUSTSTORE_PASSWORD)
+                .withNeedClientAuthentication()
+                .build();
+
+        SSLEngine sslEngine = sslFactory.getSSLEngine("localhost", 8443);
+
+        assertThat(sslEngine).isNotNull();
+        assertThat(sslEngine.getPeerHost()).isEqualTo("localhost");
+        assertThat(sslEngine.getPeerPort()).isEqualTo(8443);
+        assertThat(sslEngine.getNeedClientAuth()).isTrue();
     }
 
     @Test

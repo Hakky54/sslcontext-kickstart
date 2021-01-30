@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocketFactory;
@@ -55,9 +56,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -127,6 +130,14 @@ public final class SSLFactory {
 
     public SSLParameters getSslParameters() {
         return SSLParametersUtils.copy(sslMaterial.getSslParameters());
+    }
+
+    public SSLEngine getSSLEngine() {
+        return sslMaterial.getSslEngine().apply(null, null);
+    }
+
+    public SSLEngine getSSLEngine(String peerHost, Integer peerPort) {
+        return sslMaterial.getSslEngine().apply(peerHost, peerPort);
     }
 
     public static Builder builder() {
@@ -442,6 +453,13 @@ public final class SSLFactory {
                     .map(Collections::unmodifiableList)
                     .orElse(Collections.emptyList());
 
+            BiFunction<String, Integer, SSLEngine> sslEngine = (peerHost, peerPort) -> {
+                SSLParameters parameters = SSLParametersUtils.copy(baseSslParameters);
+                SSLEngine engine = nonNull(peerHost) && nonNull(peerPort) ? sslContext.createSSLEngine(peerHost, peerPort) : sslContext.createSSLEngine();
+                engine.setSSLParameters(parameters);
+                return engine;
+            };
+
             if (!passwordCachingEnabled && !identities.isEmpty()) {
                 KeyStoreUtils.sanitizeKeyStores(identities);
             }
@@ -467,6 +485,7 @@ public final class SSLFactory {
                     .withSslContext(sslContext)
                     .withSslSocketFactory(sslSocketFactory)
                     .withSslServerSocketFactory(sslServerSocketFactory)
+                    .withSslEngine(sslEngine)
                     .withIdentityMaterial(identityMaterial)
                     .withTrustMaterial(trustMaterial)
                     .withSslParameters(baseSslParameters)
