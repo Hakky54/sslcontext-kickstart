@@ -445,8 +445,8 @@ public final class SSLFactory {
             TrustManagerFactory trustManagerFactory = trustManager != null ? TrustManagerUtils.createTrustManagerFactory(trustManager) : null;
 
             SSLParameters baseSslParameters = SSLParametersUtils.merge(sslParameters, sslContext.getDefaultSSLParameters());
-            SSLSocketFactory sslSocketFactory = SocketUtils.createSslSocketFactory(sslContext.getSocketFactory(), baseSslParameters);
-            SSLServerSocketFactory sslServerSocketFactory = SocketUtils.createSslServerSocketFactory(sslContext.getServerSocketFactory(), baseSslParameters);
+            SSLSocketFactory sslSocketFactory = SocketUtils.createSslSocketFactory(sslContext.getSocketFactory(), SSLParametersUtils.copy(baseSslParameters));
+            SSLServerSocketFactory sslServerSocketFactory = SocketUtils.createSslServerSocketFactory(sslContext.getServerSocketFactory(), SSLParametersUtils.copy(baseSslParameters));
             Supplier<List<X509Certificate>> trustedCertificates = () -> Optional.ofNullable(trustManager)
                     .map(X509ExtendedTrustManager::getAcceptedIssuers)
                     .flatMap(x509Certificates -> Optional.of(Arrays.asList(x509Certificates)))
