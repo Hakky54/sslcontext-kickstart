@@ -374,12 +374,14 @@ The SSLFactory returnable values can be supplied to the http client as shown [he
 
 ### Returnable values from the SSLFactory
 The SSLFactory provides different kinds of returnable values, see below for all the options:
+
 ```java
 import nl.altindag.ssl.SSLFactory;
 import nl.altindag.ssl.model.KeyStoreHolder;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocketFactory;
@@ -408,6 +410,7 @@ public class App {
         List<KeyStoreHolder> trustStores = sslFactory.getTrustStores();
         SSLSocketFactory sslSocketFactory = sslFactory.getSslSocketFactory();
         SSLServerSocketFactory sslServerSocketFactory = sslFactory.getSslServerSocketFactory();
+        SSLEngine sslEngine = sslFactory.getSslEngine(host, port);
         SSLParameters sslParameters = sslFactory.getSslParameters();
         List<String> ciphers = sslFactory.getCiphers();
         List<String> protocols = sslFactory.getProtocols();
