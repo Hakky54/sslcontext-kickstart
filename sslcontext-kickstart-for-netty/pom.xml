@@ -38,7 +38,7 @@
 
     <properties>
         <version.netty-handler>4.1.58.Final</version.netty-handler>
-        <version.reactor-netty>1.0.2</version.reactor-netty>
+        <version.reactor-netty>1.0.3</version.reactor-netty>
         <version.sslcontext-kickstart>6.2.1-SNAPSHOT</version.sslcontext-kickstart>
     </properties>
 
