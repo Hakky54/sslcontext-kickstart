@@ -3,6 +3,12 @@
 This list is not intended to be all-encompassing - it will document major and breaking API 
 changes with their rationale when appropriate:
 
+### v6.2.0
+- Added option to hot swap identity material at runtime
+- Added option to hot swap trust material at runtime
+- Added option to supply preconfigured ssl engine
+- Added support for requiring client authentication from server side
+- Removed deprecated method
 ### v6.1.1
 - Switched to system line separator
 - Simplified TrustManager
