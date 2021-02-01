@@ -41,7 +41,7 @@ class SSLFactoryIT {
 
     @Test
     void executeHttpsRequestWithMutualAuthentication() throws IOException {
-        LogCaptor logCaptor = LogCaptor.forRoot();
+        LogCaptor logCaptor = LogCaptor.forName("nl.altindag.ssl");
 
         X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial("pems-for-unit-tests/badssl-identity.pem", IDENTITY_PASSWORD);
         X509ExtendedTrustManager trustManager = PemUtils.loadTrustMaterial("pems-for-unit-tests/badssl-certificate.pem");
@@ -70,7 +70,7 @@ class SSLFactoryIT {
 
     @Test
     void executeHttpsRequestWithMutualAuthenticationFromRawSslMaterial() throws IOException {
-        LogCaptor logCaptor = LogCaptor.forRoot();
+        LogCaptor logCaptor = LogCaptor.forName("nl.altindag.ssl");
 
         String identityMaterial =
                 "Bag Attributes\n" +

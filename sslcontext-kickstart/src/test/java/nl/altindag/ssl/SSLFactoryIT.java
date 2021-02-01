@@ -38,7 +38,7 @@ class SSLFactoryIT {
 
     @Test
     void executeHttpsRequestWithMutualAuthentication() throws IOException {
-        LogCaptor logCaptor = LogCaptor.forRoot();
+        LogCaptor logCaptor = LogCaptor.forName("nl.altindag.ssl");
 
         SSLFactory sslFactory = SSLFactory.builder()
                 .withIdentityMaterial(KEYSTORE_LOCATION + "badssl-identity.p12", "badssl.com".toCharArray())
