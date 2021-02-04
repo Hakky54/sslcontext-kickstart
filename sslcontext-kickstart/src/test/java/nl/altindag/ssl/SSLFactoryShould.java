@@ -21,6 +21,8 @@ import nl.altindag.ssl.exception.GenericKeyManagerException;
 import nl.altindag.ssl.exception.GenericKeyStoreException;
 import nl.altindag.ssl.exception.GenericSecurityException;
 import nl.altindag.ssl.exception.GenericTrustManagerException;
+import nl.altindag.ssl.keymanager.HotSwappableX509ExtendedKeyManager;
+import nl.altindag.ssl.trustmanager.HotSwappableX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.UnsafeX509ExtendedTrustManager;
 import nl.altindag.ssl.util.KeyManagerUtils;
 import nl.altindag.ssl.util.KeyStoreUtils;
@@ -95,6 +97,26 @@ class SSLFactoryShould {
         assertThat(sslFactory.getSslContext()).isNotNull();
 
         assertThat(sslFactory.getTrustManager()).isPresent();
+        assertThat(sslFactory.getTrustManager().get()).isNotInstanceOf(HotSwappableX509ExtendedTrustManager.class);
+        assertThat(sslFactory.getTrustManagerFactory()).isPresent();
+        assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
+        assertThat(sslFactory.getTrustStores()).isNotEmpty();
+        assertThat(sslFactory.getHostnameVerifier()).isNotNull();
+        assertThat(sslFactory.getKeyManager()).isNotPresent();
+        assertThat(sslFactory.getKeyManagerFactory()).isNotPresent();
+    }
+
+    @Test
+    void buildSSLFactoryWithSwappableTrustMaterial() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
+                .withSwappableTrustMaterial()
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+
+        assertThat(sslFactory.getTrustManager()).isPresent();
+        assertThat(sslFactory.getTrustManager().get()).isInstanceOf(HotSwappableX509ExtendedTrustManager.class);
         assertThat(sslFactory.getTrustManagerFactory()).isPresent();
         assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
         assertThat(sslFactory.getTrustStores()).isNotEmpty();
@@ -371,9 +393,30 @@ class SSLFactoryShould {
         assertThat(sslFactory.getSslContext()).isNotNull();
 
         assertThat(sslFactory.getKeyManager()).isPresent();
+        assertThat(sslFactory.getKeyManager().get()).isNotInstanceOf(HotSwappableX509ExtendedKeyManager.class);
         assertThat(sslFactory.getKeyManagerFactory()).isPresent();
         assertThat(sslFactory.getIdentities()).isNotEmpty();
         assertThat(sslFactory.getIdentities().get(0).getKeyStorePassword()).isEqualTo(IDENTITY_PASSWORD);
+
+        assertThat(sslFactory.getTrustManager()).isNotPresent();
+        assertThat(sslFactory.getTrustManagerFactory()).isNotPresent();
+        assertThat(sslFactory.getTrustedCertificates()).isEmpty();
+        assertThat(sslFactory.getTrustStores()).isEmpty();
+    }
+
+    @Test
+    void buildSSLFactoryWithSwappableIdentityMaterial() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD)
+                .withSwappableIdentityMaterial()
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+
+        assertThat(sslFactory.getKeyManager()).isPresent();
+        assertThat(sslFactory.getKeyManager().get()).isInstanceOf(HotSwappableX509ExtendedKeyManager.class);
+        assertThat(sslFactory.getKeyManagerFactory()).isPresent();
+        assertThat(sslFactory.getIdentities()).isNotEmpty();
 
         assertThat(sslFactory.getTrustManager()).isNotPresent();
         assertThat(sslFactory.getTrustManagerFactory()).isNotPresent();

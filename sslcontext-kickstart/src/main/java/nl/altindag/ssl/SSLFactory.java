@@ -166,6 +166,8 @@ public final class SSLFactory {
         private final SSLParameters sslParameters = new SSLParameters();
 
         private boolean passwordCachingEnabled = false;
+        private boolean hotSwappableKeyManagerEnabled = false;
+        private boolean hotSwappableTrustManagerEnabled = false;
 
         private Builder() {}
 
@@ -176,6 +178,16 @@ public final class SSLFactory {
 
         public Builder withDefaultTrustMaterial() {
             trustManagers.add(TrustManagerUtils.createTrustManagerWithJdkTrustedCertificates());
+            return this;
+        }
+
+        /**
+         * Enables the possibility to swap the underlying TrustManager at runtime.
+         * After this option has been enabled the TrustManager can be swapped
+         * with {@link TrustManagerUtils#swapTrustManager(X509TrustManager, X509TrustManager)}
+         */
+        public Builder withSwappableTrustMaterial() {
+            hotSwappableTrustManagerEnabled = true;
             return this;
         }
 
@@ -355,6 +367,16 @@ public final class SSLFactory {
             return this;
         }
 
+        /**
+         * Enables the possibility to swap the underlying KeyManager at runtime.
+         * After this option has been enabled the KeyManager can be swapped
+         * with {@link KeyManagerUtils#swapKeyManager(X509KeyManager, X509KeyManager)}
+         */
+        public Builder withSwappableIdentityMaterial() {
+            hotSwappableKeyManagerEnabled = true;
+            return this;
+        }
+
         private void validateKeyStore(KeyStore keyStore, String exceptionMessage) {
             if (isNull(keyStore)) {
                 throw new GenericKeyStoreException(exceptionMessage);
@@ -520,19 +542,31 @@ public final class SSLFactory {
         }
 
         private X509ExtendedKeyManager createKeyManager() {
-            return KeyManagerUtils.keyManagerBuilder()
+            X509ExtendedKeyManager keyManager = KeyManagerUtils.keyManagerBuilder()
                     .withKeyManagers(identityManagers)
                     .withIdentities(identities)
                     .build();
+
+            if (hotSwappableKeyManagerEnabled) {
+                keyManager = KeyManagerUtils.createHotSwappableKeyManager(keyManager);
+            }
+
+            return keyManager;
         }
 
         private X509ExtendedTrustManager createTrustManagers() {
-            return TrustManagerUtils.trustManagerBuilder()
+            X509ExtendedTrustManager trustManager = TrustManagerUtils.trustManagerBuilder()
                     .withTrustManagers(trustManagers)
                     .withTrustStores(trustStores.stream()
                             .map(KeyStoreHolder::getKeyStore)
                             .collect(toList())
                     ).build();
+
+            if (hotSwappableTrustManagerEnabled) {
+                trustManager = TrustManagerUtils.createHotSwappableTrustManager(trustManager);
+            }
+
+            return trustManager;
         }
 
     }
