@@ -165,7 +165,7 @@ public final class TrustManagerUtils {
     /**
      * Swaps the internal TrustManager instance with the given trustManager object.
      * The baseTrustManager should be an instance of {@link HotSwappableX509ExtendedTrustManager}
-     * and can be created with {@link TrustManagerUtils#createHotSwappableTrustManager(X509TrustManager) TrustManagerUtils.createHotSwappableTrustManager(X509TrustManager)}
+     * and can be created with {@link TrustManagerUtils#createHotSwappableTrustManager(X509TrustManager)}
      *
      * @param baseTrustManager an instance of {@link HotSwappableX509ExtendedTrustManager}
      * @param trustManager to be injected instance of a TrustManager

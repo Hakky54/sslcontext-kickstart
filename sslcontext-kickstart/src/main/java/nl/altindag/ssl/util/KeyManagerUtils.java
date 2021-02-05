@@ -171,7 +171,7 @@ public final class KeyManagerUtils {
     /**
      * Swaps the internal TrustManager instance with the given keyManager object.
      * The baseKeyManager should be an instance of {@link HotSwappableX509ExtendedKeyManager}
-     * and can be created with {@link KeyManagerUtils#createHotSwappableKeyManager(X509KeyManager) KeyManagerUtils.createHotSwappableKeyManager(X509KeyManager)}
+     * and can be created with {@link KeyManagerUtils#createHotSwappableKeyManager(X509KeyManager)}
      *
      * @param baseKeyManager an instance of {@link HotSwappableX509ExtendedKeyManager}
      * @param keyManager to be injected instance of a TrustManager
