@@ -166,8 +166,8 @@ public final class SSLFactory {
         private final SSLParameters sslParameters = new SSLParameters();
 
         private boolean passwordCachingEnabled = false;
-        private boolean hotSwappableKeyManagerEnabled = false;
-        private boolean hotSwappableTrustManagerEnabled = false;
+        private boolean swappableKeyManagerEnabled = false;
+        private boolean swappableTrustManagerEnabled = false;
 
         private Builder() {}
 
@@ -187,7 +187,7 @@ public final class SSLFactory {
          * with {@link TrustManagerUtils#swapTrustManager(X509TrustManager, X509TrustManager) TrustManagerUtils#swapTrustManager(swappableTrustManager, newTrustManager)}
          */
         public Builder withSwappableTrustMaterial() {
-            hotSwappableTrustManagerEnabled = true;
+            swappableTrustManagerEnabled = true;
             return this;
         }
 
@@ -373,7 +373,7 @@ public final class SSLFactory {
          * with {@link KeyManagerUtils#swapKeyManager(X509KeyManager, X509KeyManager) KeyManagerUtils#swapKeyManager(swappableKeyManager, newKeyManager)}
          */
         public Builder withSwappableIdentityMaterial() {
-            hotSwappableKeyManagerEnabled = true;
+            swappableKeyManagerEnabled = true;
             return this;
         }
 
@@ -542,31 +542,21 @@ public final class SSLFactory {
         }
 
         private X509ExtendedKeyManager createKeyManager() {
-            X509ExtendedKeyManager keyManager = KeyManagerUtils.keyManagerBuilder()
+            return KeyManagerUtils.keyManagerBuilder()
                     .withKeyManagers(identityManagers)
                     .withIdentities(identities)
+                    .withSwappableKeyManager(swappableKeyManagerEnabled)
                     .build();
-
-            if (hotSwappableKeyManagerEnabled) {
-                keyManager = KeyManagerUtils.createHotSwappableKeyManager(keyManager);
-            }
-
-            return keyManager;
         }
 
         private X509ExtendedTrustManager createTrustManagers() {
-            X509ExtendedTrustManager trustManager = TrustManagerUtils.trustManagerBuilder()
+            return TrustManagerUtils.trustManagerBuilder()
                     .withTrustManagers(trustManagers)
                     .withTrustStores(trustStores.stream()
                             .map(KeyStoreHolder::getKeyStore)
-                            .collect(toList())
-                    ).build();
-
-            if (hotSwappableTrustManagerEnabled) {
-                trustManager = TrustManagerUtils.createHotSwappableTrustManager(trustManager);
-            }
-
-            return trustManager;
+                            .collect(toList()))
+                    .withSwappableTrustManager(swappableTrustManagerEnabled)
+                    .build();
         }
 
     }

@@ -174,8 +174,7 @@ public final class KeyManagerUtils {
      * and can be created with {@link KeyManagerUtils#createHotSwappableKeyManager(X509KeyManager)}
      *
      * @param baseKeyManager an instance of {@link HotSwappableX509ExtendedKeyManager}
-     * @param keyManager to be injected instance of a TrustManager
-     *
+     * @param keyManager     to be injected instance of a TrustManager
      * @throws GenericKeyManagerException if {@code baseKeyManager} is not instance of {@link HotSwappableX509ExtendedKeyManager}
      */
     public static void swapKeyManager(X509KeyManager baseKeyManager, X509KeyManager keyManager) {
@@ -215,6 +214,7 @@ public final class KeyManagerUtils {
         private KeyManagerBuilder() {}
 
         private final List<X509ExtendedKeyManager> keyManagers = new ArrayList<>();
+        private boolean swappableKeyManagerEnabled = false;
 
         public <T extends X509KeyManager> KeyManagerBuilder withKeyManagers(T... keyManagers) {
             for (X509KeyManager keyManager : keyManagers) {
@@ -251,19 +251,31 @@ public final class KeyManagerUtils {
             return this;
         }
 
+        public KeyManagerBuilder withSwappableKeyManager(boolean swappableKeyManagerEnabled) {
+            this.swappableKeyManagerEnabled = swappableKeyManagerEnabled;
+            return this;
+        }
+
         public X509ExtendedKeyManager build() {
             if (keyManagers.isEmpty()) {
                 throw new GenericKeyManagerException(EMPTY_KEY_MANAGER_EXCEPTION);
             }
 
+            X509ExtendedKeyManager keyManager;
             if (keyManagers.size() == 1) {
-                return keyManagers.get(0);
+                keyManager = keyManagers.get(0);
+            } else {
+                keyManager = keyManagers.stream()
+                        .map(KeyManagerUtils::unwrapIfPossible)
+                        .flatMap(Collection::stream)
+                        .collect(collectingAndThen(toList(), CompositeX509ExtendedKeyManager::new));
             }
 
-            return keyManagers.stream()
-                    .map(KeyManagerUtils::unwrapIfPossible)
-                    .flatMap(Collection::stream)
-                    .collect(collectingAndThen(toList(), CompositeX509ExtendedKeyManager::new));
+            if (swappableKeyManagerEnabled) {
+                keyManager = KeyManagerUtils.createHotSwappableKeyManager(keyManager);
+            }
+
+            return keyManager;
         }
 
     }
