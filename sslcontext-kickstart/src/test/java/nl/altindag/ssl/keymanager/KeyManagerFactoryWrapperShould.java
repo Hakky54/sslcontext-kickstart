@@ -39,7 +39,7 @@ import static org.mockito.Mockito.mock;
 @ExtendWith(MockitoExtension.class)
 class KeyManagerFactoryWrapperShould {
 
-    private final LogCaptor logCaptor = LogCaptor.forClass(KeyManagerFactoryWrapper.class);
+    private final LogCaptor logCaptor = LogCaptor.forName("nl.altindag.ssl.keymanager");
 
     @Test
     void createInstanceFromKeyManager() {
