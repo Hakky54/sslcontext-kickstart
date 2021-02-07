@@ -164,22 +164,28 @@ public final class KeyManagerUtils {
      * Wraps the given KeyManager into an instance of a Hot Swappable KeyManager
      * This type of KeyManager has the capability of swapping in and out different KeyManagers at runtime.
      */
-    public static X509ExtendedKeyManager createHotSwappableKeyManager(X509KeyManager keyManager) {
+    public static X509ExtendedKeyManager createSwappableKeyManager(X509KeyManager keyManager) {
         return new HotSwappableX509ExtendedKeyManager(KeyManagerUtils.wrapIfNeeded(keyManager));
     }
 
     /**
      * Swaps the internal TrustManager instance with the given keyManager object.
      * The baseKeyManager should be an instance of {@link HotSwappableX509ExtendedKeyManager}
-     * and can be created with {@link KeyManagerUtils#createHotSwappableKeyManager(X509KeyManager)}
+     * and can be created with {@link KeyManagerUtils#createSwappableKeyManager(X509KeyManager)}
      *
      * @param baseKeyManager an instance of {@link HotSwappableX509ExtendedKeyManager}
-     * @param keyManager     to be injected instance of a TrustManager
+     * @param newKeyManager     to be injected instance of a TrustManager
      * @throws GenericKeyManagerException if {@code baseKeyManager} is not instance of {@link HotSwappableX509ExtendedKeyManager}
      */
-    public static void swapKeyManager(X509KeyManager baseKeyManager, X509KeyManager keyManager) {
+    public static void swapKeyManager(X509KeyManager baseKeyManager, X509KeyManager newKeyManager) {
+        if (newKeyManager instanceof HotSwappableX509ExtendedKeyManager) {
+            throw new GenericKeyManagerException(
+                    String.format("The newKeyManager should not be an instance of [%s]", HotSwappableX509ExtendedKeyManager.class.getName())
+            );
+        }
+
         if (baseKeyManager instanceof HotSwappableX509ExtendedKeyManager) {
-            ((HotSwappableX509ExtendedKeyManager) baseKeyManager).setKeyManager(KeyManagerUtils.wrapIfNeeded(keyManager));
+            ((HotSwappableX509ExtendedKeyManager) baseKeyManager).setKeyManager(KeyManagerUtils.wrapIfNeeded(newKeyManager));
         } else {
             throw new GenericKeyManagerException(
                     String.format("The baseKeyManager is from the instance of [%s] and should be an instance of [%s].",
@@ -272,7 +278,7 @@ public final class KeyManagerUtils {
             }
 
             if (swappableKeyManagerEnabled) {
-                keyManager = KeyManagerUtils.createHotSwappableKeyManager(keyManager);
+                keyManager = KeyManagerUtils.createSwappableKeyManager(keyManager);
             }
 
             return keyManager;

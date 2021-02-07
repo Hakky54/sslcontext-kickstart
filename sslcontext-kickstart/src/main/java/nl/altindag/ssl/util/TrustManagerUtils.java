@@ -158,22 +158,28 @@ public final class TrustManagerUtils {
      * Wraps the given TrustManager into an instance of a Hot Swappable TrustManager.
      * This type of TrustManager has the capability of swapping in and out different TrustManagers at runtime.
      */
-    public static X509ExtendedTrustManager createHotSwappableTrustManager(X509TrustManager trustManager) {
+    public static X509ExtendedTrustManager createSwappableTrustManager(X509TrustManager trustManager) {
         return new HotSwappableX509ExtendedTrustManager(TrustManagerUtils.wrapIfNeeded(trustManager));
     }
 
     /**
      * Swaps the internal TrustManager instance with the given trustManager object.
      * The baseTrustManager should be an instance of {@link HotSwappableX509ExtendedTrustManager}
-     * and can be created with {@link TrustManagerUtils#createHotSwappableTrustManager(X509TrustManager)}
+     * and can be created with {@link TrustManagerUtils#createSwappableTrustManager(X509TrustManager)}
      *
      * @param baseTrustManager an instance of {@link HotSwappableX509ExtendedTrustManager}
-     * @param trustManager     to be injected instance of a TrustManager
+     * @param newTrustManager  to be injected instance of a TrustManager
      * @throws GenericTrustManagerException if {@code baseTrustManager} is not instance of {@link HotSwappableX509ExtendedTrustManager}
      */
-    public static void swapTrustManager(X509TrustManager baseTrustManager, X509TrustManager trustManager) {
+    public static void swapTrustManager(X509TrustManager baseTrustManager, X509TrustManager newTrustManager) {
+        if (newTrustManager instanceof HotSwappableX509ExtendedTrustManager) {
+            throw new GenericTrustManagerException(
+                    String.format("The newTrustManager should not be an instance of [%s]", HotSwappableX509ExtendedTrustManager.class.getName())
+            );
+        }
+
         if (baseTrustManager instanceof HotSwappableX509ExtendedTrustManager) {
-            ((HotSwappableX509ExtendedTrustManager) baseTrustManager).setTrustManager(TrustManagerUtils.wrapIfNeeded(trustManager));
+            ((HotSwappableX509ExtendedTrustManager) baseTrustManager).setTrustManager(TrustManagerUtils.wrapIfNeeded(newTrustManager));
         } else {
             throw new GenericTrustManagerException(
                     String.format("The baseTrustManager is from the instance of [%s] and should be an instance of [%s].",
@@ -271,7 +277,7 @@ public final class TrustManagerUtils {
             }
 
             if (swappableTrustManagerEnabled) {
-                trustManager = TrustManagerUtils.createHotSwappableTrustManager(trustManager);
+                trustManager = TrustManagerUtils.createSwappableTrustManager(trustManager);
             }
 
             return trustManager;

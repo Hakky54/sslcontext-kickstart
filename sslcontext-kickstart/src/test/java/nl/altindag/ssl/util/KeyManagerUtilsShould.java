@@ -289,7 +289,7 @@ class KeyManagerUtilsShould {
     }
 
     @Test
-    void throwExceptionWhenCreatingKeyManagerFromKeyStoreWhithIncorrectKeyPassword() throws KeyStoreException {
+    void throwExceptionWhenCreatingKeyManagerFromKeyStoreWithIncorrectKeyPassword() throws KeyStoreException {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "identity-with-multiple-keys.jks", IDENTITY_PASSWORD);
 
         assertThat(identity.size()).isEqualTo(2);
@@ -361,6 +361,19 @@ class KeyManagerUtilsShould {
                 .isInstanceOf(GenericKeyManagerException.class)
                 .hasMessage("The baseKeyManager is from the instance of [sun.security.ssl.SunX509KeyManagerImpl] " +
                         "and should be an instance of [nl.altindag.ssl.keymanager.HotSwappableX509ExtendedKeyManager].");
+    }
+
+    @Test
+    void throwExceptionWhenUnsupportedKeyManagerIsProvidedWhenSwappingKeyManagerWithANewKeyManager() {
+        KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager baseKeyManager = KeyManagerUtils.createSwappableKeyManager(KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD));
+        X509ExtendedKeyManager newKeyManager = KeyManagerUtils.createSwappableKeyManager(KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD));
+
+        assertThatThrownBy(() -> KeyManagerUtils.swapKeyManager(baseKeyManager, newKeyManager))
+                .isInstanceOf(GenericKeyManagerException.class)
+                .hasMessage("The newKeyManager should not be an instance of [nl.altindag.ssl.keymanager.HotSwappableX509ExtendedKeyManager]");
     }
 
 }

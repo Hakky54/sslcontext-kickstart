@@ -394,6 +394,19 @@ class TrustManagerUtilsShould {
                         "and should be an instance of [nl.altindag.ssl.trustmanager.HotSwappableX509ExtendedTrustManager].");
     }
 
+    @Test
+    void throwExceptionWhenUnsupportedTrustManagerIsProvidedWhenSwappingTrustManagerWithANewTrustManager() {
+        KeyStore trustStoreOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+        KeyStore trustStoreTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD);
+
+        X509ExtendedTrustManager baseTrustManager = TrustManagerUtils.createSwappableTrustManager(TrustManagerUtils.createTrustManager(trustStoreOne));
+        X509ExtendedTrustManager newTrustManager = TrustManagerUtils.createSwappableTrustManager(TrustManagerUtils.createTrustManager(trustStoreTwo));
+
+        assertThatThrownBy(() -> TrustManagerUtils.swapTrustManager(baseTrustManager, newTrustManager))
+                .isInstanceOf(GenericTrustManagerException.class)
+                .hasMessage("The newTrustManager should not be an instance of [nl.altindag.ssl.trustmanager.HotSwappableX509ExtendedTrustManager]");
+    }
+
     private void resetOsName() {
         System.setProperty("os.name", ORIGINAL_OS_NAME);
     }
