@@ -71,7 +71,8 @@ class SSLFactoryIT {
     }
 
     @Test
-    @Disabled
+    @Disabled("The server [https://prod.idrix.eu/secure/] has a rate limiter which will only allow couple of requests from a single machine. " +
+              "Therefore this test is disabled to prevent a failing build.")
     void executeHttpsRequestWithMutualAuthenticationForMultipleClientIdentitiesWithSingleSslConfiguration() throws Exception {
         LogCaptor logCaptor = LogCaptor.forName("nl.altindag.ssl");
 
