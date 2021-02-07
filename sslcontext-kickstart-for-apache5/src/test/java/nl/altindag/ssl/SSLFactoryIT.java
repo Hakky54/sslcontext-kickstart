@@ -37,6 +37,7 @@ import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.nio.support.BasicRequestProducer;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -131,6 +132,7 @@ class SSLFactoryIT {
     }
 
     @Test
+    @Disabled
     void executeHttpsRequestWithMutualAuthenticationForMultipleClientIdentitiesWithSingleSslConfiguration() throws Exception {
         LogCaptor logCaptor = LogCaptor.forName("nl.altindag.ssl");
 

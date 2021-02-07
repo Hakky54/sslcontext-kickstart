@@ -21,6 +21,7 @@ import nl.altindag.log.LogCaptor;
 import nl.altindag.ssl.util.KeyStoreUtils;
 import nl.altindag.ssl.util.NettySslUtils;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,6 +75,7 @@ class SSLFactoryIT {
     }
 
     @Test
+    @Disabled
     void executeHttpsRequestWithMutualAuthenticationForMultipleClientIdentitiesWithSingleSslConfiguration() throws IOException {
         LogCaptor logCaptor = LogCaptor.forName("nl.altindag.ssl");
 
