@@ -24,6 +24,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,6 +66,51 @@ class SSLFactoryIT {
         } else {
             assertThat(statusCode).isEqualTo(200);
             assertThat(logCaptor.getLogs()).containsExactly("Received the following server certificate: [CN=*.badssl.com, O=Lucas Garron Torres, L=Walnut Creek, ST=California, C=US]");
+        }
+    }
+
+    @Test
+    void executeHttpsRequestWithMutualAuthenticationForMultipleClientIdentitiesWithSingleSslConfiguration() throws Exception {
+        LogCaptor logCaptor = LogCaptor.forName("nl.altindag.ssl");
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial("keystores-for-unit-tests/badssl-identity.p12", "badssl.com".toCharArray())
+                .withIdentityMaterial("keystores-for-unit-tests/prod.idrix.eu-identity.jks", "secret".toCharArray())
+                .withTrustMaterial("keystores-for-unit-tests/badssl-truststore.p12", "badssl.com".toCharArray())
+                .withTrustMaterial("keystores-for-unit-tests/prod.idrix.eu-truststore.jks", "secret".toCharArray())
+                .build();
+
+        LayeredConnectionSocketFactory socketFactory = Apache4SslUtils.toSocketFactory(sslFactory);
+
+        HttpClient httpClient = HttpClients.custom()
+                .setSSLSocketFactory(socketFactory)
+                .build();
+
+        HttpGet request = new HttpGet("https://client.badssl.com/");
+        HttpResponse response = httpClient.execute(request);
+
+        int statusCode = response.getStatusLine().getStatusCode();
+
+        if (statusCode == 400) {
+            LOGGER.warn("Certificate may have expired and needs to be updated");
+        } else {
+            assertThat(statusCode).isEqualTo(200);
+            assertThat(logCaptor.getLogs()).containsExactly("Received the following server certificate: [CN=*.badssl.com, O=Lucas Garron Torres, L=Walnut Creek, ST=California, C=US]");
+        }
+
+        request = new HttpGet("https://prod.idrix.eu/secure/");
+        response = httpClient.execute(request);
+
+        statusCode = response.getStatusLine().getStatusCode();
+
+        if (statusCode == 400) {
+            LOGGER.warn("Certificate may have expired and needs to be updated");
+        } else {
+            assertThat(statusCode).isEqualTo(200);
+            String body = EntityUtils.toString(response.getEntity());
+            assertThat(body).contains("SSL Authentication OK");
+            assertThat(body).doesNotContain("No SSL client certificate presented");
+            assertThat(logCaptor.getLogs()).contains("Received the following server certificate: [CN=prod.idrix.eu]");
         }
     }
 

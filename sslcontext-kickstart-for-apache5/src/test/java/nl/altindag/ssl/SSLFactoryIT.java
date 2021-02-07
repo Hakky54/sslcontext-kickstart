@@ -25,6 +25,7 @@ import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
@@ -33,6 +34,7 @@ import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBu
 import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.Method;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.nio.support.BasicRequestProducer;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -125,6 +127,54 @@ class SSLFactoryIT {
         } else {
             assertThat(statusCode).isEqualTo(200);
             assertThat(logCaptor.getLogs()).contains("Received the following server certificate: [CN=*.badssl.com, O=Lucas Garron Torres, L=Walnut Creek, ST=California, C=US]");
+        }
+    }
+
+    @Test
+    void executeHttpsRequestWithMutualAuthenticationForMultipleClientIdentitiesWithSingleSslConfiguration() throws Exception {
+        LogCaptor logCaptor = LogCaptor.forName("nl.altindag.ssl");
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial("keystores-for-unit-tests/badssl-identity.p12", "badssl.com".toCharArray())
+                .withIdentityMaterial("keystores-for-unit-tests/prod.idrix.eu-identity.jks", "secret".toCharArray())
+                .withTrustMaterial("keystores-for-unit-tests/badssl-truststore.p12", "badssl.com".toCharArray())
+                .withTrustMaterial("keystores-for-unit-tests/prod.idrix.eu-truststore.jks", "secret".toCharArray())
+                .build();
+
+        LayeredConnectionSocketFactory socketFactory = Apache5SslUtils.toSocketFactory(sslFactory);
+        PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+                .setSSLSocketFactory(socketFactory)
+                .build();
+
+        HttpClient httpClient = HttpClients.custom()
+                .setConnectionManager(connectionManager)
+                .build();
+
+        HttpGet request = new HttpGet("https://client.badssl.com/");
+        CloseableHttpResponse response = (CloseableHttpResponse) httpClient.execute(request);
+
+        int statusCode = response.getCode();
+
+        if (statusCode == 400) {
+            LOGGER.warn("Certificate may have expired and needs to be updated");
+        } else {
+            assertThat(statusCode).isEqualTo(200);
+            assertThat(logCaptor.getLogs()).contains("Received the following server certificate: [CN=*.badssl.com, O=Lucas Garron Torres, L=Walnut Creek, ST=California, C=US]");
+        }
+
+        request = new HttpGet("https://prod.idrix.eu/secure/");
+        response = (CloseableHttpResponse) httpClient.execute(request);
+
+        statusCode = response.getCode();
+
+        if (statusCode == 400) {
+            LOGGER.warn("Certificate may have expired and needs to be updated");
+        } else {
+            assertThat(statusCode).isEqualTo(200);
+            String body = EntityUtils.toString(response.getEntity());
+            assertThat(body).contains("SSL Authentication OK");
+            assertThat(body).doesNotContain("No SSL client certificate presented");
+            assertThat(logCaptor.getLogs()).contains("Received the following server certificate: [CN=prod.idrix.eu]");
         }
     }
 
