@@ -44,6 +44,7 @@ import javax.net.ssl.X509ExtendedTrustManager;
 import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
 import java.io.InputStream;
+import java.net.URI;
 import java.nio.file.Path;
 import java.security.Key;
 import java.security.KeyStore;
@@ -54,7 +55,9 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
@@ -164,6 +167,7 @@ public final class SSLFactory {
         private final List<X509ExtendedKeyManager> identityManagers = new ArrayList<>();
         private final List<X509ExtendedTrustManager> trustManagers = new ArrayList<>();
         private final SSLParameters sslParameters = new SSLParameters();
+        private final Map<String, List<URI>> preferredClientAliasToHost = new HashMap<>();
 
         private boolean passwordCachingEnabled = false;
 
@@ -361,6 +365,38 @@ public final class SSLFactory {
             }
         }
 
+        public Builder withClientIdentityRoute(String clientAlias, String... hosts) {
+            for (String host : hosts) {
+                withClientIdentityRoute(clientAlias, host);
+            }
+            return this;
+        }
+
+        public Builder withClientIdentityRoute(String clientAlias, String host) {
+            return withClientIdentityRoute(clientAlias, URI.create(host));
+        }
+
+        public Builder withClientIdentityRoute(String clientAlias, URI... hosts) {
+            for (URI host : hosts) {
+                withClientIdentityRoute(clientAlias, host);
+            }
+            return this;
+        }
+
+        public Builder withClientIdentityRoute(String clientAlias, URI host) {
+            if (preferredClientAliasToHost.containsKey(clientAlias)) {
+                preferredClientAliasToHost.get(clientAlias).add(host);
+            } else {
+                preferredClientAliasToHost.put(clientAlias, new ArrayList<>(Collections.singletonList(host)));
+            }
+            return this;
+        }
+
+        public Builder withClientIdentityRoute(Map<String, List<URI>> clientAliasToHost) {
+            this.preferredClientAliasToHost.putAll(clientAliasToHost);
+            return this;
+        }
+
         public <T extends HostnameVerifier> Builder withHostnameVerifier(T hostnameVerifier) {
             this.hostnameVerifier = hostnameVerifier;
             return this;
@@ -523,6 +559,7 @@ public final class SSLFactory {
             return KeyManagerUtils.keyManagerBuilder()
                     .withKeyManagers(identityManagers)
                     .withIdentities(identities)
+                    .withClientAliasToHost(preferredClientAliasToHost)
                     .build();
         }
 

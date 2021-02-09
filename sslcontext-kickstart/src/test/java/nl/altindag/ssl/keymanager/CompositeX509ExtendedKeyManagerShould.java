@@ -16,7 +16,6 @@
 
 package nl.altindag.ssl.keymanager;
 
-import nl.altindag.ssl.model.KeyStoreHolder;
 import nl.altindag.ssl.util.KeyManagerUtils;
 import nl.altindag.ssl.util.KeyStoreUtils;
 import org.junit.jupiter.api.Test;
@@ -24,12 +23,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.net.ssl.X509ExtendedKeyManager;
-import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Collections;
