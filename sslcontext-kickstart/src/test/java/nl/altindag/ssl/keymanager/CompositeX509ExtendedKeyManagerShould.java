@@ -22,7 +22,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedKeyManager;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.SocketAddress;
+import java.net.URI;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.Principal;
@@ -349,6 +354,83 @@ class CompositeX509ExtendedKeyManagerShould {
     }
 
     @Test
+    void chooseFirstClientAliasWithMatchingKeyTypeWithPreferredAlias() throws KeyStoreException {
+        KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
+
+        CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
+                Arrays.asList(keyManagerOne, keyManagerTwo),
+                Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://localhost:8443/")))
+        );
+
+        Socket socket = mock(Socket.class);
+        InetSocketAddress socketAddress = mock(InetSocketAddress.class);
+
+        when(socket.getRemoteSocketAddress()).thenReturn(socketAddress);
+        when(socketAddress.getPort()).thenReturn(8443);
+        when(socketAddress.getHostName()).thenReturn("localhost");
+
+        String alias = keyManager.chooseClientAlias(new String[]{"RSA"}, null, socket);
+
+        assertThat(keyManager).isNotNull();
+        assertThat(keyManager.size()).isEqualTo(2);
+        assertThat(identityOne.size()).isEqualTo(1);
+        assertThat(identityTwo.size()).isEqualTo(1);
+        assertThat(alias).isEqualTo("another-server");
+    }
+
+    @Test
+    void chooseFirstClientAliasWithMatchingKeyTypWhilePreferredAliasIsIgnoredBecauseRemoteSocketAddressIsNotAnInstanceOfInetSocketAddress() throws KeyStoreException {
+        KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
+
+        CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
+                Arrays.asList(keyManagerOne, keyManagerTwo),
+                Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://localhost:8443/")))
+        );
+
+        Socket socket = mock(Socket.class);
+        SocketAddress socketAddress = mock(SocketAddress.class);
+        when(socket.getRemoteSocketAddress()).thenReturn(socketAddress);
+
+        String alias = keyManager.chooseClientAlias(new String[]{"RSA"}, null, socket);
+
+        assertThat(keyManager).isNotNull();
+        assertThat(keyManager.size()).isEqualTo(2);
+        assertThat(identityOne.size()).isEqualTo(1);
+        assertThat(identityTwo.size()).isEqualTo(1);
+        assertThat(alias).isEqualTo("dummy-client");
+    }
+
+    @Test
+    void chooseFirstClientAliasWithMatchingKeyTypeWhilePreferredAliasIsIgnoredBecauseSocketIsNull() throws KeyStoreException {
+        KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
+
+        CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
+                Arrays.asList(keyManagerOne, keyManagerTwo),
+                Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://localhost:8443/")))
+        );
+
+        String alias = keyManager.chooseClientAlias(new String[]{"RSA"}, null, null);
+
+        assertThat(keyManager).isNotNull();
+        assertThat(keyManager.size()).isEqualTo(2);
+        assertThat(identityOne.size()).isEqualTo(1);
+        assertThat(identityTwo.size()).isEqualTo(1);
+        assertThat(alias).isEqualTo("dummy-client");
+    }
+
+    @Test
     void chooseFirstEngineClientAliasWithMatchingKeyType() throws KeyStoreException {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
@@ -358,6 +440,54 @@ class CompositeX509ExtendedKeyManagerShould {
 
         CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
                 Arrays.asList(keyManagerOne, keyManagerTwo)
+        );
+
+        String alias = keyManager.chooseEngineClientAlias(new String[]{"RSA"}, null, null);
+
+        assertThat(keyManager).isNotNull();
+        assertThat(keyManager.size()).isEqualTo(2);
+        assertThat(identityOne.size()).isEqualTo(1);
+        assertThat(identityTwo.size()).isEqualTo(1);
+        assertThat(alias).isEqualTo("dummy-client");
+    }
+
+    @Test
+    void chooseFirstEngineClientAliasWithMatchingKeyTypeWithPreferredAlias() throws KeyStoreException {
+        KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
+
+        CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
+                Arrays.asList(keyManagerOne, keyManagerTwo),
+                Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://localhost:8443/")))
+        );
+
+        SSLEngine sslEngine = mock(SSLEngine.class);
+        when(sslEngine.getPeerPort()).thenReturn(8443);
+        when(sslEngine.getPeerHost()).thenReturn("localhost");
+
+        String alias = keyManager.chooseEngineClientAlias(new String[]{"RSA"}, null, sslEngine);
+
+        assertThat(keyManager).isNotNull();
+        assertThat(keyManager.size()).isEqualTo(2);
+        assertThat(identityOne.size()).isEqualTo(1);
+        assertThat(identityTwo.size()).isEqualTo(1);
+        assertThat(alias).isEqualTo("another-server");
+    }
+
+    @Test
+    void chooseFirstEngineClientAliasWithMatchingKeyTypeWhilePreferredAliasIsIgnoredBecauseSslEngineIsNull() throws KeyStoreException {
+        KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
+
+        CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
+                Arrays.asList(keyManagerOne, keyManagerTwo),
+                Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://localhost:8443/")))
         );
 
         String alias = keyManager.chooseEngineClientAlias(new String[]{"RSA"}, null, null);

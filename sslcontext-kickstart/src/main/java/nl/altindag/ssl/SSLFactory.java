@@ -54,6 +54,7 @@ import java.security.Provider;
 import java.security.SecureRandom;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -63,10 +64,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
 /**
  * @author Hakan Altindag
@@ -143,6 +146,10 @@ public final class SSLFactory {
 
     public SSLEngine getSSLEngine(String peerHost, Integer peerPort) {
         return sslMaterial.getSslEngine().apply(peerHost, peerPort);
+    }
+
+    public Map<String, List<String>> getClientIdentityRoute() {
+        return sslMaterial.getIdentityMaterial().getPreferredClientAliasToHost();
     }
 
     public static Builder builder() {
@@ -373,17 +380,27 @@ public final class SSLFactory {
                     Arrays.stream(hosts)
                             .map(URI::create)
                             .collect(toList())
-                            .toArray(new URI[]{})
             );
         }
 
-        public Builder withClientIdentityRoute(String clientAlias, URI... hosts) {
+        public Builder withClientIdentityRoute(Map<String, List<String>> clientAliasesToHosts) {
+            clientAliasesToHosts.entrySet().stream()
+                    .map(clientAliasToHosts -> new AbstractMap.SimpleEntry<>(
+                            clientAliasToHosts.getKey(),
+                            clientAliasToHosts.getValue().stream()
+                                    .map(URI::create)
+                                    .collect(Collectors.toList())))
+                    .forEach(clientAliasToHosts -> withClientIdentityRoute(clientAliasToHosts.getKey(), clientAliasToHosts.getValue()));
+            return this;
+        }
+
+        private Builder withClientIdentityRoute(String clientAlias, List<URI> hosts) {
             if (StringUtils.isBlank(clientAlias)) {
                 throw new IllegalArgumentException("clientAlias should be present");
             }
 
-            if (isNull(hosts) || hosts.length == 0) {
-                throw new IllegalArgumentException("at least one host should be present");
+            if (hosts.isEmpty()) {
+                throw new IllegalArgumentException(String.format("At least one host should be present. No host(s) found for the given alias: [%s]", clientAlias));
             }
 
             for (URI host : hosts) {
@@ -395,11 +412,6 @@ public final class SSLFactory {
                     preferredClientAliasToHost.put(clientAlias, new ArrayList<>(Collections.singletonList(host)));
                 }
             }
-            return this;
-        }
-
-        public Builder withClientIdentityRoute(Map<String, List<URI>> clientAliasToHost) {
-            this.preferredClientAliasToHost.putAll(clientAliasToHost);
             return this;
         }
 
@@ -510,10 +522,19 @@ public final class SSLFactory {
                 KeyStoreUtils.sanitizeKeyStores(trustStores);
             }
 
+            Map<String, List<String>> clientAliasToHost = preferredClientAliasToHost.entrySet().stream()
+                    .collect(toMap(
+                            Map.Entry::getKey,
+                            hosts -> hosts.getValue().stream()
+                                    .map(URI::toString)
+                                    .collect(Collectors.collectingAndThen(toList(), Collections::unmodifiableList)))
+                    );
+
             IdentityMaterial identityMaterial = new IdentityMaterial.Builder()
                     .withKeyManager(keyManager)
                     .withKeyManagerFactory(keyManagerFactory)
                     .withIdentities(Collections.unmodifiableList(identities))
+                    .withPreferredClientAliasToHost(Collections.unmodifiableMap(clientAliasToHost))
                     .build();
 
             TrustMaterial trustMaterial = new TrustMaterial.Builder()

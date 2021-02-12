@@ -1060,6 +1060,18 @@ class SSLFactoryShould {
     }
 
     @Test
+    void createMultipleRoutesForSingleClientIdentity() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD)
+                .withIdentityMaterial(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD)
+                .withClientIdentityRoute("some-client-alias", "https://localhost:8443", "https://localhost:8444")
+                .build();
+
+        assertThat(sslFactory.getClientIdentityRoute()).containsKey("some-client-alias");
+        assertThat(sslFactory.getClientIdentityRoute().get("some-client-alias")).contains("https://localhost:8443", "https://localhost:8444");
+    }
+
+    @Test
     void throwExceptionWhenBuildingSSLFactoryWithTrustStoreWhileProvidingWrongPassword() {
         SSLFactory.Builder factoryBuilder = SSLFactory.builder();
         char[] trustStorePassword = "password".toCharArray();
@@ -1333,6 +1345,22 @@ class SSLFactoryShould {
         assertThatThrownBy(() -> sslFactoryBuilder.withTrustMaterial(trustManagerFactory))
                 .isInstanceOf(GenericTrustManagerException.class)
                 .hasMessage("Input does not contain TrustManager");
+    }
+
+    @Test
+    void throwExceptionWhenClientAliasIsNotPresentWhenRoutingIdentities() {
+        SSLFactory.Builder sslFactoryBuilder = SSLFactory.builder();
+        assertThatThrownBy(() -> sslFactoryBuilder.withClientIdentityRoute(null, "https://localhost:8443"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("clientAlias should be present");
+    }
+
+    @Test
+    void throwExceptionWhenRouteIsNotPresentForClientIdentityRoute() {
+        SSLFactory.Builder sslFactoryBuilder = SSLFactory.builder();
+        assertThatThrownBy(() -> sslFactoryBuilder.withClientIdentityRoute("some-client-alias"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("At least one host should be present. No host(s) found for the given alias: [some-client-alias]");
     }
 
     @SuppressWarnings("SameParameterValue")

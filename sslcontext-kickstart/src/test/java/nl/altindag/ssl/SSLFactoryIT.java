@@ -38,6 +38,10 @@ import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -80,7 +84,7 @@ class SSLFactoryIT {
     }
 
     @Test
-    void executeRequestToTwoServersWithMutualAuthenticationWhileClientHasIssuerWithSingleHttpClientAndSingleSslConfiguration() throws IOException, InterruptedException {
+    void executeRequestToTwoServersWithMutualAuthenticationWithSingleHttpClientAndSingleSslConfiguration() throws IOException {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
 
         char[] keyStorePassword = "secret".toCharArray();
@@ -110,6 +114,58 @@ class SSLFactoryIT {
                 .withTrustMaterial("keystores-for-unit-tests/client-server/client-one/truststore.jks", keyStorePassword)
                 .withTrustMaterial("keystores-for-unit-tests/client-server/client-two/truststore.jks", keyStorePassword)
                 .withProtocols("TLSv1.2")
+                .build();
+
+        Response response = executeRequest("https://localhost:8443/api/hello", sslFactoryForClient.getSslSocketFactory());
+
+        assertThat(response.getStatusCode()).isEqualTo(200);
+        assertThat(response.getBody()).contains("Hello from server one");
+
+        response = executeRequest("https://localhost:8444/api/hello", sslFactoryForClient.getSslSocketFactory());
+
+        assertThat(response.getStatusCode()).isEqualTo(200);
+        assertThat(response.getBody()).contains("Hello from server two");
+
+        serverOne.stop(0);
+        serverTwo.stop(0);
+        executorService.shutdownNow();
+    }
+
+    @Test
+    void executeRequestToTwoServersWithMutualAuthenticationWithReroutingClientCertificates() throws IOException {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+
+        char[] keyStorePassword = "secret".toCharArray();
+        SSLFactory sslFactoryForServerOne = SSLFactory.builder()
+                .withIdentityMaterial("keystores-for-unit-tests/client-server/server-one/identity.jks", keyStorePassword)
+                .withTrustMaterial("keystores-for-unit-tests/client-server/server-one/truststore.jks", keyStorePassword)
+                .withNeedClientAuthentication()
+                .withProtocols("TLSv1.2")
+                .build();
+
+        SSLFactory sslFactoryForServerTwo = SSLFactory.builder()
+                .withIdentityMaterial("keystores-for-unit-tests/client-server/server-two/identity.jks", keyStorePassword)
+                .withTrustMaterial("keystores-for-unit-tests/client-server/server-two/truststore.jks", keyStorePassword)
+                .withNeedClientAuthentication()
+                .withProtocols("TLSv1.2")
+                .build();
+
+        HttpsServer serverOne = createServer(8443, sslFactoryForServerOne, executorService, "Hello from server one");
+        HttpsServer serverTwo = createServer(8444, sslFactoryForServerTwo, executorService, "Hello from server two");
+
+        serverOne.start();
+        serverTwo.start();
+
+        Map<String, List<String>> clientAliasesToHosts = new HashMap<>();
+        clientAliasesToHosts.put("client-one", Collections.singletonList("https://localhost:8443/api/hello"));
+        clientAliasesToHosts.put("client-two", Collections.singletonList("https://localhost:8444/api/hello"));
+
+        SSLFactory sslFactoryForClient = SSLFactory.builder()
+                .withIdentityMaterial("keystores-for-unit-tests/client-server/client-one/identity.jks", keyStorePassword)
+                .withIdentityMaterial("keystores-for-unit-tests/client-server/client-two/identity.jks", keyStorePassword)
+                .withTrustMaterial("keystores-for-unit-tests/client-server/client-one/truststore.jks", keyStorePassword)
+                .withTrustMaterial("keystores-for-unit-tests/client-server/client-two/truststore.jks", keyStorePassword)
+                .withClientIdentityRoute(clientAliasesToHosts)
                 .build();
 
         Response response = executeRequest("https://localhost:8443/api/hello", sslFactoryForClient.getSslSocketFactory());
