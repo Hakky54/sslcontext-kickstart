@@ -239,12 +239,11 @@ SSLFactory.builder()
 It is possible to swap a KeyManager and TrustManager from a SSLContext, SSLSocketFactory and SSLServerSocketFactory while already using it within your client or server at runtime. This option will enable to refresh the identity and trust material of a server or client without the need of restarting your application or recreating it with SSLFactory. The identity and trust material may expire at some point in time and needs to be replaced to be still functional.
 Restart of the application with a traditional setup is unavoidable and can result into a downtime for x amount of time. A restart is not needed when using the setup below.
 ```text
-X509ExtendedKeyManager keyManager = KeyManagerUtils.createHotSwappableKeyManager(aKeyManager);
-X509ExtendedTrustManager trustManager = TrustManagerUtils.createHotSwappableTrustManager(aTrustManager);
-
 SSLFactory sslFactory = SSLFactory.builder()
-          .withIdentityMaterial(keyManager)
-          .withTrustMaterial(trustManager)
+          .withSwappableIdentityMaterial()
+          .withIdentityMaterial("identity.jks", "password".toCharArray())
+          .withSwappableTrustMaterial()
+          .withTrustMaterial("truststore.jks", "password".toCharArray())
           .build();
           
 HttpClient httpClient = HttpClient.newBuilder()
@@ -256,8 +255,8 @@ HttpClient httpClient = HttpClient.newBuilder()
 HttpResponse<String> response = httpClient.send(aRequest, HttpResponse.BodyHandlers.ofString());
 
 // swap identity and trust materials and reuse existing http client
-KeyManagerUtils.swapKeyManager(keyManager, anotherKeyManager);
-TrustManagerUtils.swapTrustManager(trustManager, anotherTrustManager);
+KeyManagerUtils.swapKeyManager(sslFactory.getKeyManager().get(), anotherKeyManager);
+TrustManagerUtils.swapTrustManager(sslFactory.getTrustManager().get(), anotherTrustManager);
 HttpResponse<String> response = httpClient.send(aRequest, HttpResponse.BodyHandlers.ofString());
 ```
 See here for a basic reference implementation for a server: [GitHub - Instant SSL Reloading](https://github.com/Hakky54/instant-ssl-reloading)

@@ -53,7 +53,7 @@ class HotSwappableX509ExtendedTrustManagerIT {
     static void setUpSSLSocketFactory() {
         KeyStore trustStoreWithBadSsl = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "badssl-truststore.p12", "badssl.com".toCharArray());
         X509ExtendedTrustManager trustManagerWithBadSsl = TrustManagerUtils.createTrustManager(trustStoreWithBadSsl);
-        trustManager = TrustManagerUtils.createHotSwappableTrustManager(trustManagerWithBadSsl);
+        trustManager = TrustManagerUtils.createSwappableTrustManager(trustManagerWithBadSsl);
 
         SSLFactory sslFactory = SSLFactory.builder()
                 .withIdentityMaterial(KEYSTORE_LOCATION + "badssl-identity.p12", "badssl.com".toCharArray())

@@ -158,23 +158,28 @@ public final class TrustManagerUtils {
      * Wraps the given TrustManager into an instance of a Hot Swappable TrustManager.
      * This type of TrustManager has the capability of swapping in and out different TrustManagers at runtime.
      */
-    public static X509ExtendedTrustManager createHotSwappableTrustManager(X509TrustManager trustManager) {
+    public static X509ExtendedTrustManager createSwappableTrustManager(X509TrustManager trustManager) {
         return new HotSwappableX509ExtendedTrustManager(TrustManagerUtils.wrapIfNeeded(trustManager));
     }
 
     /**
      * Swaps the internal TrustManager instance with the given trustManager object.
      * The baseTrustManager should be an instance of {@link HotSwappableX509ExtendedTrustManager}
-     * and can be created with {@link TrustManagerUtils#createHotSwappableTrustManager(X509TrustManager) TrustManagerUtils.createHotSwappableTrustManager(X509TrustManager)}
+     * and can be created with {@link TrustManagerUtils#createSwappableTrustManager(X509TrustManager)}
      *
      * @param baseTrustManager an instance of {@link HotSwappableX509ExtendedTrustManager}
-     * @param trustManager to be injected instance of a TrustManager
-     *
+     * @param newTrustManager  to be injected instance of a TrustManager
      * @throws GenericTrustManagerException if {@code baseTrustManager} is not instance of {@link HotSwappableX509ExtendedTrustManager}
      */
-    public static void swapTrustManager(X509TrustManager baseTrustManager, X509TrustManager trustManager) {
+    public static void swapTrustManager(X509TrustManager baseTrustManager, X509TrustManager newTrustManager) {
+        if (newTrustManager instanceof HotSwappableX509ExtendedTrustManager) {
+            throw new GenericTrustManagerException(
+                    String.format("The newTrustManager should not be an instance of [%s]", HotSwappableX509ExtendedTrustManager.class.getName())
+            );
+        }
+
         if (baseTrustManager instanceof HotSwappableX509ExtendedTrustManager) {
-            ((HotSwappableX509ExtendedTrustManager) baseTrustManager).setTrustManager(TrustManagerUtils.wrapIfNeeded(trustManager));
+            ((HotSwappableX509ExtendedTrustManager) baseTrustManager).setTrustManager(TrustManagerUtils.wrapIfNeeded(newTrustManager));
         } else {
             throw new GenericTrustManagerException(
                     String.format("The baseTrustManager is from the instance of [%s] and should be an instance of [%s].",
@@ -209,6 +214,7 @@ public final class TrustManagerUtils {
         private TrustManagerBuilder() {}
 
         private final List<X509ExtendedTrustManager> trustManagers = new ArrayList<>();
+        private boolean swappableTrustManagerEnabled = false;
 
         public <T extends X509TrustManager> TrustManagerBuilder withTrustManagers(T... trustManagers) {
             for (T trustManager : trustManagers) {
@@ -250,21 +256,32 @@ public final class TrustManagerUtils {
             return this;
         }
 
+        public TrustManagerBuilder withSwappableTrustManager(boolean swappableTrustManagerEnabled) {
+            this.swappableTrustManagerEnabled = swappableTrustManagerEnabled;
+            return this;
+        }
+
         public X509ExtendedTrustManager build() {
             if (trustManagers.isEmpty()) {
                 throw new GenericTrustManagerException(EMPTY_TRUST_MANAGER_EXCEPTION);
             }
 
+            X509ExtendedTrustManager trustManager;
             if (trustManagers.size() == 1) {
-                return trustManagers.get(0);
+                trustManager = trustManagers.get(0);
+            } else {
+                trustManager = trustManagers.stream()
+                        .map(TrustManagerUtils::unwrapIfPossible)
+                        .flatMap(Collection::stream)
+                        .collect(collectingAndThen(toList(), CompositeX509ExtendedTrustManager::new));
             }
 
-            return trustManagers.stream()
-                    .map(TrustManagerUtils::unwrapIfPossible)
-                    .flatMap(Collection::stream)
-                    .collect(collectingAndThen(toList(), CompositeX509ExtendedTrustManager::new));
-        }
+            if (swappableTrustManagerEnabled) {
+                trustManager = TrustManagerUtils.createSwappableTrustManager(trustManager);
+            }
 
+            return trustManager;
+        }
     }
 
 }

@@ -179,6 +179,8 @@ public final class SSLFactory {
         private final Map<String, List<URI>> preferredClientAliasToHost = new HashMap<>();
 
         private boolean passwordCachingEnabled = false;
+        private boolean swappableKeyManagerEnabled = false;
+        private boolean swappableTrustManagerEnabled = false;
 
         private Builder() {}
 
@@ -189,6 +191,16 @@ public final class SSLFactory {
 
         public Builder withDefaultTrustMaterial() {
             trustManagers.add(TrustManagerUtils.createTrustManagerWithJdkTrustedCertificates());
+            return this;
+        }
+
+        /**
+         * Enables the possibility to swap the underlying TrustManager at runtime.
+         * After this option has been enabled the TrustManager can be swapped
+         * with {@link TrustManagerUtils#swapTrustManager(X509TrustManager, X509TrustManager) TrustManagerUtils#swapTrustManager(swappableTrustManager, newTrustManager)}
+         */
+        public Builder withSwappableTrustMaterial() {
+            swappableTrustManagerEnabled = true;
             return this;
         }
 
@@ -365,6 +377,16 @@ public final class SSLFactory {
         public <T extends KeyManagerFactory> Builder withIdentityMaterial(T keyManagerFactory) {
             X509ExtendedKeyManager keyManager = KeyManagerUtils.getKeyManager(keyManagerFactory);
             this.identityManagers.add(keyManager);
+            return this;
+        }
+
+        /**
+         * Enables the possibility to swap the underlying KeyManager at runtime.
+         * After this option has been enabled the KeyManager can be swapped
+         * with {@link KeyManagerUtils#swapKeyManager(X509KeyManager, X509KeyManager) KeyManagerUtils#swapKeyManager(swappableKeyManager, newKeyManager)}
+         */
+        public Builder withSwappableIdentityMaterial() {
+            swappableKeyManagerEnabled = true;
             return this;
         }
 
@@ -574,6 +596,7 @@ public final class SSLFactory {
             return KeyManagerUtils.keyManagerBuilder()
                     .withKeyManagers(identityManagers)
                     .withIdentities(identities)
+                    .withSwappableKeyManager(swappableKeyManagerEnabled)
                     .withClientAliasToHost(preferredClientAliasToHost)
                     .build();
         }
@@ -583,8 +606,9 @@ public final class SSLFactory {
                     .withTrustManagers(trustManagers)
                     .withTrustStores(trustStores.stream()
                             .map(KeyStoreHolder::getKeyStore)
-                            .collect(toList())
-                    ).build();
+                            .collect(toList()))
+                    .withSwappableTrustManager(swappableTrustManagerEnabled)
+                    .build();
         }
 
     }

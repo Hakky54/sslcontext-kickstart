@@ -52,7 +52,7 @@ class HotSwappableX509ExtendedKeyManagerIT {
     static void setUpSSLSocketFactory() {
         KeyStore identityStoreWithBadSsl = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "badssl-identity.p12", "badssl.com".toCharArray());
         X509ExtendedKeyManager keyManagerWithBadSsl = KeyManagerUtils.createKeyManager(identityStoreWithBadSsl, "badssl.com".toCharArray());
-        keyManager = KeyManagerUtils.createHotSwappableKeyManager(keyManagerWithBadSsl);
+        keyManager = KeyManagerUtils.createSwappableKeyManager(keyManagerWithBadSsl);
 
         SSLFactory sslFactory = SSLFactory.builder()
                 .withIdentityMaterial(keyManager)
