@@ -3,6 +3,10 @@
 This list is not intended to be all-encompassing - it will document major and breaking API 
 changes with their rationale when appropriate:
 
+### v6.3.0
+- Added a toggle to hot swap identity material within the SSLFactory
+- Added a toggle to hot swap trust material within the SSLFactory
+- Added an option to route multiple client identities
 ### v6.2.0
 - Added option to hot swap identity material at runtime
 - Added option to hot swap trust material at runtime
