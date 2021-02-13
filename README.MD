@@ -277,7 +277,7 @@ SSLFactory.builder()
 ```
 ##### Routing identity material to specific host
 It may occur that the client is sending the wrong certificate to the server when using multiple identities. This will happen when the client certificate has insufficient information for the underlying ssl engine (the KeyManager) and therefore it cannot select the right certificate.
-Recreating the certificates can resolve this issue. However, if that is possible you can provide an option to the engine to use a specific certificate for a given server. Below is an example setup for correctly routing the client identity based on the alias which can be found within the KeyStore file.
+Recreating the certificates can resolve this issue. However, if that is not possible you can provide an option to the engine to use a specific certificate for a given server. Below is an example setup for correctly routing the client identity based on the alias which can be found within the KeyStore file.
 ```text
 SSLFactory.builder()
           .withIdentityMaterial("identity-1.jks", password)
