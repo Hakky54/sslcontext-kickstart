@@ -20,6 +20,7 @@ import io.netty.handler.ssl.SslContext;
 import nl.altindag.log.LogCaptor;
 import nl.altindag.ssl.util.KeyStoreUtils;
 import nl.altindag.ssl.util.NettySslUtils;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,10 +40,14 @@ class SSLFactoryIT {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SSLFactoryIT.class);
 
-    @Test
-    void executeHttpsRequestWithMutualAuthentication() throws IOException {
+    @BeforeAll
+    static void disableNettyVerboseLogging() {
         LogCaptor.forName("io.netty").disableLogs();
         LogCaptor.forName("reactor.netty").disableLogs();
+    }
+
+    @Test
+    void executeHttpsRequestWithMutualAuthentication() throws IOException {
         LogCaptor logCaptor = LogCaptor.forName("nl.altindag.ssl");
 
         SSLFactory sslFactory = SSLFactory.builder()

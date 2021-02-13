@@ -16,16 +16,9 @@
 
 package nl.altindag.ssl.trustmanager;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.net.ssl.ManagerFactoryParameters;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.TrustManagerFactorySpi;
-import java.security.KeyStore;
 import java.security.Provider;
-import java.util.Objects;
 
 /**
  * <strong>NOTE:</strong>
@@ -37,7 +30,6 @@ import java.util.Objects;
  */
 public class TrustManagerFactoryWrapper extends TrustManagerFactory {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(TrustManagerFactoryWrapper.class);
     private static final String TRUST_MANAGER_FACTORY_ALGORITHM = "no-algorithm";
     private static final Provider PROVIDER = new Provider("", 1.0, "") {};
 
@@ -45,30 +37,4 @@ public class TrustManagerFactoryWrapper extends TrustManagerFactory {
         super(new TrustManagerFactorySpiWrapper(trustManager), PROVIDER, TRUST_MANAGER_FACTORY_ALGORITHM);
     }
 
-    private static class TrustManagerFactorySpiWrapper extends TrustManagerFactorySpi {
-
-        private final TrustManager[] trustManagers;
-
-        public TrustManagerFactorySpiWrapper(TrustManager trustManager) {
-            Objects.requireNonNull(trustManager);
-            this.trustManagers = new TrustManager[]{trustManager};
-        }
-
-        @Override
-        protected void engineInit(KeyStore keyStore) {
-            LOGGER.info("Ignoring provided KeyStore");
-        }
-
-        @Override
-        protected void engineInit(ManagerFactoryParameters managerFactoryParameters) {
-            LOGGER.info("Ignoring provided ManagerFactoryParameters");
-        }
-
-        @Override
-        protected TrustManager[] engineGetTrustManagers() {
-            return trustManagers;
-        }
-
-    }
-    
 }

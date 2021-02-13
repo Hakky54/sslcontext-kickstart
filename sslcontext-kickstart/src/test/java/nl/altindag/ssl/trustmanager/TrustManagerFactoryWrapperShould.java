@@ -38,7 +38,7 @@ import static org.mockito.Mockito.mock;
 @ExtendWith(MockitoExtension.class)
 class TrustManagerFactoryWrapperShould {
 
-    private final LogCaptor logCaptor = LogCaptor.forClass(TrustManagerFactoryWrapper.class);
+    private final LogCaptor logCaptor = LogCaptor.forName("nl.altindag.ssl.trustmanager");
 
     @Test
     void createInstanceFromTrustManager() {

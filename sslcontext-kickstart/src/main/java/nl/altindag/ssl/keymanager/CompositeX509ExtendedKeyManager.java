@@ -18,7 +18,9 @@ package nl.altindag.ssl.keymanager;
 
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedKeyManager;
+import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.URI;
 import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
@@ -26,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -62,6 +65,7 @@ import java.util.Optional;
 public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManager {
 
     private final List<? extends X509ExtendedKeyManager> keyManagers;
+    private final Map<String, List<URI>> preferredClientAliasToHost;
 
     /**
      * Creates a new {@link CompositeX509ExtendedKeyManager}.
@@ -69,7 +73,19 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
      * @param keyManagers the {@link X509ExtendedKeyManager}, ordered with the most-preferred managers first.
      */
     public CompositeX509ExtendedKeyManager(List<? extends X509ExtendedKeyManager> keyManagers) {
+        this(keyManagers, Collections.emptyMap());
+    }
+
+    /**
+     * Creates a new {@link CompositeX509ExtendedKeyManager}.
+     *
+     * @param keyManagers                the {@link X509ExtendedKeyManager}, ordered with the most-preferred managers first.
+     * @param preferredClientAliasToHost the preferred client alias to be used for the given host
+     */
+    public CompositeX509ExtendedKeyManager(List<? extends X509ExtendedKeyManager> keyManagers,
+                                           Map<String, List<URI>> preferredClientAliasToHost) {
         this.keyManagers = Collections.unmodifiableList(keyManagers);
+        this.preferredClientAliasToHost = preferredClientAliasToHost;
     }
 
     /**
@@ -78,10 +94,22 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
      */
     @Override
     public String chooseClientAlias(String[] keyType, Principal[] issuers, Socket socket) {
+        Optional<String> preferredAlias = Optional.empty();
+        if (!preferredClientAliasToHost.isEmpty() && socket != null && socket.getRemoteSocketAddress() instanceof InetSocketAddress) {
+            InetSocketAddress address = (InetSocketAddress) socket.getRemoteSocketAddress();
+            preferredAlias = getPreferredClientAlias(address.getHostName(), address.getPort());
+        }
+
         for (X509ExtendedKeyManager keyManager : keyManagers) {
             String alias = keyManager.chooseClientAlias(keyType, issuers, socket);
             if (alias != null) {
-                return alias;
+                if (preferredAlias.isPresent()) {
+                    if (preferredAlias.get().equals(alias)) {
+                        return alias;
+                    }
+                } else {
+                    return alias;
+                }
             }
         }
         return null;
@@ -93,13 +121,32 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
      */
     @Override
     public String chooseEngineClientAlias(String[] keyTypes, Principal[] issuers, SSLEngine sslEngine) {
+        Optional<String> preferredAlias = Optional.empty();
+        if (!preferredClientAliasToHost.isEmpty() && sslEngine != null) {
+            preferredAlias = getPreferredClientAlias(sslEngine.getPeerHost(), sslEngine.getPeerPort());
+        }
+
         for (X509ExtendedKeyManager keyManager : keyManagers) {
             String alias = keyManager.chooseEngineClientAlias(keyTypes, issuers, sslEngine);
             if (alias != null) {
-                return alias;
+                if (preferredAlias.isPresent()) {
+                    if (preferredAlias.get().equals(alias)) {
+                        return alias;
+                    }
+                } else {
+                    return alias;
+                }
             }
         }
         return null;
+    }
+
+    private Optional<String> getPreferredClientAlias(String peerHost, int peerPort) {
+        return preferredClientAliasToHost.entrySet().stream()
+                .filter(entry -> entry.getValue().stream().anyMatch(uri -> uri.getHost().equals(peerHost)))
+                .filter(entry -> entry.getValue().stream().anyMatch(uri -> uri.getPort() == peerPort))
+                .findFirst()
+                .map(Map.Entry::getKey);
     }
 
     /**

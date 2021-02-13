@@ -27,7 +27,9 @@ import nl.altindag.ssl.util.KeyStoreUtils;
 import nl.altindag.ssl.util.SSLContextUtils;
 import nl.altindag.ssl.util.SSLParametersUtils;
 import nl.altindag.ssl.util.SocketUtils;
+import nl.altindag.ssl.util.StringUtils;
 import nl.altindag.ssl.util.TrustManagerUtils;
+import nl.altindag.ssl.util.UriUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,6 +46,7 @@ import javax.net.ssl.X509ExtendedTrustManager;
 import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
 import java.io.InputStream;
+import java.net.URI;
 import java.nio.file.Path;
 import java.security.Key;
 import java.security.KeyStore;
@@ -51,17 +54,22 @@ import java.security.Provider;
 import java.security.SecureRandom;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
 /**
  * @author Hakan Altindag
@@ -140,6 +148,10 @@ public final class SSLFactory {
         return sslMaterial.getSslEngine().apply(peerHost, peerPort);
     }
 
+    public Map<String, List<String>> getClientIdentityRoute() {
+        return sslMaterial.getIdentityMaterial().getPreferredClientAliasToHost();
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -164,6 +176,7 @@ public final class SSLFactory {
         private final List<X509ExtendedKeyManager> identityManagers = new ArrayList<>();
         private final List<X509ExtendedTrustManager> trustManagers = new ArrayList<>();
         private final SSLParameters sslParameters = new SSLParameters();
+        private final Map<String, List<URI>> preferredClientAliasToHost = new HashMap<>();
 
         private boolean passwordCachingEnabled = false;
         private boolean swappableKeyManagerEnabled = false;
@@ -207,7 +220,7 @@ public final class SSLFactory {
         }
 
         public Builder withTrustMaterial(String trustStorePath, char[] trustStorePassword, String trustStoreType) {
-            if (isBlank(trustStorePath)) {
+            if (StringUtils.isBlank(trustStorePath)) {
                 throw new GenericKeyStoreException(TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
             }
 
@@ -223,7 +236,7 @@ public final class SSLFactory {
         }
 
         public Builder withTrustMaterial(Path trustStorePath, char[] trustStorePassword, String trustStoreType) {
-            if (isNull(trustStorePath) || isBlank(trustStoreType)) {
+            if (isNull(trustStorePath) || StringUtils.isBlank(trustStoreType)) {
                 throw new GenericKeyStoreException(TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
             }
 
@@ -283,7 +296,7 @@ public final class SSLFactory {
         }
 
         public Builder withIdentityMaterial(String identityStorePath, char[] identityStorePassword, char[] identityPassword, String identityStoreType) {
-            if (isBlank(identityStorePath) || isBlank(identityStoreType)) {
+            if (StringUtils.isBlank(identityStorePath) || StringUtils.isBlank(identityStoreType)) {
                 throw new GenericKeyStoreException(IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
             }
 
@@ -306,7 +319,7 @@ public final class SSLFactory {
         }
 
         public Builder withIdentityMaterial(Path identityStorePath, char[] identityStorePassword, char[] identityPassword, String identityStoreType) {
-            if (isNull(identityStorePath) || isBlank(identityStoreType)) {
+            if (isNull(identityStorePath) || StringUtils.isBlank(identityStoreType)) {
                 throw new GenericKeyStoreException(IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
             }
 
@@ -329,7 +342,7 @@ public final class SSLFactory {
         }
 
         public Builder withIdentityMaterial(InputStream identityStream, char[] identityStorePassword, char[] identityPassword, String identityStoreType) {
-            if (isNull(identityStream) || isBlank(identityStoreType)) {
+            if (isNull(identityStream) || StringUtils.isBlank(identityStoreType)) {
                 throw new GenericKeyStoreException(IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
             }
 
@@ -381,6 +394,47 @@ public final class SSLFactory {
             if (isNull(keyStore)) {
                 throw new GenericKeyStoreException(exceptionMessage);
             }
+        }
+
+        public Builder withClientIdentityRoute(String clientAlias, String... hosts) {
+            return withClientIdentityRoute(
+                    clientAlias,
+                    Arrays.stream(hosts)
+                            .map(URI::create)
+                            .collect(toList())
+            );
+        }
+
+        public Builder withClientIdentityRoute(Map<String, List<String>> clientAliasesToHosts) {
+            clientAliasesToHosts.entrySet().stream()
+                    .map(clientAliasToHosts -> new AbstractMap.SimpleEntry<>(
+                            clientAliasToHosts.getKey(),
+                            clientAliasToHosts.getValue().stream()
+                                    .map(URI::create)
+                                    .collect(Collectors.toList())))
+                    .forEach(clientAliasToHosts -> withClientIdentityRoute(clientAliasToHosts.getKey(), clientAliasToHosts.getValue()));
+            return this;
+        }
+
+        private Builder withClientIdentityRoute(String clientAlias, List<URI> hosts) {
+            if (StringUtils.isBlank(clientAlias)) {
+                throw new IllegalArgumentException("clientAlias should be present");
+            }
+
+            if (hosts.isEmpty()) {
+                throw new IllegalArgumentException(String.format("At least one host should be present. No host(s) found for the given alias: [%s]", clientAlias));
+            }
+
+            for (URI host : hosts) {
+                UriUtils.validate(host);
+
+                if (preferredClientAliasToHost.containsKey(clientAlias)) {
+                    preferredClientAliasToHost.get(clientAlias).add(host);
+                } else {
+                    preferredClientAliasToHost.put(clientAlias, new ArrayList<>(Collections.singletonList(host)));
+                }
+            }
+            return this;
         }
 
         public <T extends HostnameVerifier> Builder withHostnameVerifier(T hostnameVerifier) {
@@ -490,10 +544,19 @@ public final class SSLFactory {
                 KeyStoreUtils.sanitizeKeyStores(trustStores);
             }
 
+            Map<String, List<String>> clientAliasToHost = preferredClientAliasToHost.entrySet().stream()
+                    .collect(toMap(
+                            Map.Entry::getKey,
+                            hosts -> hosts.getValue().stream()
+                                    .map(URI::toString)
+                                    .collect(Collectors.collectingAndThen(toList(), Collections::unmodifiableList)))
+                    );
+
             IdentityMaterial identityMaterial = new IdentityMaterial.Builder()
                     .withKeyManager(keyManager)
                     .withKeyManagerFactory(keyManagerFactory)
                     .withIdentities(Collections.unmodifiableList(identities))
+                    .withPreferredClientAliasToHost(Collections.unmodifiableMap(clientAliasToHost))
                     .build();
 
             TrustMaterial trustMaterial = new TrustMaterial.Builder()
@@ -529,23 +592,12 @@ public final class SSLFactory {
                     || !identityManagers.isEmpty();
         }
 
-        private boolean isBlank(CharSequence charSequence) {
-            int length = isNull(charSequence) ? 0 : charSequence.length();
-            if (length != 0) {
-                for (int i = 0; i < length; ++i) {
-                    if (!Character.isWhitespace(charSequence.charAt(i))) {
-                        return false;
-                    }
-                }
-            }
-            return true;
-        }
-
         private X509ExtendedKeyManager createKeyManager() {
             return KeyManagerUtils.keyManagerBuilder()
                     .withKeyManagers(identityManagers)
                     .withIdentities(identities)
                     .withSwappableKeyManager(swappableKeyManagerEnabled)
+                    .withClientAliasToHost(preferredClientAliasToHost)
                     .build();
         }
 

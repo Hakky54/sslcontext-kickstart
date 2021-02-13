@@ -19,6 +19,7 @@ package nl.altindag.ssl.model;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.X509ExtendedKeyManager;
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -33,6 +34,7 @@ public final class IdentityMaterial {
     private X509ExtendedKeyManager keyManager;
     private KeyManagerFactory keyManagerFactory;
     private List<KeyStoreHolder> identities;
+    private Map<String, List<String>> preferredClientAliasToHost;
 
     private IdentityMaterial() {}
 
@@ -48,11 +50,16 @@ public final class IdentityMaterial {
         return identities;
     }
 
+    public Map<String, List<String>> getPreferredClientAliasToHost() {
+        return preferredClientAliasToHost;
+    }
+
     public static class Builder {
 
         private X509ExtendedKeyManager keyManager;
         private KeyManagerFactory keyManagerFactory;
         private List<KeyStoreHolder> identities;
+        private Map<String, List<String>> preferredClientAliasToHost;
 
         public Builder withKeyManager(X509ExtendedKeyManager keyManager) {
             this.keyManager = keyManager;
@@ -69,11 +76,17 @@ public final class IdentityMaterial {
             return this;
         }
 
+        public Builder withPreferredClientAliasToHost(Map<String, List<String>> preferredClientAliasToHost) {
+            this.preferredClientAliasToHost = preferredClientAliasToHost;
+            return this;
+        }
+
         public IdentityMaterial build() {
             IdentityMaterial identityMaterial = new IdentityMaterial();
             identityMaterial.keyManager = keyManager;
             identityMaterial.keyManagerFactory = keyManagerFactory;
             identityMaterial.identities = identities;
+            identityMaterial.preferredClientAliasToHost = preferredClientAliasToHost;
             return identityMaterial;
         }
     }
