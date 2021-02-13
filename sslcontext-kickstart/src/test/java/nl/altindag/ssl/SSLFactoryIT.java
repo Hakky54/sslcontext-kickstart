@@ -16,23 +16,40 @@
 
 package nl.altindag.ssl;
 
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpsConfigurator;
+import com.sun.net.httpserver.HttpsParameters;
+import com.sun.net.httpserver.HttpsServer;
 import nl.altindag.log.LogCaptor;
 import nl.altindag.ssl.util.KeyStoreUtils;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLSocketFactory;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.net.SocketException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import static nl.altindag.ssl.TestConstants.KEYSTORE_LOCATION;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @author Hakan Altindag
@@ -67,50 +84,177 @@ class SSLFactoryIT {
     }
 
     @Test
-    @Disabled("The server [https://prod.idrix.eu/secure/] has a rate limiter which will only allow couple of requests from a single machine. " +
-              "Therefore this test is disabled to prevent a failing build.")
-    void executeHttpsRequestWithMutualAuthenticationForMultipleClientIdentitiesWithSingleSslConfiguration() throws Exception {
-        LogCaptor logCaptor = LogCaptor.forName("nl.altindag.ssl");
+    void executeRequestToTwoServersWithMutualAuthenticationWithSingleHttpClientAndSingleSslConfiguration() throws IOException {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
 
-        SSLFactory sslFactory = SSLFactory.builder()
-                .withIdentityMaterial("keystores-for-unit-tests/badssl-identity.p12", "badssl.com".toCharArray())
-                .withIdentityMaterial("keystores-for-unit-tests/prod.idrix.eu-identity.jks", "secret".toCharArray())
-                .withTrustMaterial("keystores-for-unit-tests/badssl-truststore.p12", "badssl.com".toCharArray())
-                .withTrustMaterial("keystores-for-unit-tests/prod.idrix.eu-truststore.jks", "secret".toCharArray())
+        char[] keyStorePassword = "secret".toCharArray();
+        SSLFactory sslFactoryForServerOne = SSLFactory.builder()
+                .withIdentityMaterial("keystores-for-unit-tests/client-server/server-one/identity.jks", keyStorePassword)
+                .withTrustMaterial("keystores-for-unit-tests/client-server/server-one/truststore.jks", keyStorePassword)
+                .withNeedClientAuthentication()
+                .withProtocols("TLSv1.2")
                 .build();
 
-        HttpsURLConnection connection = (HttpsURLConnection) new URL("https://client.badssl.com/").openConnection();
-        connection.setSSLSocketFactory(sslFactory.getSslSocketFactory());
-        connection.setHostnameVerifier(sslFactory.getHostnameVerifier());
+        SSLFactory sslFactoryForServerTwo = SSLFactory.builder()
+                .withIdentityMaterial("keystores-for-unit-tests/client-server/server-two/identity.jks", keyStorePassword)
+                .withTrustMaterial("keystores-for-unit-tests/client-server/server-two/truststore.jks", keyStorePassword)
+                .withNeedClientAuthentication()
+                .withProtocols("TLSv1.2")
+                .build();
+
+        HttpsServer serverOne = createServer(8443, sslFactoryForServerOne, executorService, "Hello from server one");
+        HttpsServer serverTwo = createServer(8444, sslFactoryForServerTwo, executorService, "Hello from server two");
+
+        serverOne.start();
+        serverTwo.start();
+
+        SSLFactory sslFactoryForClient = SSLFactory.builder()
+                .withIdentityMaterial("keystores-for-unit-tests/client-server/client-one/identity.jks", keyStorePassword)
+                .withIdentityMaterial("keystores-for-unit-tests/client-server/client-two/identity.jks", keyStorePassword)
+                .withTrustMaterial("keystores-for-unit-tests/client-server/client-one/truststore.jks", keyStorePassword)
+                .withTrustMaterial("keystores-for-unit-tests/client-server/client-two/truststore.jks", keyStorePassword)
+                .withProtocols("TLSv1.2")
+                .build();
+
+        Response response = executeRequest("https://localhost:8443/api/hello", sslFactoryForClient.getSslSocketFactory());
+
+        assertThat(response.getStatusCode()).isEqualTo(200);
+        assertThat(response.getBody()).contains("Hello from server one");
+
+        response = executeRequest("https://localhost:8444/api/hello", sslFactoryForClient.getSslSocketFactory());
+
+        assertThat(response.getStatusCode()).isEqualTo(200);
+        assertThat(response.getBody()).contains("Hello from server two");
+
+        serverOne.stop(0);
+        serverTwo.stop(0);
+        executorService.shutdownNow();
+    }
+
+    @Test
+    void executeRequestToTwoServersWithMutualAuthenticationWithReroutingClientCertificates() throws IOException {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+
+        char[] keyStorePassword = "secret".toCharArray();
+        SSLFactory sslFactoryForServerOne = SSLFactory.builder()
+                .withIdentityMaterial("keystores-for-unit-tests/client-server/server-one/identity.jks", keyStorePassword)
+                .withTrustMaterial("keystores-for-unit-tests/client-server/server-one/truststore.jks", keyStorePassword)
+                .withNeedClientAuthentication()
+                .withProtocols("TLSv1.2")
+                .build();
+
+        SSLFactory sslFactoryForServerTwo = SSLFactory.builder()
+                .withIdentityMaterial("keystores-for-unit-tests/client-server/server-two/identity.jks", keyStorePassword)
+                .withTrustMaterial("keystores-for-unit-tests/client-server/server-two/truststore.jks", keyStorePassword)
+                .withNeedClientAuthentication()
+                .withProtocols("TLSv1.2")
+                .build();
+
+        HttpsServer serverOne = createServer(8443, sslFactoryForServerOne, executorService, "Hello from server one");
+        HttpsServer serverTwo = createServer(8444, sslFactoryForServerTwo, executorService, "Hello from server two");
+
+        serverOne.start();
+        serverTwo.start();
+
+        Map<String, List<String>> clientAliasesToHosts = new HashMap<>();
+        clientAliasesToHosts.put("client-one", Collections.singletonList("https://localhost:8443/api/hello"));
+        clientAliasesToHosts.put("client-two", Collections.singletonList("https://localhost:8444/api/hello"));
+
+        SSLFactory sslFactoryForClient = SSLFactory.builder()
+                .withIdentityMaterial("keystores-for-unit-tests/client-server/client-one/identity.jks", keyStorePassword)
+                .withIdentityMaterial("keystores-for-unit-tests/client-server/client-two/identity.jks", keyStorePassword)
+                .withTrustMaterial("keystores-for-unit-tests/client-server/client-one/truststore.jks", keyStorePassword)
+                .withTrustMaterial("keystores-for-unit-tests/client-server/client-two/truststore.jks", keyStorePassword)
+                .withClientIdentityRoute(clientAliasesToHosts)
+                .build();
+
+        Response response = executeRequest("https://localhost:8443/api/hello", sslFactoryForClient.getSslSocketFactory());
+
+        assertThat(response.getStatusCode()).isEqualTo(200);
+        assertThat(response.getBody()).contains("Hello from server one");
+
+        response = executeRequest("https://localhost:8444/api/hello", sslFactoryForClient.getSslSocketFactory());
+
+        assertThat(response.getStatusCode()).isEqualTo(200);
+        assertThat(response.getBody()).contains("Hello from server two");
+
+        sslFactoryForClient = SSLFactory.builder()
+                .withIdentityMaterial("keystores-for-unit-tests/client-server/client-one/identity.jks", keyStorePassword)
+                .withIdentityMaterial("keystores-for-unit-tests/client-server/client-two/identity.jks", keyStorePassword)
+                .withTrustMaterial("keystores-for-unit-tests/client-server/client-one/truststore.jks", keyStorePassword)
+                .withTrustMaterial("keystores-for-unit-tests/client-server/client-two/truststore.jks", keyStorePassword)
+                .withClientIdentityRoute("client-one", "https://localhost:8444/api/hello")
+                .withClientIdentityRoute("client-two", "https://localhost:8443/api/hello")
+                .build();
+
+        SSLSocketFactory sslSocketFactory = sslFactoryForClient.getSslSocketFactory();
+        assertThatThrownBy(() -> executeRequest("https://localhost:8443/api/hello", sslSocketFactory))
+                .isInstanceOfAny(SocketException.class, SSLException.class);
+        assertThatThrownBy(() -> executeRequest("https://localhost:8444/api/hello", sslSocketFactory))
+                .isInstanceOfAny(SocketException.class, SSLException.class);
+
+        serverOne.stop(0);
+        serverTwo.stop(0);
+        executorService.shutdownNow();
+    }
+
+    private HttpsServer createServer(int port, SSLFactory sslFactory, Executor executor, String payload) throws IOException {
+        InetSocketAddress socketAddress = new InetSocketAddress(port);
+        HttpsServer server = HttpsServer.create(socketAddress, 0);
+        server.setExecutor(executor);
+        server.setHttpsConfigurator(new HttpsConfigurator(sslFactory.getSslContext()) {
+            @Override
+            public void configure(HttpsParameters params) {
+                params.setSSLParameters(sslFactory.getSslParameters());
+            }
+        });
+
+        class HelloWorldController implements HttpHandler {
+            @Override
+            public void handle(HttpExchange exchange) throws IOException {
+                try (OutputStream responseBody = exchange.getResponseBody()) {
+
+                    exchange.getResponseHeaders().set("Content-Type", "text/plain");
+
+                    exchange.sendResponseHeaders(200, payload.length());
+                    responseBody.write(payload.getBytes(StandardCharsets.UTF_8));
+                }
+            }
+        }
+        server.createContext("/api/hello", new HelloWorldController());
+        return server;
+    }
+
+    private Response executeRequest(String url, SSLSocketFactory sslSocketFactory) throws IOException {
+        HttpsURLConnection connection = (HttpsURLConnection) new URL(url).openConnection();
+        connection.setSSLSocketFactory(sslSocketFactory);
         connection.setRequestMethod("GET");
 
         int statusCode = connection.getResponseCode();
+        String body = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))
+                .lines()
+                .collect(Collectors.joining("\n"));
 
-        if (statusCode == 400) {
-            LOGGER.warn("Certificate may have expired and needs to be updated");
-        } else {
-            assertThat(statusCode).isEqualTo(200);
-            assertThat(logCaptor.getLogs()).containsExactly("Received the following server certificate: [CN=*.badssl.com, O=Lucas Garron Torres, L=Walnut Creek, ST=California, C=US]");
+        connection.disconnect();
+        return new Response(statusCode, body);
+    }
+
+
+    private static final class Response {
+        private final int statusCode;
+        private final String body;
+
+        Response(int statusCode, String body) {
+            this.statusCode = statusCode;
+            this.body = body;
         }
 
-        connection = (HttpsURLConnection) new URL("https://prod.idrix.eu/secure/").openConnection();
-        connection.setSSLSocketFactory(sslFactory.getSslSocketFactory());
-        connection.setHostnameVerifier(sslFactory.getHostnameVerifier());
-        connection.setRequestMethod("GET");
+        public int getStatusCode() {
+            return statusCode;
+        }
 
-        statusCode = connection.getResponseCode();
-
-        if (statusCode == 400) {
-            LOGGER.warn("Certificate may have expired and needs to be updated");
-        } else {
-            assertThat(statusCode).isEqualTo(200);
-            String body = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))
-                    .lines()
-                    .collect(Collectors.joining("\n"));
-
-            assertThat(body).contains("SSL Authentication OK");
-            assertThat(body).doesNotContain("No SSL client certificate presented");
-            assertThat(logCaptor.getLogs()).contains("Received the following server certificate: [CN=prod.idrix.eu]");
+        public String getBody() {
+            return body;
         }
     }
 

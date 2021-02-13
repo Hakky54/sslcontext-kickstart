@@ -21,7 +21,6 @@ import nl.altindag.log.LogCaptor;
 import nl.altindag.ssl.util.KeyStoreUtils;
 import nl.altindag.ssl.util.NettySslUtils;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,47 +73,4 @@ class SSLFactoryIT {
         }
     }
 
-    @Test
-    @Disabled("The server [https://prod.idrix.eu/secure/] has a rate limiter which will only allow couple of requests from a single machine. " +
-              "Therefore this test is disabled to prevent a failing build.")
-    void executeHttpsRequestWithMutualAuthenticationForMultipleClientIdentitiesWithSingleSslConfiguration() throws IOException {
-        LogCaptor logCaptor = LogCaptor.forName("nl.altindag.ssl");
-
-        SSLFactory sslFactory = SSLFactory.builder()
-                .withIdentityMaterial("keystores-for-unit-tests/badssl-identity.p12", "badssl.com".toCharArray())
-                .withIdentityMaterial("keystores-for-unit-tests/prod.idrix.eu-identity.jks", "secret".toCharArray())
-                .withTrustMaterial("keystores-for-unit-tests/badssl-truststore.p12", "badssl.com".toCharArray())
-                .withTrustMaterial("keystores-for-unit-tests/prod.idrix.eu-truststore.jks", "secret".toCharArray())
-                .build();
-
-        SslContext sslContext = NettySslUtils.forClient(sslFactory).build();
-        HttpClient httpClient = HttpClient.create().secure(sslSpec -> sslSpec.sslContext(sslContext));
-
-        Tuple2<String, Integer> responseEntity = httpClient.get()
-                .uri("https://client.badssl.com/")
-                .responseSingle((response, body) -> Mono.zip(body.asString(), Mono.just(response.status().code())))
-                .block();
-
-        if (Objects.requireNonNull(responseEntity).getT2() == 400) {
-            LOGGER.warn("Certificate may have expired and needs to be updated");
-        } else {
-            assertThat(responseEntity.getT2()).isEqualTo(200);
-            assertThat(logCaptor.getLogs()).contains("Received the following server certificate: [CN=*.badssl.com, O=Lucas Garron Torres, L=Walnut Creek, ST=California, C=US]");
-        }
-
-        responseEntity = httpClient.get()
-                .uri("https://prod.idrix.eu/secure/")
-                .responseSingle((response, body) -> Mono.zip(body.asString(), Mono.just(response.status().code())))
-                .block();
-
-        if (Objects.requireNonNull(responseEntity).getT2() == 400) {
-            LOGGER.warn("Certificate may have expired and needs to be updated");
-        } else {
-            assertThat(responseEntity.getT2()).isEqualTo(200);
-            assertThat(responseEntity.getT1()).contains("SSL Authentication OK");
-            assertThat(responseEntity.getT1()).doesNotContain("No SSL client certificate presented");
-            assertThat(logCaptor.getLogs()).contains("Received the following server certificate: [CN=prod.idrix.eu]");
-        }
-
-    }
 }

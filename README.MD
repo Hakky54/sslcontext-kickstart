@@ -52,6 +52,7 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "6.2.0"
      - [Using custom KeyManager and TrustManager](#support-for-using-x509extendedkeymanager-and-x509extendedtrustmanager)
      - [Hot swap KeyManager and TrustManager at runtime](#support-for-swapping-keymanager-and-trustmanager-at-runtime)
      - [Using KeyStore with multiple keys having different passwords](#support-for-using-a-single-keystore-which-contains-multiple-keys-with-different-passwords)
+     - [Routing client identity to specific host](#routing-identity-material-to-specific-host) 
      - [Using custom PrivateKey and Certificates](#support-for-using-privatekey-and-certificates)
      - [Using PEM Files](#using-pem-files)
        - [Loading pem files from the classpath](#loading-pem-files-from-the-classpath)
@@ -273,6 +274,18 @@ X509ExtendedKeyManager keyManager = KeyManagerUtils.createKeyManager(keyStore, M
 SSLFactory.builder()
           .withIdentityMaterial(keyManager)
           .withDefaultTrustMaterial()
+          .build();
+```
+##### Routing identity material to specific host
+It may occur that the client is sending the wrong certificate to the server when using multiple identities. This will happen when the client certificate has insufficient information for the underlying ssl engine (the KeyManager) and therefore it cannot select the right certificate.
+Recreating the certificates can resolve this issue. However, if that is possible you can provide an option to the engine to use a specific certificate for a given server. Below is an example setup for correctly routing the client identity based on the alias which can be found within the KeyStore file.
+```text
+SSLFactory.builder()
+          .withIdentityMaterial("identity-1.jks", password)
+          .withIdentityMaterial("identity-2.jks", password)
+          .withTrustMaterial("truststore.jks", password)
+          .withClientIdentityRoute("client-alias-one", "https://localhost:8443/", "https://localhost:8453/")
+          .withClientIdentityRoute("client-alias-two", "https://localhost:8463/", "https://localhost:8473/")
           .build();
 ```
 

@@ -27,6 +27,7 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509KeyManager;
+import java.net.URI;
 import java.security.Key;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -38,6 +39,7 @@ import java.security.cert.Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -212,9 +214,10 @@ public final class KeyManagerUtils {
 
         private static final String EMPTY_KEY_MANAGER_EXCEPTION = "Input does not contain KeyManagers";
 
-        private KeyManagerBuilder() {}
-
         private final List<X509ExtendedKeyManager> keyManagers = new ArrayList<>();
+        private final Map<String, List<URI>> clientAliasToHost = new HashMap<>();
+
+        private KeyManagerBuilder() {}
 
         public <T extends X509KeyManager> KeyManagerBuilder withKeyManagers(T... keyManagers) {
             for (X509KeyManager keyManager : keyManagers) {
@@ -251,6 +254,11 @@ public final class KeyManagerUtils {
             return this;
         }
 
+        public KeyManagerBuilder withClientAliasToHost(Map<String, List<URI>> clientAliasToHost) {
+            this.clientAliasToHost.putAll(clientAliasToHost);
+            return this;
+        }
+
         public X509ExtendedKeyManager build() {
             if (keyManagers.isEmpty()) {
                 throw new GenericKeyManagerException(EMPTY_KEY_MANAGER_EXCEPTION);
@@ -263,7 +271,7 @@ public final class KeyManagerUtils {
             return keyManagers.stream()
                     .map(KeyManagerUtils::unwrapIfPossible)
                     .flatMap(Collection::stream)
-                    .collect(collectingAndThen(toList(), CompositeX509ExtendedKeyManager::new));
+                    .collect(collectingAndThen(toList(), km -> new CompositeX509ExtendedKeyManager(km, clientAliasToHost)));
         }
 
     }

@@ -24,7 +24,6 @@ import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,53 +71,6 @@ class SSLFactoryIT {
             assertThat(statusCode).isEqualTo(200);
             assertThat(logCaptor.getLogs()).contains("Received the following server certificate: [CN=*.badssl.com, O=Lucas Garron Torres, L=Walnut Creek, ST=California, C=US]");
         }
-    }
-
-    @Test
-    @Disabled("The server [https://prod.idrix.eu/secure/] has a rate limiter which will only allow couple of requests from a single machine. " +
-              "Therefore this test is disabled to prevent a failing build.")
-    void executeHttpsRequestWithMutualAuthenticationForMultipleClientIdentitiesWithSingleSslConfiguration() throws Exception {
-        LogCaptor logCaptor = LogCaptor.forName("nl.altindag.ssl");
-
-        SSLFactory sslFactory = SSLFactory.builder()
-                .withIdentityMaterial("keystores-for-unit-tests/badssl-identity.p12", "badssl.com".toCharArray())
-                .withIdentityMaterial("keystores-for-unit-tests/prod.idrix.eu-identity.jks", "secret".toCharArray())
-                .withTrustMaterial("keystores-for-unit-tests/badssl-truststore.p12", "badssl.com".toCharArray())
-                .withTrustMaterial("keystores-for-unit-tests/prod.idrix.eu-truststore.jks", "secret".toCharArray())
-                .build();
-
-        SslContextFactory.Client sslContextFactory = JettySslUtils.forClient(sslFactory);
-
-        HttpClient httpClient = new HttpClient(sslContextFactory);
-        httpClient.start();
-
-        ContentResponse contentResponse = httpClient.newRequest("https://client.badssl.com/")
-                .method(HttpMethod.GET)
-                .send();
-
-        int statusCode = contentResponse.getStatus();
-        if (statusCode == 400) {
-            LOGGER.warn("Certificate may have expired and needs to be updated");
-        } else {
-            assertThat(statusCode).isEqualTo(200);
-            assertThat(logCaptor.getLogs()).contains("Received the following server certificate: [CN=*.badssl.com, O=Lucas Garron Torres, L=Walnut Creek, ST=California, C=US]");
-        }
-
-        contentResponse = httpClient.newRequest("https://prod.idrix.eu/secure/")
-                .method(HttpMethod.GET)
-                .send();
-
-        statusCode = contentResponse.getStatus();
-        if (statusCode == 400) {
-            LOGGER.warn("Certificate may have expired and needs to be updated");
-        } else {
-            assertThat(statusCode).isEqualTo(200);
-            assertThat(contentResponse.getContentAsString()).contains("SSL Authentication OK");
-            assertThat(contentResponse.getContentAsString()).doesNotContain("No SSL client certificate presented");
-            assertThat(logCaptor.getLogs()).contains("Received the following server certificate: [CN=prod.idrix.eu]");
-        }
-
-        httpClient.stop();
     }
 
 }
