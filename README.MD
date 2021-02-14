@@ -66,6 +66,8 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "6.3.0"
    - [Netty](#netty)
    - [Jetty](#jetty)
    - [Apache](#apache)
+     - [Apache 4](#apache-4)
+     - [Apache 5](#apache-5)
 4. [Tested HTTP Clients](#tested-http-clients)
 5. [Contributing](#contributing)
 
