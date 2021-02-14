@@ -64,7 +64,7 @@ import java.util.Optional;
  */
 public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManager {
 
-    private final List<? extends X509ExtendedKeyManager> keyManagers;
+    private final List<X509ExtendedKeyManager> keyManagers;
     private final Map<String, List<URI>> preferredClientAliasToHost;
 
     /**
@@ -85,7 +85,7 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
     public CompositeX509ExtendedKeyManager(List<? extends X509ExtendedKeyManager> keyManagers,
                                            Map<String, List<URI>> preferredClientAliasToHost) {
         this.keyManagers = Collections.unmodifiableList(keyManagers);
-        this.preferredClientAliasToHost = preferredClientAliasToHost;
+        this.preferredClientAliasToHost = Collections.unmodifiableMap(preferredClientAliasToHost);
     }
 
     /**
@@ -246,7 +246,11 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
     }
 
     public List<X509ExtendedKeyManager> getKeyManagers() {
-        return Collections.unmodifiableList(keyManagers);
+        return keyManagers;
+    }
+
+    public Map<String, List<URI>> getPreferredClientAliasToHost() {
+        return preferredClientAliasToHost;
     }
 
 }

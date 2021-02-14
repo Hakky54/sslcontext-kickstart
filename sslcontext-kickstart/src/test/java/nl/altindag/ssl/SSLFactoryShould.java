@@ -21,6 +21,7 @@ import nl.altindag.ssl.exception.GenericKeyManagerException;
 import nl.altindag.ssl.exception.GenericKeyStoreException;
 import nl.altindag.ssl.exception.GenericSecurityException;
 import nl.altindag.ssl.exception.GenericTrustManagerException;
+import nl.altindag.ssl.keymanager.CompositeX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.HotSwappableX509ExtendedKeyManager;
 import nl.altindag.ssl.trustmanager.HotSwappableX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.UnsafeX509ExtendedTrustManager;
@@ -45,6 +46,7 @@ import javax.net.ssl.X509ExtendedTrustManager;
 import javax.security.auth.x500.X500Principal;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -58,6 +60,7 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -1138,8 +1141,14 @@ class SSLFactoryShould {
                 .withClientIdentityRoute("some-client-alias", "https://localhost:8443", "https://localhost:8444")
                 .build();
 
-        assertThat(sslFactory.getClientIdentityRoute()).containsKey("some-client-alias");
-        assertThat(sslFactory.getClientIdentityRoute().get("some-client-alias")).contains("https://localhost:8443", "https://localhost:8444");
+        assertThat(sslFactory.getClientIdentityRoute())
+                .containsKey("some-client-alias")
+                .containsValue(Arrays.asList("https://localhost:8443", "https://localhost:8444"));
+
+        assertThat(sslFactory.getKeyManager()).isPresent();
+        assertThat(((CompositeX509ExtendedKeyManager)sslFactory.getKeyManager().get()).getPreferredClientAliasToHost())
+                .containsKey("some-client-alias")
+                .containsValue(Arrays.asList(URI.create("https://localhost:8443"), URI.create("https://localhost:8444")));
     }
 
     @Test
