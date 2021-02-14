@@ -627,6 +627,34 @@ class SSLFactoryShould {
         assertThat(sslFactory.getKeyManagerFactory()).isPresent();
         assertThat(sslFactory.getIdentities()).isNotEmpty();
         assertThat(sslFactory.getIdentities().get(0).getKeyStorePassword()).isEmpty();
+        assertThat(sslFactory.getIdentities().get(0).getKeyStore()
+                .containsAlias("cn=prof oak,ou=oak pokémon research lab,o=oak pokémon research lab,c=pallet town")).isTrue();
+
+        assertThat(sslFactory.getTrustManager()).isPresent();
+        assertThat(sslFactory.getTrustManagerFactory()).isPresent();
+        assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
+        assertThat(sslFactory.getTrustStores()).isEmpty();
+        assertThat(sslFactory.getHostnameVerifier()).isNotNull();
+    }
+
+    @Test
+    void buildSSLFactoryWithIdentityMaterialAndTrustMaterialFromPrivateKeyWithCustomAlias() throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException {
+        KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        PrivateKey privateKey = (PrivateKey) identity.getKey("dummy-client", IDENTITY_PASSWORD);
+        Certificate[] certificateChain = identity.getCertificateChain("dummy-client");
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(privateKey, IDENTITY_PASSWORD, "thunder-client", certificateChain)
+                .withDefaultTrustMaterial()
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+
+        assertThat(sslFactory.getKeyManager()).isPresent();
+        assertThat(sslFactory.getKeyManagerFactory()).isPresent();
+        assertThat(sslFactory.getIdentities()).isNotEmpty();
+        assertThat(sslFactory.getIdentities().get(0).getKeyStorePassword()).isEmpty();
+        assertThat(sslFactory.getIdentities().get(0).getKeyStore().containsAlias("thunder-client")).isTrue();
 
         assertThat(sslFactory.getTrustManager()).isPresent();
         assertThat(sslFactory.getTrustManagerFactory()).isPresent();

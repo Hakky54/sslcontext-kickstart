@@ -98,10 +98,14 @@ public final class KeyStoreUtils {
     }
 
     public static KeyStore createIdentityStore(Key privateKey, char[] privateKeyPassword, Certificate... certificateChain) {
+        return createIdentityStore(privateKey, privateKeyPassword, null, certificateChain);
+    }
+
+    public static KeyStore createIdentityStore(Key privateKey, char[] privateKeyPassword, String alias, Certificate... certificateChain) {
         try {
             KeyStore keyStore = createKeyStore();
-            String alias = CertificateUtils.generateAlias(certificateChain[0]);
-            keyStore.setKeyEntry(alias, privateKey, privateKeyPassword, certificateChain);
+            String privateKeyAlias = StringUtils.isBlank(alias) ? CertificateUtils.generateAlias(certificateChain[0]) : alias;
+            keyStore.setKeyEntry(privateKeyAlias, privateKey, privateKeyPassword, certificateChain);
             return keyStore;
         } catch (KeyStoreException e) {
             throw new GenericKeyStoreException(e);

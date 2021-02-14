@@ -364,7 +364,11 @@ public final class SSLFactory {
         }
 
         public Builder withIdentityMaterial(Key privateKey, char[] privateKeyPassword, Certificate... certificateChain) {
-            KeyStore identityStore = KeyStoreUtils.createIdentityStore(privateKey, privateKeyPassword, certificateChain);
+            return withIdentityMaterial(privateKey, privateKeyPassword, null, certificateChain);
+        }
+
+        public Builder withIdentityMaterial(Key privateKey, char[] privateKeyPassword, String alias, Certificate... certificateChain) {
+            KeyStore identityStore = KeyStoreUtils.createIdentityStore(privateKey, privateKeyPassword, alias, certificateChain);
             identities.add(new KeyStoreHolder(identityStore, KeyStoreUtils.DUMMY_PASSWORD.toCharArray(), privateKeyPassword));
             return this;
         }
