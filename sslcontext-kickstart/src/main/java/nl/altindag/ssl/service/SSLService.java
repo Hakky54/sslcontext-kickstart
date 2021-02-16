@@ -103,7 +103,7 @@ public final class SSLService {
     }
 
     public List<X509Certificate> getTrustedCertificates() {
-        return Optional.ofNullable(sslMaterial.getTrustMaterial().getTrustManager())
+        return this.getTrustManager()
                 .map(X509ExtendedTrustManager::getAcceptedIssuers)
                 .flatMap(x509Certificates -> Optional.of(Arrays.asList(x509Certificates)))
                 .map(Collections::unmodifiableList)
