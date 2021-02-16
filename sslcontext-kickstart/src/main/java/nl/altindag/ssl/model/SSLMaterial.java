@@ -18,12 +18,8 @@ package nl.altindag.ssl.model;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLParameters;
-import javax.net.ssl.SSLServerSocketFactory;
-import javax.net.ssl.SSLSocketFactory;
 import java.util.List;
-import java.util.function.BiFunction;
 
 /**
  * <p>
@@ -36,9 +32,6 @@ import java.util.function.BiFunction;
 public final class SSLMaterial {
 
     private SSLContext sslContext;
-    private SSLSocketFactory sslSocketFactory;
-    private SSLServerSocketFactory sslServerSocketFactory;
-    private BiFunction<String, Integer, SSLEngine> sslEngine;
     private IdentityMaterial identityMaterial;
     private TrustMaterial trustMaterial;
     private HostnameVerifier hostnameVerifier;
@@ -52,24 +45,12 @@ public final class SSLMaterial {
         return sslContext;
     }
 
-    public SSLSocketFactory getSslSocketFactory() {
-        return sslSocketFactory;
-    }
-
     public IdentityMaterial getIdentityMaterial() {
         return identityMaterial;
     }
 
     public TrustMaterial getTrustMaterial() {
         return trustMaterial;
-    }
-
-    public SSLServerSocketFactory getSslServerSocketFactory() {
-        return sslServerSocketFactory;
-    }
-
-    public BiFunction<String, Integer, SSLEngine> getSslEngine() {
-        return sslEngine;
     }
 
     public SSLParameters getSslParameters() {
@@ -91,9 +72,6 @@ public final class SSLMaterial {
     public static class Builder {
 
         private SSLContext sslContext;
-        private SSLSocketFactory sslSocketFactory;
-        private SSLServerSocketFactory sslServerSocketFactory;
-        private BiFunction<String, Integer, SSLEngine> sslEngine;
         private IdentityMaterial identityMaterial;
         private TrustMaterial trustMaterial;
         private HostnameVerifier hostnameVerifier;
@@ -103,21 +81,6 @@ public final class SSLMaterial {
 
         public Builder withSslContext(SSLContext sslContext) {
             this.sslContext = sslContext;
-            return this;
-        }
-
-        public Builder withSslSocketFactory(SSLSocketFactory sslSocketFactory) {
-            this.sslSocketFactory = sslSocketFactory;
-            return this;
-        }
-
-        public Builder withSslServerSocketFactory(SSLServerSocketFactory sslServerSocketFactory) {
-            this.sslServerSocketFactory = sslServerSocketFactory;
-            return this;
-        }
-
-        public Builder withSslEngine(BiFunction<String, Integer, SSLEngine> sslEngine) {
-            this.sslEngine = sslEngine;
             return this;
         }
 
@@ -154,9 +117,6 @@ public final class SSLMaterial {
         public SSLMaterial build() {
             SSLMaterial sslMaterial = new SSLMaterial();
             sslMaterial.sslContext = sslContext;
-            sslMaterial.sslSocketFactory = sslSocketFactory;
-            sslMaterial.sslServerSocketFactory = sslServerSocketFactory;
-            sslMaterial.sslEngine = sslEngine;
             sslMaterial.identityMaterial = identityMaterial;
             sslMaterial.trustMaterial = trustMaterial;
             sslMaterial.hostnameVerifier = hostnameVerifier;

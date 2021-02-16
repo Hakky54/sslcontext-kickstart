@@ -22,11 +22,11 @@ import nl.altindag.ssl.model.IdentityMaterial;
 import nl.altindag.ssl.model.KeyStoreHolder;
 import nl.altindag.ssl.model.SSLMaterial;
 import nl.altindag.ssl.model.TrustMaterial;
+import nl.altindag.ssl.service.SSLService;
 import nl.altindag.ssl.util.KeyManagerUtils;
 import nl.altindag.ssl.util.KeyStoreUtils;
 import nl.altindag.ssl.util.SSLContextUtils;
 import nl.altindag.ssl.util.SSLParametersUtils;
-import nl.altindag.ssl.util.SocketUtils;
 import nl.altindag.ssl.util.StringUtils;
 import nl.altindag.ssl.util.TrustManagerUtils;
 import nl.altindag.ssl.util.UriUtils;
@@ -62,14 +62,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.BiFunction;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
 
 /**
  * @author Hakan Altindag
@@ -78,78 +74,78 @@ public final class SSLFactory {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SSLFactory.class);
 
-    private final SSLMaterial sslMaterial;
+    private final SSLService sslService;
 
-    private SSLFactory(SSLMaterial sslMaterial) {
-        this.sslMaterial = sslMaterial;
+    private SSLFactory(SSLService sslMaterial) {
+        this.sslService = sslMaterial;
     }
 
     public List<KeyStoreHolder> getIdentities() {
-        return sslMaterial.getIdentityMaterial().getIdentities();
+        return sslService.getSslMaterial().getIdentityMaterial().getIdentities();
     }
 
     public List<KeyStoreHolder> getTrustStores() {
-        return sslMaterial.getTrustMaterial().getTrustStores();
+        return sslService.getSslMaterial().getTrustMaterial().getTrustStores();
     }
 
     public SSLContext getSslContext() {
-        return sslMaterial.getSslContext();
+        return sslService.getSslMaterial().getSslContext();
     }
 
     public SSLSocketFactory getSslSocketFactory() {
-        return sslMaterial.getSslSocketFactory();
+        return sslService.createSslSocketFactory();
     }
 
     public SSLServerSocketFactory getSslServerSocketFactory() {
-        return sslMaterial.getSslServerSocketFactory();
+        return sslService.createSslServerSocketFactory();
     }
 
     public Optional<X509ExtendedKeyManager> getKeyManager() {
-        return Optional.ofNullable(sslMaterial.getIdentityMaterial().getKeyManager());
+        return sslService.getKeyManager();
     }
 
     public Optional<KeyManagerFactory> getKeyManagerFactory() {
-        return Optional.ofNullable(sslMaterial.getIdentityMaterial().getKeyManagerFactory());
+        return sslService.createKeyManagerFactory();
     }
 
     public Optional<X509ExtendedTrustManager> getTrustManager() {
-        return Optional.ofNullable(sslMaterial.getTrustMaterial().getTrustManager());
+        return sslService.getTrustManager();
     }
 
     public Optional<TrustManagerFactory> getTrustManagerFactory() {
-        return Optional.ofNullable(sslMaterial.getTrustMaterial().getTrustManagerFactory());
+        return sslService.createTrustManagerFactory();
     }
 
     public List<X509Certificate> getTrustedCertificates() {
-        return sslMaterial.getTrustMaterial().getTrustedCertificates();
+        return sslService.getTrustedCertificates();
     }
 
     public HostnameVerifier getHostnameVerifier() {
-        return sslMaterial.getHostnameVerifier();
+        return sslService.getSslMaterial().getHostnameVerifier();
     }
 
     public List<String> getCiphers() {
-        return sslMaterial.getCiphers();
+        return sslService.getSslMaterial().getCiphers();
     }
 
     public List<String> getProtocols() {
-        return sslMaterial.getProtocols();
+        return sslService.getSslMaterial().getProtocols();
     }
 
     public SSLParameters getSslParameters() {
-        return SSLParametersUtils.copy(sslMaterial.getSslParameters());
+        return sslService.getSslParameters();
     }
 
     public SSLEngine getSSLEngine() {
-        return sslMaterial.getSslEngine().apply(null, null);
+        return sslService.createSslEngine(null, null);
     }
 
     public SSLEngine getSSLEngine(String peerHost, Integer peerPort) {
-        return sslMaterial.getSslEngine().apply(peerHost, peerPort);
+        return sslService.createSslEngine(peerHost, peerPort);
     }
 
     public Map<String, List<String>> getClientIdentityRoute() {
-        return sslMaterial.getIdentityMaterial().getPreferredClientAliasToHost();
+        return sslService.getClientIdentityRoute();
     }
 
     public static Builder builder() {
@@ -521,24 +517,7 @@ public final class SSLFactory {
                     securityProvider
             );
 
-            KeyManagerFactory keyManagerFactory = keyManager != null ? KeyManagerUtils.createKeyManagerFactory(keyManager) : null;
-            TrustManagerFactory trustManagerFactory = trustManager != null ? TrustManagerUtils.createTrustManagerFactory(trustManager) : null;
-
             SSLParameters baseSslParameters = SSLParametersUtils.merge(sslParameters, sslContext.getDefaultSSLParameters());
-            SSLSocketFactory sslSocketFactory = SocketUtils.createSslSocketFactory(sslContext.getSocketFactory(), SSLParametersUtils.copy(baseSslParameters));
-            SSLServerSocketFactory sslServerSocketFactory = SocketUtils.createSslServerSocketFactory(sslContext.getServerSocketFactory(), SSLParametersUtils.copy(baseSslParameters));
-            Supplier<List<X509Certificate>> trustedCertificates = () -> Optional.ofNullable(trustManager)
-                    .map(X509ExtendedTrustManager::getAcceptedIssuers)
-                    .flatMap(x509Certificates -> Optional.of(Arrays.asList(x509Certificates)))
-                    .map(Collections::unmodifiableList)
-                    .orElse(Collections.emptyList());
-
-            BiFunction<String, Integer, SSLEngine> sslEngine = (peerHost, peerPort) -> {
-                SSLParameters parameters = SSLParametersUtils.copy(baseSslParameters);
-                SSLEngine engine = nonNull(peerHost) && nonNull(peerPort) ? sslContext.createSSLEngine(peerHost, peerPort) : sslContext.createSSLEngine();
-                engine.setSSLParameters(parameters);
-                return engine;
-            };
 
             if (!passwordCachingEnabled && !identities.isEmpty()) {
                 KeyStoreUtils.sanitizeKeyStores(identities);
@@ -548,33 +527,19 @@ public final class SSLFactory {
                 KeyStoreUtils.sanitizeKeyStores(trustStores);
             }
 
-            Map<String, List<String>> clientAliasToHost = preferredClientAliasToHost.entrySet().stream()
-                    .collect(toMap(
-                            Map.Entry::getKey,
-                            hosts -> hosts.getValue().stream()
-                                    .map(URI::toString)
-                                    .collect(Collectors.collectingAndThen(toList(), Collections::unmodifiableList)))
-                    );
-
             IdentityMaterial identityMaterial = new IdentityMaterial.Builder()
                     .withKeyManager(keyManager)
-                    .withKeyManagerFactory(keyManagerFactory)
                     .withIdentities(Collections.unmodifiableList(identities))
-                    .withPreferredClientAliasToHost(Collections.unmodifiableMap(clientAliasToHost))
+                    .withPreferredClientAliasToHost(preferredClientAliasToHost)
                     .build();
 
             TrustMaterial trustMaterial = new TrustMaterial.Builder()
                     .withTrustManager(trustManager)
-                    .withTrustManagerFactory(trustManagerFactory)
                     .withTrustStores(Collections.unmodifiableList(trustStores))
-                    .withTrustedCertificates(trustedCertificates)
                     .build();
 
             SSLMaterial sslMaterial = new SSLMaterial.Builder()
                     .withSslContext(sslContext)
-                    .withSslSocketFactory(sslSocketFactory)
-                    .withSslServerSocketFactory(sslServerSocketFactory)
-                    .withSslEngine(sslEngine)
                     .withIdentityMaterial(identityMaterial)
                     .withTrustMaterial(trustMaterial)
                     .withSslParameters(baseSslParameters)
@@ -583,7 +548,8 @@ public final class SSLFactory {
                     .withProtocols(Collections.unmodifiableList(Arrays.asList(baseSslParameters.getProtocols())))
                     .build();
 
-            return new SSLFactory(sslMaterial);
+            SSLService sslService = new SSLService(sslMaterial);
+            return new SSLFactory(sslService);
         }
 
         private boolean isTrustMaterialPresent() {

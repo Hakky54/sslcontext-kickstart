@@ -16,11 +16,8 @@
 
 package nl.altindag.ssl.model;
 
-import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509ExtendedTrustManager;
-import java.security.cert.X509Certificate;
 import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * <p>
@@ -33,22 +30,12 @@ import java.util.function.Supplier;
 public final class TrustMaterial {
 
     private X509ExtendedTrustManager trustManager;
-    private TrustManagerFactory trustManagerFactory;
-    private Supplier<List<X509Certificate>> trustedCertificates;
     private List<KeyStoreHolder> trustStores;
 
     private TrustMaterial() {}
 
     public X509ExtendedTrustManager getTrustManager() {
         return trustManager;
-    }
-
-    public TrustManagerFactory getTrustManagerFactory() {
-        return trustManagerFactory;
-    }
-
-    public List<X509Certificate> getTrustedCertificates() {
-        return trustedCertificates.get();
     }
 
     public List<KeyStoreHolder> getTrustStores() {
@@ -58,26 +45,10 @@ public final class TrustMaterial {
     public static class Builder {
 
         private X509ExtendedTrustManager trustManager;
-        private TrustManagerFactory trustManagerFactory;
-        private Supplier<List<X509Certificate>> trustedCertificates;
         private List<KeyStoreHolder> trustStores;
 
         public Builder withTrustManager(X509ExtendedTrustManager trustManager) {
             this.trustManager = trustManager;
-            return this;
-        }
-
-        public Builder withTrustManagerFactory(TrustManagerFactory trustManagerFactory) {
-            this.trustManagerFactory = trustManagerFactory;
-            return this;
-        }
-
-        public Builder withTrustedCertificates(List<X509Certificate> trustedCertificates) {
-            return withTrustedCertificates(() -> trustedCertificates);
-        }
-
-        public Builder withTrustedCertificates(Supplier<List<X509Certificate>> trustedCertificates) {
-            this.trustedCertificates = trustedCertificates;
             return this;
         }
 
@@ -89,8 +60,6 @@ public final class TrustMaterial {
         public TrustMaterial build() {
             TrustMaterial trustMaterial = new TrustMaterial();
             trustMaterial.trustManager = trustManager;
-            trustMaterial.trustManagerFactory = trustManagerFactory;
-            trustMaterial.trustedCertificates = trustedCertificates;
             trustMaterial.trustStores = trustStores;
             return trustMaterial;
         }
