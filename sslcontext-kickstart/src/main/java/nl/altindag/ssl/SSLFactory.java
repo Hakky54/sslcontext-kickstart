@@ -76,8 +76,8 @@ public final class SSLFactory {
 
     private final SSLService sslService;
 
-    private SSLFactory(SSLService sslMaterial) {
-        this.sslService = sslMaterial;
+    private SSLFactory(SSLService sslService) {
+        this.sslService = sslService;
     }
 
     public List<KeyStoreHolder> getIdentities() {
