@@ -16,6 +16,9 @@
 
 package nl.altindag.ssl.keymanager;
 
+import nl.altindag.ssl.util.KeyManagerUtils;
+import nl.altindag.gatekeeper.Gatekeeper;
+
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedKeyManager;
 import java.net.Socket;
@@ -34,6 +37,8 @@ public final class HotSwappableX509ExtendedKeyManager extends DelegatingX509Exte
 
     public HotSwappableX509ExtendedKeyManager(X509ExtendedKeyManager keyManager) {
         super(keyManager);
+
+        Gatekeeper.ensureCallerIsAnyOf(KeyManagerUtils.class);
     }
 
     @Override
@@ -57,6 +62,8 @@ public final class HotSwappableX509ExtendedKeyManager extends DelegatingX509Exte
     }
 
     public void setKeyManager(X509ExtendedKeyManager keyManager) {
+        Gatekeeper.ensureCallerIsAnyOf(KeyManagerUtils.class);
+
         this.keyManager = Objects.requireNonNull(keyManager);
     }
 

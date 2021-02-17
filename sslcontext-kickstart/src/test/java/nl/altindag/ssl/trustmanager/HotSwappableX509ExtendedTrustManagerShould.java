@@ -16,6 +16,7 @@
 
 package nl.altindag.ssl.trustmanager;
 
+import nl.altindag.ssl.util.TrustManagerUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -43,7 +44,7 @@ class HotSwappableX509ExtendedTrustManagerShould {
     void checkClientTrusted() throws CertificateException {
         X509ExtendedTrustManager trustManager = mock(X509ExtendedTrustManager.class);
 
-        X509ExtendedTrustManager victim = new HotSwappableX509ExtendedTrustManager(trustManager);
+        X509ExtendedTrustManager victim = TrustManagerUtils.createSwappableTrustManager(trustManager);
         victim.checkClientTrusted(null, null);
 
         verify(trustManager, times(1)).checkClientTrusted(null, null);
@@ -53,7 +54,7 @@ class HotSwappableX509ExtendedTrustManagerShould {
     void checkClientTrustedWithSocket() throws CertificateException {
         X509ExtendedTrustManager trustManager = mock(X509ExtendedTrustManager.class);
 
-        X509ExtendedTrustManager victim = new HotSwappableX509ExtendedTrustManager(trustManager);
+        X509ExtendedTrustManager victim = TrustManagerUtils.createSwappableTrustManager(trustManager);
         victim.checkClientTrusted(null, null, (Socket) null);
 
         verify(trustManager, times(1)).checkClientTrusted(null, null, (Socket) null);
@@ -63,7 +64,7 @@ class HotSwappableX509ExtendedTrustManagerShould {
     void checkClientTrustedWithSslEngine() throws CertificateException {
         X509ExtendedTrustManager trustManager = mock(X509ExtendedTrustManager.class);
 
-        X509ExtendedTrustManager victim = new HotSwappableX509ExtendedTrustManager(trustManager);
+        X509ExtendedTrustManager victim = TrustManagerUtils.createSwappableTrustManager(trustManager);
         victim.checkClientTrusted(null, null, (SSLEngine) null);
 
         verify(trustManager, times(1)).checkClientTrusted(null, null, (SSLEngine) null);
@@ -73,7 +74,7 @@ class HotSwappableX509ExtendedTrustManagerShould {
     void checkServerTrusted() throws CertificateException {
         X509ExtendedTrustManager trustManager = mock(X509ExtendedTrustManager.class);
 
-        X509ExtendedTrustManager victim = new HotSwappableX509ExtendedTrustManager(trustManager);
+        X509ExtendedTrustManager victim = TrustManagerUtils.createSwappableTrustManager(trustManager);
         victim.checkServerTrusted(null, null);
 
         verify(trustManager, times(1)).checkServerTrusted(null, null);
@@ -83,7 +84,7 @@ class HotSwappableX509ExtendedTrustManagerShould {
     void checkServerTrustedWithSocket() throws CertificateException {
         X509ExtendedTrustManager trustManager = mock(X509ExtendedTrustManager.class);
 
-        X509ExtendedTrustManager victim = new HotSwappableX509ExtendedTrustManager(trustManager);
+        X509ExtendedTrustManager victim = TrustManagerUtils.createSwappableTrustManager(trustManager);
         victim.checkServerTrusted(null, null, (Socket) null);
 
         verify(trustManager, times(1)).checkServerTrusted(null, null, (Socket) null);
@@ -93,7 +94,7 @@ class HotSwappableX509ExtendedTrustManagerShould {
     void checkServerTrustedWithSslEngine() throws CertificateException {
         X509ExtendedTrustManager trustManager = mock(X509ExtendedTrustManager.class);
 
-        X509ExtendedTrustManager victim = new HotSwappableX509ExtendedTrustManager(trustManager);
+        X509ExtendedTrustManager victim = TrustManagerUtils.createSwappableTrustManager(trustManager);
         victim.checkServerTrusted(null, null, (SSLEngine) null);
 
         verify(trustManager, times(1)).checkServerTrusted(null, null, (SSLEngine) null);
@@ -104,7 +105,7 @@ class HotSwappableX509ExtendedTrustManagerShould {
         X509ExtendedTrustManager trustManager = mock(X509ExtendedTrustManager.class);
         when(trustManager.getAcceptedIssuers()).thenReturn(new X509Certificate[]{mock(X509Certificate.class)});
 
-        X509ExtendedTrustManager victim = new HotSwappableX509ExtendedTrustManager(trustManager);
+        X509ExtendedTrustManager victim = TrustManagerUtils.createSwappableTrustManager(trustManager);
         X509Certificate[] acceptedIssuers = victim.getAcceptedIssuers();
 
         assertThat(acceptedIssuers).hasSize(1);
@@ -115,10 +116,10 @@ class HotSwappableX509ExtendedTrustManagerShould {
     void setTrustManager() throws CertificateException {
         X509ExtendedTrustManager trustManager = mock(X509ExtendedTrustManager.class);
 
-        HotSwappableX509ExtendedTrustManager victim = new HotSwappableX509ExtendedTrustManager(trustManager);
+        X509ExtendedTrustManager victim = TrustManagerUtils.createSwappableTrustManager(trustManager);
         victim.checkServerTrusted(null, null, (SSLEngine) null);
 
-        victim.setTrustManager(mock(X509ExtendedTrustManager.class));
+        TrustManagerUtils.swapTrustManager(victim, mock(X509ExtendedTrustManager.class));
         victim.checkServerTrusted(null, null, (SSLEngine) null);
 
         verify(trustManager, times(1)).checkServerTrusted(null, null, (SSLEngine) null);
@@ -126,7 +127,7 @@ class HotSwappableX509ExtendedTrustManagerShould {
 
     @Test
     void throwNullPointerExceptionWhenKeyManagerIsNotPresent() {
-        assertThatThrownBy(() -> new HotSwappableX509ExtendedTrustManager(null))
+        assertThatThrownBy(() -> TrustManagerUtils.createSwappableTrustManager(null))
                 .isInstanceOf(NullPointerException.class);
     }
 

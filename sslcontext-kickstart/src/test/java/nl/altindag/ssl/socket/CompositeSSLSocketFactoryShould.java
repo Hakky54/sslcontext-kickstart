@@ -16,6 +16,7 @@
 
 package nl.altindag.ssl.socket;
 
+import nl.altindag.ssl.util.SocketUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -56,7 +57,7 @@ class CompositeSSLSocketFactoryShould {
 
     private final SSLSocketFactory sslSocketFactory = mock(SSLSocketFactory.class);
 
-    private final CompositeSSLSocketFactory victim = new CompositeSSLSocketFactory(sslSocketFactory, sslParameters);
+    private final SSLSocketFactory victim = SocketUtils.createSslSocketFactory(sslSocketFactory, sslParameters);
 
     @Test
     void returnDefaultCipherSuites() {

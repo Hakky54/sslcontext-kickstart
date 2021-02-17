@@ -16,6 +16,9 @@
 
 package nl.altindag.ssl.trustmanager;
 
+import nl.altindag.gatekeeper.Gatekeeper;
+import nl.altindag.ssl.util.TrustManagerUtils;
+
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509TrustManager;
 import java.net.Socket;
@@ -34,6 +37,8 @@ public class X509TrustManagerWrapper extends DelegatingX509ExtendedTrustManager<
 
     public X509TrustManagerWrapper(X509TrustManager trustManager) {
         super(trustManager);
+
+        Gatekeeper.ensureCallerIsAnyOf(TrustManagerUtils.class);
     }
 
     @Override

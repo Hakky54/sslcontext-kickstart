@@ -16,6 +16,9 @@
 
 package nl.altindag.ssl.trustmanager;
 
+import nl.altindag.gatekeeper.Gatekeeper;
+import nl.altindag.ssl.util.TrustManagerUtils;
+
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import java.security.Provider;
@@ -35,6 +38,8 @@ public class TrustManagerFactoryWrapper extends TrustManagerFactory {
 
     public TrustManagerFactoryWrapper(TrustManager trustManager) {
         super(new TrustManagerFactorySpiWrapper(trustManager), PROVIDER, TRUST_MANAGER_FACTORY_ALGORITHM);
+
+        Gatekeeper.ensureCallerIsAnyOf(TrustManagerUtils.class);
     }
 
 }
