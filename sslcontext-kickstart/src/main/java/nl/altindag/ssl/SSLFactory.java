@@ -162,18 +162,6 @@ public final class SSLFactory {
         return sslEngine;
     }
 
-    public Map<String, List<String>> getClientIdentityRoute() {
-        return sslMaterial.getIdentityMaterial()
-                .getPreferredClientAliasToHost()
-                .entrySet().stream()
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        hosts -> hosts.getValue().stream()
-                                .map(URI::toString)
-                                .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList)))
-                );
-    }
-
     public static Builder builder() {
         return new Builder();
     }
@@ -556,7 +544,6 @@ public final class SSLFactory {
             IdentityMaterial identityMaterial = new IdentityMaterial.Builder()
                     .withKeyManager(keyManager)
                     .withIdentities(Collections.unmodifiableList(identities))
-                    .withPreferredClientAliasToHost(preferredClientAliasToHost)
                     .build();
 
             TrustMaterial trustMaterial = new TrustMaterial.Builder()

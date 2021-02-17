@@ -39,10 +39,13 @@ import java.security.cert.Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toList;
@@ -194,6 +197,52 @@ public final class KeyManagerUtils {
                             baseKeyManager.getClass().getName(),
                             HotSwappableX509ExtendedKeyManager.class.getName())
             );
+        }
+    }
+
+    public static void addClientIdentityRoute(X509ExtendedKeyManager keyManager, String clientAlias, String... hosts) {
+        Objects.requireNonNull(keyManager);
+        Objects.requireNonNull(clientAlias);
+        Objects.requireNonNull(hosts);
+
+        if (keyManager instanceof CompositeX509ExtendedKeyManager) {
+            CompositeX509ExtendedKeyManager compositeX509ExtendedKeyManager = (CompositeX509ExtendedKeyManager) keyManager;
+            Map<String, List<URI>> clientAliasToHosts = compositeX509ExtendedKeyManager.getPreferredClientAliasToHosts();
+
+            for (String host : hosts) {
+                URI uri = URI.create(host);
+                UriUtils.validate(uri);
+
+                if (clientAliasToHosts.containsKey(clientAlias)) {
+                    clientAliasToHosts.get(clientAlias).add(uri);
+                } else {
+                    clientAliasToHosts.put(clientAlias, new ArrayList<>(Collections.singleton(uri)));
+                }
+            }
+        } else {
+            throw new GenericKeyManagerException(String.format(
+                    "KeyManager should be an instance of: [%s], but received: [%s]",
+                    CompositeX509ExtendedKeyManager.class.getName(),
+                    keyManager.getClass().getName()));
+        }
+    }
+
+    public static Map<String, List<String>> getClientIdentityRoute(X509ExtendedKeyManager keyManager) {
+        if (keyManager instanceof CompositeX509ExtendedKeyManager) {
+            return ((CompositeX509ExtendedKeyManager) keyManager)
+                    .getPreferredClientAliasToHosts()
+                    .entrySet().stream()
+                    .collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            hosts -> hosts.getValue().stream()
+                                    .map(URI::toString)
+                                    .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList)))
+                    );
+        } else {
+            throw new GenericKeyManagerException(String.format(
+                    "KeyManager should be an instance of: [%s], but received: [%s]",
+                    CompositeX509ExtendedKeyManager.class.getName(),
+                    keyManager.getClass().getName()));
         }
     }
 
