@@ -376,4 +376,26 @@ class KeyManagerUtilsShould {
                 .hasMessage("The newKeyManager should not be an instance of [nl.altindag.ssl.keymanager.HotSwappableX509ExtendedKeyManager]");
     }
 
+    @Test
+    void throwExceptionWhenUnsupportedKeyManagerIsProvidedWhenAddingNewClientIdentityRoute() {
+        KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManager = KeyManagerUtils.createKeyManager(identity, IDENTITY_PASSWORD);
+
+        assertThatThrownBy(() -> KeyManagerUtils.addClientIdentityRoute(keyManager, "another-server", "https://localhost:8443/"))
+                .isInstanceOf(GenericKeyManagerException.class)
+                .hasMessage("KeyManager should be an instance of: [nl.altindag.ssl.keymanager.CompositeX509ExtendedKeyManager], " +
+                            "but received: [sun.security.ssl.SunX509KeyManagerImpl]");
+    }
+
+    @Test
+    void throwExceptionWhenUnsupportedKeyManagerIsProvidedWhenGettingClientIdentityRoute() {
+        KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManager = KeyManagerUtils.createKeyManager(identity, IDENTITY_PASSWORD);
+
+        assertThatThrownBy(() -> KeyManagerUtils.getClientIdentityRoute(keyManager))
+                .isInstanceOf(GenericKeyManagerException.class)
+                .hasMessage("KeyManager should be an instance of: [nl.altindag.ssl.keymanager.CompositeX509ExtendedKeyManager], " +
+                        "but received: [sun.security.ssl.SunX509KeyManagerImpl]");
+    }
+
 }

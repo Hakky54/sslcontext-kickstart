@@ -228,6 +228,8 @@ public final class KeyManagerUtils {
     }
 
     public static Map<String, List<String>> getClientIdentityRoute(X509ExtendedKeyManager keyManager) {
+        Objects.requireNonNull(keyManager);
+
         if (keyManager instanceof CompositeX509ExtendedKeyManager) {
             return ((CompositeX509ExtendedKeyManager) keyManager)
                     .getPreferredClientAliasToHosts()
