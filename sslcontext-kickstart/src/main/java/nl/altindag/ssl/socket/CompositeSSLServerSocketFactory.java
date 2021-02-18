@@ -16,6 +16,9 @@
 
 package nl.altindag.ssl.socket;
 
+import nl.altindag.gatekeeper.Gatekeeper;
+import nl.altindag.ssl.util.SocketUtils;
+
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
@@ -38,6 +41,8 @@ public final class CompositeSSLServerSocketFactory extends SSLServerSocketFactor
     private final SSLParameters sslParameters;
 
     public CompositeSSLServerSocketFactory(SSLServerSocketFactory sslServerSocketFactory, SSLParameters sslParameters) {
+        Gatekeeper.ensureCallerIsAnyOf(SocketUtils.class);
+
         this.sslServerSocketFactory = Objects.requireNonNull(sslServerSocketFactory);
         this.sslParameters = Objects.requireNonNull(sslParameters);
     }

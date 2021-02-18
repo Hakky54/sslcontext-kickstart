@@ -16,6 +16,9 @@
 
 package nl.altindag.ssl.trustmanager;
 
+import nl.altindag.gatekeeper.Gatekeeper;
+import nl.altindag.ssl.util.TrustManagerUtils;
+
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedTrustManager;
 import java.net.Socket;
@@ -35,6 +38,8 @@ public class HotSwappableX509ExtendedTrustManager extends DelegatingX509Extended
 
     public HotSwappableX509ExtendedTrustManager(X509ExtendedTrustManager trustManager) {
         super(trustManager);
+
+        Gatekeeper.ensureCallerIsAnyOf(TrustManagerUtils.class);
     }
 
     @Override
@@ -58,6 +63,8 @@ public class HotSwappableX509ExtendedTrustManager extends DelegatingX509Extended
     }
 
     public void setTrustManager(X509ExtendedTrustManager trustManager) {
+        Gatekeeper.ensureCallerIsAnyOf(TrustManagerUtils.class);
+
         this.trustManager = Objects.requireNonNull(trustManager);
     }
 

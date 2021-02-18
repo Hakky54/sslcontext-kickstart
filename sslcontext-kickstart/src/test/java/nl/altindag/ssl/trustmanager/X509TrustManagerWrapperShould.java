@@ -16,11 +16,13 @@
 
 package nl.altindag.ssl.trustmanager;
 
+import nl.altindag.ssl.util.TrustManagerUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.net.ssl.SSLEngine;
+import javax.net.ssl.X509ExtendedTrustManager;
 import javax.net.ssl.X509TrustManager;
 
 import java.net.Socket;
@@ -44,7 +46,7 @@ class X509TrustManagerWrapperShould {
     void checkClientTrusted() throws CertificateException {
         X509TrustManager trustManager = mock(X509TrustManager.class);
 
-        X509TrustManagerWrapper victim = new X509TrustManagerWrapper(trustManager);
+        X509ExtendedTrustManager victim = TrustManagerUtils.wrapIfNeeded(trustManager);
         victim.checkClientTrusted(null, null);
 
         verify(trustManager, times(1)).checkClientTrusted(null, null);
@@ -54,7 +56,7 @@ class X509TrustManagerWrapperShould {
     void checkClientTrustedWithSocket() throws CertificateException {
         X509TrustManager trustManager = mock(X509TrustManager.class);
 
-        X509TrustManagerWrapper victim = new X509TrustManagerWrapper(trustManager);
+        X509ExtendedTrustManager victim = TrustManagerUtils.wrapIfNeeded(trustManager);
         victim.checkClientTrusted(null, null, (Socket) null);
 
         verify(trustManager, times(1)).checkClientTrusted(null, null);
@@ -64,7 +66,7 @@ class X509TrustManagerWrapperShould {
     void checkClientTrustedWithSslEngine() throws CertificateException {
         X509TrustManager trustManager = mock(X509TrustManager.class);
 
-        X509TrustManagerWrapper victim = new X509TrustManagerWrapper(trustManager);
+        X509ExtendedTrustManager victim = TrustManagerUtils.wrapIfNeeded(trustManager);
         victim.checkClientTrusted(null, null, (SSLEngine) null);
 
         verify(trustManager, times(1)).checkClientTrusted(null, null);
@@ -74,7 +76,7 @@ class X509TrustManagerWrapperShould {
     void checkServerTrusted() throws CertificateException {
         X509TrustManager trustManager = mock(X509TrustManager.class);
 
-        X509TrustManagerWrapper victim = new X509TrustManagerWrapper(trustManager);
+        X509ExtendedTrustManager victim = TrustManagerUtils.wrapIfNeeded(trustManager);
         victim.checkServerTrusted(null, null);
 
         verify(trustManager, times(1)).checkServerTrusted(null, null);
@@ -84,7 +86,7 @@ class X509TrustManagerWrapperShould {
     void checkServerTrustedWithSocket() throws CertificateException {
         X509TrustManager trustManager = mock(X509TrustManager.class);
 
-        X509TrustManagerWrapper victim = new X509TrustManagerWrapper(trustManager);
+        X509ExtendedTrustManager victim = TrustManagerUtils.wrapIfNeeded(trustManager);
         victim.checkServerTrusted(null, null, (Socket) null);
 
         verify(trustManager, times(1)).checkServerTrusted(null, null);
@@ -94,7 +96,7 @@ class X509TrustManagerWrapperShould {
     void checkServerTrustedWithSslEngine() throws CertificateException {
         X509TrustManager trustManager = mock(X509TrustManager.class);
 
-        X509TrustManagerWrapper victim = new X509TrustManagerWrapper(trustManager);
+        X509ExtendedTrustManager victim = TrustManagerUtils.wrapIfNeeded(trustManager);
         victim.checkServerTrusted(null, null, (SSLEngine) null);
 
         verify(trustManager, times(1)).checkServerTrusted(null, null);
@@ -105,7 +107,7 @@ class X509TrustManagerWrapperShould {
         X509TrustManager trustManager = mock(X509TrustManager.class);
         when(trustManager.getAcceptedIssuers()).thenReturn(new X509Certificate[]{mock(X509Certificate.class)});
 
-        X509TrustManagerWrapper victim = new X509TrustManagerWrapper(trustManager);
+        X509ExtendedTrustManager victim = TrustManagerUtils.wrapIfNeeded(trustManager);
         X509Certificate[] acceptedIssuers = victim.getAcceptedIssuers();
 
         assertThat(acceptedIssuers).hasSize(1);
@@ -114,7 +116,7 @@ class X509TrustManagerWrapperShould {
 
     @Test
     void throwNullPointerExceptionWhenKeyManagerIsNotPresent() {
-        assertThatThrownBy(() -> new X509TrustManagerWrapper(null))
+        assertThatThrownBy(() -> TrustManagerUtils.wrapIfNeeded(null))
                 .isInstanceOf(NullPointerException.class);
     }
 

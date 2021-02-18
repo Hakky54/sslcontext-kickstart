@@ -18,6 +18,7 @@ package nl.altindag.ssl.trustmanager;
 
 import nl.altindag.log.LogCaptor;
 import nl.altindag.ssl.util.KeyStoreUtils;
+import nl.altindag.ssl.util.TrustManagerUtils;
 import org.junit.jupiter.api.Test;
 
 import javax.net.ssl.SSLEngine;
@@ -46,7 +47,7 @@ class UnsafeX509ExtendedTrustManagerShould {
         LogCaptor logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
 
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
-        X509ExtendedTrustManager trustManager = UnsafeX509ExtendedTrustManager.getInstance();
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.createUnsafeTrustManager();
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
 
         assertThat(trustManager).isNotNull();
@@ -66,7 +67,7 @@ class UnsafeX509ExtendedTrustManagerShould {
         LogCaptor logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
 
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
-        X509ExtendedTrustManager trustManager = UnsafeX509ExtendedTrustManager.getInstance();
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.createUnsafeTrustManager();
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
 
         assertThat(trustManager).isNotNull();
@@ -86,7 +87,7 @@ class UnsafeX509ExtendedTrustManagerShould {
         LogCaptor logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
 
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
-        X509ExtendedTrustManager trustManager = UnsafeX509ExtendedTrustManager.getInstance();
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.createUnsafeTrustManager();
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
 
         assertThat(trustManager).isNotNull();
@@ -107,7 +108,7 @@ class UnsafeX509ExtendedTrustManagerShould {
 
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
-        X509ExtendedTrustManager trustManager = UnsafeX509ExtendedTrustManager.getInstance();
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.createUnsafeTrustManager();
 
         assertThat(trustedCerts).hasSize(1);
         assertThat(trustManager.getAcceptedIssuers()).isEmpty();
@@ -126,7 +127,7 @@ class UnsafeX509ExtendedTrustManagerShould {
 
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
-        X509ExtendedTrustManager trustManager = UnsafeX509ExtendedTrustManager.getInstance();
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.createUnsafeTrustManager();
 
         assertThat(trustedCerts).hasSize(1);
         assertThat(trustManager.getAcceptedIssuers()).isEmpty();
@@ -145,7 +146,7 @@ class UnsafeX509ExtendedTrustManagerShould {
 
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
-        X509ExtendedTrustManager trustManager = UnsafeX509ExtendedTrustManager.getInstance();
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.createUnsafeTrustManager();
 
         assertThat(trustedCerts).hasSize(1);
         assertThat(trustManager.getAcceptedIssuers()).isEmpty();
@@ -164,7 +165,7 @@ class UnsafeX509ExtendedTrustManagerShould {
         logCaptor.setLogLevelToInfo();
 
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
-        X509ExtendedTrustManager trustManager = UnsafeX509ExtendedTrustManager.getInstance();
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.createUnsafeTrustManager();
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
 
         assertThat(trustManager).isNotNull();
@@ -184,7 +185,7 @@ class UnsafeX509ExtendedTrustManagerShould {
         logCaptor.setLogLevelToInfo();
 
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
-        X509ExtendedTrustManager trustManager = UnsafeX509ExtendedTrustManager.getInstance();
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.createUnsafeTrustManager();
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
 
         assertThat(trustManager).isNotNull();
@@ -204,7 +205,7 @@ class UnsafeX509ExtendedTrustManagerShould {
         logCaptor.setLogLevelToInfo();
 
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
-        X509ExtendedTrustManager trustManager = UnsafeX509ExtendedTrustManager.getInstance();
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.createUnsafeTrustManager();
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
 
         assertThat(trustManager).isNotNull();
@@ -225,7 +226,7 @@ class UnsafeX509ExtendedTrustManagerShould {
 
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
-        X509ExtendedTrustManager trustManager = UnsafeX509ExtendedTrustManager.getInstance();
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.createUnsafeTrustManager();
 
         assertThat(trustedCerts).hasSize(1);
         assertThat(trustManager.getAcceptedIssuers()).isEmpty();
@@ -244,7 +245,7 @@ class UnsafeX509ExtendedTrustManagerShould {
 
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
-        X509ExtendedTrustManager trustManager = UnsafeX509ExtendedTrustManager.getInstance();
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.createUnsafeTrustManager();
 
         assertThat(trustedCerts).hasSize(1);
         assertThat(trustManager.getAcceptedIssuers()).isEmpty();
@@ -263,7 +264,7 @@ class UnsafeX509ExtendedTrustManagerShould {
 
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
-        X509ExtendedTrustManager trustManager = UnsafeX509ExtendedTrustManager.getInstance();
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.createUnsafeTrustManager();
 
         assertThat(trustedCerts).hasSize(1);
         assertThat(trustManager.getAcceptedIssuers()).isEmpty();

@@ -17,6 +17,7 @@
 package nl.altindag.ssl.keymanager;
 
 import nl.altindag.log.LogCaptor;
+import nl.altindag.ssl.util.KeyManagerUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -44,12 +45,9 @@ class KeyManagerFactoryWrapperShould {
     @Test
     void createInstanceFromKeyManager() {
         X509ExtendedKeyManager keyManager = mock(X509ExtendedKeyManager.class);
-        KeyManagerFactoryWrapper keyManagerFactory = new KeyManagerFactoryWrapper(keyManager);
+        KeyManagerFactory keyManagerFactory = KeyManagerUtils.createKeyManagerFactory(keyManager);
 
-        assertThat(keyManagerFactory)
-                .isNotNull()
-                .isInstanceOf(KeyManagerFactory.class);
-
+        assertThat(keyManagerFactory).isNotNull();
         assertThat(keyManagerFactory.getAlgorithm()).isEqualTo("no-algorithm");
         assertThat(keyManagerFactory.getKeyManagers()).containsExactly(keyManager);
 
@@ -62,7 +60,7 @@ class KeyManagerFactoryWrapperShould {
     @Test
     void ignoreProvidedKeyStore() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
         X509ExtendedKeyManager keyManager = mock(X509ExtendedKeyManager.class);
-        KeyManagerFactoryWrapper keyManagerFactory = new KeyManagerFactoryWrapper(keyManager);
+        KeyManagerFactory keyManagerFactory = KeyManagerUtils.createKeyManagerFactory(keyManager);
 
         keyManagerFactory.init(null, null);
         assertThat(logCaptor.getInfoLogs()).contains("Ignoring provided KeyStore");
@@ -70,7 +68,7 @@ class KeyManagerFactoryWrapperShould {
     @Test
     void ignoreProvidedManagerFactoryParameters() throws InvalidAlgorithmParameterException {
         X509ExtendedKeyManager keyManager = mock(X509ExtendedKeyManager.class);
-        KeyManagerFactoryWrapper keyManagerFactory = new KeyManagerFactoryWrapper(keyManager);
+        KeyManagerFactory keyManagerFactory = KeyManagerUtils.createKeyManagerFactory(keyManager);
 
         keyManagerFactory.init(null);
         assertThat(logCaptor.getInfoLogs()).contains("Ignoring provided ManagerFactoryParameters");

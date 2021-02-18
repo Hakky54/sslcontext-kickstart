@@ -17,6 +17,7 @@
 package nl.altindag.ssl.trustmanager;
 
 import nl.altindag.log.LogCaptor;
+import nl.altindag.ssl.util.TrustManagerUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -43,7 +44,7 @@ class TrustManagerFactoryWrapperShould {
     @Test
     void createInstanceFromTrustManager() {
         X509ExtendedTrustManager trustManager = mock(X509ExtendedTrustManager.class);
-        TrustManagerFactoryWrapper trustManagerFactory = new TrustManagerFactoryWrapper(trustManager);
+        TrustManagerFactory trustManagerFactory = TrustManagerUtils.createTrustManagerFactory(trustManager);
 
         assertThat(trustManagerFactory)
                 .isNotNull()
@@ -61,7 +62,7 @@ class TrustManagerFactoryWrapperShould {
     @Test
     void ignoreProvidedKeyStore() throws KeyStoreException {
         X509ExtendedTrustManager trustManager = mock(X509ExtendedTrustManager.class);
-        TrustManagerFactoryWrapper trustManagerFactory = new TrustManagerFactoryWrapper(trustManager);
+        TrustManagerFactory trustManagerFactory = TrustManagerUtils.createTrustManagerFactory(trustManager);
 
         trustManagerFactory.init((KeyStore) null);
         assertThat(logCaptor.getInfoLogs()).contains("Ignoring provided KeyStore");
@@ -69,7 +70,7 @@ class TrustManagerFactoryWrapperShould {
     @Test
     void ignoreProvidedManagerFactoryParameters() throws InvalidAlgorithmParameterException {
         X509ExtendedTrustManager trustManager = mock(X509ExtendedTrustManager.class);
-        TrustManagerFactoryWrapper trustManagerFactory = new TrustManagerFactoryWrapper(trustManager);
+        TrustManagerFactory trustManagerFactory = TrustManagerUtils.createTrustManagerFactory(trustManager);
 
         trustManagerFactory.init((ManagerFactoryParameters) null);
         assertThat(logCaptor.getInfoLogs()).contains("Ignoring provided ManagerFactoryParameters");

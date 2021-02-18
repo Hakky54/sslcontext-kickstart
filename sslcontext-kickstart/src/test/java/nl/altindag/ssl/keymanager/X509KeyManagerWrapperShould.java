@@ -16,10 +16,12 @@
 
 package nl.altindag.ssl.keymanager;
 
+import nl.altindag.ssl.util.KeyManagerUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509KeyManager;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
@@ -44,7 +46,7 @@ class X509KeyManagerWrapperShould {
         X509KeyManager keyManager = mock(X509KeyManager.class);
         when(keyManager.chooseClientAlias(any(), any(), any())).thenReturn("alias");
 
-        X509KeyManagerWrapper victim = new X509KeyManagerWrapper(keyManager);
+        X509ExtendedKeyManager victim = KeyManagerUtils.wrapIfNeeded(keyManager);
         String clientAlias = victim.chooseClientAlias(null, null, null);
 
         assertThat(clientAlias).isEqualTo("alias");
@@ -56,7 +58,7 @@ class X509KeyManagerWrapperShould {
         X509KeyManager keyManager = mock(X509KeyManager.class);
         when(keyManager.chooseClientAlias(any(), any(), any())).thenReturn("alias");
 
-        X509KeyManagerWrapper victim = new X509KeyManagerWrapper(keyManager);
+        X509ExtendedKeyManager victim = KeyManagerUtils.wrapIfNeeded(keyManager);
         String clientAlias = victim.chooseEngineClientAlias(null, null, null);
 
         assertThat(clientAlias).isEqualTo("alias");
@@ -68,7 +70,7 @@ class X509KeyManagerWrapperShould {
         X509KeyManager keyManager = mock(X509KeyManager.class);
         when(keyManager.chooseServerAlias(any(), any(), any())).thenReturn("alias");
 
-        X509KeyManagerWrapper victim = new X509KeyManagerWrapper(keyManager);
+        X509ExtendedKeyManager victim = KeyManagerUtils.wrapIfNeeded(keyManager);
         String clientAlias = victim.chooseServerAlias(null, null, null);
 
         assertThat(clientAlias).isEqualTo("alias");
@@ -80,7 +82,7 @@ class X509KeyManagerWrapperShould {
         X509KeyManager keyManager = mock(X509KeyManager.class);
         when(keyManager.chooseServerAlias(any(), any(), any())).thenReturn("alias");
 
-        X509KeyManagerWrapper victim = new X509KeyManagerWrapper(keyManager);
+        X509ExtendedKeyManager victim = KeyManagerUtils.wrapIfNeeded(keyManager);
         String clientAlias = victim.chooseEngineServerAlias(null, null, null);
 
         assertThat(clientAlias).isEqualTo("alias");
@@ -92,7 +94,7 @@ class X509KeyManagerWrapperShould {
         X509KeyManager keyManager = mock(X509KeyManager.class);
         when(keyManager.getPrivateKey(anyString())).thenReturn(mock(PrivateKey.class));
 
-        X509KeyManagerWrapper victim = new X509KeyManagerWrapper(keyManager);
+        X509ExtendedKeyManager victim = KeyManagerUtils.wrapIfNeeded(keyManager);
         PrivateKey privateKey = victim.getPrivateKey("alias");
 
         assertThat(privateKey).isNotNull();
@@ -104,7 +106,7 @@ class X509KeyManagerWrapperShould {
         X509KeyManager keyManager = mock(X509KeyManager.class);
         when(keyManager.getCertificateChain(anyString())).thenReturn(new X509Certificate[] { mock(X509Certificate.class) } );
 
-        X509KeyManagerWrapper victim = new X509KeyManagerWrapper(keyManager);
+        X509ExtendedKeyManager victim = KeyManagerUtils.wrapIfNeeded(keyManager);
         X509Certificate[] certificateChain = victim.getCertificateChain("alias");
 
         assertThat(certificateChain).hasSize(1);
@@ -116,7 +118,7 @@ class X509KeyManagerWrapperShould {
         X509KeyManager keyManager = mock(X509KeyManager.class);
         when(keyManager.getClientAliases(any(), any())).thenReturn(new String[]{"alias-1", "alias-2"});
 
-        X509KeyManagerWrapper victim = new X509KeyManagerWrapper(keyManager);
+        X509ExtendedKeyManager victim = KeyManagerUtils.wrapIfNeeded(keyManager);
         String[] clientAliases = victim.getClientAliases(null, null);
 
         assertThat(clientAliases).containsExactlyInAnyOrder("alias-1", "alias-2");
@@ -128,7 +130,7 @@ class X509KeyManagerWrapperShould {
         X509KeyManager keyManager = mock(X509KeyManager.class);
         when(keyManager.getServerAliases(any(), any())).thenReturn(new String[]{"alias-1", "alias-2"});
 
-        X509KeyManagerWrapper victim = new X509KeyManagerWrapper(keyManager);
+        X509ExtendedKeyManager victim = KeyManagerUtils.wrapIfNeeded(keyManager);
         String[] clientAliases = victim.getServerAliases(null, null);
 
         assertThat(clientAliases).containsExactlyInAnyOrder("alias-1", "alias-2");
@@ -137,7 +139,7 @@ class X509KeyManagerWrapperShould {
 
     @Test
     void throwNullPointerExceptionWhenKeyManagerIsNotPresent() {
-        assertThatThrownBy(() -> new X509KeyManagerWrapper(null))
+        assertThatThrownBy(() -> KeyManagerUtils.wrapIfNeeded(null))
                 .isInstanceOf(NullPointerException.class);
     }
 

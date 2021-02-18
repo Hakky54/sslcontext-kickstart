@@ -16,6 +16,8 @@
 
 package nl.altindag.ssl.trustmanager;
 
+import nl.altindag.gatekeeper.Gatekeeper;
+import nl.altindag.ssl.util.TrustManagerUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,6 +60,8 @@ public final class UnsafeX509ExtendedTrustManager extends X509ExtendedTrustManag
     private UnsafeX509ExtendedTrustManager() {}
 
     public static X509ExtendedTrustManager getInstance() {
+        Gatekeeper.ensureCallerIsAnyOf(TrustManagerUtils.class);
+
         return INSTANCE;
     }
 
