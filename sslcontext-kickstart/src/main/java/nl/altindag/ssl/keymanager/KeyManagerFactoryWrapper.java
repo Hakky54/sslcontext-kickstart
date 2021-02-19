@@ -16,9 +16,6 @@
 
 package nl.altindag.ssl.keymanager;
 
-import nl.altindag.ssl.util.KeyManagerUtils;
-import nl.altindag.gatekeeper.Gatekeeper;
-
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import java.security.Provider;
@@ -38,8 +35,6 @@ public class KeyManagerFactoryWrapper extends KeyManagerFactory {
 
     public KeyManagerFactoryWrapper(KeyManager keyManager) {
         super(new KeyManagerFactorySpiWrapper(keyManager), PROVIDER, KEY_MANAGER_FACTORY_ALGORITHM);
-
-        Gatekeeper.ensureCallerIsAnyOf(KeyManagerUtils.class);
     }
 
 }

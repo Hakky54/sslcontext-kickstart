@@ -16,9 +16,6 @@
 
 package nl.altindag.ssl.keymanager;
 
-import nl.altindag.ssl.util.KeyManagerUtils;
-import nl.altindag.gatekeeper.Gatekeeper;
-
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedKeyManager;
 import java.net.InetSocketAddress;
@@ -73,13 +70,20 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
     /**
      * Creates a new {@link CompositeX509ExtendedKeyManager}.
      *
+     * @param keyManagers the {@link X509ExtendedKeyManager}, ordered with the most-preferred managers first.
+     */
+    public CompositeX509ExtendedKeyManager(List<? extends X509ExtendedKeyManager> keyManagers) {
+        this(keyManagers, Collections.emptyMap());
+    }
+
+    /**
+     * Creates a new {@link CompositeX509ExtendedKeyManager}.
+     *
      * @param keyManagers                the {@link X509ExtendedKeyManager}, ordered with the most-preferred managers first.
      * @param preferredClientAliasToHost the preferred client alias to be used for the given host
      */
     public CompositeX509ExtendedKeyManager(List<? extends X509ExtendedKeyManager> keyManagers,
                                            Map<String, List<URI>> preferredClientAliasToHost) {
-        Gatekeeper.ensureCallerIsAnyOf(KeyManagerUtils.KeyManagerBuilder.class);
-
         this.keyManagers = Collections.unmodifiableList(keyManagers);
         this.preferredClientAliasToHost = Collections.unmodifiableMap(preferredClientAliasToHost);
     }
@@ -242,8 +246,6 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
     }
 
     public List<X509ExtendedKeyManager> getKeyManagers() {
-        Gatekeeper.ensureCallerIsAnyOf(KeyManagerUtils.class);
-
         return keyManagers;
     }
 

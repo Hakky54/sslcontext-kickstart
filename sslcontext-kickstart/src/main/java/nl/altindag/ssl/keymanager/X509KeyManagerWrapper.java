@@ -16,9 +16,6 @@
 
 package nl.altindag.ssl.keymanager;
 
-import nl.altindag.ssl.util.KeyManagerUtils;
-import nl.altindag.gatekeeper.Gatekeeper;
-
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509KeyManager;
 import java.net.Socket;
@@ -36,8 +33,6 @@ public class X509KeyManagerWrapper extends DelegatingX509ExtendedKeyManager<X509
 
     public X509KeyManagerWrapper(X509KeyManager keyManager) {
         super(keyManager);
-
-        Gatekeeper.ensureCallerIsAnyOf(KeyManagerUtils.class);
     }
 
     @Override
