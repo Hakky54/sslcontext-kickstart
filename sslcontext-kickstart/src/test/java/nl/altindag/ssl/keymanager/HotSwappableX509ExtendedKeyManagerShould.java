@@ -16,7 +16,6 @@
 
 package nl.altindag.ssl.keymanager;
 
-import nl.altindag.ssl.util.KeyManagerUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -45,7 +44,7 @@ class HotSwappableX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManager = mock(X509ExtendedKeyManager.class);
         when(keyManager.chooseClientAlias(any(), any(), any())).thenReturn("alias");
 
-        X509ExtendedKeyManager victim = KeyManagerUtils.createSwappableKeyManager(keyManager);
+        X509ExtendedKeyManager victim = new HotSwappableX509ExtendedKeyManager(keyManager);
         String clientAlias = victim.chooseClientAlias(null, null, null);
 
         assertThat(clientAlias).isEqualTo("alias");
@@ -57,7 +56,7 @@ class HotSwappableX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManager = mock(X509ExtendedKeyManager.class);
         when(keyManager.chooseEngineClientAlias(any(), any(), any())).thenReturn("alias");
 
-        X509ExtendedKeyManager victim = KeyManagerUtils.createSwappableKeyManager(keyManager);
+        X509ExtendedKeyManager victim = new HotSwappableX509ExtendedKeyManager(keyManager);
         String clientAlias = victim.chooseEngineClientAlias(null, null, null);
 
         assertThat(clientAlias).isEqualTo("alias");
@@ -69,7 +68,7 @@ class HotSwappableX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManager = mock(X509ExtendedKeyManager.class);
         when(keyManager.chooseServerAlias(any(), any(), any())).thenReturn("alias");
 
-        X509ExtendedKeyManager victim = KeyManagerUtils.createSwappableKeyManager(keyManager);
+        X509ExtendedKeyManager victim = new HotSwappableX509ExtendedKeyManager(keyManager);
         String clientAlias = victim.chooseServerAlias(null, null, null);
 
         assertThat(clientAlias).isEqualTo("alias");
@@ -81,7 +80,7 @@ class HotSwappableX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManager = mock(X509ExtendedKeyManager.class);
         when(keyManager.chooseEngineServerAlias(any(), any(), any())).thenReturn("alias");
 
-        X509ExtendedKeyManager victim = KeyManagerUtils.createSwappableKeyManager(keyManager);
+        X509ExtendedKeyManager victim = new HotSwappableX509ExtendedKeyManager(keyManager);
         String clientAlias = victim.chooseEngineServerAlias(null, null, null);
 
         assertThat(clientAlias).isEqualTo("alias");
@@ -93,7 +92,7 @@ class HotSwappableX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManager = mock(X509ExtendedKeyManager.class);
         when(keyManager.getPrivateKey(anyString())).thenReturn(mock(PrivateKey.class));
 
-        X509ExtendedKeyManager victim = KeyManagerUtils.createSwappableKeyManager(keyManager);
+        X509ExtendedKeyManager victim = new HotSwappableX509ExtendedKeyManager(keyManager);
         PrivateKey privateKey = victim.getPrivateKey("alias");
 
         assertThat(privateKey).isNotNull();
@@ -105,7 +104,7 @@ class HotSwappableX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManager = mock(X509ExtendedKeyManager.class);
         when(keyManager.getCertificateChain(anyString())).thenReturn(new X509Certificate[] { mock(X509Certificate.class) } );
 
-        X509ExtendedKeyManager victim = KeyManagerUtils.createSwappableKeyManager(keyManager);
+        X509ExtendedKeyManager victim = new HotSwappableX509ExtendedKeyManager(keyManager);
         X509Certificate[] certificateChain = victim.getCertificateChain("alias");
 
         assertThat(certificateChain).hasSize(1);
@@ -117,7 +116,7 @@ class HotSwappableX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManager = mock(X509ExtendedKeyManager.class);
         when(keyManager.getClientAliases(any(), any())).thenReturn(new String[]{"alias-1", "alias-2"});
 
-        X509ExtendedKeyManager victim = KeyManagerUtils.createSwappableKeyManager(keyManager);
+        X509ExtendedKeyManager victim = new HotSwappableX509ExtendedKeyManager(keyManager);
         String[] clientAliases = victim.getClientAliases(null, null);
 
         assertThat(clientAliases).containsExactlyInAnyOrder("alias-1", "alias-2");
@@ -129,7 +128,7 @@ class HotSwappableX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManager = mock(X509ExtendedKeyManager.class);
         when(keyManager.getServerAliases(any(), any())).thenReturn(new String[]{"alias-1", "alias-2"});
 
-        X509ExtendedKeyManager victim = KeyManagerUtils.createSwappableKeyManager(keyManager);
+        X509ExtendedKeyManager victim = new HotSwappableX509ExtendedKeyManager(keyManager);
         String[] clientAliases = victim.getServerAliases(null, null);
 
         assertThat(clientAliases).containsExactlyInAnyOrder("alias-1", "alias-2");
@@ -141,10 +140,10 @@ class HotSwappableX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManager = mock(X509ExtendedKeyManager.class);
         when(keyManager.chooseClientAlias(any(), any(), any())).thenReturn("alias");
 
-        X509ExtendedKeyManager victim = KeyManagerUtils.createSwappableKeyManager(keyManager);
+        HotSwappableX509ExtendedKeyManager victim = new HotSwappableX509ExtendedKeyManager(keyManager);
         victim.chooseClientAlias(null, null, null);
 
-        KeyManagerUtils.swapKeyManager(victim, mock(X509ExtendedKeyManager.class));
+        victim.setKeyManager(mock(X509ExtendedKeyManager.class));
         victim.chooseClientAlias(null, null, null);
 
         verify(keyManager, times(1)).chooseClientAlias(null, null, null);
@@ -152,7 +151,7 @@ class HotSwappableX509ExtendedKeyManagerShould {
 
     @Test
     void throwNullPointerExceptionWhenKeyManagerIsNotPresent() {
-        assertThatThrownBy(() -> KeyManagerUtils.createSwappableKeyManager(null))
+        assertThatThrownBy(() -> new HotSwappableX509ExtendedKeyManager(null))
                 .isInstanceOf(NullPointerException.class);
     }
 

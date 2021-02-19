@@ -270,12 +270,10 @@ public final class TrustManagerUtils {
             if (trustManagers.size() == 1) {
                 trustManager = trustManagers.get(0);
             } else {
-                trustManager = new CompositeX509ExtendedTrustManager(
-                        trustManagers.stream()
-                                .map(TrustManagerUtils::unwrapIfPossible)
-                                .flatMap(Collection::stream)
-                                .collect(toList())
-                );
+                trustManager = trustManagers.stream()
+                        .map(TrustManagerUtils::unwrapIfPossible)
+                        .flatMap(Collection::stream)
+                        .collect(collectingAndThen(toList(), CompositeX509ExtendedTrustManager::new));
             }
 
             if (swappableTrustManagerEnabled) {
