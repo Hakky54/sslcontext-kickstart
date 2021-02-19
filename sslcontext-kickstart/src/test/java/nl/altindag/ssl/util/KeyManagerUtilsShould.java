@@ -33,6 +33,7 @@ import java.security.Provider;
 import java.security.Security;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -267,6 +268,24 @@ class KeyManagerUtilsShould {
         assertThat(keyManagers)
                 .hasSize(1)
                 .contains(keyManager);
+    }
+
+    @Test
+    void addMultipleClientIdentityRoutes() {
+        KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager keyManager = KeyManagerUtils.combine(keyManagerOne, keyManagerTwo);
+        KeyManagerUtils.addClientIdentityRoute(keyManager, "client","https://localhost:8443/");
+        KeyManagerUtils.addClientIdentityRoute(keyManager, "client","https://localhost:8453/");
+        Map<String, List<String>> clientIdentityRoute = KeyManagerUtils.getClientIdentityRoute(keyManager);
+
+        assertThat(clientIdentityRoute)
+                .containsKey("client")
+                .containsValue(Arrays.asList("https://localhost:8443/", "https://localhost:8453/"));
     }
 
     @Test
