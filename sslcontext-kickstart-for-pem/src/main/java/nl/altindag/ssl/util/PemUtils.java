@@ -95,8 +95,7 @@ public final class PemUtils {
         return mapTrustMaterial(certificates);
     }
 
-    @SafeVarargs
-    private static <T> List<X509Certificate> loadCertificate(Function<T, InputStream> resourceMapper, T... resources) {
+    private static <T> List<X509Certificate> loadCertificate(Function<T, InputStream> resourceMapper, T[] resources) {
         List<X509Certificate> certificates = new ArrayList<>();
         for (T resource : resources) {
             try(InputStream certificateStream = resourceMapper.apply(resource)) {
