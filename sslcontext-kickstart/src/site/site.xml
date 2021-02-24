@@ -14,12 +14,24 @@
         </menu>
         <menu name="Client configuration">
             <item name="Akka Http" href="client/akka.html"/>
-            <item name="Apache HttpClient" href="client/apache.html"/>
+            <item name="Apache HttpClient 4" href="client/apache4.html"/>
+            <item name="Apache Async HttpClient 4" href="client/apache4-async.html"/>
+            <item name="Apache HttpClient 5" href="client/apache5.html"/>
+            <item name="Apache Async HttpClient 5" href="client/apache5-async.html"/>
+            <item name="Apache CXF Jax RS" href="client/apache-cxf-jax-rs.html"/>
+            <item name="Apache CXF with Conduit" href="client/apache-cxf-with-conduit-configurer.html"/>
             <item name="Async Http Client" href="client/async-http-client.html"/>
             <item name="Dispatch Reboot" href="client/dispatch-reboot.html"/>
             <item name="Feign" href="client/feign.html"/>
             <item name="Fuel" href="client/fuel.html"/>
             <item name="Google HttpClient" href="client/google.html"/>
+            <item name="Http4k with Apache HttpClient 4" href="client/http4k-apache4.html"/>
+            <item name="Http4k with Apache Async HttpClient 4" href="client/http4k-apache4-async.html"/>
+            <item name="Http4k with Apache HttpClient 5" href="client/http4k-apache5.html"/>
+            <item name="Http4k with Apache Async HttpClient 5" href="client/http4k-apache5-async.html"/>
+            <item name="Http4k with Java Http" href="client/http4k-java-http.html"/>
+            <item name="Http4k with Jetty" href="client/http4k-jetty.html"/>
+            <item name="Http4k with OkHttp" href="client/http4k-okhttp.html"/>
             <item name="Http4s Blaze Client" href="client/http4s-blaze.html"/>
             <item name="Http4s Java Net Client" href="client/http4s-java-net.html"/>
             <item name="JDK HttpClient" href="client/jdk.html"/>
@@ -44,6 +56,7 @@
             <item name="Twitter Finagle" href="client/finagle.html"/>
             <item name="Twitter Finagle Featherbed" href="client/featherbed.html"/>
             <item name="Unirest" href="client/unirest.html"/>
+            <item name="Vertx" href="client/vertx.html"/>
         </menu>
 
         <menu ref="reports"/>

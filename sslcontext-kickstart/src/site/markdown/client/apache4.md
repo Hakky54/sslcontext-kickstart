@@ -1,4 +1,4 @@
-## Apache HttpClient - Example SSL Client Configuration
+## Apache HttpClient 4 - Example SSL Client Configuration
 
 ```java
 import nl.altindag.ssl.SSLFactory;
