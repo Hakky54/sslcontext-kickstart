@@ -81,8 +81,7 @@ public final class CertificateUtils {
         return loadCertificate(Function.identity(), certificateStreams);
     }
 
-    @SafeVarargs
-    private static <T> List<Certificate> loadCertificate(Function<T, InputStream> resourceMapper, T... resources) {
+    private static <T> List<Certificate> loadCertificate(Function<T, InputStream> resourceMapper, T[] resources) {
         List<Certificate> certificates = new ArrayList<>();
         for (T resource : resources) {
             try (InputStream certificateStream = resourceMapper.apply(resource)) {
