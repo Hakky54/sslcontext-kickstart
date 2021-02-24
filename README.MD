@@ -53,6 +53,7 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "6.3.0"
      - [Hot swap KeyManager and TrustManager at runtime](#support-for-swapping-keymanager-and-trustmanager-at-runtime)
      - [Using KeyStore with multiple keys having different passwords](#support-for-using-a-single-keystore-which-contains-multiple-keys-with-different-passwords)
      - [Routing client identity to specific host](#routing-identity-material-to-specific-host) 
+     - [Updating client identity routes at runtime](#updating-client-identity-routes-at-runtime) 
      - [Using custom PrivateKey and Certificates](#support-for-using-privatekey-and-certificates)
      - [Using PEM Files](#using-pem-files)
        - [Loading pem files from the classpath](#loading-pem-files-from-the-classpath)
@@ -289,7 +290,24 @@ SSLFactory.builder()
           .withClientIdentityRoute("client-alias-two", "https://localhost:8463/", "https://localhost:8473/")
           .build();
 ```
+##### Updating client identity routes at runtime
+```text
+SSLFactory sslFactory = SSLFactory.builder()
+          .withIdentityMaterial("identity-1.jks", password)
+          .withIdentityMaterial("identity-2.jks", password)
+          .withTrustMaterial("truststore.jks", password)
+          .withClientIdentityRoute("client-alias-one", "https://localhost:8443/", "https://localhost:8453/")
+          .withClientIdentityRoute("client-alias-two", "https://localhost:8463/", "https://localhost:8473/")
+          .build();
 
+X509ExtendedKeyManager keyManager = sslFactory.getKeyManager().get()
+
+// Add additional routes next to the existing ones
+KeyManagerUtils.addClientIdentityRoute(keyManager, "client-alias-one", "https://localhost:8463/", "https://localhost:8473/")
+
+// Override existing routes
+KeyManagerUtils.overrideClientIdentityRoute(keyManager, "client-alias-two", "https://localhost:9463/", "https://localhost:9473/")
+```
 ##### Support for using PrivateKey and Certificates
 ```text
 PrivateKey privateKey = ...
