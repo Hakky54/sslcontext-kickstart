@@ -33,6 +33,7 @@ import java.security.Provider;
 import java.security.Security;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -270,6 +271,66 @@ class KeyManagerUtilsShould {
     }
 
     @Test
+    void addMultipleClientIdentityRoutes() {
+        KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager keyManager = KeyManagerUtils.combine(keyManagerOne, keyManagerTwo);
+        KeyManagerUtils.addClientIdentityRoute(keyManager, "client","https://localhost:8443/");
+        KeyManagerUtils.addClientIdentityRoute(keyManager, "client","https://localhost:8453/");
+        Map<String, List<String>> clientIdentityRoute = KeyManagerUtils.getClientIdentityRoute(keyManager);
+
+        assertThat(clientIdentityRoute)
+                .containsKey("client")
+                .containsValue(Arrays.asList("https://localhost:8443/", "https://localhost:8453/"));
+    }
+
+    @Test
+    void overrideClientIdentityRoutes() {
+        KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager keyManager = KeyManagerUtils.combine(keyManagerOne, keyManagerTwo);
+        KeyManagerUtils.addClientIdentityRoute(keyManager, "client","https://localhost:8443/", "https://localhost:8453/");
+        Map<String, List<String>> clientIdentityRoute = KeyManagerUtils.getClientIdentityRoute(keyManager);
+
+        assertThat(clientIdentityRoute)
+                .containsKey("client")
+                .containsValue(Arrays.asList("https://localhost:8443/", "https://localhost:8453/"));
+
+        KeyManagerUtils.overrideClientIdentityRoute(keyManager, "client", "https://localhost:9443/", "https://localhost:9453/");
+        clientIdentityRoute = KeyManagerUtils.getClientIdentityRoute(keyManager);
+
+        assertThat(clientIdentityRoute)
+                .containsKey("client")
+                .doesNotContainValue(Arrays.asList("https://localhost:8443/", "https://localhost:8453/"))
+                .containsValue(Arrays.asList("https://localhost:9443/", "https://localhost:9453/"));
+    }
+
+    @Test
+    void addClientIdentityRoutesWhenTryingToOverrideANonExistingRoute() {
+        KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager keyManager = KeyManagerUtils.combine(keyManagerOne, keyManagerTwo);
+        KeyManagerUtils.overrideClientIdentityRoute(keyManager, "client","https://localhost:8443/", "https://localhost:8453/");
+        Map<String, List<String>> clientIdentityRoute = KeyManagerUtils.getClientIdentityRoute(keyManager);
+
+        assertThat(clientIdentityRoute)
+                .containsKey("client")
+                .containsValue(Arrays.asList("https://localhost:8443/", "https://localhost:8453/"));
+    }
+
+    @Test
     void throwExceptionWhenCreatingKeyManagerFromKeyStoreWhichDoesNotHaveMatchingAlias() throws KeyStoreException {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "identity-with-multiple-keys.jks", IDENTITY_PASSWORD);
 
@@ -374,6 +435,28 @@ class KeyManagerUtilsShould {
         assertThatThrownBy(() -> KeyManagerUtils.swapKeyManager(baseKeyManager, newKeyManager))
                 .isInstanceOf(GenericKeyManagerException.class)
                 .hasMessage("The newKeyManager should not be an instance of [nl.altindag.ssl.keymanager.HotSwappableX509ExtendedKeyManager]");
+    }
+
+    @Test
+    void throwExceptionWhenUnsupportedKeyManagerIsProvidedWhenAddingNewClientIdentityRoute() {
+        KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManager = KeyManagerUtils.createKeyManager(identity, IDENTITY_PASSWORD);
+
+        assertThatThrownBy(() -> KeyManagerUtils.addClientIdentityRoute(keyManager, "another-server", "https://localhost:8443/"))
+                .isInstanceOf(GenericKeyManagerException.class)
+                .hasMessage("KeyManager should be an instance of: [nl.altindag.ssl.keymanager.CompositeX509ExtendedKeyManager], " +
+                            "but received: [sun.security.ssl.SunX509KeyManagerImpl]");
+    }
+
+    @Test
+    void throwExceptionWhenUnsupportedKeyManagerIsProvidedWhenGettingClientIdentityRoute() {
+        KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManager = KeyManagerUtils.createKeyManager(identity, IDENTITY_PASSWORD);
+
+        assertThatThrownBy(() -> KeyManagerUtils.getClientIdentityRoute(keyManager))
+                .isInstanceOf(GenericKeyManagerException.class)
+                .hasMessage("KeyManager should be an instance of: [nl.altindag.ssl.keymanager.CompositeX509ExtendedKeyManager], " +
+                        "but received: [sun.security.ssl.SunX509KeyManagerImpl]");
     }
 
 }

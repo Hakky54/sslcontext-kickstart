@@ -27,6 +27,7 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -85,7 +86,7 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
     public CompositeX509ExtendedKeyManager(List<? extends X509ExtendedKeyManager> keyManagers,
                                            Map<String, List<URI>> preferredClientAliasToHost) {
         this.keyManagers = Collections.unmodifiableList(keyManagers);
-        this.preferredClientAliasToHost = Collections.unmodifiableMap(preferredClientAliasToHost);
+        this.preferredClientAliasToHost = new HashMap<>(preferredClientAliasToHost);
     }
 
     /**
@@ -249,7 +250,7 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
         return keyManagers;
     }
 
-    public Map<String, List<URI>> getPreferredClientAliasToHost() {
+    public Map<String, List<URI>> getPreferredClientAliasToHosts() {
         return preferredClientAliasToHost;
     }
 

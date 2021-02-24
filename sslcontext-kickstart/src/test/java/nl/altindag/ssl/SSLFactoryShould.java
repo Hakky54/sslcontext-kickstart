@@ -61,6 +61,7 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -1141,14 +1142,35 @@ class SSLFactoryShould {
                 .withClientIdentityRoute("some-client-alias", "https://localhost:8443", "https://localhost:8444")
                 .build();
 
-        assertThat(sslFactory.getClientIdentityRoute())
+        assertThat(sslFactory.getKeyManager()).isPresent();
+        assertThat(KeyManagerUtils.getClientIdentityRoute(sslFactory.getKeyManager().get()))
                 .containsKey("some-client-alias")
                 .containsValue(Arrays.asList("https://localhost:8443", "https://localhost:8444"));
 
-        assertThat(sslFactory.getKeyManager()).isPresent();
-        assertThat(((CompositeX509ExtendedKeyManager)sslFactory.getKeyManager().get()).getPreferredClientAliasToHost())
+        assertThat(((CompositeX509ExtendedKeyManager)sslFactory.getKeyManager().get()).getPreferredClientAliasToHosts())
                 .containsKey("some-client-alias")
                 .containsValue(Arrays.asList(URI.create("https://localhost:8443"), URI.create("https://localhost:8444")));
+    }
+
+    @Test
+    void createMultipleRoutesForSingleClientIdentityAndUpdateAfterCreation() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD)
+                .withIdentityMaterial(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD)
+                .withClientIdentityRoute("some-client-alias", "https://localhost:8443", "https://localhost:8444")
+                .build();
+
+        assertThat(sslFactory.getKeyManager()).isPresent();
+        assertThat(KeyManagerUtils.getClientIdentityRoute(sslFactory.getKeyManager().get()))
+                .containsKey("some-client-alias")
+                .containsValue(Arrays.asList("https://localhost:8443", "https://localhost:8444"))
+                .doesNotContainValue(Collections.singletonList("https://localhost:8445"));
+
+        KeyManagerUtils.addClientIdentityRoute(sslFactory.getKeyManager().get(), "some-client-alias", "https://localhost:8445");
+
+        assertThat(KeyManagerUtils.getClientIdentityRoute(sslFactory.getKeyManager().get()))
+                .containsKey("some-client-alias")
+                .containsValue(Arrays.asList("https://localhost:8443", "https://localhost:8444", "https://localhost:8445"));
     }
 
     @Test

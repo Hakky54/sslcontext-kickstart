@@ -17,9 +17,7 @@
 package nl.altindag.ssl.model;
 
 import javax.net.ssl.X509ExtendedKeyManager;
-import java.net.URI;
 import java.util.List;
-import java.util.Map;
 
 /**
  * <p>
@@ -33,7 +31,6 @@ public final class IdentityMaterial {
 
     private X509ExtendedKeyManager keyManager;
     private List<KeyStoreHolder> identities;
-    private Map<String, List<URI>> preferredClientAliasToHost;
 
     private IdentityMaterial() {}
 
@@ -45,15 +42,10 @@ public final class IdentityMaterial {
         return identities;
     }
 
-    public Map<String, List<URI>> getPreferredClientAliasToHost() {
-        return preferredClientAliasToHost;
-    }
-
     public static class Builder {
 
         private X509ExtendedKeyManager keyManager;
         private List<KeyStoreHolder> identities;
-        private Map<String, List<URI>> preferredClientAliasToHost;
 
         public Builder withKeyManager(X509ExtendedKeyManager keyManager) {
             this.keyManager = keyManager;
@@ -65,16 +57,10 @@ public final class IdentityMaterial {
             return this;
         }
 
-        public Builder withPreferredClientAliasToHost(Map<String, List<URI>> preferredClientAliasToHost) {
-            this.preferredClientAliasToHost = preferredClientAliasToHost;
-            return this;
-        }
-
         public IdentityMaterial build() {
             IdentityMaterial identityMaterial = new IdentityMaterial();
             identityMaterial.keyManager = keyManager;
             identityMaterial.identities = identities;
-            identityMaterial.preferredClientAliasToHost = preferredClientAliasToHost;
             return identityMaterial;
         }
     }
