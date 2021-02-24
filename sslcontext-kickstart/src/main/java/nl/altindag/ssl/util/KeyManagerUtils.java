@@ -201,6 +201,18 @@ public final class KeyManagerUtils {
     }
 
     public static void addClientIdentityRoute(X509ExtendedKeyManager keyManager, String clientAlias, String... hosts) {
+        addClientIdentityRoute(keyManager, clientAlias, hosts, false);
+    }
+
+    public static void overrideClientIdentityRoute(X509ExtendedKeyManager keyManager, String clientAlias, String... hosts) {
+        addClientIdentityRoute(keyManager, clientAlias, hosts, true);
+    }
+
+    private static void addClientIdentityRoute(X509ExtendedKeyManager keyManager,
+                                               String clientAlias,
+                                               String[] hosts,
+                                               boolean overrideExistingRouteEnabled) {
+
         Objects.requireNonNull(keyManager);
         Objects.requireNonNull(clientAlias);
         Objects.requireNonNull(hosts);
@@ -209,10 +221,18 @@ public final class KeyManagerUtils {
             CompositeX509ExtendedKeyManager compositeX509ExtendedKeyManager = (CompositeX509ExtendedKeyManager) keyManager;
             Map<String, List<URI>> clientAliasToHosts = compositeX509ExtendedKeyManager.getPreferredClientAliasToHosts();
 
+            List<URI> uris = new ArrayList<>();
             for (String host : hosts) {
                 URI uri = URI.create(host);
                 UriUtils.validate(uri);
+                uris.add(uri);
+            }
 
+            if (overrideExistingRouteEnabled && clientAliasToHosts.containsKey(clientAlias)) {
+                clientAliasToHosts.get(clientAlias).clear();
+            }
+
+            for (URI uri : uris) {
                 if (clientAliasToHosts.containsKey(clientAlias)) {
                     clientAliasToHosts.get(clientAlias).add(uri);
                 } else {
