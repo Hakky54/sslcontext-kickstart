@@ -39,6 +39,7 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSessionContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509ExtendedKeyManager;
@@ -1174,6 +1175,26 @@ class SSLFactoryShould {
     }
 
     @Test
+    void createSSLFactoryWithSessionTimeout() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD)
+                .withDefaultTrustMaterial()
+                .withSessionTimeout(10)
+                .build();
+
+        int clientSessionTimeout = sslFactory.getSslContext()
+                .getClientSessionContext()
+                .getSessionTimeout();
+
+        int serverSessionTimeout = sslFactory.getSslContext()
+                .getServerSessionContext()
+                .getSessionTimeout();
+
+        assertThat(clientSessionTimeout).isEqualTo(10);
+        assertThat(serverSessionTimeout).isEqualTo(10);
+    }
+
+    @Test
     void throwExceptionWhenBuildingSSLFactoryWithTrustStoreWhileProvidingWrongPassword() {
         SSLFactory.Builder factoryBuilder = SSLFactory.builder();
         char[] trustStorePassword = "password".toCharArray();
@@ -1463,6 +1484,15 @@ class SSLFactoryShould {
         assertThatThrownBy(() -> sslFactoryBuilder.withClientIdentityRoute("some-client-alias"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("At least one host should be present. No host(s) found for the given alias: [some-client-alias]");
+    }
+
+    @Test
+    void throwExceptionWhenInvalidSessionTimeoutIsProvided() {
+        SSLFactory.Builder sslFactoryBuilder = SSLFactory.builder();
+
+        assertThatThrownBy(() -> sslFactoryBuilder.withSessionTimeout(-1))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Unsupported timeout has been provided. Timeout should be equal or greater than [0], but received [-1]");
     }
 
     @SuppressWarnings("SameParameterValue")

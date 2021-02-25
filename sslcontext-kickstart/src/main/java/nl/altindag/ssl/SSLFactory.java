@@ -192,6 +192,8 @@ public final class SSLFactory {
         private boolean swappableKeyManagerEnabled = false;
         private boolean swappableTrustManagerEnabled = false;
 
+        private int sessionTimeoutInSeconds = -1;
+
         private Builder() {}
 
         public Builder withSystemTrustMaterial() {
@@ -484,6 +486,17 @@ public final class SSLFactory {
             return this;
         }
 
+        public Builder withSessionTimeout(int timeoutInSeconds) {
+            if (timeoutInSeconds < 0) {
+                throw new IllegalArgumentException(String.format(
+                        "Unsupported timeout has been provided. Timeout should be equal or greater than [%d], but received [%d]",
+                        0, timeoutInSeconds));
+            }
+
+            this.sessionTimeoutInSeconds = timeoutInSeconds;
+            return this;
+        }
+
         public Builder withSslContextAlgorithm(String sslContextAlgorithm) {
             this.sslContextAlgorithm = sslContextAlgorithm;
             return this;
@@ -530,6 +543,11 @@ public final class SSLFactory {
                     securityProviderName,
                     securityProvider
             );
+
+            if (sessionTimeoutInSeconds >= 0) {
+                sslContext.getClientSessionContext().setSessionTimeout(sessionTimeoutInSeconds);
+                sslContext.getServerSessionContext().setSessionTimeout(sessionTimeoutInSeconds);
+            }
 
             SSLParameters baseSslParameters = SSLParametersUtils.merge(sslParameters, sslContext.getDefaultSSLParameters());
 

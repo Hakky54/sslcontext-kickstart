@@ -61,6 +61,7 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "6.3.0"
        - [Loading pem files from InputStream](#loading-pem-files-from-inputstream)
        - [Loading pem files from string content](#loading-pem-files-from-string-content)
        - [Loading encrypted pem files](#loading-encrypted-pem-files)
+     - [Caching ssl session](#caching-ssl-session)
      - [Migrating from classic configuration](#migrating-from-classic-configuration)
    - [Returnable values from the SSLFactory](#returnable-values-from-the-sslfactory)
 3. [Additional mappers for specific libraries](#additional-mappers-for-specific-libraries)
@@ -380,7 +381,14 @@ X509ExtendedTrustManager trustManager = PemUtils.parseTrustMaterial(trustedCerti
 ```
 X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial("certificate.pem", "private-key.pem", "secret".toCharArray());
 ```
-
+##### Caching ssl session
+```
+SSLFactory sslFactory = SSLFactory.builder()
+          .withIdentityMaterial("identity.jks", "password".toCharArray())
+          .withTrustMaterial("truststore.jks", "password".toCharArray())
+          .withSessionTimeout(1) // Amount of seconds untill it will be invalidated
+          .build();
+```
 ##### Migrating from classic configuration
 Below is an example of the classic configuration for enabling ssl for your application.
 ```
@@ -395,7 +403,7 @@ Below is an example of the classic configuration for enabling ssl for your appli
 ```
 
 This can be refactored to the configuration below:
-```java
+```
 SSLFactory sslFactory = SSLFactory.builder()
         .withIdentityMaterial(Paths.get("/path/to/keystore.jks"), "changeit".toCharArray(), "jks")
         .withTrustMaterial(Paths.get("/path/to/truststore.jks"), "changeit".toCharArray(), "jks")

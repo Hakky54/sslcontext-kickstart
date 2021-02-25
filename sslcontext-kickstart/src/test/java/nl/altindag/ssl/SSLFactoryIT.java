@@ -22,7 +22,9 @@ import com.sun.net.httpserver.HttpsConfigurator;
 import com.sun.net.httpserver.HttpsParameters;
 import com.sun.net.httpserver.HttpsServer;
 import nl.altindag.log.LogCaptor;
+import nl.altindag.ssl.util.KeyManagerUtils;
 import nl.altindag.ssl.util.KeyStoreUtils;
+import nl.altindag.ssl.util.TrustManagerUtils;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +32,8 @@ import org.slf4j.LoggerFactory;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.X509ExtendedKeyManager;
+import javax.net.ssl.X509ExtendedTrustManager;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -45,6 +49,7 @@ import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static nl.altindag.ssl.TestConstants.KEYSTORE_LOCATION;
@@ -140,6 +145,7 @@ class SSLFactoryIT {
                 .withIdentityMaterial("keystores-for-unit-tests/client-server/server-one/identity.jks", keyStorePassword)
                 .withTrustMaterial("keystores-for-unit-tests/client-server/server-one/truststore.jks", keyStorePassword)
                 .withNeedClientAuthentication()
+                .withSessionTimeout(1)
                 .withProtocols("TLSv1.2")
                 .build();
 
@@ -147,6 +153,7 @@ class SSLFactoryIT {
                 .withIdentityMaterial("keystores-for-unit-tests/client-server/server-two/identity.jks", keyStorePassword)
                 .withTrustMaterial("keystores-for-unit-tests/client-server/server-two/truststore.jks", keyStorePassword)
                 .withNeedClientAuthentication()
+                .withSessionTimeout(1)
                 .withProtocols("TLSv1.2")
                 .build();
 
@@ -168,12 +175,14 @@ class SSLFactoryIT {
                 .withClientIdentityRoute(clientAliasesToHosts)
                 .build();
 
-        Response response = executeRequest("https://localhost:8443/api/hello", sslFactoryForClient.getSslSocketFactory());
+        SSLSocketFactory sslSocketFactoryWithCorrectClientRoutes = sslFactoryForClient.getSslSocketFactory();
+
+        Response response = executeRequest("https://localhost:8443/api/hello", sslSocketFactoryWithCorrectClientRoutes);
 
         assertThat(response.getStatusCode()).isEqualTo(200);
         assertThat(response.getBody()).contains("Hello from server one");
 
-        response = executeRequest("https://localhost:8444/api/hello", sslFactoryForClient.getSslSocketFactory());
+        response = executeRequest("https://localhost:8444/api/hello", sslSocketFactoryWithCorrectClientRoutes);
 
         assertThat(response.getStatusCode()).isEqualTo(200);
         assertThat(response.getBody()).contains("Hello from server two");
@@ -187,11 +196,83 @@ class SSLFactoryIT {
                 .withClientIdentityRoute("client-two", "https://localhost:8443/api/hello")
                 .build();
 
-        SSLSocketFactory sslSocketFactory = sslFactoryForClient.getSslSocketFactory();
-        assertThatThrownBy(() -> executeRequest("https://localhost:8443/api/hello", sslSocketFactory))
+        SSLSocketFactory sslSocketFactoryWithIncorrectClientRoutes = sslFactoryForClient.getSslSocketFactory();
+        assertThatThrownBy(() -> executeRequest("https://localhost:8443/api/hello", sslSocketFactoryWithIncorrectClientRoutes))
                 .isInstanceOfAny(SocketException.class, SSLException.class);
+        assertThatThrownBy(() -> executeRequest("https://localhost:8444/api/hello", sslSocketFactoryWithIncorrectClientRoutes))
+                .isInstanceOfAny(SocketException.class, SSLException.class);
+
+        serverOne.stop(0);
+        serverTwo.stop(0);
+        executorService.shutdownNow();
+    }
+
+    @Test
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
+    void executeRequestToTwoServersWithMutualAuthenticationWithSwappingClientIdentityAndTrustMaterial() throws IOException, InterruptedException {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+
+        char[] keyStorePassword = "secret".toCharArray();
+
+        SSLFactory sslFactoryForServerOne = SSLFactory.builder()
+                .withIdentityMaterial("keystores-for-unit-tests/client-server/server-one/identity.jks", keyStorePassword)
+                .withTrustMaterial("keystores-for-unit-tests/client-server/server-one/truststore.jks", keyStorePassword)
+                .withNeedClientAuthentication()
+                .withProtocols("TLSv1.2")
+                .build();
+
+        SSLFactory sslFactoryForServerTwo = SSLFactory.builder()
+                .withIdentityMaterial("keystores-for-unit-tests/client-server/server-two/identity.jks", keyStorePassword)
+                .withTrustMaterial("keystores-for-unit-tests/client-server/server-two/truststore.jks", keyStorePassword)
+                .withNeedClientAuthentication()
+                .withProtocols("TLSv1.2")
+                .build();
+
+        HttpsServer serverOne = createServer(8443, sslFactoryForServerOne, executorService, "Hello from server one");
+        HttpsServer serverTwo = createServer(8444, sslFactoryForServerTwo, executorService, "Hello from server two");
+
+        serverOne.start();
+        serverTwo.start();
+
+        SSLFactory sslFactoryForClient = SSLFactory.builder()
+                .withIdentityMaterial("keystores-for-unit-tests/client-server/client-one/identity.jks", keyStorePassword)
+                .withTrustMaterial("keystores-for-unit-tests/client-server/client-one/truststore.jks", keyStorePassword)
+                .withSwappableIdentityMaterial()
+                .withSwappableTrustMaterial()
+                .withSessionTimeout(1)
+                .build();
+
+        SSLSocketFactory sslSocketFactory = sslFactoryForClient.getSslSocketFactory();
+
+        Response response = executeRequest("https://localhost:8443/api/hello", sslSocketFactory);
+        assertThat(response.getStatusCode()).isEqualTo(200);
+        assertThat(response.getBody()).contains("Hello from server one");
+
         assertThatThrownBy(() -> executeRequest("https://localhost:8444/api/hello", sslSocketFactory))
                 .isInstanceOfAny(SocketException.class, SSLException.class);
+
+        X509ExtendedKeyManager swappableKeyManager = sslFactoryForClient.getKeyManager().get();
+        X509ExtendedKeyManager toBeSwappedKeyManager = KeyManagerUtils.createKeyManager(
+                KeyStoreUtils.loadKeyStore("keystores-for-unit-tests/client-server/client-two/identity.jks", keyStorePassword), "secret".toCharArray()
+        );
+
+        KeyManagerUtils.swapKeyManager(swappableKeyManager, toBeSwappedKeyManager);
+
+        X509ExtendedTrustManager swappableTrustManager = sslFactoryForClient.getTrustManager().get();
+        X509ExtendedTrustManager toBeSwappedTrustManager = TrustManagerUtils.createTrustManager(
+                KeyStoreUtils.loadKeyStore("keystores-for-unit-tests/client-server/client-two/truststore.jks", keyStorePassword)
+        );
+
+        TrustManagerUtils.swapTrustManager(swappableTrustManager, toBeSwappedTrustManager);
+
+        TimeUnit.SECONDS.sleep(1);
+
+        assertThatThrownBy(() -> executeRequest("https://localhost:8443/api/hello", sslSocketFactory))
+                .isInstanceOfAny(SocketException.class, SSLException.class);
+
+        response = executeRequest("https://localhost:8444/api/hello", sslFactoryForClient.getSslSocketFactory());
+        assertThat(response.getStatusCode()).isEqualTo(200);
+        assertThat(response.getBody()).contains("Hello from server two");
 
         serverOne.stop(0);
         serverTwo.stop(0);
