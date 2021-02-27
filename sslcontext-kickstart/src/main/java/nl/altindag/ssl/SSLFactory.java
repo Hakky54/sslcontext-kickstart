@@ -193,6 +193,7 @@ public final class SSLFactory {
         private boolean swappableTrustManagerEnabled = false;
 
         private int sessionTimeoutInSeconds = -1;
+        private int sessionCacheSizeInBytes = -1;
 
         private Builder() {}
 
@@ -497,6 +498,17 @@ public final class SSLFactory {
             return this;
         }
 
+        public Builder withSessionCacheSize(int cacheSizeInBytes) {
+            if (cacheSizeInBytes < 0) {
+                throw new IllegalArgumentException(String.format(
+                        "Unsupported cache size has been provided. Cache size should be equal or greater than [%d], but received [%d]",
+                        0, cacheSizeInBytes));
+            }
+
+            this.sessionCacheSizeInBytes = cacheSizeInBytes;
+            return this;
+        }
+
         public Builder withSslContextAlgorithm(String sslContextAlgorithm) {
             this.sslContextAlgorithm = sslContextAlgorithm;
             return this;
@@ -547,6 +559,11 @@ public final class SSLFactory {
             if (sessionTimeoutInSeconds >= 0) {
                 sslContext.getClientSessionContext().setSessionTimeout(sessionTimeoutInSeconds);
                 sslContext.getServerSessionContext().setSessionTimeout(sessionTimeoutInSeconds);
+            }
+
+            if (sessionCacheSizeInBytes >= 0) {
+                sslContext.getClientSessionContext().setSessionCacheSize(sessionCacheSizeInBytes);
+                sslContext.getServerSessionContext().setSessionCacheSize(sessionCacheSizeInBytes);
             }
 
             SSLParameters baseSslParameters = SSLParametersUtils.merge(sslParameters, sslContext.getDefaultSSLParameters());

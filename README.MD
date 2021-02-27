@@ -387,6 +387,7 @@ SSLFactory sslFactory = SSLFactory.builder()
           .withIdentityMaterial("identity.jks", "password".toCharArray())
           .withTrustMaterial("truststore.jks", "password".toCharArray())
           .withSessionTimeout(1) // Amount of seconds untill it will be invalidated
+          .withSessionCacheSize(1024) // Amount of bytes untill it will be invalidated
           .build();
 ```
 ##### Migrating from classic configuration

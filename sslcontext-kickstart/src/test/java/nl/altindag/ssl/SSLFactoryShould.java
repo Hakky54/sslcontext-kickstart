@@ -1195,6 +1195,26 @@ class SSLFactoryShould {
     }
 
     @Test
+    void createSSLFactoryWithSessionCacheSize() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD)
+                .withDefaultTrustMaterial()
+                .withSessionCacheSize(1024)
+                .build();
+
+        int clientSessionCacheSize = sslFactory.getSslContext()
+                .getClientSessionContext()
+                .getSessionCacheSize();
+
+        int serverSessionCacheSize = sslFactory.getSslContext()
+                .getServerSessionContext()
+                .getSessionCacheSize();
+
+        assertThat(clientSessionCacheSize).isEqualTo(1024);
+        assertThat(serverSessionCacheSize).isEqualTo(1024);
+    }
+
+    @Test
     void throwExceptionWhenBuildingSSLFactoryWithTrustStoreWhileProvidingWrongPassword() {
         SSLFactory.Builder factoryBuilder = SSLFactory.builder();
         char[] trustStorePassword = "password".toCharArray();
@@ -1493,6 +1513,15 @@ class SSLFactoryShould {
         assertThatThrownBy(() -> sslFactoryBuilder.withSessionTimeout(-1))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Unsupported timeout has been provided. Timeout should be equal or greater than [0], but received [-1]");
+    }
+
+    @Test
+    void throwExceptionWhenInvalidSessionCacheSizeIsProvided() {
+        SSLFactory.Builder sslFactoryBuilder = SSLFactory.builder();
+
+        assertThatThrownBy(() -> sslFactoryBuilder.withSessionCacheSize(-1))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Unsupported cache size has been provided. Cache size should be equal or greater than [0], but received [-1]");
     }
 
     @SuppressWarnings("SameParameterValue")
