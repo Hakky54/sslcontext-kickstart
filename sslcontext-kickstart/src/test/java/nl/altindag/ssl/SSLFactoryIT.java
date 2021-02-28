@@ -24,6 +24,7 @@ import com.sun.net.httpserver.HttpsServer;
 import nl.altindag.log.LogCaptor;
 import nl.altindag.ssl.util.KeyManagerUtils;
 import nl.altindag.ssl.util.KeyStoreUtils;
+import nl.altindag.ssl.util.SSLSessionUtils;
 import nl.altindag.ssl.util.TrustManagerUtils;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -49,7 +50,6 @@ import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static nl.altindag.ssl.TestConstants.KEYSTORE_LOCATION;
@@ -239,7 +239,6 @@ class SSLFactoryIT {
                 .withTrustMaterial("keystores-for-unit-tests/client-server/client-one/truststore.jks", keyStorePassword)
                 .withSwappableIdentityMaterial()
                 .withSwappableTrustMaterial()
-                .withSessionTimeout(1)
                 .build();
 
         SSLSocketFactory sslSocketFactory = sslFactoryForClient.getSslSocketFactory();
@@ -265,7 +264,7 @@ class SSLFactoryIT {
 
         TrustManagerUtils.swapTrustManager(swappableTrustManager, toBeSwappedTrustManager);
 
-        TimeUnit.SECONDS.sleep(1);
+        SSLSessionUtils.invalidateCaches(sslFactoryForClient);
 
         assertThatThrownBy(() -> executeRequest("https://localhost:8443/api/hello", sslSocketFactory))
                 .isInstanceOfAny(SocketException.class, SSLException.class);

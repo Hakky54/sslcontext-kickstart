@@ -1506,24 +1506,6 @@ class SSLFactoryShould {
                 .hasMessage("At least one host should be present. No host(s) found for the given alias: [some-client-alias]");
     }
 
-    @Test
-    void throwExceptionWhenInvalidSessionTimeoutIsProvided() {
-        SSLFactory.Builder sslFactoryBuilder = SSLFactory.builder();
-
-        assertThatThrownBy(() -> sslFactoryBuilder.withSessionTimeout(-1))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Unsupported timeout has been provided. Timeout should be equal or greater than [0], but received [-1]");
-    }
-
-    @Test
-    void throwExceptionWhenInvalidSessionCacheSizeIsProvided() {
-        SSLFactory.Builder sslFactoryBuilder = SSLFactory.builder();
-
-        assertThatThrownBy(() -> sslFactoryBuilder.withSessionCacheSize(-1))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Unsupported cache size has been provided. Cache size should be equal or greater than [0], but received [-1]");
-    }
-
     @SuppressWarnings("SameParameterValue")
     private Path copyKeystoreToHomeDirectory(String path, String fileName) throws IOException {
         try (InputStream keystoreInputStream = getResourceAsStream(path, fileName)) {

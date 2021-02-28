@@ -26,7 +26,8 @@ import nl.altindag.ssl.util.KeyManagerUtils;
 import nl.altindag.ssl.util.KeyStoreUtils;
 import nl.altindag.ssl.util.SSLContextUtils;
 import nl.altindag.ssl.util.SSLParametersUtils;
-import nl.altindag.ssl.util.SocketUtils;
+import nl.altindag.ssl.util.SSLSessionUtils;
+import nl.altindag.ssl.util.SSLSocketUtils;
 import nl.altindag.ssl.util.StringUtils;
 import nl.altindag.ssl.util.TrustManagerUtils;
 import nl.altindag.ssl.util.UriUtils;
@@ -93,17 +94,11 @@ public final class SSLFactory {
     }
 
     public SSLSocketFactory getSslSocketFactory() {
-        return SocketUtils.createSslSocketFactory(
-                sslMaterial.getSslContext().getSocketFactory(),
-                getSslParameters()
-        );
+        return SSLSocketUtils.createSslSocketFactory(sslMaterial.getSslContext(), getSslParameters());
     }
 
     public SSLServerSocketFactory getSslServerSocketFactory() {
-        return SocketUtils.createSslServerSocketFactory(
-                sslMaterial.getSslContext().getServerSocketFactory(),
-                getSslParameters()
-        );
+        return SSLSocketUtils.createSslServerSocketFactory(sslMaterial.getSslContext(), getSslParameters());
     }
 
     public Optional<X509ExtendedKeyManager> getKeyManager() {
@@ -488,23 +483,11 @@ public final class SSLFactory {
         }
 
         public Builder withSessionTimeout(int timeoutInSeconds) {
-            if (timeoutInSeconds < 0) {
-                throw new IllegalArgumentException(String.format(
-                        "Unsupported timeout has been provided. Timeout should be equal or greater than [%d], but received [%d]",
-                        0, timeoutInSeconds));
-            }
-
             this.sessionTimeoutInSeconds = timeoutInSeconds;
             return this;
         }
 
         public Builder withSessionCacheSize(int cacheSizeInBytes) {
-            if (cacheSizeInBytes < 0) {
-                throw new IllegalArgumentException(String.format(
-                        "Unsupported cache size has been provided. Cache size should be equal or greater than [%d], but received [%d]",
-                        0, cacheSizeInBytes));
-            }
-
             this.sessionCacheSizeInBytes = cacheSizeInBytes;
             return this;
         }
@@ -557,13 +540,11 @@ public final class SSLFactory {
             );
 
             if (sessionTimeoutInSeconds >= 0) {
-                sslContext.getClientSessionContext().setSessionTimeout(sessionTimeoutInSeconds);
-                sslContext.getServerSessionContext().setSessionTimeout(sessionTimeoutInSeconds);
+                SSLSessionUtils.updateSessionTimeout(sslContext, sessionTimeoutInSeconds);
             }
 
             if (sessionCacheSizeInBytes >= 0) {
-                sslContext.getClientSessionContext().setSessionCacheSize(sessionCacheSizeInBytes);
-                sslContext.getServerSessionContext().setSessionCacheSize(sessionCacheSizeInBytes);
+                SSLSessionUtils.updateSessionCacheSize(sslContext, sessionCacheSizeInBytes);
             }
 
             SSLParameters baseSslParameters = SSLParametersUtils.merge(sslParameters, sslContext.getDefaultSSLParameters());
