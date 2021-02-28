@@ -35,11 +35,28 @@ public final class SSLSessionUtils {
     private SSLSessionUtils() {}
 
     public static void invalidateCaches(SSLFactory sslFactory) {
-        invalidateCaches(sslFactory.getSslContext());
+        invalidateServerCaches(sslFactory);
+        invalidateClientCaches(sslFactory);
+    }
+
+    public static void invalidateServerCaches(SSLFactory sslFactory) {
+        invalidateServerCaches(sslFactory.getSslContext());
+    }
+
+    public static void invalidateClientCaches(SSLFactory sslFactory) {
+        invalidateClientCaches(sslFactory.getSslContext());
     }
 
     public static void invalidateCaches(SSLContext sslContext) {
+        invalidateServerCaches(sslContext);
+        invalidateClientCaches(sslContext);
+    }
+
+    public static void invalidateServerCaches(SSLContext sslContext) {
         invalidateCaches(sslContext.getServerSessionContext());
+    }
+
+    public static void invalidateClientCaches(SSLContext sslContext) {
         invalidateCaches(sslContext.getClientSessionContext());
     }
 

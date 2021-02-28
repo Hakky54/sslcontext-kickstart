@@ -41,7 +41,7 @@ import static org.mockito.Mockito.when;
 class SSLSessionUtilsShould {
 
     @Test
-    void invalidateCaches() {
+    void invalidateCachesWithSslFactory() {
         SSLFactory sslFactory = mock(SSLFactory.class);
         SSLContext sslContext = mock(SSLContext.class);
         SSLSessionContext clientSessionContext = mock(SSLSessionContext.class);
@@ -60,6 +60,31 @@ class SSLSessionUtilsShould {
         when(clientSessionContext.getSession(any())).thenReturn(clientSession);
 
         SSLSessionUtils.invalidateCaches(sslFactory);
+
+        verify(serverSession, times(1)).invalidate();
+        verify(clientSession, times(1)).invalidate();
+    }
+
+    @Test
+    void invalidateCachesWithSslContext() {
+        SSLFactory sslFactory = mock(SSLFactory.class);
+        SSLContext sslContext = mock(SSLContext.class);
+        SSLSessionContext clientSessionContext = mock(SSLSessionContext.class);
+        SSLSessionContext serverSessionContext = mock(SSLSessionContext.class);
+        SSLSession clientSession = mock(SSLSession.class);
+        SSLSession serverSession = mock(SSLSession.class);
+
+        when(sslFactory.getSslContext()).thenReturn(sslContext);
+        when(sslContext.getServerSessionContext()).thenReturn(serverSessionContext);
+        when(sslContext.getClientSessionContext()).thenReturn(clientSessionContext);
+
+        when(serverSessionContext.getIds()).thenReturn(Collections.enumeration(Collections.singletonList(new byte[]{1})));
+        when(serverSessionContext.getSession(any())).thenReturn(serverSession);
+
+        when(clientSessionContext.getIds()).thenReturn(Collections.enumeration(Collections.singletonList(new byte[]{1})));
+        when(clientSessionContext.getSession(any())).thenReturn(clientSession);
+
+        SSLSessionUtils.invalidateCaches(sslFactory.getSslContext());
 
         verify(serverSession, times(1)).invalidate();
         verify(clientSession, times(1)).invalidate();

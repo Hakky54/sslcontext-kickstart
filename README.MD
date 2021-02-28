@@ -91,8 +91,9 @@ The library also provides other utilities such as:
 - [KeyManagerUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/KeyManagerUtils.java)
 - [TrustManagerUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/TrustManagerUtils.java)
 - [PemUtils](sslcontext-kickstart-for-pem/src/main/java/nl/altindag/ssl/util/PemUtils.java)
-- [SocketUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/SocketUtils.java)
 - [SSLContextUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/SSLContextUtils.java)
+- [SSLSessionUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/SSLSessionUtils.java)
+- [SSLSocketUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/SSLSocketUtils.java)
 
 See the [javadoc](https://sslcontext-kickstart.com/apidocs/index.html) for all the options.
 
@@ -386,9 +387,12 @@ X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial("certificate.p
 SSLFactory sslFactory = SSLFactory.builder()
           .withIdentityMaterial("identity.jks", "password".toCharArray())
           .withTrustMaterial("truststore.jks", "password".toCharArray())
-          .withSessionTimeout(1) // Amount of seconds untill it will be invalidated
+          .withSessionTimeout(3600) // Amount of seconds untill it will be invalidated
           .withSessionCacheSize(1024) // Amount of bytes untill it will be invalidated
           .build();
+          
+// Caches can be cleared with the snippet below
+SSLSessionUtils.invalidateCaches(sslFactory.getSslContext());
 ```
 ##### Migrating from classic configuration
 Below is an example of the classic configuration for enabling ssl for your application.
