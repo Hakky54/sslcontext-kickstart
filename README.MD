@@ -391,7 +391,7 @@ SSLFactory sslFactory = SSLFactory.builder()
           .withSessionCacheSize(1024) // Amount of bytes untill it will be invalidated
           .build();
           
-// Caches can be cleared with the snippet below
+// Caches can be invalidated with the snippet below
 SSLSessionUtils.invalidateCaches(sslFactory.getSslContext());
 ```
 ##### Migrating from classic configuration
