@@ -3,6 +3,11 @@
 This list is not intended to be all-encompassing - it will document major and breaking API 
 changes with their rationale when appropriate:
 
+### v6.4.0
+- Update client identity routes at runtime
+- Performance improvements such as Lazy creation of some SSL materials
+- Added SSLSessionUtils
+- Marked SocketUtils as deprecated, alternative is SSLSocketUtils
 ### v6.3.0
 - Added a toggle to hot swap identity material within the SSLFactory
 - Added a toggle to hot swap trust material within the SSLFactory
