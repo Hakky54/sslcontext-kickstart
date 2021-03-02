@@ -52,16 +52,16 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "6.4.0"
      - [Using custom KeyManager and TrustManager](#support-for-using-x509extendedkeymanager-and-x509extendedtrustmanager)
      - [Hot swap KeyManager and TrustManager at runtime](#support-for-swapping-keymanager-and-trustmanager-at-runtime)
      - [Using KeyStore with multiple keys having different passwords](#support-for-using-a-single-keystore-which-contains-multiple-keys-with-different-passwords)
+     - [Using custom PrivateKey and Certificates](#support-for-using-privatekey-and-certificates)
      - [Routing client identity to specific host](#routing-identity-material-to-specific-host) 
      - [Updating client identity routes at runtime](#updating-client-identity-routes-at-runtime) 
-     - [Using custom PrivateKey and Certificates](#support-for-using-privatekey-and-certificates)
-     - [Using PEM Files](#using-pem-files)
-       - [Loading pem files from the classpath](#loading-pem-files-from-the-classpath)
-       - [Loading pem files from the file system](#loading-pem-files-from-anywhere-on-the-filesystem)
-       - [Loading pem files from InputStream](#loading-pem-files-from-inputstream)
-       - [Loading pem files from string content](#loading-pem-files-from-string-content)
-       - [Loading encrypted pem files](#loading-encrypted-pem-files)
      - [Caching ssl session](#caching-ssl-session)
+     - [Using PEM Files](#using-pem-files)
+         - [Loading pem files from the classpath](#loading-pem-files-from-the-classpath)
+         - [Loading pem files from the file system](#loading-pem-files-from-anywhere-on-the-filesystem)
+         - [Loading pem files from InputStream](#loading-pem-files-from-inputstream)
+         - [Loading pem files from string content](#loading-pem-files-from-string-content)
+         - [Loading encrypted pem files](#loading-encrypted-pem-files)
      - [Migrating from classic configuration](#migrating-from-classic-configuration)
    - [Returnable values from the SSLFactory](#returnable-values-from-the-sslfactory)
 3. [Additional mappers for specific libraries](#additional-mappers-for-specific-libraries)
@@ -280,6 +280,19 @@ SSLFactory.builder()
           .withDefaultTrustMaterial()
           .build();
 ```
+##### Support for using PrivateKey and Certificates
+```text
+PrivateKey privateKey = ...
+char[] privateKeyPassword = ...
+Certificate[] certificateChain = ...
+
+Certificate trustedCertificate = ...
+
+SSLFactory.builder()
+          .withIdentityMaterial(privateKey, privateKeyPassword, certificateChain)
+          .withTrustMaterial(trustedCertificate)
+          .build();
+```
 ##### Routing identity material to specific host
 It may occur that the client is sending the wrong certificate to the server when using multiple identities. This will happen when the client certificate has insufficient information for the underlying ssl engine (the KeyManager) and therefore it cannot select the right certificate.
 Recreating the certificates can resolve this issue. However, if that is not possible you can provide an option to the engine to use a specific certificate for a given server. Below is an example setup for correctly routing the client identity based on the alias which can be found within the KeyStore file.
@@ -309,21 +322,22 @@ KeyManagerUtils.addClientIdentityRoute(keyManager, "client-alias-one", "https://
 
 // Override existing routes
 KeyManagerUtils.overrideClientIdentityRoute(keyManager, "client-alias-two", "https://localhost:9463/", "https://localhost:9473/")
+
+// Cleanup old ssl sessions by invalidating them all. Forces to use new ssl sessions which will be created by the swapped KeyManager/TrustManager
+SSLSessionUtils.invalidateCaches(sslFactory.getSslContext());
 ```
-##### Support for using PrivateKey and Certificates
+##### Caching ssl session
 ```text
-PrivateKey privateKey = ...
-char[] privateKeyPassword = ...
-Certificate[] certificateChain = ...
-
-Certificate trustedCertificate = ...
-
-SSLFactory.builder()
-          .withIdentityMaterial(privateKey, privateKeyPassword, certificateChain)
-          .withTrustMaterial(trustedCertificate)
+SSLFactory sslFactory = SSLFactory.builder()
+          .withIdentityMaterial("identity.jks", "password".toCharArray())
+          .withTrustMaterial("truststore.jks", "password".toCharArray())
+          .withSessionTimeout(3600) // Amount of seconds untill it will be invalidated
+          .withSessionCacheSize(1024) // Amount of bytes untill it will be invalidated
           .build();
+          
+// Caches can be invalidated with the snippet below
+SSLSessionUtils.invalidateCaches(sslFactory.getSslContext());
 ```
-
 #### Using PEM Files
 Support for using pem formatted private key and certificates from classpath, any directory or as an InputStream. See [PemUtilsShould](sslcontext-kickstart-for-pem/src/test/java/nl/altindag/ssl/util/PemUtilsShould.java) for detailed usages.
 Add the dependency below to use this feature, it also includes the core features from the library such as SSLFactory.
@@ -381,18 +395,6 @@ X509ExtendedTrustManager trustManager = PemUtils.parseTrustMaterial(trustedCerti
 ##### Loading encrypted pem files
 ```
 X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial("certificate.pem", "private-key.pem", "secret".toCharArray());
-```
-##### Caching ssl session
-```
-SSLFactory sslFactory = SSLFactory.builder()
-          .withIdentityMaterial("identity.jks", "password".toCharArray())
-          .withTrustMaterial("truststore.jks", "password".toCharArray())
-          .withSessionTimeout(3600) // Amount of seconds untill it will be invalidated
-          .withSessionCacheSize(1024) // Amount of bytes untill it will be invalidated
-          .build();
-          
-// Caches can be invalidated with the snippet below
-SSLSessionUtils.invalidateCaches(sslFactory.getSslContext());
 ```
 ##### Migrating from classic configuration
 Below is an example of the classic configuration for enabling ssl for your application.
