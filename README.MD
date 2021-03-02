@@ -55,7 +55,7 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "6.4.0"
      - [Using custom PrivateKey and Certificates](#support-for-using-privatekey-and-certificates)
      - [Routing client identity to specific host](#routing-identity-material-to-specific-host) 
      - [Updating client identity routes at runtime](#updating-client-identity-routes-at-runtime) 
-     - [Caching ssl session](#caching-ssl-session)
+     - [Managing ssl session](#managing-ssl-session)
      - [Using PEM Files](#using-pem-files)
          - [Loading pem files from the classpath](#loading-pem-files-from-the-classpath)
          - [Loading pem files from the file system](#loading-pem-files-from-anywhere-on-the-filesystem)
@@ -327,7 +327,7 @@ KeyManagerUtils.addClientIdentityRoute(keyManager, "client-alias-one", "https://
 // Override existing routes
 KeyManagerUtils.overrideClientIdentityRoute(keyManager, "client-alias-two", "https://localhost:9463/", "https://localhost:9473/")
 ```
-##### Caching ssl session
+##### Managing ssl session
 ```text
 SSLFactory sslFactory = SSLFactory.builder()
           .withIdentityMaterial("identity.jks", "password".toCharArray())
@@ -338,6 +338,17 @@ SSLFactory sslFactory = SSLFactory.builder()
           
 // Caches can be invalidated with the snippet below
 SSLSessionUtils.invalidateCaches(sslFactory.getSslContext());
+
+// or any other option:
+SSLSessionUtils.invalidateCachesBefore(sslFactory.getSslContext(), ZonedDateTime.of(LocalDateTime.of(2021, Month.JANUARY, 1, 15, 55), ZoneOffset.UTC));
+
+SSLSessionUtils.invalidateCachesAfter(sslFactory.getSslContext(), ZonedDateTime.of(LocalDateTime.of(2021, Month.FEBRUARY, 10, 8, 14), ZoneOffset.UTC));
+
+SSLSessionUtils.invalidateCachesBetween(
+        sslFactory.getSslContext(),
+        ZonedDateTime.of(LocalDateTime.of(2021, Month.JANUARY, 1, 15, 55), ZoneOffset.UTC),
+        ZonedDateTime.of(LocalDateTime.of(2021, Month.FEBRUARY, 10, 8, 14), ZoneOffset.UTC)
+);
 ```
 #### Using PEM Files
 Support for using pem formatted private key and certificates from classpath, any directory or as an InputStream. See [PemUtilsShould](sslcontext-kickstart-for-pem/src/test/java/nl/altindag/ssl/util/PemUtilsShould.java) for detailed usages.
