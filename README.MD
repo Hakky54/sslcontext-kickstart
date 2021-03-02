@@ -262,6 +262,10 @@ HttpResponse<String> response = httpClient.send(aRequest, HttpResponse.BodyHandl
 // swap identity and trust materials and reuse existing http client
 KeyManagerUtils.swapKeyManager(sslFactory.getKeyManager().get(), anotherKeyManager);
 TrustManagerUtils.swapTrustManager(sslFactory.getTrustManager().get(), anotherTrustManager);
+
+// Cleanup old ssl sessions by invalidating them all. Forces to use new ssl sessions which will be created by the swapped KeyManager/TrustManager
+SSLSessionUtils.invalidateCaches(sslFactory.getSslContext());
+
 HttpResponse<String> response = httpClient.send(aRequest, HttpResponse.BodyHandlers.ofString());
 ```
 See here for a basic reference implementation for a server: [GitHub - Instant SSL Reloading](https://github.com/Hakky54/instant-ssl-reloading)
@@ -322,9 +326,6 @@ KeyManagerUtils.addClientIdentityRoute(keyManager, "client-alias-one", "https://
 
 // Override existing routes
 KeyManagerUtils.overrideClientIdentityRoute(keyManager, "client-alias-two", "https://localhost:9463/", "https://localhost:9473/")
-
-// Cleanup old ssl sessions by invalidating them all. Forces to use new ssl sessions which will be created by the swapped KeyManager/TrustManager
-SSLSessionUtils.invalidateCaches(sslFactory.getSslContext());
 ```
 ##### Caching ssl session
 ```text
