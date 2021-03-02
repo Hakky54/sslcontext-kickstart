@@ -346,8 +346,8 @@ SSLSessionUtils.invalidateCachesAfter(sslFactory.getSslContext(), ZonedDateTime.
 
 SSLSessionUtils.invalidateCachesBetween(
         sslFactory.getSslContext(),
-        ZonedDateTime.of(LocalDateTime.of(2021, Month.JANUARY, 1, 15, 55), ZoneOffset.UTC),
-        ZonedDateTime.of(LocalDateTime.of(2021, Month.FEBRUARY, 10, 8, 14), ZoneOffset.UTC)
+        ZonedDateTime.now().minusHours(2),    // from
+        ZonedDateTime.now()                   // up till
 );
 ```
 #### Using PEM Files
