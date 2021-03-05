@@ -268,7 +268,7 @@ SSLSessionUtils.invalidateCaches(sslFactory.getSslContext());
 
 HttpResponse<String> response = httpClient.send(aRequest, HttpResponse.BodyHandlers.ofString());
 ```
-See here for a basic reference implementation for a server: [GitHub - Instant SSL Reloading](https://github.com/Hakky54/instant-ssl-reloading)
+See here for a basic reference implementation for a server: [GitHub - Instant SSL Reloading](https://github.com/Hakky54/java-tutorials/tree/main/instant-server-ssl-reloading)
 
 ##### Support for using a single KeyStore which contains multiple keys with different passwords
 ```text
