@@ -133,6 +133,9 @@ public final class PemUtils {
                 object = pemParser.readObject();
             }
 
+            pemParser.close();
+            stringReader.close();
+
             if (certificates.isEmpty()) {
                 throw new CertificateParseException("Received an unsupported certificate type");
             }
