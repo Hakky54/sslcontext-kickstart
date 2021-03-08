@@ -24,7 +24,10 @@ import javax.net.ssl.SSLSessionContext;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.function.Predicate;
 
 /**
@@ -157,6 +160,34 @@ public final class SSLSessionUtils {
                     "Unsupported cache size has been provided. Cache size should be equal or greater than [%d], but received [%d]",
                     0, cacheSizeInBytes));
         }
+    }
+
+    public static List<SSLSession> getServerSslSessions(SSLFactory sslFactory) {
+        return getServerSslSessions(sslFactory.getSslContext());
+    }
+
+    public static List<SSLSession> getServerSslSessions(SSLContext sslContext) {
+        return getSslSessions(sslContext.getServerSessionContext());
+    }
+
+    public static List<SSLSession> getClientSslSessions(SSLFactory sslFactory) {
+        return getClientSslSessions(sslFactory.getSslContext());
+    }
+
+    public static List<SSLSession> getClientSslSessions(SSLContext sslContext) {
+        return getSslSessions(sslContext.getClientSessionContext());
+    }
+
+    public static List<SSLSession> getSslSessions(SSLSessionContext sslSessionContext) {
+        List<SSLSession> sslSessions = new ArrayList<>();
+
+        Enumeration<byte[]> ids = sslSessionContext.getIds();
+        while (ids.hasMoreElements()) {
+            SSLSession sslSession = sslSessionContext.getSession(ids.nextElement());
+            sslSessions.add(sslSession);
+        }
+
+        return Collections.unmodifiableList(sslSessions);
     }
 
 }

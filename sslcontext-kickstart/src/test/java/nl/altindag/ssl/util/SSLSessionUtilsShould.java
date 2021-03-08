@@ -26,7 +26,9 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSessionContext;
 import java.time.ZonedDateTime;
 import java.util.Collections;
+import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -257,6 +259,42 @@ class SSLSessionUtilsShould {
 
         verify(serverSessionContext, times(1)).setSessionCacheSize(1024);
         verify(clientSessionContext, times(1)).setSessionCacheSize(1024);
+    }
+
+    @Test
+    void getServerSslSessions() {
+        SSLFactory sslFactory = mock(SSLFactory.class);
+        SSLContext sslContext = mock(SSLContext.class);
+        SSLSessionContext serverSessionContext = mock(SSLSessionContext.class);
+        SSLSession serverSession = mock(SSLSession.class);
+
+        when(sslFactory.getSslContext()).thenReturn(sslContext);
+        when(sslContext.getServerSessionContext()).thenReturn(serverSessionContext);
+
+        when(serverSessionContext.getIds()).thenReturn(Collections.enumeration(Collections.singletonList(new byte[]{1})));
+        when(serverSessionContext.getSession(any())).thenReturn(serverSession);
+
+        List<SSLSession> serverSslSessions = SSLSessionUtils.getServerSslSessions(sslFactory);
+
+        assertThat(serverSslSessions).hasSize(1);
+    }
+
+    @Test
+    void getClientSslSessions() {
+        SSLFactory sslFactory = mock(SSLFactory.class);
+        SSLContext sslContext = mock(SSLContext.class);
+        SSLSessionContext clientSessionContext = mock(SSLSessionContext.class);
+        SSLSession clientSession = mock(SSLSession.class);
+
+        when(sslFactory.getSslContext()).thenReturn(sslContext);
+        when(sslContext.getClientSessionContext()).thenReturn(clientSessionContext);
+
+        when(clientSessionContext.getIds()).thenReturn(Collections.enumeration(Collections.singletonList(new byte[]{1})));
+        when(clientSessionContext.getSession(any())).thenReturn(clientSession);
+
+        List<SSLSession> clientSslSessions = SSLSessionUtils.getClientSslSessions(sslFactory);
+
+        assertThat(clientSslSessions).hasSize(1);
     }
 
     @Test
