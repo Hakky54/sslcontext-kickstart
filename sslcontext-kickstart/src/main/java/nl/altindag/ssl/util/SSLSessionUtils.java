@@ -24,11 +24,11 @@ import javax.net.ssl.SSLSessionContext;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * @author Hakan Altindag
@@ -179,15 +179,9 @@ public final class SSLSessionUtils {
     }
 
     public static List<SSLSession> getSslSessions(SSLSessionContext sslSessionContext) {
-        List<SSLSession> sslSessions = new ArrayList<>();
-
-        Enumeration<byte[]> ids = sslSessionContext.getIds();
-        while (ids.hasMoreElements()) {
-            SSLSession sslSession = sslSessionContext.getSession(ids.nextElement());
-            sslSessions.add(sslSession);
-        }
-
-        return Collections.unmodifiableList(sslSessions);
+        return Collections.list(sslSessionContext.getIds()).stream()
+                .map(sslSessionContext::getSession)
+                .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
     }
 
 }
