@@ -35,7 +35,7 @@ import static org.mockito.Mockito.verify;
  * @author Hakan Altindag
  */
 @ExtendWith(MockitoExtension.class)
-class SocketUtilsShould {
+class SSLSocketUtilsShould {
 
     @Test
     void createSslSocketFactory() throws NoSuchAlgorithmException {
@@ -48,7 +48,7 @@ class SocketUtilsShould {
 
         SSLSocketFactory socketFactory = SSLContext.getDefault().getSocketFactory();
 
-        SSLSocketFactory victim = SocketUtils.createSslSocketFactory(socketFactory, sslParameters);
+        SSLSocketFactory victim = SSLSocketUtils.createSslSocketFactory(socketFactory, sslParameters);
         String[] defaultCipherSuites = victim.getDefaultCipherSuites();
 
         assertThat(defaultCipherSuites).containsExactly("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384");
@@ -66,7 +66,7 @@ class SocketUtilsShould {
 
         SSLServerSocketFactory socketFactory = SSLContext.getDefault().getServerSocketFactory();
 
-        SSLServerSocketFactory victim = SocketUtils.createSslServerSocketFactory(socketFactory, sslParameters);
+        SSLServerSocketFactory victim = SSLSocketUtils.createSslServerSocketFactory(socketFactory, sslParameters);
         String[] defaultCipherSuites = victim.getDefaultCipherSuites();
 
         assertThat(defaultCipherSuites).containsExactly("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384");
