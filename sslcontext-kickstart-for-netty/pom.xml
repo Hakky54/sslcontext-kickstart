@@ -37,7 +37,7 @@
     </developers>
 
     <properties>
-        <version.netty-handler>4.1.59.Final</version.netty-handler>
+        <version.netty-handler>4.1.60.Final</version.netty-handler>
         <version.reactor-netty>1.0.4</version.reactor-netty>
         <version.sslcontext-kickstart>6.4.1-SNAPSHOT</version.sslcontext-kickstart>
     </properties>
@@ -115,6 +115,18 @@
                 <version>${version.netty-handler}</version>
                 <scope>test</scope>
             </dependency>
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-transport-native-unix-common</artifactId>
+                <version>${version.netty-handler}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-resolver-dns-native-macos</artifactId>
+                <version>${version.netty-handler}</version>
+                <scope>test</scope>
+            </dependency>
 
             <dependency>
                 <groupId>io.projectreactor.netty</groupId>
@@ -145,6 +157,14 @@
                     <exclusion>
                         <groupId>io.netty</groupId>
                         <artifactId>netty-codec-http2</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>io.netty</groupId>
+                        <artifactId>netty-transport-native-unix-common</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>io.netty</groupId>
+                        <artifactId>netty-resolver-dns-native-macos</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
