@@ -25,8 +25,8 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Collections;
-import java.util.Enumeration;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -64,10 +64,7 @@ public final class SSLSessionUtils {
     }
 
     public static void invalidateCaches(SSLSessionContext sslSessionContext) {
-        Enumeration<byte[]> sessionIds = sslSessionContext.getIds();
-        while (sessionIds.hasMoreElements()) {
-            sslSessionContext.getSession(sessionIds.nextElement()).invalidate();
-        }
+        SSLSessionUtils.getSslSessions(sslSessionContext).forEach(SSLSession::invalidate);
     }
 
     public static void invalidateCachesBefore(SSLFactory sslFactory, ZonedDateTime upperBoundary) {
@@ -113,15 +110,12 @@ public final class SSLSessionUtils {
     }
 
     private static void invalidateCachesWithTimeStamp(SSLSessionContext sslSessionContext, Predicate<ZonedDateTime> timeStampFilter) {
-        Enumeration<byte[]> sessionIds = sslSessionContext.getIds();
-        while (sessionIds.hasMoreElements()) {
-            SSLSession sslSession = sslSessionContext.getSession(sessionIds.nextElement());
-
-            ZonedDateTime sslSessionCreationTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(sslSession.getCreationTime()), ZoneOffset.UTC);
-            if (timeStampFilter.test(sslSessionCreationTime)) {
-                sslSession.invalidate();
-            }
-        }
+        SSLSessionUtils.getSslSessions(sslSessionContext).stream()
+                .filter(sslSession -> {
+                    ZonedDateTime sslSessionCreationTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(sslSession.getCreationTime()), ZoneOffset.UTC);
+                    return timeStampFilter.test(sslSessionCreationTime);
+                })
+                .forEach(SSLSession::invalidate);
     }
 
     public static void updateSessionTimeout(SSLFactory sslFactory, int timeoutInSeconds) {
@@ -181,6 +175,7 @@ public final class SSLSessionUtils {
     public static List<SSLSession> getSslSessions(SSLSessionContext sslSessionContext) {
         return Collections.list(sslSessionContext.getIds()).stream()
                 .map(sslSessionContext::getSession)
+                .filter(Objects::nonNull)
                 .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
     }
 
