@@ -115,6 +115,18 @@
                 <version>${version.netty-handler}</version>
                 <scope>test</scope>
             </dependency>
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-transport-native-unix-common</artifactId>
+                <version>${version.netty-handler}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-resolver-dns-native-macos</artifactId>
+                <version>${version.netty-handler}</version>
+                <scope>test</scope>
+            </dependency>
 
             <dependency>
                 <groupId>io.projectreactor.netty</groupId>
@@ -145,6 +157,14 @@
                     <exclusion>
                         <groupId>io.netty</groupId>
                         <artifactId>netty-codec-http2</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>io.netty</groupId>
+                        <artifactId>netty-transport-native-unix-common</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>io.netty</groupId>
+                        <artifactId>netty-resolver-dns-native-macos</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
