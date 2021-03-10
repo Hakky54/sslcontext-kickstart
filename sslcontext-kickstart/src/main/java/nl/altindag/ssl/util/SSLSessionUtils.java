@@ -109,11 +109,11 @@ public final class SSLSessionUtils {
         invalidateCachesWithTimeStamp(sslSessionContext, isAfterLowerBoundary.and(isBeforeUpperBoundary));
     }
 
-    private static void invalidateCachesWithTimeStamp(SSLSessionContext sslSessionContext, Predicate<ZonedDateTime> timeStampFilter) {
+    private static void invalidateCachesWithTimeStamp(SSLSessionContext sslSessionContext, Predicate<ZonedDateTime> timeStampPredicate) {
         SSLSessionUtils.getSslSessions(sslSessionContext).stream()
                 .filter(sslSession -> {
                     ZonedDateTime sslSessionCreationTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(sslSession.getCreationTime()), ZoneOffset.UTC);
-                    return timeStampFilter.test(sslSessionCreationTime);
+                    return timeStampPredicate.test(sslSessionCreationTime);
                 })
                 .forEach(SSLSession::invalidate);
     }
