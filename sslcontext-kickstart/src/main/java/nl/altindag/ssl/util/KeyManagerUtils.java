@@ -47,9 +47,6 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.collectingAndThen;
-import static java.util.stream.Collectors.toList;
-
 /**
  * @author Hakan Altindag
  */
@@ -74,7 +71,7 @@ public final class KeyManagerUtils {
     public static X509ExtendedKeyManager createKeyManager(KeyStoreHolder... keyStoreHolders) {
         return Arrays.stream(keyStoreHolders)
                 .map(keyStoreHolder -> createKeyManager(keyStoreHolder.getKeyStore(), keyStoreHolder.getKeyPassword()))
-                .collect(collectingAndThen(toList(), KeyManagerUtils::combine));
+                .collect(Collectors.collectingAndThen(Collectors.toList(), KeyManagerUtils::combine));
     }
 
     public static X509ExtendedKeyManager createKeyManager(KeyStore keyStore, char[] keyPassword) {
@@ -162,7 +159,7 @@ public final class KeyManagerUtils {
                 .filter(X509KeyManager.class::isInstance)
                 .map(X509KeyManager.class::cast)
                 .map(KeyManagerUtils::wrapIfNeeded)
-                .collect(collectingAndThen(toList(), KeyManagerUtils::combine));
+                .collect(Collectors.collectingAndThen(Collectors.toList(), KeyManagerUtils::combine));
     }
 
     /**
@@ -353,7 +350,10 @@ public final class KeyManagerUtils {
                 keyManager = keyManagers.stream()
                         .map(KeyManagerUtils::unwrapIfPossible)
                         .flatMap(Collection::stream)
-                        .collect(collectingAndThen(toList(), km -> new CompositeX509ExtendedKeyManager(km, clientAliasToHost)));
+                        .collect(Collectors.collectingAndThen(
+                                Collectors.toList(),
+                                extendedKeyManagers -> new CompositeX509ExtendedKeyManager(extendedKeyManagers, clientAliasToHost)
+                        ));
             }
 
             if (swappableKeyManagerEnabled) {

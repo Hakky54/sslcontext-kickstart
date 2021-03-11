@@ -38,9 +38,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-
-import static java.util.stream.Collectors.collectingAndThen;
-import static java.util.stream.Collectors.toList;
+import java.util.stream.Collectors;
 
 /**
  * @author Hakan Altindag
@@ -81,13 +79,13 @@ public final class TrustManagerUtils {
         return Arrays.stream(trustStoreHolders)
                 .map(KeyStoreHolder::getKeyStore)
                 .map(TrustManagerUtils::createTrustManager)
-                .collect(collectingAndThen(toList(), TrustManagerUtils::combine));
+                .collect(Collectors.collectingAndThen(Collectors.toList(), TrustManagerUtils::combine));
     }
 
     public static X509ExtendedTrustManager createTrustManager(KeyStore... trustStores) {
         return Arrays.stream(trustStores)
                 .map(TrustManagerUtils::createTrustManager)
-                .collect(collectingAndThen(toList(), TrustManagerUtils::combine));
+                .collect(Collectors.collectingAndThen(Collectors.toList(), TrustManagerUtils::combine));
     }
 
     public static X509ExtendedTrustManager createTrustManager(KeyStore trustStore) {
@@ -151,7 +149,7 @@ public final class TrustManagerUtils {
                 .filter(X509TrustManager.class::isInstance)
                 .map(X509TrustManager.class::cast)
                 .map(TrustManagerUtils::wrapIfNeeded)
-                .collect(collectingAndThen(toList(), TrustManagerUtils::combine));
+                .collect(Collectors.collectingAndThen(Collectors.toList(), TrustManagerUtils::combine));
     }
 
     /**
@@ -273,7 +271,7 @@ public final class TrustManagerUtils {
                 trustManager = trustManagers.stream()
                         .map(TrustManagerUtils::unwrapIfPossible)
                         .flatMap(Collection::stream)
-                        .collect(collectingAndThen(toList(), CompositeX509ExtendedTrustManager::new));
+                        .collect(Collectors.collectingAndThen(Collectors.toList(), CompositeX509ExtendedTrustManager::new));
             }
 
             if (swappableTrustManagerEnabled) {
