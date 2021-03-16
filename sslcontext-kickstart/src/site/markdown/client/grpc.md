@@ -15,8 +15,8 @@ public class App {
 
     public static void main(String[] args) throws IOException {
         SSLFactory sslFactory = SSLFactory.builder()
-                .withIdentityMaterial("server/identity.jks", "secret".toCharArray())
-                .withTrustMaterial("server/truststore.jks", "secret".toCharArray())
+                .withIdentityMaterial("identity.jks", "secret".toCharArray())
+                .withTrustMaterial("truststore.jks", "secret".toCharArray())
                 .withNeedClientAuthentication()
                 .build();
 
