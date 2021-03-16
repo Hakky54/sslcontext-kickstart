@@ -135,7 +135,47 @@ SSLFactory.builder()
           .withClientIdentityRoute("client-alias-two", "https://localhost:8463/", "https://localhost:8473/")
           .build();
 ```
+##### Updating client identity routes at runtime
+```text
+SSLFactory sslFactory = SSLFactory.builder()
+          .withIdentityMaterial("identity-1.jks", password)
+          .withIdentityMaterial("identity-2.jks", password)
+          .withTrustMaterial("truststore.jks", password)
+          .withClientIdentityRoute("client-alias-one", "https://localhost:8443/", "https://localhost:8453/")
+          .withClientIdentityRoute("client-alias-two", "https://localhost:8463/", "https://localhost:8473/")
+          .build();
 
+X509ExtendedKeyManager keyManager = sslFactory.getKeyManager().get()
+
+// Add additional routes next to the existing ones
+KeyManagerUtils.addClientIdentityRoute(keyManager, "client-alias-one", "https://localhost:8463/", "https://localhost:8473/")
+
+// Override existing routes
+KeyManagerUtils.overrideClientIdentityRoute(keyManager, "client-alias-two", "https://localhost:9463/", "https://localhost:9473/")
+```
+##### Managing ssl session
+```text
+SSLFactory sslFactory = SSLFactory.builder()
+          .withIdentityMaterial("identity.jks", "password".toCharArray())
+          .withTrustMaterial("truststore.jks", "password".toCharArray())
+          .withSessionTimeout(3600) // Amount of seconds untill it will be invalidated
+          .withSessionCacheSize(1024) // Amount of bytes untill it will be invalidated
+          .build();
+          
+// Caches can be invalidated with the snippet below
+SSLSessionUtils.invalidateCaches(sslFactory.getSslContext());
+
+// or any other option:
+SSLSessionUtils.invalidateCachesBefore(sslFactory.getSslContext(), ZonedDateTime.of(LocalDateTime.of(2021, Month.JANUARY, 1, 15, 55), ZoneOffset.UTC));
+
+SSLSessionUtils.invalidateCachesAfter(sslFactory.getSslContext(), ZonedDateTime.of(LocalDateTime.of(2021, Month.FEBRUARY, 10, 8, 14), ZoneOffset.UTC));
+
+SSLSessionUtils.invalidateCachesBetween(
+        sslFactory.getSslContext(),
+        ZonedDateTime.now().minusHours(2),    // from
+        ZonedDateTime.now()                   // up till
+);
+```
 ##### Support for using PrivateKey and Certificates
 ```text
 PrivateKey privateKey = ...
@@ -222,7 +262,7 @@ Below is an example of the classic configuration for enabling ssl for your appli
 ```
 
 This can be refactored to the configuration below:
-```java
+```
 SSLFactory sslFactory = SSLFactory.builder()
         .withIdentityMaterial(Paths.get("/path/to/keystore.jks"), "changeit".toCharArray(), "jks")
         .withTrustMaterial(Paths.get("/path/to/truststore.jks"), "changeit".toCharArray(), "jks")
@@ -258,7 +298,7 @@ public class App {
     
     public static void main(String[] args) throws SSLException {
         SSLFactory sslFactory = SSLFactory.builder()
-                .withDefaultJdkTrustStore()
+                .withDefaultTrustMaterial()
                 .build();
 
         SslContext sslContext = NettySslUtils.forClient(sslFactory).build();
@@ -293,7 +333,7 @@ public class App {
 
     public static void main(String[] args) {
         SSLFactory sslFactory = SSLFactory.builder()
-                .withDefaultJdkTrustStore()
+                .withDefaultTrustMaterial()
                 .build();
         
         SslContextFactory.Client sslContextFactory = JettySslUtils.forClient(sslFactory);
@@ -327,7 +367,7 @@ public class App {
 
     public static void main(String[] args) {
         SSLFactory sslFactory = SSLFactory.builder()
-                .withDefaultJdkTrustStore()
+                .withDefaultTrustMaterial()
                 .build();
 
         LayeredConnectionSocketFactory socketFactory = Apache4SslUtils.toSocketFactory(sslFactory);

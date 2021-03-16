@@ -24,6 +24,7 @@
             <item name="Dispatch Reboot" href="client/dispatch-reboot.html"/>
             <item name="Feign" href="client/feign.html"/>
             <item name="Fuel" href="client/fuel.html"/>
+            <item name="gRPC" href="client/grpc.html"/>
             <item name="Google HttpClient" href="client/google.html"/>
             <item name="Http4k with Apache HttpClient 4" href="client/http4k-apache4.html"/>
             <item name="Http4k with Apache Async HttpClient 4" href="client/http4k-apache4-async.html"/>
