@@ -165,6 +165,9 @@ public final class KeyManagerUtils {
     /**
      * Wraps the given KeyManager into an instance of a Hot Swappable KeyManager
      * This type of KeyManager has the capability of swapping in and out different KeyManagers at runtime.
+     *
+     * @param keyManager    To be wrapped KeyManager
+     * @return              Swappable KeyManager
      */
     public static X509ExtendedKeyManager createSwappableKeyManager(X509KeyManager keyManager) {
         return new HotSwappableX509ExtendedKeyManager(KeyManagerUtils.wrapIfNeeded(keyManager));
@@ -175,9 +178,9 @@ public final class KeyManagerUtils {
      * The baseKeyManager should be an instance of {@link HotSwappableX509ExtendedKeyManager}
      * and can be created with {@link KeyManagerUtils#createSwappableKeyManager(X509KeyManager)}
      *
-     * @param baseKeyManager an instance of {@link HotSwappableX509ExtendedKeyManager}
-     * @param newKeyManager     to be injected instance of a TrustManager
-     * @throws GenericKeyManagerException if {@code baseKeyManager} is not instance of {@link HotSwappableX509ExtendedKeyManager}
+     * @param baseKeyManager                an instance of {@link HotSwappableX509ExtendedKeyManager}
+     * @param newKeyManager                 to be injected instance of a TrustManager
+     * @throws GenericKeyManagerException   if {@code baseKeyManager} is not instance of {@link HotSwappableX509ExtendedKeyManager}
      */
     public static void swapKeyManager(X509KeyManager baseKeyManager, X509KeyManager newKeyManager) {
         if (newKeyManager instanceof HotSwappableX509ExtendedKeyManager) {

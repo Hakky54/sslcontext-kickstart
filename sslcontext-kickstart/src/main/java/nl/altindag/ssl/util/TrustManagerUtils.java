@@ -155,6 +155,9 @@ public final class TrustManagerUtils {
     /**
      * Wraps the given TrustManager into an instance of a Hot Swappable TrustManager.
      * This type of TrustManager has the capability of swapping in and out different TrustManagers at runtime.
+     *
+     * @param trustManager  To be wrapped TrustManager
+     * @return              Swappable TrustManager
      */
     public static X509ExtendedTrustManager createSwappableTrustManager(X509TrustManager trustManager) {
         return new HotSwappableX509ExtendedTrustManager(TrustManagerUtils.wrapIfNeeded(trustManager));
@@ -165,8 +168,8 @@ public final class TrustManagerUtils {
      * The baseTrustManager should be an instance of {@link HotSwappableX509ExtendedTrustManager}
      * and can be created with {@link TrustManagerUtils#createSwappableTrustManager(X509TrustManager)}
      *
-     * @param baseTrustManager an instance of {@link HotSwappableX509ExtendedTrustManager}
-     * @param newTrustManager  to be injected instance of a TrustManager
+     * @param baseTrustManager              an instance of {@link HotSwappableX509ExtendedTrustManager}
+     * @param newTrustManager               to be injected instance of a TrustManager
      * @throws GenericTrustManagerException if {@code baseTrustManager} is not instance of {@link HotSwappableX509ExtendedTrustManager}
      */
     public static void swapTrustManager(X509TrustManager baseTrustManager, X509TrustManager newTrustManager) {

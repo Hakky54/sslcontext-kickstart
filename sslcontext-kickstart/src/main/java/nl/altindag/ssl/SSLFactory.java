@@ -206,6 +206,8 @@ public final class SSLFactory {
          * Enables the possibility to swap the underlying TrustManager at runtime.
          * After this option has been enabled the TrustManager can be swapped
          * with {@link TrustManagerUtils#swapTrustManager(X509TrustManager, X509TrustManager) TrustManagerUtils#swapTrustManager(swappableTrustManager, newTrustManager)}
+         *
+         * @return {@link Builder}
          */
         public Builder withSwappableTrustMaterial() {
             swappableTrustManagerEnabled = true;
@@ -396,6 +398,8 @@ public final class SSLFactory {
          * Enables the possibility to swap the underlying KeyManager at runtime.
          * After this option has been enabled the KeyManager can be swapped
          * with {@link KeyManagerUtils#swapKeyManager(X509KeyManager, X509KeyManager) KeyManagerUtils#swapKeyManager(swappableKeyManager, newKeyManager)}
+         *
+         * @return {@link Builder}
          */
         public Builder withSwappableIdentityMaterial() {
             swappableKeyManagerEnabled = true;
