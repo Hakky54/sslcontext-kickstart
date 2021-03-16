@@ -14,7 +14,8 @@ The library also provides other utilities such as:
 * [KeyManagerUtils](https://github.com/Hakky54/sslcontext-kickstart/blob/master/sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/KeyManagerUtils.java)
 * [TrustManagerUtils](https://github.com/Hakky54/sslcontext-kickstart/blob/master/sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/TrustManagerUtils.java)
 * [PemUtils](https://github.com/Hakky54/sslcontext-kickstart/blob/master/sslcontext-kickstart-for-pem/src/main/java/nl/altindag/ssl/util/PemUtils.java)
-* [SocketUtils](https://github.com/Hakky54/sslcontext-kickstart/blob/master/sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/SocketUtils.java)
+* [SSLSessionUtils](https://github.com/Hakky54/sslcontext-kickstart/blob/master/sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/SSLSessionUtils.java)
+* [SSLSocketUtils](https://github.com/Hakky54/sslcontext-kickstart/blob/master/sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/SSLSocketUtils.java)
 * [SSLContextUtils](https://github.com/Hakky54/sslcontext-kickstart/blob/master/sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/SSLContextUtils.java)
 
 See the [javadoc](https://sslcontext-kickstart.com/apidocs/index.html) for all the options.
