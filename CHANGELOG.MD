@@ -3,6 +3,11 @@
 This list is not intended to be all-encompassing - it will document major and breaking API 
 changes with their rationale when appropriate:
 
+### v6.5.0
+- Removed deprecated class and methods for SocketUtils
+- Added null check for ssl sessions
+- Fixed javadoc warnings
+- Added close statements for streams within PemUtils
 ### v6.4.0
 - Update client identity routes at runtime
 - Performance improvements such as Lazy creation of some SSL materials
