@@ -53,10 +53,13 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Reads PEM formatted private keys and certificates
@@ -147,11 +150,10 @@ public final class PemUtils {
     }
 
     public static X509ExtendedTrustManager parseTrustMaterial(String... certificateContents) {
-        List<X509Certificate> certificates = new ArrayList<>();
-        for (String certificateContent : certificateContents) {
-            certificates.addAll(PemUtils.parseCertificate(certificateContent));
-        }
-        return mapTrustMaterial(certificates);
+        return Arrays.stream(certificateContents)
+                .map(PemUtils::parseCertificate)
+                .flatMap(Collection::stream)
+                .collect(Collectors.collectingAndThen(Collectors.toList(), PemUtils::mapTrustMaterial));
     }
 
     private static X509ExtendedTrustManager mapTrustMaterial(List<X509Certificate> certificates) {
