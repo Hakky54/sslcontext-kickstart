@@ -65,12 +65,12 @@ public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustMa
     private static final String CLIENT_CERTIFICATE_LOG_MESSAGE = "Received the following client certificate: [{}]";
     private static final String SERVER_CERTIFICATE_LOG_MESSAGE = "Received the following server certificate: [{}]";
 
-    private final List<? extends X509ExtendedTrustManager> trustManagers;
+    private final List<X509ExtendedTrustManager> trustManagers;
     private final X509Certificate[] acceptedIssuers;
 
     public CompositeX509ExtendedTrustManager(List<? extends X509ExtendedTrustManager> trustManagers) {
         this.trustManagers = Collections.unmodifiableList(trustManagers);
-        acceptedIssuers = trustManagers.stream()
+        this.acceptedIssuers = this.trustManagers.stream()
                 .map(X509ExtendedTrustManager::getAcceptedIssuers)
                 .flatMap(Arrays::stream)
                 .distinct()
@@ -141,7 +141,7 @@ public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustMa
     }
 
     public List<X509ExtendedTrustManager> getTrustManagers() {
-        return Collections.unmodifiableList(trustManagers);
+        return trustManagers;
     }
 
     private void checkTrusted(TrustManagerConsumer callBackConsumer) throws CertificateException {

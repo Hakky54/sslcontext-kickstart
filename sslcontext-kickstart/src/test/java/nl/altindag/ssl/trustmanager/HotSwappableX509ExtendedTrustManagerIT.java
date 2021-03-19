@@ -96,7 +96,7 @@ class HotSwappableX509ExtendedTrustManagerIT {
             LOGGER.warn("Certificate may have expired and needs to be updated");
         } else {
             assertThat(statusCode).isEqualTo(200);
-            assertThat(logCaptor.getLogs()).containsExactly("Accepting a server certificate: [CN=*.badssl.com, O=Lucas Garron Torres, L=Walnut Creek, ST=California, C=US]");
+            assertThat(logCaptor.getLogs()).containsExactly("Accepting the following server certificates without validating: [{CN=*.badssl.com, O=Lucas Garron Torres, L=Walnut Creek, ST=California, C=US},{CN=DigiCert SHA2 Secure Server CA, O=DigiCert Inc, C=US}]");
         }
     }
 
