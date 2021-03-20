@@ -19,27 +19,35 @@ package nl.altindag.ssl.util;
 import nl.altindag.ssl.exception.GenericCertificateException;
 import nl.altindag.ssl.exception.GenericIOException;
 
+import javax.net.ssl.HttpsURLConnection;
+import javax.security.auth.x500.X500Principal;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * @author Hakan Altindag
@@ -47,7 +55,9 @@ import java.util.regex.Pattern;
 public final class CertificateUtils {
 
     private static final String CERTIFICATE_TYPE = "X.509";
-    private static final Pattern CERTIFICATE_PATTERN = Pattern.compile("-----BEGIN CERTIFICATE-----(.*?)-----END CERTIFICATE-----", Pattern.DOTALL);
+    private static final String CERTIFICATE_HEADER = "-----BEGIN CERTIFICATE-----";
+    private static final String CERTIFICATE_FOOTER = "-----END CERTIFICATE-----";
+    private static final Pattern CERTIFICATE_PATTERN = Pattern.compile(CERTIFICATE_HEADER + "(.*?)" + CERTIFICATE_FOOTER, Pattern.DOTALL);
 
     private static final String EMPTY = "";
 
@@ -120,8 +130,8 @@ public final class CertificateUtils {
                     String.format(
                         "There are no valid certificates present to parse. " +
                         "Please make sure to supply at least one valid pem formatted certificate containing the header %s and the footer %s",
-                        "-----BEGIN CERTIFICATE-----",
-                        "-----END CERTIFICATE-----"
+                        CERTIFICATE_HEADER,
+                        CERTIFICATE_FOOTER
                     )
             );
         }
@@ -144,6 +154,93 @@ public final class CertificateUtils {
         } catch (KeyStoreException e) {
             throw new GenericCertificateException(e);
         }
+    }
+
+    public static Map<String, List<String>> getCertificateAsPem(String... urls) {
+        return getCertificateAsPem(Arrays.asList(urls));
+    }
+
+    public static Map<String, List<String>> getCertificateAsPem(List<String> urls) {
+        return getCertificate(urls).entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, entry -> CertificateUtils.convertToPem(entry.getValue())));
+    }
+
+    public static Map<String, List<Certificate>> getCertificate(String... urls) {
+        return getCertificate(Arrays.asList(urls));
+    }
+
+    public static Map<String, List<Certificate>> getCertificate(List<String> urls) {
+        Map<String, List<Certificate>> certificates = new HashMap<>();
+        for (String url : urls) {
+            List<Certificate> serverCertificates = getCertificateFromExternalSource(url);
+            certificates.put(url, serverCertificates);
+        }
+        return certificates;
+    }
+
+    private static List<Certificate> getCertificateFromExternalSource(String url) {
+        try {
+            URL parsedUrl = new URL(url);
+            if ("https".equalsIgnoreCase(parsedUrl.getProtocol())) {
+                HttpsURLConnection connection = (HttpsURLConnection) parsedUrl.openConnection();
+                connection.connect();
+
+                Certificate[] serverCertificates = connection.getServerCertificates();
+                connection.disconnect();
+                return Arrays.asList(serverCertificates);
+            } else {
+                return Collections.emptyList();
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public static List<String> convertToPem(List<Certificate> certificates) {
+        return certificates.stream()
+                .map(CertificateUtils::convertToPem)
+                .collect(Collectors.toList());
+    }
+
+    public static String convertToPem(Certificate certificate) {
+        try {
+            byte[] encodedCertificate = certificate.getEncoded();
+            byte[] base64EncodedCertificate = Base64.getEncoder().encode(encodedCertificate);
+            String parsedCertificate = new String(base64EncodedCertificate);
+
+            List<String> certificateContainer = splitText(parsedCertificate, 64);
+            certificateContainer.add(0, CERTIFICATE_HEADER);
+            certificateContainer.add(CERTIFICATE_FOOTER);
+
+            if (certificate instanceof X509Certificate) {
+                X509Certificate x509Certificate = (X509Certificate) certificate;
+                X500Principal issuer = x509Certificate.getIssuerX500Principal();
+                certificateContainer.add(0, String.format("issuer=%s", issuer.getName()));
+                X500Principal subject = x509Certificate.getSubjectX500Principal();
+                certificateContainer.add(0, String.format("subject=%s", subject.getName()));
+            }
+
+            return String.join(System.lineSeparator(), certificateContainer);
+        } catch (CertificateEncodingException e) {
+            throw new GenericCertificateException(e);
+        }
+    }
+
+    private static List<String> splitText(String text, int amountOfCharacters) {
+        List<String> lines = new ArrayList<>();
+
+        if (text.length() > amountOfCharacters) {
+            String substring = text.substring(0, amountOfCharacters);
+            lines.add(substring);
+
+            String remainder = text.substring(64);
+            List<String> remainders = splitText(remainder, amountOfCharacters);
+            lines.addAll(remainders);
+        } else {
+            lines.add(text);
+        }
+
+        return lines;
     }
 
 }

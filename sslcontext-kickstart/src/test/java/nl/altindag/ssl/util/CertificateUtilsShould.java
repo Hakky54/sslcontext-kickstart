@@ -27,17 +27,20 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import javax.net.ssl.X509ExtendedTrustManager;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
@@ -150,6 +153,43 @@ class CertificateUtilsShould {
 
             assertThat(certificates).isEmpty();
         }
+    }
+
+    @Test
+    void getCertificatesReturnsEmptyWhenNonHttpsUrlIsProvided() {
+        Map<String, List<Certificate>> certificates = CertificateUtils.getCertificate("http://www.google.com/");
+
+        assertThat(certificates).containsKey("http://www.google.com/");
+        assertThat(certificates.get("http://www.google.com/")).isEmpty();
+    }
+
+    @Test
+    void notAddSubjectAndIssuerAsHeaderWhenCertificateTypeIsNotX509Certificate() throws CertificateEncodingException {
+        Certificate certificate = mock(Certificate.class);
+
+        when(certificate.getEncoded()).thenReturn(CertificateUtils.loadCertificate(PEM_LOCATION + "stackexchange.pem").get(0).getEncoded());
+
+        String pem = CertificateUtils.convertToPem(certificate);
+        assertThat(pem)
+                .doesNotContain("subject", "issuer")
+                .contains("-----BEGIN CERTIFICATE-----", "-----END CERTIFICATE-----");
+    }
+
+    @Test
+    void throwsGenericCertificateExceptionWhenGettingCertificateEncodingException() throws CertificateEncodingException {
+        Certificate certificate = mock(Certificate.class);
+
+        doThrow(new CertificateEncodingException("KABOOM!")).when(certificate).getEncoded();
+
+        assertThatThrownBy(() -> CertificateUtils.convertToPem(certificate))
+                .isInstanceOf(GenericCertificateException.class)
+                .hasMessage("java.security.cert.CertificateEncodingException: KABOOM!");
+    }
+
+    @Test
+    void throwsUncheckedIOExceptionWhenUrlIsUnreachable() {
+        assertThatThrownBy(() -> CertificateUtils.getCertificate("https://localhost:1234/"))
+                .isInstanceOf(UncheckedIOException.class);
     }
 
     @Test
