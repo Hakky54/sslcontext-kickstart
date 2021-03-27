@@ -56,6 +56,7 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "6.5.0"
      - [Routing client identity to specific host](#routing-identity-material-to-specific-host) 
      - [Updating client identity routes at runtime](#updating-client-identity-routes-at-runtime) 
      - [Managing ssl session](#managing-ssl-session)
+     - [Extracting server certificates](#extracting-server-certificates)  
      - [Using PEM Files](#using-pem-files)
          - [Loading pem files from the classpath](#loading-pem-files-from-the-classpath)
          - [Loading pem files from the file system](#loading-pem-files-from-anywhere-on-the-filesystem)
@@ -349,6 +350,21 @@ SSLSessionUtils.invalidateCachesBetween(
         ZonedDateTime.now().minusHours(2),    // from
         ZonedDateTime.now()                   // up till
 );
+```
+##### Extracting server certificates
+```text
+Map<String, List<Certificate>> certificates = CertificateUtils.getCertificate(
+            "https://github.com/", 
+            "https://stackoverflow.com/", 
+            "https://www.reddit.com/",
+            "https://www.youtube.com/");
+            
+// or get the server certificates as pem format
+Map<String, List<String>> certificatesAsPem = CertificateUtils.getCertificateAsPem(
+            "https://github.com/", 
+            "https://stackoverflow.com/", 
+            "https://www.reddit.com/",
+            "https://www.youtube.com/");
 ```
 #### Using PEM Files
 Support for using pem formatted private key and certificates from classpath, any directory or as an InputStream. See [PemUtilsShould](sslcontext-kickstart-for-pem/src/test/java/nl/altindag/ssl/util/PemUtilsShould.java) for detailed usages.
