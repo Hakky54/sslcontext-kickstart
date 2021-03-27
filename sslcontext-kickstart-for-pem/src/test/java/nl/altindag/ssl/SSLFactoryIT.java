@@ -67,6 +67,33 @@ class SSLFactoryIT {
         }
     }
 
+    @Test
+    void executeHttpsRequestWithMutualAuthenticationWithUnencryptedPrivateKey() throws IOException {
+        LogCaptor logCaptor = LogCaptor.forName("nl.altindag.ssl");
+
+        X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial("pems-for-unit-tests/unencrypted-badssl-identity.pem", IDENTITY_PASSWORD);
+        X509ExtendedTrustManager trustManager = PemUtils.loadTrustMaterial("pems-for-unit-tests/badssl-certificate.pem");
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(keyManager)
+                .withTrustMaterial(trustManager)
+                .withTrustMaterial(KeyStoreUtils.createKeyStore()) // Adding additional trust material forces usage of CompositeX509ExtendedTrustManager and verbose logging
+                .build();
+
+        HttpsURLConnection connection = (HttpsURLConnection) new URL(BADSSL_URL).openConnection();
+        connection.setSSLSocketFactory(sslFactory.getSslSocketFactory());
+        connection.setHostnameVerifier(sslFactory.getHostnameVerifier());
+        connection.setRequestMethod("GET");
+
+        int statusCode = connection.getResponseCode();
+
+        if (statusCode == 400) {
+            LOGGER.warn("Certificate may have expired and needs to be updated");
+        } else {
+            assertThat(connection.getResponseCode()).isEqualTo(200);
+            assertThat(logCaptor.getLogs()).containsExactly("Received the following server certificate: [CN=*.badssl.com, O=Lucas Garron Torres, L=Walnut Creek, ST=California, C=US]");
+        }
+    }
 
     @Test
     void executeHttpsRequestWithMutualAuthenticationFromRawSslMaterial() throws IOException {
