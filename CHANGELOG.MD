@@ -3,6 +3,11 @@
 This list is not intended to be all-encompassing - it will document major and breaking API 
 changes with their rationale when appropriate:
 
+### v6.6.0
+- Added server certificate extractor to CertificateUtils
+- Bumped the version of transitive dependencies
+- Simplified PemUtils for parsing trust material
+- Added detailed logging within the UnsafeX509ExtendedTrustManager
 ### v6.5.0
 - Removed deprecated class and methods for SocketUtils
 - Added null check for ssl sessions
