@@ -48,6 +48,7 @@ import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Hakan Altindag
@@ -208,7 +209,8 @@ public final class CertificateUtils {
             byte[] base64EncodedCertificate = Base64.getEncoder().encode(encodedCertificate);
             String parsedCertificate = new String(base64EncodedCertificate);
 
-            List<String> certificateContainer = splitText(parsedCertificate, 64);
+            List<String> certificateContainer = Stream.of(parsedCertificate.split("(?<=\\G.{64})"))
+                    .collect(Collectors.toCollection(ArrayList::new));
             certificateContainer.add(0, CERTIFICATE_HEADER);
             certificateContainer.add(CERTIFICATE_FOOTER);
 
@@ -224,23 +226,6 @@ public final class CertificateUtils {
         } catch (CertificateEncodingException e) {
             throw new GenericCertificateException(e);
         }
-    }
-
-    private static List<String> splitText(String text, int amountOfCharacters) {
-        List<String> lines = new ArrayList<>();
-
-        if (text.length() > amountOfCharacters) {
-            String substring = text.substring(0, amountOfCharacters);
-            lines.add(substring);
-
-            String remainder = text.substring(64);
-            List<String> remainders = splitText(remainder, amountOfCharacters);
-            lines.addAll(remainders);
-        } else {
-            lines.add(text);
-        }
-
-        return lines;
     }
 
 }
