@@ -19,7 +19,7 @@ import java.util.List;
 public class App {
 
     public static void main(String[] args) throws IOException {
-        List<Certificate> certificates = CertificateUtils.loadCertificate(Paths.get("ca.crt").toAbsolutePath());
+        List<Certificate> certificates = CertificateUtils.loadCertificate(Paths.get("/path/to/ca.crt"));
         SSLFactory sslFactory = SSLFactory.builder()
                 .withTrustMaterial(certificates)
                 .build();
