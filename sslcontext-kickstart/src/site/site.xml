@@ -22,6 +22,7 @@
             <item name="Apache CXF with Conduit" href="client/apache-cxf-with-conduit-configurer.html"/>
             <item name="Async Http Client" href="client/async-http-client.html"/>
             <item name="Dispatch Reboot" href="client/dispatch-reboot.html"/>
+            <item name="ElasticSearch" href="client/elasticsearch.html"/>
             <item name="Feign" href="client/feign.html"/>
             <item name="Fuel" href="client/fuel.html"/>
             <item name="gRPC" href="client/grpc.html"/>
