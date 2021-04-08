@@ -128,6 +128,10 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-report-plugin</artifactId>
                 <version>${version.maven-surefire-report-plugin}</version>
+                <configuration>
+                    <alwaysGenerateSurefireReport>true</alwaysGenerateSurefireReport>
+                    <alwaysGenerateFailsafeReport>true</alwaysGenerateFailsafeReport>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
