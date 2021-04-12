@@ -333,20 +333,28 @@ KeyManagerUtils.overrideClientIdentityRoute(keyManager, "client-alias-two", "htt
 SSLFactory sslFactory = SSLFactory.builder()
           .withIdentityMaterial("identity.jks", "password".toCharArray())
           .withTrustMaterial("truststore.jks", "password".toCharArray())
-          .withSessionTimeout(3600) // Amount of seconds untill it will be invalidated
-          .withSessionCacheSize(1024) // Amount of bytes untill it will be invalidated
+          .withSessionTimeout(3600) // Amount of seconds until it will be invalidated
+          .withSessionCacheSize(1024) // Amount of bytes until it will be invalidated
           .build();
           
+SSLContext sslContext = sslFactory.getSslContext();
+          
 // Caches can be invalidated with the snippet below
-SSLSessionUtils.invalidateCaches(sslFactory.getSslContext());
+SSLSessionUtils.invalidateCaches(sslContext);
 
 // or any other option:
-SSLSessionUtils.invalidateCachesBefore(sslFactory.getSslContext(), ZonedDateTime.of(LocalDateTime.of(2021, Month.JANUARY, 1, 15, 55), ZoneOffset.UTC));
+SSLSessionUtils.invalidateCachesBefore(
+        sslContext,
+        ZonedDateTime.of(LocalDateTime.of(2021, JANUARY, 1, 15, 55), ZoneOffset.UTC)
+);
 
-SSLSessionUtils.invalidateCachesAfter(sslFactory.getSslContext(), ZonedDateTime.of(LocalDateTime.of(2021, Month.FEBRUARY, 10, 8, 14), ZoneOffset.UTC));
+SSLSessionUtils.invalidateCachesAfter(
+        sslContext,
+        ZonedDateTime.of(LocalDateTime.of(2021, FEBRUARY, 10, 8, 14), ZoneOffset.UTC)
+);
 
 SSLSessionUtils.invalidateCachesBetween(
-        sslFactory.getSslContext(),
+        sslContext,
         ZonedDateTime.now().minusHours(2),    // from
         ZonedDateTime.now()                   // up till
 );
