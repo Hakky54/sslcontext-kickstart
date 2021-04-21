@@ -11,7 +11,6 @@ jobs:
       - name: Set up JDK 8
         uses: actions/setup-java@v2
         with:
-          dis
           distribution: 'adopt'
           java-version: '8'
 
