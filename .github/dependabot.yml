@@ -1,0 +1,18 @@
+version: 2
+updates:
+- package-ecosystem: maven
+  directory: "/"
+  schedule:
+    interval: monthly
+    time: "04:00"
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: org.eclipse.jetty:jetty-reactive-httpclient
+    versions:
+    - ">= 2.a, < 3"
+  - dependency-name: org.eclipse.jetty:jetty-reactive-httpclient
+    versions:
+    - ">= 3.a, < 4"
+  - dependency-name: io.projectreactor.netty:reactor-netty
+    versions:
+    - 1.0.3
