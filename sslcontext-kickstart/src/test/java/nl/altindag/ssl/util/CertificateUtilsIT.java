@@ -32,7 +32,9 @@ class CertificateUtilsIT {
     @Test
     void getRemoteCertificates() {
         Map<String, List<Certificate>> certificatesFromRemote = CertificateUtils.getCertificate(
-                "https://www.reddit.com/"
+                "https://stackoverflow.com/",
+                "https://github.com/",
+                "https://www.linkedin.com/"
         );
 
         assertThat(certificatesFromRemote).containsKeys(
