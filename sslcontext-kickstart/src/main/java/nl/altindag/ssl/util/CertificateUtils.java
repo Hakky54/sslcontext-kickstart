@@ -239,6 +239,7 @@ public final class CertificateUtils {
                         .map(URIName::getURI)
                         .map(CertificateUtils::getCertificatesFromRemoteFile)
                         .flatMap(Collection::stream)
+                        .distinct()
                         .collect(Collectors.toList());
             }
         }
