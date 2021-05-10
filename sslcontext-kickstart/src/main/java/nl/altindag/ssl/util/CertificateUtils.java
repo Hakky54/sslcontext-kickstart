@@ -223,6 +223,8 @@ public final class CertificateUtils {
         }
 
         X509CertImpl x509Certificate = (X509CertImpl) certificate;
+        List<Certificate> certificates = new ArrayList<>();
+
         for (String extOID : x509Certificate.getNonCriticalExtensionOIDs()) {
             Extension certExtension = x509Certificate.getExtension(new ObjectIdentifier(extOID));
 
@@ -232,19 +234,18 @@ public final class CertificateUtils {
                         .filter(accessDescription -> accessDescription.getAccessMethod().toString().equals("1.3.6.1.5.5.7.48.2"))
                         .collect(Collectors.toList());
 
-                return accessDescriptionsContainingUrlsToCertificates.stream()
+                accessDescriptionsContainingUrlsToCertificates.stream()
                         .map(accessDescription -> accessDescription.getAccessLocation().getName())
                         .filter(accessLocationName -> accessLocationName instanceof URIName)
                         .map(URIName.class::cast)
                         .map(URIName::getURI)
                         .map(CertificateUtils::getCertificatesFromRemoteFile)
                         .flatMap(Collection::stream)
-                        .distinct()
-                        .collect(Collectors.toList());
+                        .forEach(certificates::add);
             }
         }
 
-        return Collections.emptyList();
+        return certificates;
     }
 
     private static List<Certificate> getCertificatesFromRemoteFile(URI uri) {
