@@ -201,10 +201,8 @@ public final class CertificateUtils {
 
                 if (serverCertificates.length > 1) {
                     Certificate certificate = serverCertificates[serverCertificates.length - 1];
-                    if (certificate instanceof X509CertImpl) {
-                        List<Certificate> rootCertificates = bla((X509CertImpl) certificate);
-                        certificates.addAll(rootCertificates);
-                    }
+                    List<Certificate> rootCertificates = getRootCertificateIfPresent(certificate);
+                    certificates.addAll(rootCertificates);
                 }
 
                 connection.disconnect();
@@ -219,9 +217,14 @@ public final class CertificateUtils {
         }
     }
 
-    private static List<Certificate> bla(X509CertImpl certificate) throws IOException {
-        for (String extOID : certificate.getNonCriticalExtensionOIDs()) {
-            Extension certExtension = certificate.getExtension(new ObjectIdentifier(extOID));
+    private static List<Certificate> getRootCertificateIfPresent(Certificate certificate) throws IOException {
+        if (!(certificate instanceof X509Certificate)) {
+            return Collections.emptyList();
+        }
+
+        X509CertImpl x509Certificate = (X509CertImpl) certificate;
+        for (String extOID : x509Certificate.getNonCriticalExtensionOIDs()) {
+            Extension certExtension = x509Certificate.getExtension(new ObjectIdentifier(extOID));
 
             if (certExtension instanceof AuthorityInfoAccessExtension) {
                 AuthorityInfoAccessExtension authorityKeyIdentifierExtension = (AuthorityInfoAccessExtension) certExtension;
