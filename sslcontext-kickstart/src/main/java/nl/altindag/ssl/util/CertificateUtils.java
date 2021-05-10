@@ -71,6 +71,7 @@ public final class CertificateUtils {
     private static final Pattern CERTIFICATE_PATTERN = Pattern.compile(CERTIFICATE_HEADER + "(.*?)" + CERTIFICATE_FOOTER, Pattern.DOTALL);
 
     private static final String EMPTY = "";
+    private static final String CERTIFICATE_AUTHORITY_ISSUERS_ID = "1.3.6.1.5.5.7.48.2";
 
     private CertificateUtils() {}
 
@@ -150,6 +151,10 @@ public final class CertificateUtils {
         return certificates;
     }
 
+    public static List<Certificate> getJdkTrustedCertificates() {
+        return Arrays.asList(TrustManagerUtils.createTrustManagerWithJdkTrustedCertificates().getAcceptedIssuers());
+    }
+
     public static List<Certificate> getSystemTrustedCertificates() {
         try {
             List<Certificate> certificates = new ArrayList<>();
@@ -199,10 +204,16 @@ public final class CertificateUtils {
                 Certificate[] serverCertificates = connection.getServerCertificates();
                 ArrayList<Certificate> certificates = new ArrayList<>(Arrays.asList(serverCertificates));
 
-                if (serverCertificates.length > 1) {
-                    Certificate certificate = serverCertificates[serverCertificates.length - 1];
-                    List<Certificate> rootCertificates = getRootCertificateIfPresent(certificate);
-                    certificates.addAll(rootCertificates);
+                if (serverCertificates.length > 0 && serverCertificates[serverCertificates.length - 1] instanceof X509Certificate) {
+                    X509Certificate certificate = (X509Certificate) serverCertificates[serverCertificates.length - 1];
+                    String issuer = certificate.getIssuerX500Principal().getName();
+                    String subject = certificate.getSubjectX500Principal().getName();
+
+                    boolean isSelfSignedCertificate = issuer.equals(subject);
+                    if (!isSelfSignedCertificate) {
+                        List<Certificate> rootCa = getRootCaIfPossible(certificate);
+                        certificates.addAll(rootCa);
+                    }
                 }
 
                 connection.disconnect();
@@ -217,54 +228,86 @@ public final class CertificateUtils {
         }
     }
 
-    private static List<Certificate> getRootCertificateIfPresent(Certificate certificate) throws IOException {
-        if (!(certificate instanceof X509Certificate)) {
+    private static List<Certificate> getRootCaIfPossible(X509Certificate x509Certificate) {
+        List<Certificate> rootCaFromAuthorityInfoAccessExtension = getRootCaFromAuthorityInfoAccessExtensionIfPresent(x509Certificate);
+        if (!rootCaFromAuthorityInfoAccessExtension.isEmpty()) {
+            return rootCaFromAuthorityInfoAccessExtension;
+        }
+
+        List<Certificate> rootCaFromJdkTrustedCertificates = getRootCaFromJdkTrustedCertificates(x509Certificate);
+        if (!rootCaFromJdkTrustedCertificates.isEmpty()) {
+            return rootCaFromJdkTrustedCertificates;
+        }
+
+        return Collections.emptyList();
+    }
+
+    private static List<Certificate> getRootCaFromAuthorityInfoAccessExtensionIfPresent(X509Certificate certificate) {
+        if (!(certificate instanceof X509CertImpl)) {
             return Collections.emptyList();
         }
 
         X509CertImpl x509Certificate = (X509CertImpl) certificate;
-        List<Certificate> certificates = new ArrayList<>();
+        for (String rawExtensionId : x509Certificate.getNonCriticalExtensionOIDs()) {
+            int[] extensionId = Arrays.stream(rawExtensionId.split("\\."))
+                    .mapToInt(Integer::parseInt)
+                    .toArray();
 
-        for (String extOID : x509Certificate.getNonCriticalExtensionOIDs()) {
-            Extension certExtension = x509Certificate.getExtension(new ObjectIdentifier(extOID));
+            Extension certificateExtension = x509Certificate.getExtension(ObjectIdentifier.newInternal(extensionId));
 
-            if (certExtension instanceof AuthorityInfoAccessExtension) {
-                AuthorityInfoAccessExtension authorityKeyIdentifierExtension = (AuthorityInfoAccessExtension) certExtension;
+            if (certificateExtension instanceof AuthorityInfoAccessExtension) {
+                AuthorityInfoAccessExtension authorityKeyIdentifierExtension = (AuthorityInfoAccessExtension) certificateExtension;
                 List<AccessDescription> accessDescriptionsContainingUrlsToCertificates = authorityKeyIdentifierExtension.getAccessDescriptions().stream()
-                        .filter(accessDescription -> accessDescription.getAccessMethod().toString().equals("1.3.6.1.5.5.7.48.2"))
+                        .filter(accessDescription -> accessDescription.getAccessMethod().toString().equals(CERTIFICATE_AUTHORITY_ISSUERS_ID))
                         .collect(Collectors.toList());
 
-                accessDescriptionsContainingUrlsToCertificates.stream()
+                return accessDescriptionsContainingUrlsToCertificates.stream()
                         .map(accessDescription -> accessDescription.getAccessLocation().getName())
                         .filter(accessLocationName -> accessLocationName instanceof URIName)
                         .map(URIName.class::cast)
                         .map(URIName::getURI)
                         .map(CertificateUtils::getCertificatesFromRemoteFile)
                         .flatMap(Collection::stream)
-                        .forEach(certificates::add);
+                        .collect(Collectors.toList());
             }
         }
-
-        return certificates;
+        return Collections.emptyList();
     }
 
     private static List<Certificate> getCertificatesFromRemoteFile(URI uri) {
-        try (BufferedInputStream in = new BufferedInputStream(uri.toURL().openStream());
-             ByteArrayOutputStream fileOutputStream = new ByteArrayOutputStream()) {
+        try (InputStream inputStream = uri.toURL().openStream();
+             BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
+             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
 
             byte[] dataBuffer = new byte[1024];
             int bytesRead;
-            while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
-                fileOutputStream.write(dataBuffer, 0, bytesRead);
+            while ((bytesRead = bufferedInputStream.read(dataBuffer, 0, 1024)) != -1) {
+                byteArrayOutputStream.write(dataBuffer, 0, bytesRead);
             }
 
-            CertificateFactory certificateFactory = CertificateFactory.getInstance("X509");
-            Collection<? extends Certificate> certificates = certificateFactory.generateCertificates(new ByteArrayInputStream(fileOutputStream.toByteArray()));
+            CertificateFactory certificateFactory = CertificateFactory.getInstance(CERTIFICATE_TYPE);
+            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
+            Collection<? extends Certificate> certificates = certificateFactory.generateCertificates(byteArrayInputStream);
+            byteArrayInputStream.close();
 
             return new ArrayList<>(certificates);
         } catch (IOException | CertificateException e) {
-            throw new RuntimeException();
+            throw new GenericCertificateException(e);
         }
+    }
+
+    private static List<Certificate> getRootCaFromJdkTrustedCertificates(X509Certificate x509Certificate) {
+        List<Certificate> jdkTrustedCertificates = CertificateUtils.getJdkTrustedCertificates();
+        String issuerName = x509Certificate.getIssuerX500Principal().getName();
+
+        return jdkTrustedCertificates.stream()
+                .filter(X509Certificate.class::isInstance)
+                .map(X509Certificate.class::cast)
+                .filter(certificate -> certificate
+                        .getSubjectX500Principal()
+                        .getName().equals(issuerName))
+                .collect(Collectors.toList());
+
     }
 
     public static List<String> convertToPem(List<Certificate> certificates) {
