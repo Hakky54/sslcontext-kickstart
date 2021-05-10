@@ -215,7 +215,7 @@ public final class CertificateUtils {
 
                     boolean isSelfSignedCertificate = issuer.equals(subject);
                     if (!isSelfSignedCertificate) {
-                        List<? extends Certificate> rootCa = getRootCaIfPossible(certificate);
+                        List<X509Certificate> rootCa = getRootCaIfPossible(certificate);
                         certificates.addAll(rootCa);
                     }
                 }
@@ -232,13 +232,13 @@ public final class CertificateUtils {
         }
     }
 
-    private static List<? extends Certificate> getRootCaIfPossible(X509Certificate x509Certificate) {
-        List<? extends Certificate> rootCaFromAuthorityInfoAccessExtension = getRootCaFromAuthorityInfoAccessExtensionIfPresent(x509Certificate);
+    private static List<X509Certificate> getRootCaIfPossible(X509Certificate x509Certificate) {
+        List<X509Certificate> rootCaFromAuthorityInfoAccessExtension = getRootCaFromAuthorityInfoAccessExtensionIfPresent(x509Certificate);
         if (!rootCaFromAuthorityInfoAccessExtension.isEmpty()) {
             return rootCaFromAuthorityInfoAccessExtension;
         }
 
-        List<? extends Certificate> rootCaFromJdkTrustedCertificates = getRootCaFromJdkTrustedCertificates(x509Certificate);
+        List<X509Certificate> rootCaFromJdkTrustedCertificates = getRootCaFromJdkTrustedCertificates(x509Certificate);
         if (!rootCaFromJdkTrustedCertificates.isEmpty()) {
             return rootCaFromJdkTrustedCertificates;
         }
@@ -246,7 +246,7 @@ public final class CertificateUtils {
         return Collections.emptyList();
     }
 
-    private static List<? extends Certificate> getRootCaFromAuthorityInfoAccessExtensionIfPresent(X509Certificate certificate) {
+    private static List<X509Certificate> getRootCaFromAuthorityInfoAccessExtensionIfPresent(X509Certificate certificate) {
         if (!(certificate instanceof X509CertImpl)) {
             return Collections.emptyList();
         }
@@ -278,7 +278,7 @@ public final class CertificateUtils {
         return Collections.emptyList();
     }
 
-    private static List<? extends Certificate> getCertificatesFromRemoteFile(URI uri, X509Certificate intermediateCertificate) {
+    private static List<X509Certificate> getCertificatesFromRemoteFile(URI uri, X509Certificate intermediateCertificate) {
         try (InputStream inputStream = uri.toURL().openStream();
              BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
              ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
@@ -305,7 +305,7 @@ public final class CertificateUtils {
         }
     }
 
-    private static List<? extends Certificate> getRootCaFromJdkTrustedCertificates(X509Certificate intermediateCertificate) {
+    private static List<X509Certificate> getRootCaFromJdkTrustedCertificates(X509Certificate intermediateCertificate) {
         List<Certificate> jdkTrustedCertificates = CertificateUtils.getJdkTrustedCertificates();
 
         return jdkTrustedCertificates.stream()
