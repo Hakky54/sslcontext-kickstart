@@ -37,8 +37,12 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.security.InvalidKeyException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.SignatureException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
@@ -296,18 +300,24 @@ public final class CertificateUtils {
         }
     }
 
-    private static List<Certificate> getRootCaFromJdkTrustedCertificates(X509Certificate x509Certificate) {
+    private static List<Certificate> getRootCaFromJdkTrustedCertificates(X509Certificate intermediateCertificate) {
         List<Certificate> jdkTrustedCertificates = CertificateUtils.getJdkTrustedCertificates();
-        String issuerName = x509Certificate.getIssuerX500Principal().getName();
 
         return jdkTrustedCertificates.stream()
                 .filter(X509Certificate.class::isInstance)
                 .map(X509Certificate.class::cast)
-                .filter(certificate -> certificate
-                        .getSubjectX500Principal()
-                        .getName().equals(issuerName))
+                .filter(issuer -> isIssuerOfIntermediateCertificate(intermediateCertificate, issuer))
                 .collect(Collectors.toList());
 
+    }
+
+    private static boolean isIssuerOfIntermediateCertificate(X509Certificate intermediateCertificate, X509Certificate issuer) {
+        try {
+            intermediateCertificate.verify(issuer.getPublicKey());
+            return true;
+        } catch (CertificateException | NoSuchAlgorithmException | InvalidKeyException | NoSuchProviderException | SignatureException e) {
+            return false;
+        }
     }
 
     public static List<String> convertToPem(List<Certificate> certificates) {
