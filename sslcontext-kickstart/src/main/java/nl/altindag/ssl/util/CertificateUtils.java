@@ -18,13 +18,21 @@ package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.exception.GenericCertificateException;
 import nl.altindag.ssl.exception.GenericIOException;
+import sun.security.util.ObjectIdentifier;
+import sun.security.x509.AccessDescription;
+import sun.security.x509.AuthorityInfoAccessExtension;
+import sun.security.x509.URIName;
+import sun.security.x509.X509CertImpl;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.security.auth.x500.X500Principal;
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -35,10 +43,12 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
+import java.security.cert.Extension;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -187,13 +197,68 @@ public final class CertificateUtils {
                 connection.connect();
 
                 Certificate[] serverCertificates = connection.getServerCertificates();
+                ArrayList<Certificate> certificates = new ArrayList<>(Arrays.asList(serverCertificates));
+
+                if (serverCertificates.length > 1) {
+                    Certificate certificate = serverCertificates[serverCertificates.length - 1];
+                    if (certificate instanceof X509CertImpl) {
+                        List<Certificate> rootCertificates = bla((X509CertImpl) certificate);
+                        certificates.addAll(rootCertificates);
+                    }
+                }
+
                 connection.disconnect();
-                return Arrays.asList(serverCertificates);
+                return certificates.stream()
+                        .distinct()
+                        .collect(Collectors.toList());
             } else {
                 return Collections.emptyList();
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
+        }
+    }
+
+    private static List<Certificate> bla(X509CertImpl certificate) throws IOException {
+        for (String extOID : certificate.getNonCriticalExtensionOIDs()) {
+            Extension certExtension = certificate.getExtension(new ObjectIdentifier(extOID));
+
+            if (certExtension instanceof AuthorityInfoAccessExtension) {
+                AuthorityInfoAccessExtension authorityKeyIdentifierExtension = (AuthorityInfoAccessExtension) certExtension;
+                List<AccessDescription> accessDescriptionsContainingUrlsToCertificates = authorityKeyIdentifierExtension.getAccessDescriptions().stream()
+                        .filter(accessDescription -> accessDescription.getAccessMethod().toString().equals("1.3.6.1.5.5.7.48.2"))
+                        .collect(Collectors.toList());
+
+                return accessDescriptionsContainingUrlsToCertificates.stream()
+                        .map(accessDescription -> accessDescription.getAccessLocation().getName())
+                        .filter(accessLocationName -> accessLocationName instanceof URIName)
+                        .map(URIName.class::cast)
+                        .map(URIName::getURI)
+                        .map(CertificateUtils::getCertificatesFromRemoteFile)
+                        .flatMap(Collection::stream)
+                        .collect(Collectors.toList());
+            }
+        }
+
+        return Collections.emptyList();
+    }
+
+    private static List<Certificate> getCertificatesFromRemoteFile(URI uri) {
+        try (BufferedInputStream in = new BufferedInputStream(uri.toURL().openStream());
+             ByteArrayOutputStream fileOutputStream = new ByteArrayOutputStream()) {
+
+            byte[] dataBuffer = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
+                fileOutputStream.write(dataBuffer, 0, bytesRead);
+            }
+
+            CertificateFactory certificateFactory = CertificateFactory.getInstance("X509");
+            Collection<? extends Certificate> certificates = certificateFactory.generateCertificates(new ByteArrayInputStream(fileOutputStream.toByteArray()));
+
+            return new ArrayList<>(certificates);
+        } catch (IOException | CertificateException e) {
+            throw new RuntimeException();
         }
     }
 

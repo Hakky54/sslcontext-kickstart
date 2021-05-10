@@ -17,10 +17,37 @@
 package nl.altindag.ssl.util;
 
 import org.junit.jupiter.api.Test;
+import sun.security.util.DerOutputStream;
+import sun.security.util.ObjectIdentifier;
+import sun.security.x509.AccessDescription;
+import sun.security.x509.AuthorityInfoAccessExtension;
+import sun.security.x509.AuthorityKeyIdentifierExtension;
+import sun.security.x509.URIName;
+import sun.security.x509.X509CertImpl;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
+import java.security.cert.CertPathBuilder;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.Extension;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -30,11 +57,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 class CertificateUtilsIT {
 
     @Test
-    void getRemoteCertificates() {
+    void getRemoteCertificates() throws IOException, CertificateException {
         Map<String, List<Certificate>> certificatesFromRemote = CertificateUtils.getCertificate(
-                "https://stackoverflow.com/",
-                "https://github.com/",
-                "https://www.linkedin.com/"
+                "https://www.reddit.com/"
         );
 
         assertThat(certificatesFromRemote).containsKeys(
