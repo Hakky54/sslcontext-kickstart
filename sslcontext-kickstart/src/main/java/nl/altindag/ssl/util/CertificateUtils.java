@@ -267,7 +267,7 @@ public final class CertificateUtils {
 
                 return accessDescriptionsContainingUrlsToCertificates.stream()
                         .map(accessDescription -> accessDescription.getAccessLocation().getName())
-                        .filter(accessLocationName -> accessLocationName instanceof URIName)
+                        .filter(URIName.class::isInstance)
                         .map(URIName.class::cast)
                         .map(URIName::getURI)
                         .map((URI uri) -> getCertificatesFromRemoteFile(uri, certificate))
