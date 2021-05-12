@@ -212,7 +212,7 @@ public final class CertificateUtils {
                 connection.connect();
 
                 Certificate[] serverCertificates = connection.getServerCertificates();
-                ArrayList<Certificate> certificates = new ArrayList<>(Arrays.asList(serverCertificates));
+                List<Certificate> certificates = new ArrayList<>(Arrays.asList(serverCertificates));
 
                 if (serverCertificates.length > 0 && serverCertificates[serverCertificates.length - 1] instanceof X509Certificate) {
                     X509Certificate certificate = (X509Certificate) serverCertificates[serverCertificates.length - 1];

@@ -92,6 +92,28 @@ class CertificateUtilsIT {
         server.stop(0);
         executorService.shutdownNow();
 
+        assertThat(certificatesFromRemote).containsKeys("https://localhost:8443");
+        assertThat(certificatesFromRemote.get("https://localhost:8443")).hasSizeGreaterThan(0);
+    }
+
+    @Test
+    void getRemoteCustomRootCaSignedCertificate() throws IOException {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+
+        char[] keyStorePassword = "secret".toCharArray();
+        SSLFactory sslFactoryForServerOne = SSLFactory.builder()
+                .withIdentityMaterial("keystores-for-unit-tests/client-server/server-three/identity.jks", keyStorePassword)
+                .withTrustMaterial("keystores-for-unit-tests/client-server/server-three/truststore.jks", keyStorePassword)
+                .withProtocols("TLSv1.2")
+                .build();
+
+        HttpsServer server = ServerUtils.createServer(8443, sslFactoryForServerOne, executorService, "");
+        server.start();
+
+        Map<String, List<Certificate>> certificatesFromRemote = CertificateUtils.getCertificate("https://localhost:8443");
+
+        server.stop(0);
+        executorService.shutdownNow();
 
         assertThat(certificatesFromRemote).containsKeys("https://localhost:8443");
         assertThat(certificatesFromRemote.get("https://localhost:8443")).hasSizeGreaterThan(0);

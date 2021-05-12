@@ -176,6 +176,13 @@ class CertificateUtilsShould {
     }
 
     @Test
+    void getJdkTrustedCertificates() {
+        List<Certificate> jdkTrustedCertificates = CertificateUtils.getJdkTrustedCertificates();
+
+        assertThat(jdkTrustedCertificates).hasSizeGreaterThan(0);
+    }
+
+    @Test
     void throwsGenericCertificateExceptionWhenGettingCertificateEncodingException() throws CertificateEncodingException {
         Certificate certificate = mock(Certificate.class);
 
