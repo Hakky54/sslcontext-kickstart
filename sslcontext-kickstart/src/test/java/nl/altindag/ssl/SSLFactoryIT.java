@@ -107,8 +107,8 @@ class SSLFactoryIT {
                 .withProtocols("TLSv1.2")
                 .build();
 
-        HttpsServer serverOne = createServer(8443, sslFactoryForServerOne, executorService, "Hello from server one");
-        HttpsServer serverTwo = createServer(8444, sslFactoryForServerTwo, executorService, "Hello from server two");
+        HttpsServer serverOne = ServerUtils.createServer(8443, sslFactoryForServerOne, executorService, "Hello from server one");
+        HttpsServer serverTwo = ServerUtils.createServer(8444, sslFactoryForServerTwo, executorService, "Hello from server two");
 
         serverOne.start();
         serverTwo.start();
@@ -157,8 +157,8 @@ class SSLFactoryIT {
                 .withProtocols("TLSv1.2")
                 .build();
 
-        HttpsServer serverOne = createServer(8443, sslFactoryForServerOne, executorService, "Hello from server one");
-        HttpsServer serverTwo = createServer(8444, sslFactoryForServerTwo, executorService, "Hello from server two");
+        HttpsServer serverOne = ServerUtils.createServer(8443, sslFactoryForServerOne, executorService, "Hello from server one");
+        HttpsServer serverTwo = ServerUtils.createServer(8444, sslFactoryForServerTwo, executorService, "Hello from server two");
 
         serverOne.start();
         serverTwo.start();
@@ -228,8 +228,8 @@ class SSLFactoryIT {
                 .withProtocols("TLSv1.2")
                 .build();
 
-        HttpsServer serverOne = createServer(8443, sslFactoryForServerOne, executorService, "Hello from server one");
-        HttpsServer serverTwo = createServer(8444, sslFactoryForServerTwo, executorService, "Hello from server two");
+        HttpsServer serverOne = ServerUtils.createServer(8443, sslFactoryForServerOne, executorService, "Hello from server one");
+        HttpsServer serverTwo = ServerUtils.createServer(8444, sslFactoryForServerTwo, executorService, "Hello from server two");
 
         serverOne.start();
         serverTwo.start();
@@ -276,33 +276,6 @@ class SSLFactoryIT {
         serverOne.stop(0);
         serverTwo.stop(0);
         executorService.shutdownNow();
-    }
-
-    private HttpsServer createServer(int port, SSLFactory sslFactory, Executor executor, String payload) throws IOException {
-        InetSocketAddress socketAddress = new InetSocketAddress(port);
-        HttpsServer server = HttpsServer.create(socketAddress, 0);
-        server.setExecutor(executor);
-        server.setHttpsConfigurator(new HttpsConfigurator(sslFactory.getSslContext()) {
-            @Override
-            public void configure(HttpsParameters params) {
-                params.setSSLParameters(sslFactory.getSslParameters());
-            }
-        });
-
-        class HelloWorldController implements HttpHandler {
-            @Override
-            public void handle(HttpExchange exchange) throws IOException {
-                try (OutputStream responseBody = exchange.getResponseBody()) {
-
-                    exchange.getResponseHeaders().set("Content-Type", "text/plain");
-
-                    exchange.sendResponseHeaders(200, payload.length());
-                    responseBody.write(payload.getBytes(StandardCharsets.UTF_8));
-                }
-            }
-        }
-        server.createContext("/api/hello", new HelloWorldController());
-        return server;
     }
 
     private Response executeRequest(String url, SSLSocketFactory sslSocketFactory) throws IOException {
