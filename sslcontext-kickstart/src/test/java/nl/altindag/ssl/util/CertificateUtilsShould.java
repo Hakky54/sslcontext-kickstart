@@ -23,11 +23,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import sun.security.util.ObjectIdentifier;
+import sun.security.x509.BasicConstraintsExtension;
+import sun.security.x509.X509CertImpl;
 
 import javax.net.ssl.X509ExtendedTrustManager;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.lang.reflect.Method;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -39,9 +44,11 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static nl.altindag.ssl.TestConstants.KEYSTORE_LOCATION;
@@ -55,6 +62,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
 /**
@@ -173,6 +181,126 @@ class CertificateUtilsShould {
         assertThat(pem)
                 .doesNotContain("subject", "issuer")
                 .contains("-----BEGIN CERTIFICATE-----", "-----END CERTIFICATE-----");
+    }
+
+    @Test
+    void getJdkTrustedCertificates() {
+        List<Certificate> jdkTrustedCertificates = CertificateUtils.getJdkTrustedCertificates();
+
+        assertThat(jdkTrustedCertificates).hasSizeGreaterThan(0);
+    }
+
+    @Test
+    void getRootCaIfPossibleReturnsJdkTrustedCaCertificateWhenNoAuthorityInfoAccessExtensionIsPresent() {
+        List<Certificate> certificates = CertificateUtils.getCertificate("https://www.reddit.com/")
+                .get("https://www.reddit.com/");
+
+        try (MockedStatic<CertificateUtils> certificateUtilsMockedStatic = mockStatic(CertificateUtils.class, invocation -> {
+            Method method = invocation.getMethod();
+            if ("getRootCaFromAuthorityInfoAccessExtensionIfPresent".equals(method.getName())) {
+                return invocation.getMock();
+            } else {
+                return invocation.callRealMethod();
+            }
+        })) {
+            certificateUtilsMockedStatic.when(() -> CertificateUtils.getRootCaFromAuthorityInfoAccessExtensionIfPresent(any(X509Certificate.class)))
+                    .thenReturn(Collections.emptyList());
+
+            X509Certificate certificate = (X509Certificate) certificates.get(certificates.size() - 1);
+            List<X509Certificate> rootCaCertificate = CertificateUtils.getRootCaIfPossible(certificate);
+            assertThat(rootCaCertificate).isNotEmpty();
+
+            certificateUtilsMockedStatic.verify(() -> CertificateUtils.getRootCaFromJdkTrustedCertificates(certificate), times(1));
+        }
+    }
+
+    @Test
+    void getRootCaIfPossibleReturnsEmptyListWhenNoAuthorityInfoAccessExtensionIsPresentAndNoMatching() {
+        List<Certificate> certificates = CertificateUtils.getCertificate("https://www.reddit.com/")
+                .get("https://www.reddit.com/");
+
+        try (MockedStatic<CertificateUtils> certificateUtilsMockedStatic = mockStatic(CertificateUtils.class, invocation -> {
+            Method method = invocation.getMethod();
+            if ("getRootCaFromAuthorityInfoAccessExtensionIfPresent".equals(method.getName()) || "getRootCaFromJdkTrustedCertificates".equals(method.getName())) {
+                return invocation.getMock();
+            } else {
+                return invocation.callRealMethod();
+            }
+        })) {
+            certificateUtilsMockedStatic.when(() -> CertificateUtils.getRootCaFromAuthorityInfoAccessExtensionIfPresent(any(X509Certificate.class)))
+                    .thenReturn(Collections.emptyList());
+
+            certificateUtilsMockedStatic.when(() -> CertificateUtils.getRootCaFromJdkTrustedCertificates(any(X509Certificate.class)))
+                    .thenReturn(Collections.emptyList());
+
+            X509Certificate certificate = (X509Certificate) certificates.get(certificates.size() - 1);
+            List<X509Certificate> rootCaCertificate = CertificateUtils.getRootCaIfPossible(certificate);
+            assertThat(rootCaCertificate).isEmpty();
+
+            certificateUtilsMockedStatic.verify(() -> CertificateUtils.getRootCaFromAuthorityInfoAccessExtensionIfPresent(certificate), times(1));
+            certificateUtilsMockedStatic.verify(() -> CertificateUtils.getRootCaFromJdkTrustedCertificates(certificate), times(1));
+        }
+    }
+
+    @Test
+    void getRootCaFromChainIfPossibleReturnsEmptyListWhenNoCertificatesHaveBeenProvided() {
+        List<X509Certificate> rootCa = CertificateUtils.getRootCaFromChainIfPossible(new Certificate[]{});
+        assertThat(rootCa).isEmpty();
+    }
+
+    @Test
+    void getRootCaFromChainIfPossibleReturnsEmptyListWhenProvidedCertificateIsNotAnInstanceOfX509Certificate() {
+        List<X509Certificate> rootCa = CertificateUtils.getRootCaFromChainIfPossible(new Certificate[]{mock(Certificate.class)});
+        assertThat(rootCa).isEmpty();
+    }
+
+    @Test
+    void getRootCaFromAuthorityInfoAccessExtensionIfPresentReturnsEmptyListWhenCertificateIsNotInstanceOfX509CertImpl() {
+        List<X509Certificate> rootCa = CertificateUtils.getRootCaFromAuthorityInfoAccessExtensionIfPresent(mock(X509Certificate.class));
+        assertThat(rootCa).isEmpty();
+    }
+
+    @Test
+    void getRootCaFromAuthorityInfoAccessExtensionIfPresentReturnsEmptyListWhenCertificateDoesNotContainNonCriticalExtensionOIDs() {
+        X509CertImpl certificate = mock(X509CertImpl.class);
+        when(certificate.getNonCriticalExtensionOIDs()).thenReturn(Collections.emptySet());
+
+        List<X509Certificate> rootCa = CertificateUtils.getRootCaFromAuthorityInfoAccessExtensionIfPresent(certificate);
+        assertThat(rootCa).isEmpty();
+    }
+
+    @Test
+    void getRootCaFromAuthorityInfoAccessExtensionIfPresentReturnsEmptyListWhenCertificateExtensionDoesNotHaveAuthorityInfoAccessExtension() {
+        X509CertImpl certificate = mock(X509CertImpl.class);
+
+        Set<String> extensionIds = new HashSet<>();
+        extensionIds.add("1.3.6.1.5.5.7.48.1");
+
+        when(certificate.getNonCriticalExtensionOIDs()).thenReturn(extensionIds);
+        when(certificate.getExtension(any(ObjectIdentifier.class))).thenReturn(mock(BasicConstraintsExtension.class));
+
+        List<X509Certificate> rootCa = CertificateUtils.getRootCaFromAuthorityInfoAccessExtensionIfPresent(certificate);
+        assertThat(rootCa).isEmpty();
+    }
+
+    @Test
+    void ThrowsGenericCertificateExceptionWhenGetCertificatesFromRemoteFileFails() {
+        try (MockedStatic<CertificateFactory> certificateFactoryMockedStatic = mockStatic(CertificateFactory.class, invocation -> {
+            Method method = invocation.getMethod();
+            if ("getInstance".equals(method.getName())) {
+                return invocation.getMock();
+            } else {
+                return invocation.callRealMethod();
+            }
+        })) {
+
+            certificateFactoryMockedStatic.when(() -> CertificateFactory.getInstance("X.509"))
+                    .thenThrow(CertificateException.class);
+
+            URI uri = URI.create("https://www.reddit.com/");
+            assertThatThrownBy(() -> CertificateUtils.getCertificatesFromRemoteFile(uri, null))
+                    .isInstanceOf(GenericCertificateException.class);
+        }
     }
 
     @Test

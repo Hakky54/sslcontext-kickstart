@@ -16,11 +16,17 @@
 
 package nl.altindag.ssl.util;
 
+import com.sun.net.httpserver.HttpsServer;
+import nl.altindag.ssl.SSLFactory;
+import nl.altindag.ssl.ServerUtils;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.security.cert.Certificate;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -65,6 +71,52 @@ class CertificateUtilsIT {
         assertThat(certificatesFromRemote.get("https://stackoverflow.com/")).hasSizeGreaterThan(0);
         assertThat(certificatesFromRemote.get("https://github.com/")).hasSizeGreaterThan(0);
         assertThat(certificatesFromRemote.get("https://www.linkedin.com/")).hasSizeGreaterThan(0);
+    }
+
+    @Test
+    void getRemoteSelfSignedCertificate() throws IOException {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+
+        char[] keyStorePassword = "secret".toCharArray();
+        SSLFactory sslFactoryForServerOne = SSLFactory.builder()
+                .withIdentityMaterial("keystores-for-unit-tests/client-server/server-one/identity.jks", keyStorePassword)
+                .withTrustMaterial("keystores-for-unit-tests/client-server/server-one/truststore.jks", keyStorePassword)
+                .withProtocols("TLSv1.2")
+                .build();
+
+        HttpsServer server = ServerUtils.createServer(8443, sslFactoryForServerOne, executorService, "");
+        server.start();
+
+        Map<String, List<Certificate>> certificatesFromRemote = CertificateUtils.getCertificate("https://localhost:8443");
+
+        server.stop(0);
+        executorService.shutdownNow();
+
+        assertThat(certificatesFromRemote).containsKeys("https://localhost:8443");
+        assertThat(certificatesFromRemote.get("https://localhost:8443")).hasSizeGreaterThan(0);
+    }
+
+    @Test
+    void getRemoteCustomRootCaSignedCertificate() throws IOException {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+
+        char[] keyStorePassword = "secret".toCharArray();
+        SSLFactory sslFactoryForServerOne = SSLFactory.builder()
+                .withIdentityMaterial("keystores-for-unit-tests/client-server/server-three/identity.jks", keyStorePassword)
+                .withTrustMaterial("keystores-for-unit-tests/client-server/server-three/truststore.jks", keyStorePassword)
+                .withProtocols("TLSv1.2")
+                .build();
+
+        HttpsServer server = ServerUtils.createServer(8443, sslFactoryForServerOne, executorService, "");
+        server.start();
+
+        Map<String, List<Certificate>> certificatesFromRemote = CertificateUtils.getCertificate("https://localhost:8443");
+
+        server.stop(0);
+        executorService.shutdownNow();
+
+        assertThat(certificatesFromRemote).containsKeys("https://localhost:8443");
+        assertThat(certificatesFromRemote.get("https://localhost:8443")).hasSizeGreaterThan(0);
     }
 
 }
