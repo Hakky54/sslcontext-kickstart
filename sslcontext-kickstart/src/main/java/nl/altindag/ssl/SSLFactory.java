@@ -517,7 +517,7 @@ public final class SSLFactory {
         }
 
         public Builder withTrustingAllCertificatesWithoutValidation() {
-            LOGGER.warn("UnsafeTrustManager is being used. Client/Server certificates will be accepted without validation. Please don't use this configuration at production.");
+            LOGGER.warn("UnsafeTrustManager is being used. Client/Server certificates will be accepted without validation.");
             trustManagers.add(TrustManagerUtils.createUnsafeTrustManager());
             return this;
         }
