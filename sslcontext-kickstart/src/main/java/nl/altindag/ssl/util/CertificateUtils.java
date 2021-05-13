@@ -212,7 +212,7 @@ public final class CertificateUtils {
                 connection.connect();
 
                 Certificate[] serverCertificates = connection.getServerCertificates();
-                List<X509Certificate> rootCa = getRootCaFromChainIfPossible(serverCertificates);
+                List<X509Certificate> rootCa = CertificateUtils.getRootCaFromChainIfPossible(serverCertificates);
 
                 List<Certificate> certificates = new ArrayList<>();
                 certificates.addAll(Arrays.asList(serverCertificates));
@@ -248,7 +248,7 @@ public final class CertificateUtils {
 
             boolean isSelfSignedCertificate = issuer.equals(subject);
             if (!isSelfSignedCertificate) {
-                return getRootCaIfPossible(certificate);
+                return CertificateUtils.getRootCaIfPossible(certificate);
             }
         }
         return Collections.emptyList();
@@ -260,7 +260,7 @@ public final class CertificateUtils {
             return rootCaFromAuthorityInfoAccessExtension;
         }
 
-        List<X509Certificate> rootCaFromJdkTrustedCertificates = getRootCaFromJdkTrustedCertificates(x509Certificate);
+        List<X509Certificate> rootCaFromJdkTrustedCertificates = CertificateUtils.getRootCaFromJdkTrustedCertificates(x509Certificate);
         if (!rootCaFromJdkTrustedCertificates.isEmpty()) {
             return rootCaFromJdkTrustedCertificates;
         }
@@ -292,7 +292,7 @@ public final class CertificateUtils {
                         .filter(URIName.class::isInstance)
                         .map(URIName.class::cast)
                         .map(URIName::getURI)
-                        .map((URI uri) -> getCertificatesFromRemoteFile(uri, certificate))
+                        .map((URI uri) -> CertificateUtils.getCertificatesFromRemoteFile(uri, certificate))
                         .flatMap(Collection::stream)
                         .collect(Collectors.toList());
             }
@@ -316,7 +316,7 @@ public final class CertificateUtils {
             List<X509Certificate> certificates = certificateFactory.generateCertificates(byteArrayInputStream).stream()
                     .filter(X509Certificate.class::isInstance)
                     .map(X509Certificate.class::cast)
-                    .filter(issuer -> isIssuerOfIntermediateCertificate(intermediateCertificate, issuer))
+                    .filter(issuer -> CertificateUtils.isIssuerOfIntermediateCertificate(intermediateCertificate, issuer))
                     .collect(Collectors.toList());
 
             byteArrayInputStream.close();
