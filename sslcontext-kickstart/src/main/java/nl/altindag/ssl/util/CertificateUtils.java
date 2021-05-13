@@ -212,7 +212,7 @@ public final class CertificateUtils {
                 connection.connect();
 
                 Certificate[] serverCertificates = connection.getServerCertificates();
-                List<Certificate> rootCa = getRootCaFromChainIfPossible(serverCertificates);
+                List<X509Certificate> rootCa = getRootCaFromChainIfPossible(serverCertificates);
 
                 List<Certificate> certificates = new ArrayList<>();
                 certificates.addAll(Arrays.asList(serverCertificates));
@@ -240,8 +240,7 @@ public final class CertificateUtils {
         return unsafeSslSocketFactory;
     }
 
-    static List<Certificate> getRootCaFromChainIfPossible(Certificate[] certificates) {
-        List<Certificate> rootCaCertificate = new ArrayList<>();
+    static List<X509Certificate> getRootCaFromChainIfPossible(Certificate[] certificates) {
         if (certificates.length > 0 && certificates[certificates.length - 1] instanceof X509Certificate) {
             X509Certificate certificate = (X509Certificate) certificates[certificates.length - 1];
             String issuer = certificate.getIssuerX500Principal().getName();
@@ -249,10 +248,10 @@ public final class CertificateUtils {
 
             boolean isSelfSignedCertificate = issuer.equals(subject);
             if (!isSelfSignedCertificate) {
-                rootCaCertificate.addAll(getRootCaIfPossible(certificate));
+                return getRootCaIfPossible(certificate);
             }
         }
-        return rootCaCertificate;
+        return Collections.emptyList();
     }
 
     static List<X509Certificate> getRootCaIfPossible(X509Certificate x509Certificate) {
