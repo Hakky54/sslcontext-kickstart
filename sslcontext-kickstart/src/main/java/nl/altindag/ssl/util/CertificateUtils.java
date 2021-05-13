@@ -212,19 +212,11 @@ public final class CertificateUtils {
                 connection.connect();
 
                 Certificate[] serverCertificates = connection.getServerCertificates();
-                List<Certificate> certificates = new ArrayList<>(Arrays.asList(serverCertificates));
+                List<Certificate> rootCa = getRootCaFromChainIfPossible(serverCertificates);
 
-                if (serverCertificates.length > 0 && serverCertificates[serverCertificates.length - 1] instanceof X509Certificate) {
-                    X509Certificate certificate = (X509Certificate) serverCertificates[serverCertificates.length - 1];
-                    String issuer = certificate.getIssuerX500Principal().getName();
-                    String subject = certificate.getSubjectX500Principal().getName();
-
-                    boolean isSelfSignedCertificate = issuer.equals(subject);
-                    if (!isSelfSignedCertificate) {
-                        List<X509Certificate> rootCa = getRootCaIfPossible(certificate);
-                        certificates.addAll(rootCa);
-                    }
-                }
+                List<Certificate> certificates = new ArrayList<>();
+                certificates.addAll(Arrays.asList(serverCertificates));
+                certificates.addAll(rootCa);
 
                 connection.disconnect();
                 return certificates.stream()
@@ -248,8 +240,23 @@ public final class CertificateUtils {
         return unsafeSslSocketFactory;
     }
 
-    private static List<X509Certificate> getRootCaIfPossible(X509Certificate x509Certificate) {
-        List<X509Certificate> rootCaFromAuthorityInfoAccessExtension = getRootCaFromAuthorityInfoAccessExtensionIfPresent(x509Certificate);
+    static List<Certificate> getRootCaFromChainIfPossible(Certificate[] certificates) {
+        List<Certificate> rootCaCertificate = new ArrayList<>();
+        if (certificates.length > 0 && certificates[certificates.length - 1] instanceof X509Certificate) {
+            X509Certificate certificate = (X509Certificate) certificates[certificates.length - 1];
+            String issuer = certificate.getIssuerX500Principal().getName();
+            String subject = certificate.getSubjectX500Principal().getName();
+
+            boolean isSelfSignedCertificate = issuer.equals(subject);
+            if (!isSelfSignedCertificate) {
+                rootCaCertificate.addAll(getRootCaIfPossible(certificate));
+            }
+        }
+        return rootCaCertificate;
+    }
+
+    static List<X509Certificate> getRootCaIfPossible(X509Certificate x509Certificate) {
+        List<X509Certificate> rootCaFromAuthorityInfoAccessExtension = CertificateUtils.getRootCaFromAuthorityInfoAccessExtensionIfPresent(x509Certificate);
         if (!rootCaFromAuthorityInfoAccessExtension.isEmpty()) {
             return rootCaFromAuthorityInfoAccessExtension;
         }
@@ -262,12 +269,11 @@ public final class CertificateUtils {
         return Collections.emptyList();
     }
 
-    private static List<X509Certificate> getRootCaFromAuthorityInfoAccessExtensionIfPresent(X509Certificate certificate) {
+    static List<X509Certificate> getRootCaFromAuthorityInfoAccessExtensionIfPresent(X509Certificate certificate) {
         if (!(certificate instanceof X509CertImpl)) {
             return Collections.emptyList();
         }
 
-        List<X509Certificate> certificates = new ArrayList<>();
         X509CertImpl x509Certificate = (X509CertImpl) certificate;
         for (String rawExtensionId : x509Certificate.getNonCriticalExtensionOIDs()) {
             int[] extensionId = Arrays.stream(rawExtensionId.split("\\."))
@@ -282,20 +288,20 @@ public final class CertificateUtils {
                         .filter(accessDescription -> accessDescription.getAccessMethod().toString().equals(CERTIFICATE_AUTHORITY_ISSUERS_ID))
                         .collect(Collectors.toList());
 
-                accessDescriptionsContainingUrlsToCertificates.stream()
+                return accessDescriptionsContainingUrlsToCertificates.stream()
                         .map(accessDescription -> accessDescription.getAccessLocation().getName())
                         .filter(URIName.class::isInstance)
                         .map(URIName.class::cast)
                         .map(URIName::getURI)
                         .map((URI uri) -> getCertificatesFromRemoteFile(uri, certificate))
                         .flatMap(Collection::stream)
-                        .forEach(certificates::add);
+                        .collect(Collectors.toList());
             }
         }
-        return certificates;
+        return Collections.emptyList();
     }
 
-    private static List<X509Certificate> getCertificatesFromRemoteFile(URI uri, X509Certificate intermediateCertificate) {
+    static List<X509Certificate> getCertificatesFromRemoteFile(URI uri, X509Certificate intermediateCertificate) {
         try (InputStream inputStream = uri.toURL().openStream();
              BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
              ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
@@ -322,7 +328,7 @@ public final class CertificateUtils {
         }
     }
 
-    private static List<X509Certificate> getRootCaFromJdkTrustedCertificates(X509Certificate intermediateCertificate) {
+    static List<X509Certificate> getRootCaFromJdkTrustedCertificates(X509Certificate intermediateCertificate) {
         List<Certificate> jdkTrustedCertificates = CertificateUtils.getJdkTrustedCertificates();
 
         return jdkTrustedCertificates.stream()
@@ -333,7 +339,7 @@ public final class CertificateUtils {
 
     }
 
-    private static boolean isIssuerOfIntermediateCertificate(X509Certificate intermediateCertificate, X509Certificate issuer) {
+    static boolean isIssuerOfIntermediateCertificate(X509Certificate intermediateCertificate, X509Certificate issuer) {
         try {
             intermediateCertificate.verify(issuer.getPublicKey());
             return true;

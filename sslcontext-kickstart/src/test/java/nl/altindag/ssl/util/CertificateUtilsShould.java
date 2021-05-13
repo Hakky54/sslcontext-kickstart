@@ -21,6 +21,7 @@ import nl.altindag.ssl.exception.GenericIOException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -28,7 +29,9 @@ import javax.net.ssl.X509ExtendedTrustManager;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
+import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyStore;
@@ -55,6 +58,8 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -180,6 +185,30 @@ class CertificateUtilsShould {
         List<Certificate> jdkTrustedCertificates = CertificateUtils.getJdkTrustedCertificates();
 
         assertThat(jdkTrustedCertificates).hasSizeGreaterThan(0);
+    }
+
+    @Test
+    void getRootCaIfPossibleReturnsJdkTrustedCaCertificateWhenNoAuthorityInfoAccessExtensionIsPresent() {
+        List<Certificate> certificates = CertificateUtils.getCertificate("https://www.reddit.com/")
+                .get("https://www.reddit.com/");
+
+        try (MockedStatic<CertificateUtils> certificateUtilsMockedStatic = mockStatic(CertificateUtils.class, invocation -> {
+            Method method = invocation.getMethod();
+            if ("getRootCaFromAuthorityInfoAccessExtensionIfPresent".equals(method.getName()) && method.getParameterCount() == 1) {
+                return invocation.getMock();
+            } else {
+                return invocation.callRealMethod();
+            }
+        })) {
+            certificateUtilsMockedStatic.when(() -> CertificateUtils.getRootCaFromAuthorityInfoAccessExtensionIfPresent(any(X509Certificate.class)))
+                    .thenReturn(Collections.emptyList());
+
+            X509Certificate certificate = (X509Certificate) certificates.get(certificates.size() - 1);
+            List<X509Certificate> rootCaCertificate = CertificateUtils.getRootCaIfPossible(certificate);
+            assertThat(rootCaCertificate).isNotEmpty();
+
+            certificateUtilsMockedStatic.verify(() -> CertificateUtils.getRootCaFromJdkTrustedCertificates(certificate), times(1));
+        }
     }
 
     @Test
