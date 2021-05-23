@@ -155,17 +155,22 @@ public final class CertificateUtils {
             );
         }
 
-        return certificates;
+        return Collections.unmodifiableList(certificates);
     }
 
     public static List<X509Certificate> getJdkTrustedCertificates() {
-        return Arrays.asList(TrustManagerUtils.createTrustManagerWithJdkTrustedCertificates().getAcceptedIssuers());
+        return Collections.unmodifiableList(
+                Arrays.asList(
+                        TrustManagerUtils.createTrustManagerWithJdkTrustedCertificates().getAcceptedIssuers()
+                )
+        );
     }
 
     public static List<X509Certificate> getSystemTrustedCertificates() {
         return TrustManagerUtils.createTrustManagerWithSystemTrustedCertificates()
                 .map(X509TrustManager::getAcceptedIssuers)
                 .map(Arrays::asList)
+                .map(Collections::unmodifiableList)
                 .orElse(Collections.emptyList());
     }
 
@@ -174,21 +179,25 @@ public final class CertificateUtils {
     }
 
     public static Map<String, List<String>> getCertificateAsPem(List<String> urls) {
-        return getCertificate(urls).entrySet().stream()
+        Map<String, List<String>> certificates = CertificateUtils.getCertificate(urls)
+                .entrySet()
+                .stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, entry -> CertificateUtils.convertToPem(entry.getValue())));
+
+        return Collections.unmodifiableMap(certificates);
     }
 
     public static Map<String, List<Certificate>> getCertificate(String... urls) {
-        return getCertificate(Arrays.asList(urls));
+        return CertificateUtils.getCertificate(Arrays.asList(urls));
     }
 
     public static Map<String, List<Certificate>> getCertificate(List<String> urls) {
         Map<String, List<Certificate>> certificates = new HashMap<>();
         for (String url : urls) {
-            List<Certificate> serverCertificates = getCertificateFromExternalSource(url);
+            List<Certificate> serverCertificates = CertificateUtils.getCertificateFromExternalSource(url);
             certificates.put(url, serverCertificates);
         }
-        return certificates;
+        return Collections.unmodifiableMap(certificates);
     }
 
     private static List<Certificate> getCertificateFromExternalSource(String url) {
@@ -210,7 +219,7 @@ public final class CertificateUtils {
                 connection.disconnect();
                 return certificates.stream()
                         .distinct()
-                        .collect(Collectors.toList());
+                        .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
             } else {
                 return Collections.emptyList();
             }
@@ -283,7 +292,7 @@ public final class CertificateUtils {
                         .map(URIName::getURI)
                         .map((URI uri) -> CertificateUtils.getCertificatesFromRemoteFile(uri, certificate))
                         .flatMap(Collection::stream)
-                        .collect(Collectors.toList());
+                        .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
             }
         }
         return Collections.emptyList();
@@ -306,7 +315,7 @@ public final class CertificateUtils {
                     .filter(X509Certificate.class::isInstance)
                     .map(X509Certificate.class::cast)
                     .filter(issuer -> CertificateUtils.isIssuerOfIntermediateCertificate(intermediateCertificate, issuer))
-                    .collect(Collectors.toList());
+                    .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
 
             byteArrayInputStream.close();
 
@@ -321,7 +330,7 @@ public final class CertificateUtils {
 
         return jdkTrustedCertificates.stream()
                 .filter(issuer -> isIssuerOfIntermediateCertificate(intermediateCertificate, issuer))
-                .collect(Collectors.toList());
+                .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
     }
 
     static boolean isIssuerOfIntermediateCertificate(X509Certificate intermediateCertificate, X509Certificate issuer) {
@@ -336,7 +345,7 @@ public final class CertificateUtils {
     public static List<String> convertToPem(List<Certificate> certificates) {
         return certificates.stream()
                 .map(CertificateUtils::convertToPem)
-                .collect(Collectors.toList());
+                .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
     }
 
     public static String convertToPem(Certificate certificate) {
