@@ -138,7 +138,7 @@ class CertificateUtilsShould {
     @Test
     void getSystemTrustedCertificates() {
         String operatingSystem = System.getProperty("os.name").toLowerCase();
-        List<Certificate> certificates = CertificateUtils.getSystemTrustedCertificates();
+        List<X509Certificate> certificates = CertificateUtils.getSystemTrustedCertificates();
         if (operatingSystem.contains("mac") || operatingSystem.contains("windows")) {
             assertThat(certificates).isNotEmpty();
         }
@@ -157,7 +157,7 @@ class CertificateUtilsShould {
             when(keyStore.aliases()).thenReturn(Collections.enumeration(Collections.singletonList("client")));
             when(keyStore.isCertificateEntry("client")).thenReturn(false);
 
-            List<Certificate> certificates = CertificateUtils.getSystemTrustedCertificates();
+            List<X509Certificate> certificates = CertificateUtils.getSystemTrustedCertificates();
 
             assertThat(certificates).isEmpty();
         }
@@ -185,7 +185,7 @@ class CertificateUtilsShould {
 
     @Test
     void getJdkTrustedCertificates() {
-        List<Certificate> jdkTrustedCertificates = CertificateUtils.getJdkTrustedCertificates();
+        List<X509Certificate> jdkTrustedCertificates = CertificateUtils.getJdkTrustedCertificates();
 
         assertThat(jdkTrustedCertificates).hasSizeGreaterThan(0);
     }
@@ -354,20 +354,6 @@ class CertificateUtilsShould {
             String content = IOUtils.getContent(resource);
 
             assertThatThrownBy(() -> CertificateUtils.parseCertificate(content))
-                    .isInstanceOf(GenericCertificateException.class)
-                    .hasMessageContaining("KABOOM!!!");
-        }
-    }
-
-    @Test
-    void throwsGenericCertificateExceptionWhenGettingSystemTrustedCertificatesFails() throws KeyStoreException {
-        KeyStore keyStore = mock(KeyStore.class);
-        try (MockedStatic<KeyStoreUtils> keyStoreUtilsMockedStatic = mockStatic(KeyStoreUtils.class, InvocationOnMock::getMock)) {
-
-            keyStoreUtilsMockedStatic.when(KeyStoreUtils::loadSystemKeyStores).thenReturn(Collections.singletonList(keyStore));
-            when(keyStore.aliases()).thenThrow(new KeyStoreException("KABOOM!!!"));
-
-            assertThatThrownBy(CertificateUtils::getSystemTrustedCertificates)
                     .isInstanceOf(GenericCertificateException.class)
                     .hasMessageContaining("KABOOM!!!");
         }

@@ -27,6 +27,7 @@ import sun.security.x509.X509CertImpl;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.X509TrustManager;
 import javax.security.auth.x500.X500Principal;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -40,8 +41,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.security.InvalidKeyException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.SignatureException;
@@ -159,25 +158,15 @@ public final class CertificateUtils {
         return certificates;
     }
 
-    public static List<Certificate> getJdkTrustedCertificates() {
+    public static List<X509Certificate> getJdkTrustedCertificates() {
         return Arrays.asList(TrustManagerUtils.createTrustManagerWithJdkTrustedCertificates().getAcceptedIssuers());
     }
 
-    public static List<Certificate> getSystemTrustedCertificates() {
-        try {
-            List<Certificate> certificates = new ArrayList<>();
-            for (KeyStore keyStore : KeyStoreUtils.loadSystemKeyStores()) {
-                for (String alias : Collections.list(keyStore.aliases())) {
-                    if (keyStore.isCertificateEntry(alias)) {
-                        Certificate certificate = keyStore.getCertificate(alias);
-                        certificates.add(certificate);
-                    }
-                }
-            }
-            return certificates;
-        } catch (KeyStoreException e) {
-            throw new GenericCertificateException(e);
-        }
+    public static List<X509Certificate> getSystemTrustedCertificates() {
+        return TrustManagerUtils.createTrustManagerWithSystemTrustedCertificates()
+                .map(X509TrustManager::getAcceptedIssuers)
+                .map(Arrays::asList)
+                .orElse(Collections.emptyList());
     }
 
     public static Map<String, List<String>> getCertificateAsPem(String... urls) {
@@ -328,14 +317,11 @@ public final class CertificateUtils {
     }
 
     static List<X509Certificate> getRootCaFromJdkTrustedCertificates(X509Certificate intermediateCertificate) {
-        List<Certificate> jdkTrustedCertificates = CertificateUtils.getJdkTrustedCertificates();
+        List<X509Certificate> jdkTrustedCertificates = CertificateUtils.getJdkTrustedCertificates();
 
         return jdkTrustedCertificates.stream()
-                .filter(X509Certificate.class::isInstance)
-                .map(X509Certificate.class::cast)
                 .filter(issuer -> isIssuerOfIntermediateCertificate(intermediateCertificate, issuer))
                 .collect(Collectors.toList());
-
     }
 
     static boolean isIssuerOfIntermediateCertificate(X509Certificate intermediateCertificate, X509Certificate issuer) {
