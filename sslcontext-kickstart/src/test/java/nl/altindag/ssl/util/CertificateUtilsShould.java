@@ -23,9 +23,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import sun.security.util.ObjectIdentifier;
-import sun.security.x509.BasicConstraintsExtension;
-import sun.security.x509.X509CertImpl;
 
 import javax.net.ssl.X509ExtendedTrustManager;
 import java.io.IOException;
@@ -44,11 +41,9 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static nl.altindag.ssl.TestConstants.KEYSTORE_LOCATION;
@@ -257,29 +252,6 @@ class CertificateUtilsShould {
     @Test
     void getRootCaFromAuthorityInfoAccessExtensionIfPresentReturnsEmptyListWhenCertificateIsNotInstanceOfX509CertImpl() {
         List<X509Certificate> rootCa = CertificateUtils.getRootCaFromAuthorityInfoAccessExtensionIfPresent(mock(X509Certificate.class));
-        assertThat(rootCa).isEmpty();
-    }
-
-    @Test
-    void getRootCaFromAuthorityInfoAccessExtensionIfPresentReturnsEmptyListWhenCertificateDoesNotContainNonCriticalExtensionOIDs() {
-        X509CertImpl certificate = mock(X509CertImpl.class);
-        when(certificate.getNonCriticalExtensionOIDs()).thenReturn(Collections.emptySet());
-
-        List<X509Certificate> rootCa = CertificateUtils.getRootCaFromAuthorityInfoAccessExtensionIfPresent(certificate);
-        assertThat(rootCa).isEmpty();
-    }
-
-    @Test
-    void getRootCaFromAuthorityInfoAccessExtensionIfPresentReturnsEmptyListWhenCertificateExtensionDoesNotHaveAuthorityInfoAccessExtension() {
-        X509CertImpl certificate = mock(X509CertImpl.class);
-
-        Set<String> extensionIds = new HashSet<>();
-        extensionIds.add("1.3.6.1.5.5.7.48.1");
-
-        when(certificate.getNonCriticalExtensionOIDs()).thenReturn(extensionIds);
-        when(certificate.getExtension(any(ObjectIdentifier.class))).thenReturn(mock(BasicConstraintsExtension.class));
-
-        List<X509Certificate> rootCa = CertificateUtils.getRootCaFromAuthorityInfoAccessExtensionIfPresent(certificate);
         assertThat(rootCa).isEmpty();
     }
 
