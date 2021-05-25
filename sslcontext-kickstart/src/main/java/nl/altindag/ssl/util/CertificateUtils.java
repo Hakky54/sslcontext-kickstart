@@ -24,9 +24,7 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.X509TrustManager;
 import javax.security.auth.x500.X500Principal;
-import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -280,26 +278,14 @@ public final class CertificateUtils {
             }
 
             InputStream inputStream = connection.getInputStream();
-            BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-
-            byte[] dataBuffer = new byte[1024];
-            int bytesRead;
-            while ((bytesRead = bufferedInputStream.read(dataBuffer, 0, 1024)) != -1) {
-                byteArrayOutputStream.write(dataBuffer, 0, bytesRead);
-            }
 
             CertificateFactory certificateFactory = CertificateFactory.getInstance(CERTIFICATE_TYPE);
-            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
-            List<X509Certificate> certificates = certificateFactory.generateCertificates(byteArrayInputStream).stream()
+            List<X509Certificate> certificates = certificateFactory.generateCertificates(inputStream).stream()
                     .filter(X509Certificate.class::isInstance)
                     .map(X509Certificate.class::cast)
                     .filter(issuer -> CertificateUtils.isIssuerOfIntermediateCertificate(intermediateCertificate, issuer))
                     .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
 
-            byteArrayInputStream.close();
-            byteArrayOutputStream.close();
-            bufferedInputStream.close();
             inputStream.close();
 
             return certificates;
