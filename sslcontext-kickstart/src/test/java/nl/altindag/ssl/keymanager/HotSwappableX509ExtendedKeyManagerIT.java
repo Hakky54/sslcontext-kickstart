@@ -19,6 +19,7 @@ package nl.altindag.ssl.keymanager;
 import nl.altindag.ssl.SSLFactory;
 import nl.altindag.ssl.util.KeyManagerUtils;
 import nl.altindag.ssl.util.KeyStoreUtils;
+import nl.altindag.ssl.util.SSLSessionUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -28,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLSessionContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.X509ExtendedKeyManager;
 import java.io.IOException;
@@ -46,6 +48,7 @@ class HotSwappableX509ExtendedKeyManagerIT {
     private static final Logger LOGGER = LoggerFactory.getLogger(HotSwappableX509ExtendedKeyManagerIT.class);
 
     private static SSLSocketFactory sslSocketFactory;
+    private static SSLSessionContext sslSessionContext;
     private static X509ExtendedKeyManager keyManager;
 
     @BeforeAll
@@ -60,6 +63,7 @@ class HotSwappableX509ExtendedKeyManagerIT {
                 .build();
 
         sslSocketFactory = sslFactory.getSslSocketFactory();
+        sslSessionContext = sslFactory.getSslContext().getClientSessionContext();
     }
 
     @Test
@@ -70,6 +74,7 @@ class HotSwappableX509ExtendedKeyManagerIT {
         connection.setRequestMethod("GET");
 
         int statusCode = connection.getResponseCode();
+        connection.disconnect();
 
         if (statusCode == 400) {
             LOGGER.warn("Certificate may have expired and needs to be updated");
@@ -85,12 +90,16 @@ class HotSwappableX509ExtendedKeyManagerIT {
         X509ExtendedKeyManager anotherKeyManager = KeyManagerUtils.createKeyManager(identityStore, "secret".toCharArray());
 
         KeyManagerUtils.swapKeyManager(keyManager, anotherKeyManager);
+        SSLSessionUtils.invalidateCaches(sslSessionContext);
 
         HttpsURLConnection connection = (HttpsURLConnection) new URL("https://client.badssl.com/").openConnection();
         connection.setSSLSocketFactory(sslSocketFactory);
         connection.setRequestMethod("GET");
 
-        assertThat(connection.getResponseCode()).isEqualTo(400);
+        int statusCode = connection.getResponseCode();
+        connection.disconnect();
+
+        assertThat(statusCode).isEqualTo(400);
     }
 
 }

@@ -47,6 +47,28 @@ jobs:
       - name: Build and test
         run: mvn clean verify --no-transfer-progress
 
+  build-on-linux-with-jdk-15:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up JDK 15
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: '15'
+
+      - name: Cache dependencies
+        uses: actions/cache@v1
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Build and test
+        run: mvn clean verify --no-transfer-progress
+
   build-on-windows-with-jdk-8:
     runs-on: windows-latest
     steps:
@@ -79,6 +101,28 @@ jobs:
         with:
           distribution: 'adopt'
           java-version: '11'
+
+      - name: Cache dependencies
+        uses: actions/cache@v1
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Build and test
+        run: mvn clean verify --no-transfer-progress
+
+  build-on-windows-with-jdk-15:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up JDK 15
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: '15'
 
       - name: Cache dependencies
         uses: actions/cache@v1
@@ -140,3 +184,25 @@ jobs:
       - name: Build and test
         run: mvn clean verify --no-transfer-progress --no-transfer-progress
         if: github.actor != 'Hakky54'
+
+  build-on-mac-with-jdk-15:
+    runs-on: macOS-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up JDK 15
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: '15'
+
+      - name: Cache dependencies
+        uses: actions/cache@v1
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Build and test
+        run: mvn clean verify --no-transfer-progress
