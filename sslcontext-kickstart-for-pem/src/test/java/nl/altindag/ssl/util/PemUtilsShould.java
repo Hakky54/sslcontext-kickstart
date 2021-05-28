@@ -260,8 +260,8 @@ class PemUtilsShould {
     @Test
     void loadEncryptedPrivateKeyAndCertificateAsIdentityFromClassPath() {
         X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(
-                PEM_LOCATION + "splitted-unencrypted-identity-containing-certificate.pem",
-                PEM_LOCATION + "splitted-unencrypted-identity-containing-private-key.pem",
+                PEM_LOCATION + "splitted-encrypted-identity-containing-certificate.pem",
+                PEM_LOCATION + "splitted-encrypted-identity-containing-private-key.pem",
                 "secret".toCharArray()
         );
 
