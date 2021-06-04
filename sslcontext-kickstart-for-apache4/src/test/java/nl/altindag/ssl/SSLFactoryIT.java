@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * @author Hakan Altindag
@@ -59,9 +60,10 @@ class SSLFactoryIT {
         HttpResponse response = httpClient.execute(request);
 
         int statusCode = response.getStatusLine().getStatusCode();
+        logCaptor.close();
 
         if (statusCode == 400) {
-            LOGGER.warn("Certificate may have expired and needs to be updated");
+            fail("Certificate may have expired and needs to be updated");
         } else {
             assertThat(statusCode).isEqualTo(200);
             assertThat(logCaptor.getLogs()).containsExactly("Received the following server certificate: [CN=*.badssl.com, O=Lucas Garron Torres, L=Walnut Creek, ST=California, C=US]");

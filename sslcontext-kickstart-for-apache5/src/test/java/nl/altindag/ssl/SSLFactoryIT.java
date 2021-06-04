@@ -34,10 +34,7 @@ import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.nio.support.BasicRequestProducer;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
@@ -47,18 +44,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * @author Hakan Altindag
  */
 class SSLFactoryIT {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(SSLFactoryIT.class);
-
-    @BeforeAll
-    public static void disableApacheLogs() {
-        LogCaptor.forName("org.apache.hc").disableLogs();
-    }
 
     @Test
     void executeHttpsRequestWithMutualAuthentication() throws IOException {
@@ -82,10 +73,11 @@ class SSLFactoryIT {
         HttpGet request = new HttpGet("https://client.badssl.com/");
         HttpResponse response = httpClient.execute(request);
 
-        int statusCode = response.getCode();
+        logCaptor.close();
 
+        int statusCode = response.getCode();
         if (statusCode == 400) {
-            LOGGER.warn("Certificate may have expired and needs to be updated");
+            fail("Certificate may have expired and needs to be updated");
         } else {
             assertThat(statusCode).isEqualTo(200);
             assertThat(logCaptor.getLogs()).contains("Received the following server certificate: [CN=*.badssl.com, O=Lucas Garron Torres, L=Walnut Creek, ST=California, C=US]");
@@ -117,11 +109,11 @@ class SSLFactoryIT {
                 SimpleResponseConsumer.create(), null, null, null)
                 .get(10, TimeUnit.SECONDS);
 
+        logCaptor.close();
 
         int statusCode = response.getCode();
-
         if (statusCode == 400) {
-            LOGGER.warn("Certificate may have expired and needs to be updated");
+            fail("Certificate may have expired and needs to be updated");
         } else {
             assertThat(statusCode).isEqualTo(200);
             assertThat(logCaptor.getLogs()).contains("Received the following server certificate: [CN=*.badssl.com, O=Lucas Garron Torres, L=Walnut Creek, ST=California, C=US]");

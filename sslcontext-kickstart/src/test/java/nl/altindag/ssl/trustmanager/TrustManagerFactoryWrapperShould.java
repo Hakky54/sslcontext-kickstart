@@ -17,6 +17,9 @@
 package nl.altindag.ssl.trustmanager;
 
 import nl.altindag.log.LogCaptor;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -38,7 +41,22 @@ import static org.mockito.Mockito.mock;
 @ExtendWith(MockitoExtension.class)
 class TrustManagerFactoryWrapperShould {
 
-    private final LogCaptor logCaptor = LogCaptor.forName("nl.altindag.ssl.trustmanager");
+    private static LogCaptor logCaptor;
+
+    @BeforeAll
+    static void setupLogCaptor() {
+        logCaptor = LogCaptor.forName("nl.altindag.ssl.trustmanager");
+    }
+
+    @AfterEach
+    void clearCapturedLogs() {
+        logCaptor.clearLogs();
+    }
+
+    @AfterAll
+    static void closeLogCaptor() {
+        logCaptor.close();
+    }
 
     @Test
     void createInstanceFromTrustManager() {

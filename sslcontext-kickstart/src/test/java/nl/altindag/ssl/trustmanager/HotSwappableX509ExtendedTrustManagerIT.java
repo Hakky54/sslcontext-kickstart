@@ -39,14 +39,13 @@ import java.security.KeyStore;
 
 import static nl.altindag.ssl.TestConstants.KEYSTORE_LOCATION;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * @author Hakan Altindag
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class HotSwappableX509ExtendedTrustManagerIT {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(HotSwappableX509ExtendedTrustManagerIT.class);
 
     private static SSLSocketFactory sslSocketFactory;
     private static SSLSessionContext sslSessionContext;
@@ -78,7 +77,7 @@ class HotSwappableX509ExtendedTrustManagerIT {
         connection.disconnect();
 
         if (statusCode == 400) {
-            LOGGER.warn("Certificate may have expired and needs to be updated");
+            fail("Certificate may have expired and needs to be updated");
         } else {
             assertThat(statusCode).isEqualTo(200);
         }
@@ -100,7 +99,7 @@ class HotSwappableX509ExtendedTrustManagerIT {
         connection.disconnect();
 
         if (statusCode == 400) {
-            LOGGER.warn("Certificate may have expired and needs to be updated");
+            fail("Certificate may have expired and needs to be updated");
         } else {
             assertThat(statusCode).isEqualTo(200);
             assertThat(logCaptor.getLogs()).containsExactly("Accepting the following server certificates without validating: [{CN=*.badssl.com, O=Lucas Garron Torres, L=Walnut Creek, ST=California, C=US},{CN=DigiCert SHA2 Secure Server CA, O=DigiCert Inc, C=US}]");

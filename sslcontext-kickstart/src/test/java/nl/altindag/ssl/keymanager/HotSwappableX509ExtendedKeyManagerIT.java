@@ -25,8 +25,6 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSessionContext;
@@ -38,14 +36,13 @@ import java.security.KeyStore;
 
 import static nl.altindag.ssl.TestConstants.KEYSTORE_LOCATION;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * @author Hakan Altindag
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class HotSwappableX509ExtendedKeyManagerIT {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(HotSwappableX509ExtendedKeyManagerIT.class);
 
     private static SSLSocketFactory sslSocketFactory;
     private static SSLSessionContext sslSessionContext;
@@ -77,7 +74,7 @@ class HotSwappableX509ExtendedKeyManagerIT {
         connection.disconnect();
 
         if (statusCode == 400) {
-            LOGGER.warn("Certificate may have expired and needs to be updated");
+            fail("Certificate may have expired and needs to be updated");
         } else {
             assertThat(statusCode).isEqualTo(200);
         }

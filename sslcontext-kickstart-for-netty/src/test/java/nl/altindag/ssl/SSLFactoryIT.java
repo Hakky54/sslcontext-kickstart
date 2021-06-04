@@ -20,10 +20,7 @@ import io.netty.handler.ssl.SslContext;
 import nl.altindag.log.LogCaptor;
 import nl.altindag.ssl.util.KeyStoreUtils;
 import nl.altindag.ssl.util.NettySslUtils;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.function.Tuple2;
@@ -32,19 +29,12 @@ import java.io.IOException;
 import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * @author Hakan Altindag
  */
 class SSLFactoryIT {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(SSLFactoryIT.class);
-
-    @BeforeAll
-    static void disableNettyVerboseLogging() {
-        LogCaptor.forName("io.netty").disableLogs();
-        LogCaptor.forName("reactor.netty").disableLogs();
-    }
 
     @Test
     void executeHttpsRequestWithMutualAuthentication() throws IOException {
@@ -65,8 +55,10 @@ class SSLFactoryIT {
                 .map(Tuple2::getT2)
                 .block();
 
+        logCaptor.close();
+
         if (Objects.requireNonNull(statusCode) == 400) {
-            LOGGER.warn("Certificate may have expired and needs to be updated");
+            fail("Certificate may have expired and needs to be updated");
         } else {
             assertThat(statusCode).isEqualTo(200);
             assertThat(logCaptor.getLogs()).contains("Received the following server certificate: [CN=*.badssl.com, O=Lucas Garron Torres, L=Walnut Creek, ST=California, C=US]");

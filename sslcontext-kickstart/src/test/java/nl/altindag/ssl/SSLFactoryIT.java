@@ -16,10 +16,6 @@
 
 package nl.altindag.ssl;
 
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
-import com.sun.net.httpserver.HttpsConfigurator;
-import com.sun.net.httpserver.HttpsParameters;
 import com.sun.net.httpserver.HttpsServer;
 import nl.altindag.log.LogCaptor;
 import nl.altindag.ssl.util.KeyManagerUtils;
@@ -27,8 +23,6 @@ import nl.altindag.ssl.util.KeyStoreUtils;
 import nl.altindag.ssl.util.SSLSessionUtils;
 import nl.altindag.ssl.util.TrustManagerUtils;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLException;
@@ -38,8 +32,6 @@ import javax.net.ssl.X509ExtendedTrustManager;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -47,7 +39,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
@@ -55,13 +46,12 @@ import java.util.stream.Collectors;
 import static nl.altindag.ssl.TestConstants.KEYSTORE_LOCATION;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * @author Hakan Altindag
  */
 class SSLFactoryIT {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(SSLFactoryIT.class);
 
     @Test
     void executeHttpsRequestWithMutualAuthentication() throws IOException {
@@ -79,9 +69,10 @@ class SSLFactoryIT {
         connection.setRequestMethod("GET");
 
         int statusCode = connection.getResponseCode();
+        logCaptor.close();
 
         if (statusCode == 400) {
-            LOGGER.warn("Certificate may have expired and needs to be updated");
+            fail("Certificate may have expired and needs to be updated");
         } else {
             assertThat(statusCode).isEqualTo(200);
             assertThat(logCaptor.getLogs()).containsExactly("Received the following server certificate: [CN=*.badssl.com, O=Lucas Garron Torres, L=Walnut Creek, ST=California, C=US]");
@@ -209,7 +200,7 @@ class SSLFactoryIT {
 
     @Test
     @SuppressWarnings("OptionalGetWithoutIsPresent")
-    void executeRequestToTwoServersWithMutualAuthenticationWithSwappingClientIdentityAndTrustMaterial() throws IOException, InterruptedException {
+    void executeRequestToTwoServersWithMutualAuthenticationWithSwappingClientIdentityAndTrustMaterial() throws IOException {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
 
         char[] keyStorePassword = "secret".toCharArray();

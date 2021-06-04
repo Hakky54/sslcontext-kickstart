@@ -16,10 +16,8 @@
 
 package nl.altindag.ssl.util;
 
-import nl.altindag.log.LogCaptor;
 import nl.altindag.ssl.SSLFactory;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.security.KeyStore;
@@ -37,11 +35,6 @@ class JettySslUtilsShould {
     private static final char[] IDENTITY_PASSWORD = "secret".toCharArray();
     private static final char[] TRUSTSTORE_PASSWORD = "secret".toCharArray();
     private static final String KEYSTORE_LOCATION = "keystores-for-unit-tests/";
-
-    @BeforeAll
-    public static void disableJettyLogs() {
-        LogCaptor.forName("org.eclipse.jetty").disableLogs();
-    }
 
     @Test
     void createJettySslContextFactoryForClientWithTrustMaterial() {

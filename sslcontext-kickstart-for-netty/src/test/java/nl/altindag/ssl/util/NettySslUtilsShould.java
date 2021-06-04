@@ -17,9 +17,7 @@
 package nl.altindag.ssl.util;
 
 import io.netty.handler.ssl.SslContext;
-import nl.altindag.log.LogCaptor;
 import nl.altindag.ssl.SSLFactory;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -39,11 +37,6 @@ class NettySslUtilsShould {
     private static final char[] IDENTITY_PASSWORD = "secret".toCharArray();
     private static final char[] TRUSTSTORE_PASSWORD = "secret".toCharArray();
     private static final String KEYSTORE_LOCATION = "keystores-for-unit-tests/";
-
-    @BeforeAll
-    public static void disableNettyLogs() {
-        LogCaptor.forName("io.netty").disableLogs();
-    }
 
     @Test
     void createNettySslContextBuilderForClientWithTrustMaterial() throws IOException {

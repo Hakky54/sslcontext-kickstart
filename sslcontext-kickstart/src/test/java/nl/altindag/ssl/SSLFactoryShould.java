@@ -39,7 +39,6 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLSession;
-import javax.net.ssl.SSLSessionContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509ExtendedKeyManager;
@@ -59,7 +58,6 @@ import java.security.SecureRandom;
 import java.security.Security;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Collections;
@@ -878,6 +876,8 @@ class SSLFactoryShould {
                 .withTrustingAllCertificatesWithoutValidation()
                 .build();
 
+        logCaptor.close();
+
         assertThat(sslFactory.getSslContext()).isNotNull();
         assertThat(sslFactory.getTrustedCertificates()).isEmpty();
         assertThat(sslFactory.getTrustStores()).isEmpty();
@@ -1451,7 +1451,7 @@ class SSLFactoryShould {
     }
 
     @Test
-    void throwExceptionNullIsIsProvidedWhenUsingPrivateKey() throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException, UnrecoverableKeyException {
+    void throwExceptionNullIsIsProvidedWhenUsingPrivateKey() throws KeyStoreException {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         Certificate[] certificateChain = identity.getCertificateChain("dummy-client");
 

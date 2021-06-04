@@ -23,10 +23,8 @@ import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -34,13 +32,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Hakan Altindag
  */
 class SSLFactoryIT {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(SSLFactoryIT.class);
-
-    @BeforeAll
-    static void disableJettyVerboseLogging() {
-        LogCaptor.forName("org.eclipse.jetty").disableLogs();
-    }
 
     @Test
     void executeHttpsRequestWithMutualAuthentication() throws Exception {
@@ -62,11 +53,12 @@ class SSLFactoryIT {
                 .send();
 
         httpClient.stop();
+        logCaptor.close();
 
         int statusCode = contentResponse.getStatus();
 
         if (statusCode == 400) {
-            LOGGER.warn("Certificate may have expired and needs to be updated");
+            Assertions.fail("Certificate may have expired and needs to be updated");
         } else {
             assertThat(statusCode).isEqualTo(200);
             assertThat(logCaptor.getLogs()).contains("Received the following server certificate: [CN=*.badssl.com, O=Lucas Garron Torres, L=Walnut Creek, ST=California, C=US]");

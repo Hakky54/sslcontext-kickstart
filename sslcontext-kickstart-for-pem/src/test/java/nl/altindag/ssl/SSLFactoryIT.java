@@ -19,8 +19,6 @@ import nl.altindag.log.LogCaptor;
 import nl.altindag.ssl.util.KeyStoreUtils;
 import nl.altindag.ssl.util.PemUtils;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.X509ExtendedKeyManager;
@@ -29,13 +27,13 @@ import java.io.IOException;
 import java.net.URL;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * @author Hakan Altindag
  */
 class SSLFactoryIT {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SSLFactoryIT.class);
     private static final String BADSSL_URL = "https://client.badssl.com/";
     private static final char[] IDENTITY_PASSWORD = "badssl.com".toCharArray();
 
@@ -58,9 +56,10 @@ class SSLFactoryIT {
         connection.setRequestMethod("GET");
 
         int statusCode = connection.getResponseCode();
+        logCaptor.close();
 
         if (statusCode == 400) {
-            LOGGER.warn("Certificate may have expired and needs to be updated");
+            fail("Certificate may have expired and needs to be updated");
         } else {
             assertThat(connection.getResponseCode()).isEqualTo(200);
             assertThat(logCaptor.getLogs()).containsExactly("Received the following server certificate: [CN=*.badssl.com, O=Lucas Garron Torres, L=Walnut Creek, ST=California, C=US]");
@@ -86,9 +85,10 @@ class SSLFactoryIT {
         connection.setRequestMethod("GET");
 
         int statusCode = connection.getResponseCode();
+        logCaptor.close();
 
         if (statusCode == 400) {
-            LOGGER.warn("Certificate may have expired and needs to be updated");
+            fail("Certificate may have expired and needs to be updated");
         } else {
             assertThat(connection.getResponseCode()).isEqualTo(200);
             assertThat(logCaptor.getLogs()).containsExactly("Received the following server certificate: [CN=*.badssl.com, O=Lucas Garron Torres, L=Walnut Creek, ST=California, C=US]");
@@ -222,9 +222,10 @@ class SSLFactoryIT {
         connection.setRequestMethod("GET");
 
         int statusCode = connection.getResponseCode();
+        logCaptor.close();
 
         if (statusCode == 400) {
-            LOGGER.warn("Certificate may have expired and needs to be updated");
+            fail("Certificate may have expired and needs to be updated");
         } else {
             assertThat(connection.getResponseCode()).isEqualTo(200);
             assertThat(logCaptor.getLogs()).containsExactly("Received the following server certificate: [CN=*.badssl.com, O=Lucas Garron Torres, L=Walnut Creek, ST=California, C=US]");
