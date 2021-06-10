@@ -3,6 +3,10 @@
 This list is not intended to be all-encompassing - it will document major and breaking API 
 changes with their rationale when appropriate:
 
+### v6.6.2
+- Made certificate extractor compatible with java 15+
+### v6.6.1
+- Included root-ca in the certificate extractor within CertificateUtils
 ### v6.6.0
 - Added server certificate extractor to CertificateUtils
 - Bumped the version of transitive dependencies
