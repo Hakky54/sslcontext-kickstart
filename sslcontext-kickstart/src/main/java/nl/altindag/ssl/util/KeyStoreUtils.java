@@ -16,10 +16,10 @@
 
 package nl.altindag.ssl.util;
 
+import nl.altindag.log.Logger;
+import nl.altindag.log.LoggerFactory;
 import nl.altindag.ssl.exception.GenericKeyStoreException;
 import nl.altindag.ssl.model.KeyStoreHolder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.X509TrustManager;
 
