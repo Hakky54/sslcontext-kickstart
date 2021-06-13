@@ -173,7 +173,7 @@ public final class KeyStoreUtils {
         }
 
         if (keyStores.isEmpty()) {
-            LOGGER.warn("No system KeyStores available for [{}]", operatingSystem);
+            LOGGER.warn(String.format("No system KeyStores available for [%s]", operatingSystem));
         }
 
         return keyStores;
