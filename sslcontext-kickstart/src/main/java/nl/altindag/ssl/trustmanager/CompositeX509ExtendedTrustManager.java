@@ -16,8 +16,8 @@
 
 package nl.altindag.ssl.trustmanager;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import nl.altindag.log.Logger;
+import nl.altindag.log.LoggerFactory;
 
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedTrustManager;
@@ -62,8 +62,8 @@ public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustMa
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CompositeX509ExtendedTrustManager.class);
     private static final String CERTIFICATE_EXCEPTION_MESSAGE = "None of the TrustManagers trust this certificate chain";
-    private static final String CLIENT_CERTIFICATE_LOG_MESSAGE = "Received the following client certificate: [{}]";
-    private static final String SERVER_CERTIFICATE_LOG_MESSAGE = "Received the following server certificate: [{}]";
+    private static final String CLIENT_CERTIFICATE_LOG_MESSAGE = "Received the following client certificate: [%s]";
+    private static final String SERVER_CERTIFICATE_LOG_MESSAGE = "Received the following server certificate: [%s]";
 
     private final List<X509ExtendedTrustManager> trustManagers;
     private final X509Certificate[] acceptedIssuers;
@@ -79,54 +79,42 @@ public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustMa
 
     @Override
     public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(CLIENT_CERTIFICATE_LOG_MESSAGE, chain[0].getSubjectDN());
-        }
+        LOGGER.debug(String.format(CLIENT_CERTIFICATE_LOG_MESSAGE, chain[0].getSubjectDN()));
 
         checkTrusted(trustManager -> trustManager.checkClientTrusted(chain, authType));
     }
 
     @Override
     public void checkClientTrusted(X509Certificate[] chain, String authType, Socket socket) throws CertificateException {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(CLIENT_CERTIFICATE_LOG_MESSAGE, chain[0].getSubjectDN());
-        }
+        LOGGER.debug(String.format(CLIENT_CERTIFICATE_LOG_MESSAGE, chain[0].getSubjectDN()));
 
         checkTrusted(trustManager -> trustManager.checkClientTrusted(chain, authType, socket));
     }
 
     @Override
     public void checkClientTrusted(X509Certificate[] chain, String authType, SSLEngine sslEngine) throws CertificateException {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(CLIENT_CERTIFICATE_LOG_MESSAGE, chain[0].getSubjectDN());
-        }
+        LOGGER.debug(String.format(CLIENT_CERTIFICATE_LOG_MESSAGE, chain[0].getSubjectDN()));
 
         checkTrusted(trustManager -> trustManager.checkClientTrusted(chain, authType, sslEngine));
     }
 
     @Override
     public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(SERVER_CERTIFICATE_LOG_MESSAGE, chain[0].getSubjectDN());
-        }
+        LOGGER.debug(String.format(SERVER_CERTIFICATE_LOG_MESSAGE, chain[0].getSubjectDN()));
 
         checkTrusted(trustManager -> trustManager.checkServerTrusted(chain, authType));
     }
 
     @Override
     public void checkServerTrusted(X509Certificate[] chain, String authType, Socket socket) throws CertificateException {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(SERVER_CERTIFICATE_LOG_MESSAGE, chain[0].getSubjectDN());
-        }
+        LOGGER.debug(String.format(SERVER_CERTIFICATE_LOG_MESSAGE, chain[0].getSubjectDN()));
 
         checkTrusted(trustManager -> trustManager.checkServerTrusted(chain, authType, socket));
     }
 
     @Override
     public void checkServerTrusted(X509Certificate[] chain, String authType, SSLEngine sslEngine) throws CertificateException {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(SERVER_CERTIFICATE_LOG_MESSAGE, chain[0].getSubjectDN());
-        }
+        LOGGER.debug(String.format(SERVER_CERTIFICATE_LOG_MESSAGE, chain[0].getSubjectDN()));
 
         checkTrusted(trustManager -> trustManager.checkServerTrusted(chain, authType, sslEngine));
     }

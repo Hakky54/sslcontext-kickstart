@@ -16,8 +16,8 @@
 
 package nl.altindag.ssl.trustmanager;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import nl.altindag.log.Logger;
+import nl.altindag.log.LoggerFactory;
 
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedTrustManager;
@@ -58,7 +58,7 @@ public final class UnsafeX509ExtendedTrustManager extends X509ExtendedTrustManag
 
     private static final String SERVER = "server";
     private static final String CLIENT = "client";
-    private static final String CERTIFICATE_LOG_MESSAGE = "Accepting the following {} certificates without validating: {}";
+    private static final String CERTIFICATE_LOG_MESSAGE = "Accepting the following %s certificates without validating: %s";
     private static final X509Certificate[] EMPTY_CERTIFICATES = new X509Certificate[0];
 
     private UnsafeX509ExtendedTrustManager() {}
@@ -99,7 +99,7 @@ public final class UnsafeX509ExtendedTrustManager extends X509ExtendedTrustManag
 
     private static void logCertificate(X509Certificate[] certificates, String serverOrClient) {
         String principals = extractPrincipals(certificates);
-        LOGGER.warn(CERTIFICATE_LOG_MESSAGE, serverOrClient, principals);
+        LOGGER.warn(String.format(CERTIFICATE_LOG_MESSAGE, serverOrClient, principals));
     }
 
     private static String extractPrincipals(X509Certificate[] certificates) {

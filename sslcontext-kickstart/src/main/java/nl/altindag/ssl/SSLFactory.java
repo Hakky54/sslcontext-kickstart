@@ -16,6 +16,8 @@
 
 package nl.altindag.ssl;
 
+import nl.altindag.log.Logger;
+import nl.altindag.log.LoggerFactory;
 import nl.altindag.ssl.exception.GenericKeyStoreException;
 import nl.altindag.ssl.exception.GenericSecurityException;
 import nl.altindag.ssl.model.IdentityMaterial;
@@ -31,8 +33,6 @@ import nl.altindag.ssl.util.SSLSocketUtils;
 import nl.altindag.ssl.util.StringUtils;
 import nl.altindag.ssl.util.TrustManagerUtils;
 import nl.altindag.ssl.util.UriUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManagerFactory;

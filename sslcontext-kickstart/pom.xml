@@ -52,8 +52,8 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
+            <groupId>io.github.hakky54</groupId>
+            <artifactId>yaslf4j</artifactId>
         </dependency>
 
         <dependency>
