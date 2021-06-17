@@ -205,6 +205,16 @@ public final class SSLFactory {
         }
 
         /**
+         * A shorter method for using the unsafe trust material
+         *
+         * @see Builder#withTrustingAllCertificatesWithoutValidation()
+         * @return {@link Builder}
+         */
+        public Builder withUnsafeTrustMaterial() {
+            return withTrustingAllCertificatesWithoutValidation();
+        }
+
+        /**
          * Enables the possibility to swap the underlying TrustManager at runtime.
          * After this option has been enabled the TrustManager can be swapped
          * with {@link TrustManagerUtils#swapTrustManager(X509TrustManager, X509TrustManager) TrustManagerUtils#swapTrustManager(swappableTrustManager, newTrustManager)}

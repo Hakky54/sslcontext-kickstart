@@ -873,7 +873,7 @@ class SSLFactoryShould {
         LogCaptor logCaptor = LogCaptor.forClass(SSLFactory.class);
 
         SSLFactory sslFactory = SSLFactory.builder()
-                .withTrustingAllCertificatesWithoutValidation()
+                .withUnsafeTrustMaterial()
                 .build();
 
         logCaptor.close();
