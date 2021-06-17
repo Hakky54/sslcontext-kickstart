@@ -491,8 +491,6 @@ public class App {
         Optional<KeyManagerFactory> keyManagerFactory = sslFactory.getKeyManagerFactory();
         Optional<TrustManagerFactory> trustManagerFactory = sslFactory.getTrustManagerFactory();
         List<X509Certificate> trustedCertificates = sslFactory.getTrustedCertificates();
-        List<KeyStoreHolder> identities = sslFactory.getIdentities();
-        List<KeyStoreHolder> trustStores = sslFactory.getTrustStores();
         SSLSocketFactory sslSocketFactory = sslFactory.getSslSocketFactory();
         SSLServerSocketFactory sslServerSocketFactory = sslFactory.getSslServerSocketFactory();
         SSLEngine sslEngine = sslFactory.getSslEngine(host, port);

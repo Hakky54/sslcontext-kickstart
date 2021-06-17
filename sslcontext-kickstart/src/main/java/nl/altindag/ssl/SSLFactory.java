@@ -81,10 +81,12 @@ public final class SSLFactory {
         this.sslMaterial = sslMaterial;
     }
 
+    @Deprecated
     public List<KeyStoreHolder> getIdentities() {
         return sslMaterial.getIdentityMaterial().getIdentities();
     }
 
+    @Deprecated
     public List<KeyStoreHolder> getTrustStores() {
         return sslMaterial.getTrustMaterial().getTrustStores();
     }
@@ -522,6 +524,7 @@ public final class SSLFactory {
             return this;
         }
 
+        @Deprecated
         public Builder withPasswordCaching() {
             passwordCachingEnabled = true;
             return this;
