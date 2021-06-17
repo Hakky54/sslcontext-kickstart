@@ -16,8 +16,8 @@
 
 package nl.altindag.ssl.trustmanager;
 
-import nl.altindag.log.Logger;
-import nl.altindag.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.ManagerFactoryParameters;
 import javax.net.ssl.TrustManager;

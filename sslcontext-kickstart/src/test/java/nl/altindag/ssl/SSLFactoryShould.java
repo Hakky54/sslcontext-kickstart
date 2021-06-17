@@ -17,8 +17,6 @@
 package nl.altindag.ssl;
 
 import nl.altindag.log.LogCaptor;
-import nl.altindag.log.Logger;
-import nl.altindag.log.LoggerFactory;
 import nl.altindag.ssl.exception.GenericKeyManagerException;
 import nl.altindag.ssl.exception.GenericKeyStoreException;
 import nl.altindag.ssl.exception.GenericSecurityException;
@@ -33,6 +31,8 @@ import nl.altindag.ssl.util.TrustManagerUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManager;
@@ -931,13 +931,13 @@ class SSLFactoryShould {
 
         int javaMajorVersion = Integer.parseInt(matcher.group(0));
         if (javaMajorVersion < 11) {
-            LOGGER.info(String.format("skipping unit test [%s] because TLSv1.3 is not available for this java %s version",
+            LOGGER.info("skipping unit test [{}] because TLSv1.3 is not available for this java {} version",
                         new Object() {}.getClass().getEnclosingMethod().getName(),
-                        javaVersion));
+                        javaVersion);
             return;
         }
 
-        LOGGER.info(String.format("Found java version %s, including testing SSLFactory with TLSv1.3 protocol", javaMajorVersion));
+        LOGGER.info("Found java version {}, including testing SSLFactory with TLSv1.3 protocol", javaMajorVersion);
         SSLFactory sslFactory = SSLFactory.builder()
                 .withDefaultTrustMaterial()
                 .build();

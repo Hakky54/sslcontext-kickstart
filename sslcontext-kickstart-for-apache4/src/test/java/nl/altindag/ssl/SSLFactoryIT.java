@@ -25,6 +25,8 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.impl.client.HttpClients;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -35,6 +37,8 @@ import static org.assertj.core.api.Assertions.fail;
  * @author Hakan Altindag
  */
 class SSLFactoryIT {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(SSLFactoryIT.class);
 
     @Test
     void executeHttpsRequestWithMutualAuthentication() throws IOException {

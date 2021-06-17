@@ -16,8 +16,8 @@
 
 package nl.altindag.ssl.keymanager;
 
-import nl.altindag.log.Logger;
-import nl.altindag.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactorySpi;

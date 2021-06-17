@@ -60,7 +60,6 @@
 
     <properties>
         <version.java>1.8</version.java>
-        <version.yaslf4j>1.0.0</version.yaslf4j>
         <version.slf4j>1.7.30</version.slf4j>
         <version.junit>5.8.0-M1</version.junit>
         <version.assertj-core>3.19.0</version.assertj-core>
@@ -84,10 +83,11 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>io.github.hakky54</groupId>
-                <artifactId>yaslf4j</artifactId>
-                <version>${version.yaslf4j}</version>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${version.slf4j}</version>
             </dependency>
+
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter-api</artifactId>
@@ -116,12 +116,6 @@
                 <groupId>io.github.hakky54</groupId>
                 <artifactId>logcaptor</artifactId>
                 <version>${version.logcaptor}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-api</artifactId>
-                <version>${version.slf4j}</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>
