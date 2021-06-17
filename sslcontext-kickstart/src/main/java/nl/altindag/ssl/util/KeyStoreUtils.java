@@ -179,6 +179,7 @@ public final class KeyStoreUtils {
         return keyStores;
     }
 
+    @Deprecated
     public static void sanitizeKeyStores(List<KeyStoreHolder> keyStores) {
         List<KeyStoreHolder> sanitizedKeyStores = keyStores.stream()
                 .map(keyStoreHolder -> new KeyStoreHolder(keyStoreHolder.getKeyStore(), EMPTY_PASSWORD, EMPTY_PASSWORD))
