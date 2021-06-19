@@ -132,11 +132,14 @@ class KeyManagerUtilsShould {
 
         X509ExtendedKeyManager combinedKeyManager = KeyManagerUtils.combine(keyManagerOne, keyManagerTwo);
         X509ExtendedKeyManager combinedCombinedKeyManager = KeyManagerUtils.combine(combinedKeyManager, keyManagerOne, keyManagerTwo);
+        X509ExtendedKeyManager combinedCombinedCombinedKeyManager = KeyManagerUtils.combine(combinedCombinedKeyManager, combinedKeyManager, keyManagerOne, keyManagerTwo);
 
         assertThat(combinedKeyManager).isInstanceOf(CompositeX509ExtendedKeyManager.class);
         assertThat(combinedCombinedKeyManager).isInstanceOf(CompositeX509ExtendedKeyManager.class);
+        assertThat(combinedCombinedCombinedKeyManager).isInstanceOf(CompositeX509ExtendedKeyManager.class);
         assertThat(((CompositeX509ExtendedKeyManager) combinedKeyManager).size()).isEqualTo(2);
         assertThat(((CompositeX509ExtendedKeyManager) combinedCombinedKeyManager).size()).isEqualTo(4);
+        assertThat(((CompositeX509ExtendedKeyManager) combinedCombinedCombinedKeyManager).size()).isEqualTo(8);
     }
 
     @Test
