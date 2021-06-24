@@ -76,6 +76,7 @@
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-reactive-httpclient</artifactId>
                 <version>${version.jetty-reactive-httpclient}</version>
+                <scope>provided</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>

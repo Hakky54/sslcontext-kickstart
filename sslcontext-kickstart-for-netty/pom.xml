@@ -95,6 +95,7 @@
                 <groupId>io.netty</groupId>
                 <artifactId>netty-handler</artifactId>
                 <version>${version.netty-handler}</version>
+                <scope>provided</scope>
             </dependency>
 
             <dependency>

@@ -76,6 +76,7 @@
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpclient</artifactId>
                 <version>${version.httpcomponents.httpcore}</version>
+                <scope>provided</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
