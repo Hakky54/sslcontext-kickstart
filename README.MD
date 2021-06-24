@@ -5,6 +5,7 @@
 [![Apache2 license](https://img.shields.io/badge/license-Aache2.0-blue.svg)](https://github.com/Hakky54/sslcontext-kickstart/blob/master/LICENSE)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.hakky54/sslcontext-kickstart/badge.svg)](https://mvnrepository.com/artifact/io.github.hakky54/sslcontext-kickstart)
 [![javadoc](https://javadoc.io/badge2/io.github.hakky54/sslcontext-kickstart/javadoc.svg)](https://javadoc.io/doc/io.github.hakky54/sslcontext-kickstart)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FHakky54%2Fsslcontext-kickstart.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FHakky54%2Fsslcontext-kickstart?ref=badge_shield)
 [![Join the chat at https://gitter.im/hakky54/sslcontext-kickstart](https://badges.gitter.im/hakky54/sslcontext-kickstart.svg)](https://gitter.im/hakky54/sslcontext-kickstart?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 [![SonarCloud](https://sonarcloud.io/images/project_badges/sonarcloud-white.svg)](https://sonarcloud.io/dashboard?id=io.github.hakky54%3Asslcontext-kickstart-parent)
@@ -73,6 +74,7 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "6.6.2"
      - [Apache 5](#apache-5)
 4. [Tested HTTP Clients](#tested-http-clients)
 5. [Contributing](#contributing)
+6. [License](#license)
 
 ## Introduction
 SSLContext Kickstart is a library which provides a High-Level SSLFactory class for configuring a http client to communicate over SSL/TLS for one way authentication or two-way authentication.
@@ -735,3 +737,6 @@ There are plenty of ways to contribute to this project:
 * Share it with a [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Easily%20configure%20ssl/tls%20for%20your%20favourite%20http%20client%20with%20sslcontext-kickstart.%20Works%20with%20over%2040%20different%20java,%20scala,%20kotlin%20clients&url=https://github.com/Hakky54/sslcontext-kickstart&via=hakky541&hashtags=encryption,security,https,ssl,tls,developer,java,scala,kotlin,sslcontextkickstart)
 * Join the [Gitter room](https://gitter.im/hakky54/sslcontext-kickstart) and leave a feedback or help with answering users questions
 * Submit a PR
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FHakky54%2Fsslcontext-kickstart.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FHakky54%2Fsslcontext-kickstart?ref=badge_large)
