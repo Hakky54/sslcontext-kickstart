@@ -79,55 +79,37 @@ public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustMa
 
     @Override
     public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(CLIENT_CERTIFICATE_LOG_MESSAGE, chain[0].getSubjectDN());
-        }
-
+        logCertificate(CLIENT_CERTIFICATE_LOG_MESSAGE, chain);
         checkTrusted(trustManager -> trustManager.checkClientTrusted(chain, authType));
     }
 
     @Override
     public void checkClientTrusted(X509Certificate[] chain, String authType, Socket socket) throws CertificateException {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(CLIENT_CERTIFICATE_LOG_MESSAGE, chain[0].getSubjectDN());
-        }
-
+        logCertificate(CLIENT_CERTIFICATE_LOG_MESSAGE, chain);
         checkTrusted(trustManager -> trustManager.checkClientTrusted(chain, authType, socket));
     }
 
     @Override
     public void checkClientTrusted(X509Certificate[] chain, String authType, SSLEngine sslEngine) throws CertificateException {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(CLIENT_CERTIFICATE_LOG_MESSAGE, chain[0].getSubjectDN());
-        }
-
+        logCertificate(CLIENT_CERTIFICATE_LOG_MESSAGE, chain);
         checkTrusted(trustManager -> trustManager.checkClientTrusted(chain, authType, sslEngine));
     }
 
     @Override
     public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(SERVER_CERTIFICATE_LOG_MESSAGE, chain[0].getSubjectDN());
-        }
-
+        logCertificate(SERVER_CERTIFICATE_LOG_MESSAGE, chain);
         checkTrusted(trustManager -> trustManager.checkServerTrusted(chain, authType));
     }
 
     @Override
     public void checkServerTrusted(X509Certificate[] chain, String authType, Socket socket) throws CertificateException {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(SERVER_CERTIFICATE_LOG_MESSAGE, chain[0].getSubjectDN());
-        }
-
+        logCertificate(SERVER_CERTIFICATE_LOG_MESSAGE, chain);
         checkTrusted(trustManager -> trustManager.checkServerTrusted(chain, authType, socket));
     }
 
     @Override
     public void checkServerTrusted(X509Certificate[] chain, String authType, SSLEngine sslEngine) throws CertificateException {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(SERVER_CERTIFICATE_LOG_MESSAGE, chain[0].getSubjectDN());
-        }
-
+        logCertificate(SERVER_CERTIFICATE_LOG_MESSAGE, chain);
         checkTrusted(trustManager -> trustManager.checkServerTrusted(chain, authType, sslEngine));
     }
 
@@ -159,6 +141,12 @@ public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustMa
         certificateExceptions.forEach(certificateException::addSuppressed);
 
         throw certificateException;
+    }
+
+    private static void logCertificate(String messageTemplate, X509Certificate[] chain) {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(messageTemplate, chain[0].getSubjectDN());
+        }
     }
 
     private interface TrustManagerConsumer {
