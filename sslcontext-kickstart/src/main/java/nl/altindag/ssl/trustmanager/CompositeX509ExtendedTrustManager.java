@@ -149,6 +149,7 @@ public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustMa
         }
     }
 
+    @FunctionalInterface
     private interface TrustManagerConsumer {
         void checkTrusted(X509ExtendedTrustManager trustManager) throws CertificateException;
     }
