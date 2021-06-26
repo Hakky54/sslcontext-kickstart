@@ -302,6 +302,7 @@ public final class PemUtils {
         return PemUtils.class.getClassLoader().getResourceAsStream(name);
     }
 
+    @FunctionalInterface
     private interface BouncyFunction<T, R> {
         R apply(T t) throws OperatorCreationException;
     }
