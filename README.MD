@@ -511,7 +511,7 @@ public class App {
 ### Additional mappers for specific libraries
 Some http clients relay on different ssl classes from third parties and require mapping from SSLFactory to those libraries.
 Below you will find the maven dependency which will provide the mapping and also the SSLFactory library.
-When using one of the below libraries, it is not required to also explicitly include [sslcontext-kickstart](#install-with-mavenhttpsmvnrepositorycomartifactiogithubhakky54sslcontext-kickstart) into your project. The additional mappers for specific libraries below won't provide transitive dependencies on Netty, Jetty or Apache to prevent dependency hell.
+When using one of the below libraries, it is not required to also explicitly include [sslcontext-kickstart](#install-with-mavenhttpsmvnrepositorycomartifactiogithubhakky54sslcontext-kickstart) into your project. The additional mappers for specific libraries below won't provide transitive dependencies on Netty, Jetty or Apache. This has been decided to prevent dependency hell on your side.
 #### Netty
 Some know http clients which relay on netty libraries are: [Spring WebFlux WebClient Netty](https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html), [Async Http Client](https://github.com/AsyncHttpClient/async-http-client) and [Dispatch Reboot Http Client](https://github.com/dispatch/reboot).
 ```xml
