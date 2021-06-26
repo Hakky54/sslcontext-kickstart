@@ -25,6 +25,10 @@
 ```groovy
 implementation 'io.github.hakky54:sslcontext-kickstart:6.6.3'
 ```
+### Install with Gradle Kotlin DSL
+```kotlin
+implementation("io.github.hakky54:sslcontext-kickstart:6.6.3")
+```
 ### Install with Scala SBT
 ```
 libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "6.6.3"
