@@ -49,6 +49,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -364,32 +365,44 @@ class PemUtilsShould {
     @Test
     void throwGenericIOExceptionWhenInputStreamCanNotBeClosedWhenLoadingIdentity() throws IOException {
         InputStream identityStream = spy(getResource(PEM_LOCATION + "encrypted-identity.pem"));
+        String identityContent = getResourceContent(PEM_LOCATION + "encrypted-identity.pem");
 
-        doThrow(new IOException("KABOOM!!!"))
-                .when(identityStream)
-                .close();
+        try (MockedStatic<IOUtils> ioUtilsMockedStatic = mockStatic(IOUtils.class, InvocationOnMock::getMock)) {
+            ioUtilsMockedStatic.when(() -> IOUtils.getContent(identityStream)).thenReturn(identityContent);
 
-        assertThatThrownBy(() -> PemUtils.loadIdentityMaterial(identityStream, DEFAULT_PASSWORD))
-                .isInstanceOf(GenericIOException.class)
-                .hasRootCauseMessage("KABOOM!!!");
+            doThrow(new IOException("KABOOM!!!"))
+                    .when(identityStream)
+                    .close();
+
+            assertThatThrownBy(() -> PemUtils.loadIdentityMaterial(identityStream, DEFAULT_PASSWORD))
+                    .isInstanceOf(GenericIOException.class)
+                    .hasRootCauseMessage("KABOOM!!!");
+        }
     }
 
     @Test
     void throwGenericIOExceptionWhenInputStreamCanNotBeClosedWhenCertificateChainAndPrivateKey() throws IOException {
         InputStream certificateChainStream = spy(getResource(PEM_LOCATION + "splitted-unencrypted-identity-containing-certificate.pem"));
         InputStream privateKeyStream = spy(getResource(PEM_LOCATION + "splitted-unencrypted-identity-containing-private-key.pem"));
+        String certificateChainContent = getResourceContent(PEM_LOCATION + "splitted-unencrypted-identity-containing-certificate.pem");
+        String privateKeyContent = getResourceContent(PEM_LOCATION + "splitted-unencrypted-identity-containing-private-key.pem");
 
-        doThrow(new IOException("KABOOM!!!"))
-                .when(certificateChainStream)
-                .close();
+        try (MockedStatic<IOUtils> ioUtilsMockedStatic = mockStatic(IOUtils.class, InvocationOnMock::getMock)) {
+            ioUtilsMockedStatic.when(() -> IOUtils.getContent(certificateChainStream)).thenReturn(certificateChainContent);
+            ioUtilsMockedStatic.when(() -> IOUtils.getContent(privateKeyStream)).thenReturn(privateKeyContent);
 
-        doThrow(new IOException("KABOOM!!!"))
-                .when(privateKeyStream)
-                .close();
+            doThrow(new IOException("KABOOM!!!"))
+                    .when(certificateChainStream)
+                    .close();
 
-        assertThatThrownBy(() -> PemUtils.loadIdentityMaterial(certificateChainStream, privateKeyStream))
-                .isInstanceOf(GenericIOException.class)
-                .hasRootCauseMessage("KABOOM!!!");
+            doThrow(new IOException("KABOOM!!!"))
+                    .when(privateKeyStream)
+                    .close();
+
+            assertThatThrownBy(() -> PemUtils.loadIdentityMaterial(certificateChainStream, privateKeyStream))
+                    .isInstanceOf(GenericIOException.class)
+                    .hasRootCauseMessage("KABOOM!!!");
+        }
     }
 
     @Test
