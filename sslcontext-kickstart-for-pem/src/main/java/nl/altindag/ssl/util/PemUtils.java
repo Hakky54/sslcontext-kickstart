@@ -98,7 +98,7 @@ public final class PemUtils {
      * Loads certificates from the filesystem and maps it to an instance of {@link X509ExtendedTrustManager}
      */
     public static X509ExtendedTrustManager loadTrustMaterial(Path... certificatePaths) {
-        List<X509Certificate> certificates = loadCertificate(certificatePaths, PemUtils::getFileAsInputStream);
+        List<X509Certificate> certificates = loadCertificate(certificatePaths, PemUtils::getFileAsStream);
         return mapTrustMaterial(certificates);
     }
 
@@ -218,7 +218,7 @@ public final class PemUtils {
      * from the filesystem and maps it to an instance of {@link X509ExtendedKeyManager}
      */
     public static X509ExtendedKeyManager loadIdentityMaterial(Path certificateChainPath, Path privateKeyPath, char[] keyPassword) {
-        return loadIdentityMaterial(certificateChainPath, privateKeyPath, keyPassword, PemUtils::getFileAsInputStream);
+        return loadIdentityMaterial(certificateChainPath, privateKeyPath, keyPassword, PemUtils::getFileAsStream);
     }
 
     /**
@@ -250,7 +250,7 @@ public final class PemUtils {
      * from the filesystem and maps it to an instance of {@link X509ExtendedKeyManager}
      */
     public static X509ExtendedKeyManager loadIdentityMaterial(Path identityPath, char[] keyPassword) {
-        return loadIdentityMaterial(identityPath, keyPassword, PemUtils::getFileAsInputStream);
+        return loadIdentityMaterial(identityPath, keyPassword, PemUtils::getFileAsStream);
     }
 
     /**
@@ -365,7 +365,7 @@ public final class PemUtils {
         return PemUtils.class.getClassLoader().getResourceAsStream(name);
     }
 
-    private static InputStream getFileAsInputStream(Path path) {
+    private static InputStream getFileAsStream(Path path) {
         try {
             return Files.newInputStream(path, StandardOpenOption.READ);
         } catch (IOException e) {
