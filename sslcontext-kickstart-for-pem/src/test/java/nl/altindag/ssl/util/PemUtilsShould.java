@@ -63,6 +63,7 @@ class PemUtilsShould {
 
     private static final String PEM_LOCATION = "pems-for-unit-tests/";
     private static final String TEST_RESOURCES_LOCATION = "src/test/resources/";
+    public static final char[] DEFAULT_PASSWORD = "secret".toCharArray();
 
     @Test
     void parseSingleTrustMaterialFromContent() {
@@ -261,7 +262,7 @@ class PemUtilsShould {
         X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(
                 PEM_LOCATION + "splitted-encrypted-identity-containing-certificate.pem",
                 PEM_LOCATION + "splitted-encrypted-identity-containing-private-key.pem",
-                "secret".toCharArray()
+                DEFAULT_PASSWORD
         );
 
         assertThat(keyManager).isNotNull();
@@ -276,28 +277,28 @@ class PemUtilsShould {
 
     @Test
     void loadRsaEncryptedIdentityMaterialFromClassPath() {
-        X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(PEM_LOCATION + "encrypted-rsa-identity.pem", "secret".toCharArray());
+        X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(PEM_LOCATION + "encrypted-rsa-identity.pem", DEFAULT_PASSWORD);
 
         assertThat(keyManager).isNotNull();
     }
 
     @Test
     void loadEcUnencryptedIdentityMaterialFromClassPath() {
-        X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(PEM_LOCATION + "unencrypted-ec-identity.pem", "secret".toCharArray());
+        X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(PEM_LOCATION + "unencrypted-ec-identity.pem", DEFAULT_PASSWORD);
 
         assertThat(keyManager).isNotNull();
     }
 
     @Test
     void loadEcEncryptedIdentityMaterialFromClassPath() {
-        X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(PEM_LOCATION + "encrypted-ec-identity.pem", "secret".toCharArray());
+        X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(PEM_LOCATION + "encrypted-ec-identity.pem", DEFAULT_PASSWORD);
 
         assertThat(keyManager).isNotNull();
     }
 
     @Test
     void loadEncryptedIdentityMaterialFromClassPath() {
-        X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(PEM_LOCATION + "encrypted-identity.pem", "secret".toCharArray());
+        X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(PEM_LOCATION + "encrypted-identity.pem", DEFAULT_PASSWORD);
 
         assertThat(keyManager).isNotNull();
     }
@@ -306,7 +307,7 @@ class PemUtilsShould {
     void loadEncryptedIdentityMaterialFromDirectory() {
         Path identityPath = Paths.get(TEST_RESOURCES_LOCATION + PEM_LOCATION, "encrypted-identity.pem").toAbsolutePath();
 
-        X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(identityPath, "secret".toCharArray());
+        X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(identityPath, DEFAULT_PASSWORD);
 
         assertThat(keyManager).isNotNull();
     }
@@ -315,7 +316,7 @@ class PemUtilsShould {
     void loadEncryptedIdentityMaterialFromInputStream() throws IOException {
         X509ExtendedKeyManager keyManager;
         try(InputStream inputStream = getResource(PEM_LOCATION + "encrypted-identity.pem")) {
-            keyManager = PemUtils.loadIdentityMaterial(inputStream, "secret".toCharArray());
+            keyManager = PemUtils.loadIdentityMaterial(inputStream, DEFAULT_PASSWORD);
         }
 
         assertThat(keyManager).isNotNull();
@@ -332,7 +333,7 @@ class PemUtilsShould {
     void parseEncryptedIdentityMaterialFromContent() {
         String identityContent = getResourceContent(PEM_LOCATION + "encrypted-identity.pem");
 
-        X509ExtendedKeyManager keyManager = PemUtils.parseIdentityMaterial(identityContent, "secret".toCharArray());
+        X509ExtendedKeyManager keyManager = PemUtils.parseIdentityMaterial(identityContent, DEFAULT_PASSWORD);
 
         assertThat(keyManager).isNotNull();
     }
@@ -356,6 +357,37 @@ class PemUtilsShould {
                 .close();
 
         assertThatThrownBy(() -> PemUtils.loadTrustMaterial(certificateStream))
+                .isInstanceOf(GenericIOException.class)
+                .hasRootCauseMessage("KABOOM!!!");
+    }
+
+    @Test
+    void throwGenericIOExceptionWhenInputStreamCanNotBeClosedWhenLoadingIdentity() throws IOException {
+        InputStream identityStream = spy(getResource(PEM_LOCATION + "encrypted-identity.pem"));
+
+        doThrow(new IOException("KABOOM!!!"))
+                .when(identityStream)
+                .close();
+
+        assertThatThrownBy(() -> PemUtils.loadIdentityMaterial(identityStream, DEFAULT_PASSWORD))
+                .isInstanceOf(GenericIOException.class)
+                .hasRootCauseMessage("KABOOM!!!");
+    }
+
+    @Test
+    void throwGenericIOExceptionWhenInputStreamCanNotBeClosedWhenCertificateChainAndPrivateKey() throws IOException {
+        InputStream certificateChainStream = spy(getResource(PEM_LOCATION + "splitted-unencrypted-identity-containing-certificate.pem"));
+        InputStream privateKeyStream = spy(getResource(PEM_LOCATION + "splitted-unencrypted-identity-containing-private-key.pem"));
+
+        doThrow(new IOException("KABOOM!!!"))
+                .when(certificateChainStream)
+                .close();
+
+        doThrow(new IOException("KABOOM!!!"))
+                .when(privateKeyStream)
+                .close();
+
+        assertThatThrownBy(() -> PemUtils.loadIdentityMaterial(certificateChainStream, privateKeyStream))
                 .isInstanceOf(GenericIOException.class)
                 .hasRootCauseMessage("KABOOM!!!");
     }
