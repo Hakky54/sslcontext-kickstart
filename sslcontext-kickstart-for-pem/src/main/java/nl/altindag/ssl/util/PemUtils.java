@@ -82,27 +82,27 @@ public final class PemUtils {
     private PemUtils() {}
 
     public static X509ExtendedTrustManager loadTrustMaterial(String... certificatePaths) {
-        List<X509Certificate> certificates = loadCertificate(certificatePath -> CertificateUtils.class.getClassLoader().getResourceAsStream(certificatePath), certificatePaths);
+        List<X509Certificate> certificates = loadCertificate(certificatePaths, certificatePath -> CertificateUtils.class.getClassLoader().getResourceAsStream(certificatePath));
         return mapTrustMaterial(certificates);
     }
 
     public static X509ExtendedTrustManager loadTrustMaterial(Path... certificatePaths) {
-        List<X509Certificate> certificates = loadCertificate(certificatePath -> {
+        List<X509Certificate> certificates = loadCertificate(certificatePaths, certificatePath -> {
             try {
                 return Files.newInputStream(certificatePath, StandardOpenOption.READ);
             } catch (IOException exception) {
                 throw new GenericIOException(exception);
             }
-        }, certificatePaths);
+        });
         return mapTrustMaterial(certificates);
     }
 
     public static X509ExtendedTrustManager loadTrustMaterial(InputStream... certificateStreams) {
-        List<X509Certificate> certificates = loadCertificate(Function.identity(), certificateStreams);
+        List<X509Certificate> certificates = loadCertificate(certificateStreams, Function.identity());
         return mapTrustMaterial(certificates);
     }
 
-    private static <T> List<X509Certificate> loadCertificate(Function<T, InputStream> resourceMapper, T[] resources) {
+    private static <T> List<X509Certificate> loadCertificate(T[] resources, Function<T, InputStream> resourceMapper) {
         List<X509Certificate> certificates = new ArrayList<>();
         for (T resource : resources) {
             try(InputStream certificateStream = resourceMapper.apply(resource)) {
