@@ -90,7 +90,7 @@ public final class PemUtils {
      * Loads certificates from the classpath and maps it to an instance of {@link X509ExtendedTrustManager}
      */
     public static X509ExtendedTrustManager loadTrustMaterial(String... certificatePaths) {
-        List<X509Certificate> certificates = loadCertificate(certificatePaths, certificatePath -> CertificateUtils.class.getClassLoader().getResourceAsStream(certificatePath));
+        List<X509Certificate> certificates = loadCertificate(certificatePaths, PemUtils::getResourceAsStream);
         return mapTrustMaterial(certificates);
     }
 
