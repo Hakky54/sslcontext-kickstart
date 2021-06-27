@@ -16,6 +16,7 @@
 
 package nl.altindag.ssl.util;
 
+import nl.altindag.ssl.SSLFactory;
 import nl.altindag.ssl.exception.CertificateParseException;
 import nl.altindag.ssl.exception.GenericIOException;
 import nl.altindag.ssl.exception.GenericKeyStoreException;
@@ -63,7 +64,11 @@ import java.util.stream.Collectors;
 
 /**
  * Reads PEM formatted private keys and certificates
- * as identity material and trust material
+ * as identity material and trust material and maps it
+ * to either a {@link X509ExtendedTrustManager} or {@link X509ExtendedKeyManager}.
+ *
+ * The PemUtils serves mainly as a helper class to easily supply the PEM formatted SSL material
+ * for the {@link SSLFactory}, but can also be used for other purposes.
  *
  * @author Hakan Altindag
  */
@@ -81,11 +86,17 @@ public final class PemUtils {
 
     private PemUtils() {}
 
+    /**
+     * Loads certificates from the classpath and maps it to an instance of {@link X509ExtendedTrustManager}
+     */
     public static X509ExtendedTrustManager loadTrustMaterial(String... certificatePaths) {
         List<X509Certificate> certificates = loadCertificate(certificatePaths, certificatePath -> CertificateUtils.class.getClassLoader().getResourceAsStream(certificatePath));
         return mapTrustMaterial(certificates);
     }
 
+    /**
+     * Loads certificates from the filesystem and maps it to an instance of {@link X509ExtendedTrustManager}
+     */
     public static X509ExtendedTrustManager loadTrustMaterial(Path... certificatePaths) {
         List<X509Certificate> certificates = loadCertificate(certificatePaths, certificatePath -> {
             try {
@@ -97,6 +108,9 @@ public final class PemUtils {
         return mapTrustMaterial(certificates);
     }
 
+    /**
+     * Loads certificates from multiple InputStreams and maps it to an instance of {@link X509ExtendedTrustManager}
+     */
     public static X509ExtendedTrustManager loadTrustMaterial(InputStream... certificateStreams) {
         List<X509Certificate> certificates = loadCertificate(certificateStreams, Function.identity());
         return mapTrustMaterial(certificates);
@@ -153,6 +167,10 @@ public final class PemUtils {
         }
     }
 
+    /**
+     * Parses one or more certificates as a string representation
+     * and maps it to an instance of {@link X509ExtendedTrustManager}
+     */
     public static X509ExtendedTrustManager parseTrustMaterial(String... certificateContents) {
         return Arrays.stream(certificateContents)
                 .map(PemUtils::parseCertificate)
@@ -165,14 +183,26 @@ public final class PemUtils {
         return TrustManagerUtils.createTrustManager(trustStore);
     }
 
+    /**
+     * Loads the identity material based on a certificate chain and a private key
+     * from the classpath and maps it to an instance of {@link X509ExtendedKeyManager}
+     */
     public static X509ExtendedKeyManager loadIdentityMaterial(String certificateChainPath, String privateKeyPath) {
         return loadIdentityMaterial(certificateChainPath, privateKeyPath, NO_PASSWORD);
     }
 
+    /**
+     * Loads the identity material based on a certificate chain and a private key from
+     * the classpath and maps it to an instance of {@link X509ExtendedKeyManager}
+     */
     public static X509ExtendedKeyManager loadIdentityMaterial(String certificateChainPath, String privateKeyPath, char[] keyPassword) {
         return loadIdentityMaterial(certificateChainPath, privateKeyPath, keyPassword, PemUtils::getResourceAsStream);
     }
 
+    /**
+     * Loads the identity material based on a certificate chain and a private key
+     * as an InputStream and maps it to an instance of {@link X509ExtendedKeyManager}
+     */
     public static X509ExtendedKeyManager loadIdentityMaterial(InputStream certificateChainStream, InputStream privateKeyStream) {
         return loadIdentityMaterial(certificateChainStream, privateKeyStream, NO_PASSWORD);
     }
@@ -181,10 +211,18 @@ public final class PemUtils {
         return loadIdentityMaterial(certificateChainStream, privateKeyStream, keyPassword, Function.identity());
     }
 
+    /**
+     * Loads the identity material based on a certificate chain and a private key
+     * from the filesystem and maps it to an instance of {@link X509ExtendedKeyManager}
+     */
     public static X509ExtendedKeyManager loadIdentityMaterial(Path certificateChainPath, Path privateKeyPath) {
         return loadIdentityMaterial(certificateChainPath, privateKeyPath, NO_PASSWORD);
     }
 
+    /**
+     * Loads the identity material based on a certificate chain and a private key
+     * from the filesystem and maps it to an instance of {@link X509ExtendedKeyManager}
+     */
     public static X509ExtendedKeyManager loadIdentityMaterial(Path certificateChainPath, Path privateKeyPath, char[] keyPassword) {
         return loadIdentityMaterial(certificateChainPath, privateKeyPath, keyPassword, path -> {
             try {
@@ -195,18 +233,34 @@ public final class PemUtils {
         });
     }
 
+    /**
+     * Loads the identity material based on a combined file containing the certificate chain and the private key
+     * from the classpath and maps it to an instance of {@link X509ExtendedKeyManager}
+     */
     public static X509ExtendedKeyManager loadIdentityMaterial(String identityPath) {
         return loadIdentityMaterial(identityPath, NO_PASSWORD);
     }
 
+    /**
+     * Loads the identity material based on a combined file containing the certificate chain and the private key
+     * from the classpath and maps it to an instance of {@link X509ExtendedKeyManager}
+     */
     public static X509ExtendedKeyManager loadIdentityMaterial(String identityPath, char[] keyPassword) {
         return loadIdentityMaterial(identityPath, keyPassword, PemUtils::getResourceAsStream);
     }
 
+    /**
+     * Loads the identity material based on a combined file containing the certificate chain and the private key
+     * from the filesystem and maps it to an instance of {@link X509ExtendedKeyManager}
+     */
     public static X509ExtendedKeyManager loadIdentityMaterial(Path identityPath) {
         return loadIdentityMaterial(identityPath, NO_PASSWORD);
     }
 
+    /**
+     * Loads the identity material based on a combined file containing the certificate chain and the private key
+     * from the filesystem and maps it to an instance of {@link X509ExtendedKeyManager}
+     */
     public static X509ExtendedKeyManager loadIdentityMaterial(Path identityPath, char[] keyPassword) {
         return loadIdentityMaterial(identityPath, keyPassword, path -> {
             try {
@@ -217,10 +271,18 @@ public final class PemUtils {
         });
     }
 
+    /**
+     * Loads the identity material based on a combined entity containing the certificate chain and the private key
+     * from an InputStream and maps it to an instance of {@link X509ExtendedKeyManager}
+     */
     public static X509ExtendedKeyManager loadIdentityMaterial(InputStream identityStream) {
         return loadIdentityMaterial(identityStream, NO_PASSWORD);
     }
 
+    /**
+     * Loads the identity material based on a combined entity containing the certificate chain and the private key
+     * from an InputStream and maps it to an instance of {@link X509ExtendedKeyManager}
+     */
     public static X509ExtendedKeyManager loadIdentityMaterial(InputStream identityStream, char[] keyPassword) {
         return loadIdentityMaterial(identityStream, keyPassword, Function.identity());
     }
@@ -247,10 +309,18 @@ public final class PemUtils {
         }
     }
 
+    /**
+     * Parses the identity material based on a string representation containing the certificate chain and the private key
+     * and maps it to an instance of {@link X509ExtendedTrustManager}
+     */
     public static X509ExtendedKeyManager parseIdentityMaterial(String identityContent, char[] keyPassword) {
         return parseIdentityMaterial(identityContent, identityContent, keyPassword);
     }
 
+    /**
+     * Parses the identity material based on a string representation of the certificate chain and the private key
+     * and maps it to an instance of {@link X509ExtendedTrustManager}
+     */
     public static X509ExtendedKeyManager parseIdentityMaterial(String certificateChainContent, String privateKeyContent, char[] keyPassword) {
         PrivateKey privateKey = parsePrivateKey(privateKeyContent, keyPassword);
         Certificate[] certificateChain = PemUtils.parseCertificate(certificateChainContent)
