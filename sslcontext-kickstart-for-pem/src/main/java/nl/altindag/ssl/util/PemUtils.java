@@ -98,13 +98,7 @@ public final class PemUtils {
      * Loads certificates from the filesystem and maps it to an instance of {@link X509ExtendedTrustManager}
      */
     public static X509ExtendedTrustManager loadTrustMaterial(Path... certificatePaths) {
-        List<X509Certificate> certificates = loadCertificate(certificatePaths, certificatePath -> {
-            try {
-                return Files.newInputStream(certificatePath, StandardOpenOption.READ);
-            } catch (IOException exception) {
-                throw new GenericIOException(exception);
-            }
-        });
+        List<X509Certificate> certificates = loadCertificate(certificatePaths, PemUtils::getFileAsInputStream);
         return mapTrustMaterial(certificates);
     }
 
@@ -224,13 +218,7 @@ public final class PemUtils {
      * from the filesystem and maps it to an instance of {@link X509ExtendedKeyManager}
      */
     public static X509ExtendedKeyManager loadIdentityMaterial(Path certificateChainPath, Path privateKeyPath, char[] keyPassword) {
-        return loadIdentityMaterial(certificateChainPath, privateKeyPath, keyPassword, path -> {
-            try {
-                return Files.newInputStream(path, StandardOpenOption.READ);
-            } catch (IOException e) {
-                throw new GenericIOException(e);
-            }
-        });
+        return loadIdentityMaterial(certificateChainPath, privateKeyPath, keyPassword, PemUtils::getFileAsInputStream);
     }
 
     /**
@@ -262,13 +250,7 @@ public final class PemUtils {
      * from the filesystem and maps it to an instance of {@link X509ExtendedKeyManager}
      */
     public static X509ExtendedKeyManager loadIdentityMaterial(Path identityPath, char[] keyPassword) {
-        return loadIdentityMaterial(identityPath, keyPassword, path -> {
-            try {
-                return Files.newInputStream(path, StandardOpenOption.READ);
-            } catch (IOException e) {
-                throw new GenericIOException(e);
-            }
-        });
+        return loadIdentityMaterial(identityPath, keyPassword, PemUtils::getFileAsInputStream);
     }
 
     /**
@@ -381,6 +363,14 @@ public final class PemUtils {
 
     protected static InputStream getResourceAsStream(String name) {
         return PemUtils.class.getClassLoader().getResourceAsStream(name);
+    }
+
+    private static InputStream getFileAsInputStream(Path path) {
+        try {
+            return Files.newInputStream(path, StandardOpenOption.READ);
+        } catch (IOException e) {
+            throw new GenericIOException(e);
+        }
     }
 
     @FunctionalInterface
