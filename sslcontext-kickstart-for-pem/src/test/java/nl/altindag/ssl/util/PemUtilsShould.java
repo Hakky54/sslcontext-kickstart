@@ -380,7 +380,6 @@ class PemUtilsShould {
     @Test
     void throwPublicKeyParseExceptionWhenPublicKeyIsMissing() {
         assertThatThrownBy(() -> PemUtils.loadIdentityMaterial(PEM_LOCATION + "splitted-unencrypted-identity-containing-private-key.pem"))
-                .hasRootCauseInstanceOf(CertificateParseException.class)
                 .hasMessageContaining("Received an unsupported certificate type");
     }
 
@@ -488,7 +487,6 @@ class PemUtilsShould {
             keyStoreUtilsMock.when(KeyStoreUtils::createKeyStore).thenReturn(keyStore);
 
             assertThatThrownBy(() -> PemUtils.loadIdentityMaterial(PEM_LOCATION + "unencrypted-identity.pem"))
-                    .hasCauseInstanceOf(GenericKeyStoreException.class)
                     .hasMessageContaining("lazy");
         }
     }
