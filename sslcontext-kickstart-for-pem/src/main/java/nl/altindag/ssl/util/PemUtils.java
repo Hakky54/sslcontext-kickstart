@@ -181,6 +181,72 @@ public final class PemUtils {
         return loadIdentityMaterial(certificateChainStream, privateKeyStream, keyPassword, Function.identity());
     }
 
+    public static X509ExtendedKeyManager loadIdentityMaterial(Path certificateChainPath, Path privateKeyPath) {
+        return loadIdentityMaterial(certificateChainPath, privateKeyPath, NO_PASSWORD);
+    }
+
+    public static X509ExtendedKeyManager loadIdentityMaterial(Path certificateChainPath, Path privateKeyPath, char[] keyPassword) {
+        return loadIdentityMaterial(certificateChainPath, privateKeyPath, keyPassword, path -> {
+            try {
+                return Files.newInputStream(path, StandardOpenOption.READ);
+            } catch (IOException e) {
+                throw new GenericIOException(e);
+            }
+        });
+    }
+
+    public static X509ExtendedKeyManager loadIdentityMaterial(String identityPath) {
+        return loadIdentityMaterial(identityPath, NO_PASSWORD);
+    }
+
+    public static X509ExtendedKeyManager loadIdentityMaterial(String identityPath, char[] keyPassword) {
+        return loadIdentityMaterial(identityPath, keyPassword, PemUtils::getResourceAsStream);
+    }
+
+    public static X509ExtendedKeyManager loadIdentityMaterial(Path identityPath) {
+        return loadIdentityMaterial(identityPath, NO_PASSWORD);
+    }
+
+    public static X509ExtendedKeyManager loadIdentityMaterial(Path identityPath, char[] keyPassword) {
+        return loadIdentityMaterial(identityPath, keyPassword, path -> {
+            try {
+                return Files.newInputStream(path, StandardOpenOption.READ);
+            } catch (IOException e) {
+                throw new GenericIOException(e);
+            }
+        });
+    }
+
+    public static X509ExtendedKeyManager loadIdentityMaterial(InputStream identityStream) {
+        return loadIdentityMaterial(identityStream, NO_PASSWORD);
+    }
+
+    public static X509ExtendedKeyManager loadIdentityMaterial(InputStream identityStream, char[] keyPassword) {
+        return loadIdentityMaterial(identityStream, keyPassword, Function.identity());
+    }
+
+    private static <T> X509ExtendedKeyManager loadIdentityMaterial(T certificateChain, T privateKey, char[] keyPassword, Function<T, InputStream> resourceMapper) {
+        try(InputStream certificateChainStream = resourceMapper.apply(certificateChain);
+            InputStream privateKeyStream = resourceMapper.apply(privateKey)) {
+
+            String certificateChainContent = IOUtils.getContent(certificateChainStream);
+            String privateKeyContent = IOUtils.getContent(privateKeyStream);
+
+            return parseIdentityMaterial(certificateChainContent, privateKeyContent, keyPassword);
+        } catch (IOException exception) {
+            throw new GenericIOException(exception);
+        }
+    }
+
+    private static <T> X509ExtendedKeyManager loadIdentityMaterial(T identity, char[] keyPassword, Function<T, InputStream> resourceMapper) {
+        try(InputStream identityStream = resourceMapper.apply(identity)) {
+            String identityContent = IOUtils.getContent(identityStream);
+            return parseIdentityMaterial(identityContent, identityContent, keyPassword);
+        } catch (IOException exception) {
+            throw new GenericIOException(exception);
+        }
+    }
+
     public static X509ExtendedKeyManager parseIdentityMaterial(String identityContent, char[] keyPassword) {
         return parseIdentityMaterial(identityContent, identityContent, keyPassword);
     }
@@ -240,72 +306,6 @@ public final class PemUtils {
             return KeyManagerUtils.createKeyManager(keyStore, DUMMY_PASSWORD);
         } catch (KeyStoreException e) {
             throw new GenericKeyStoreException(e);
-        }
-    }
-
-    public static X509ExtendedKeyManager loadIdentityMaterial(Path certificateChainPath, Path privateKeyPath) {
-        return loadIdentityMaterial(certificateChainPath, privateKeyPath, NO_PASSWORD);
-    }
-
-    public static X509ExtendedKeyManager loadIdentityMaterial(Path certificateChainPath, Path privateKeyPath, char[] keyPassword) {
-        return loadIdentityMaterial(certificateChainPath, privateKeyPath, keyPassword, path -> {
-            try {
-                return Files.newInputStream(path, StandardOpenOption.READ);
-            } catch (IOException e) {
-                throw new GenericIOException(e);
-            }
-        });
-    }
-
-    private static <T> X509ExtendedKeyManager loadIdentityMaterial(T certificateChain, T privateKey, char[] keyPassword, Function<T, InputStream> resourceMapper) {
-        try(InputStream certificateChainStream = resourceMapper.apply(certificateChain);
-            InputStream privateKeyStream = resourceMapper.apply(privateKey)) {
-
-            String certificateChainContent = IOUtils.getContent(certificateChainStream);
-            String privateKeyContent = IOUtils.getContent(privateKeyStream);
-
-            return parseIdentityMaterial(certificateChainContent, privateKeyContent, keyPassword);
-        } catch (IOException exception) {
-            throw new GenericIOException(exception);
-        }
-    }
-
-    public static X509ExtendedKeyManager loadIdentityMaterial(String identityPath) {
-        return loadIdentityMaterial(identityPath, NO_PASSWORD);
-    }
-
-    public static X509ExtendedKeyManager loadIdentityMaterial(String identityPath, char[] keyPassword) {
-        return loadIdentityMaterial(identityPath, keyPassword, PemUtils::getResourceAsStream);
-    }
-
-    public static X509ExtendedKeyManager loadIdentityMaterial(Path identityPath) {
-        return loadIdentityMaterial(identityPath, NO_PASSWORD);
-    }
-
-    public static X509ExtendedKeyManager loadIdentityMaterial(Path identityPath, char[] keyPassword) {
-        return loadIdentityMaterial(identityPath, keyPassword, path -> {
-            try {
-                return Files.newInputStream(path, StandardOpenOption.READ);
-            } catch (IOException e) {
-                throw new GenericIOException(e);
-            }
-        });
-    }
-
-    public static X509ExtendedKeyManager loadIdentityMaterial(InputStream identityStream) {
-        return loadIdentityMaterial(identityStream, NO_PASSWORD);
-    }
-
-    public static X509ExtendedKeyManager loadIdentityMaterial(InputStream identityStream, char[] keyPassword) {
-        return loadIdentityMaterial(identityStream, keyPassword, Function.identity());
-    }
-
-    private static <T> X509ExtendedKeyManager loadIdentityMaterial(T identity, char[] keyPassword, Function<T, InputStream> resourceMapper) {
-        try(InputStream identityStream = resourceMapper.apply(identity)) {
-            String identityContent = IOUtils.getContent(identityStream);
-            return parseIdentityMaterial(identityContent, identityContent, keyPassword);
-        } catch (IOException exception) {
-            throw new GenericIOException(exception);
         }
     }
 
