@@ -78,6 +78,15 @@
         "ideas",
         "bug"
       ]
+    },
+    {
+      "login": "codyaray",
+      "name": "Cody A. Ray",
+      "avatar_url": "https://avatars.githubusercontent.com/u/44062?v=4",
+      "profile": "http://codyaray.com",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
