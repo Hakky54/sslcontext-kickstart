@@ -815,6 +815,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
   </tr>
   <tr>
     <td align="center"><a href="https://github.com/patpatpat123"><img src="https://avatars.githubusercontent.com/u/43899031?v=4?s=100" width="100px;" alt=""/><br /><sub><b>patpatpat123</b></sub></a><br /><a href="#ideas-patpatpat123" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Apatpatpat123" title="Bug reports">🐛</a></td>
+    <td align="center"><a href="http://codyaray.com"><img src="https://avatars.githubusercontent.com/u/44062?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Cody A. Ray</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/commits?author=codyaray" title="Code">💻</a></td>
   </tr>
 </table>
 
