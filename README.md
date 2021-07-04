@@ -811,6 +811,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
   <tr>
     <td align="center"><a href="https://github.com/MrR0807"><img src="https://avatars.githubusercontent.com/u/24605837?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Laurynas</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/commits?author=MrR0807" title="Code">💻</a> <a href="#maintenance-MrR0807" title="Maintenance">🚧</a></td>
     <td align="center"><a href="https://github.com/patpatpat123"><img src="https://avatars.githubusercontent.com/u/43899031?v=4?s=100" width="100px;" alt=""/><br /><sub><b>patpatpat123</b></sub></a><br /><a href="#ideas-patpatpat123" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="https://github.com/winster"><img src="https://avatars.githubusercontent.com/u/2383613?v=4?s=100" width="100px;" alt=""/><br /><sub><b>winster</b></sub></a><br /><a href="#ideas-winster" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="https://github.com/lalloni"><img src="https://avatars.githubusercontent.com/u/84328?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Pablo Lalloni</b></sub></a><br /><a href="#ideas-lalloni" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="https://github.com/luismospinam"><img src="https://avatars.githubusercontent.com/u/25059970?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Luis Miguel Ospina</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Aluismospinam" title="Bug reports">🐛</a></td>
   </tr>
 </table>
 
