@@ -1,6 +1,6 @@
 [![Actions Status](https://github.com/Hakky54/sslcontext-kickstart/workflows/Build/badge.svg)](https://github.com/Hakky54/sslcontext-kickstart/actions)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-7-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-8-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=io.github.hakky54%3Asslcontext-kickstart-parent&metric=security_rating)](https://sonarcloud.io/dashboard?id=io.github.hakky54%3Asslcontext-kickstart-parent)
 [![Known Vulnerabilities](https://snyk.io/test/github/Hakky54/sslcontext-kickstart/badge.svg)](https://snyk.io/test/github/Hakky54/sslcontext-kickstart)
@@ -816,6 +816,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/lalloni"><img src="https://avatars.githubusercontent.com/u/84328?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Pablo Lalloni</b></sub></a><br /><a href="#ideas-lalloni" title="Ideas, Planning, & Feedback">🤔</a></td>
     <td align="center"><a href="https://github.com/luismospinam"><img src="https://avatars.githubusercontent.com/u/25059970?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Luis Miguel Ospina</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Aluismospinam" title="Bug reports">🐛</a></td>
     <td align="center"><a href="https://github.com/Athou"><img src="https://avatars.githubusercontent.com/u/1256795?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Jérémie Panzer</b></sub></a><br /><a href="#ideas-Athou" title="Ideas, Planning, & Feedback">🤔</a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/patpatpat123"><img src="https://avatars.githubusercontent.com/u/43899031?v=4?s=100" width="100px;" alt=""/><br /><sub><b>patpatpat123</b></sub></a><br /><a href="#ideas-patpatpat123" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Apatpatpat123" title="Bug reports">🐛</a></td>
   </tr>
 </table>
 

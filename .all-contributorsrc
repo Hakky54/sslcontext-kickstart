@@ -68,6 +68,16 @@
       "contributions": [
         "ideas"
       ]
+    },
+    {
+      "login": "patpatpat123",
+      "name": "patpatpat123",
+      "avatar_url": "https://avatars.githubusercontent.com/u/43899031?v=4",
+      "profile": "https://github.com/patpatpat123",
+      "contributions": [
+        "ideas",
+        "bug"
+      ]
     }
   ],
   "contributorsPerLine": 7,
