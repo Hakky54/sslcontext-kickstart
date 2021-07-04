@@ -1,0 +1,25 @@
+{
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "contributors": [
+    {
+      "login": "MrR0807",
+      "name": "Laurynas",
+      "avatar_url": "https://avatars.githubusercontent.com/u/24605837?v=4",
+      "profile": "https://github.com/MrR0807",
+      "contributions": [
+        "code",
+        "maintenance"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "projectName": "sslcontext-kickstart",
+  "projectOwner": "Hakky54",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "skipCi": true
+}
