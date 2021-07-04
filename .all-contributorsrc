@@ -22,6 +22,31 @@
       "profile": "https://github.com/charphi",
       "contributions": [
         "ideas"
+    },
+    {
+      "login": "winster",
+      "name": "winster",
+      "avatar_url": "https://avatars.githubusercontent.com/u/2383613?v=4",
+      "profile": "https://github.com/winster",
+      "contributions": [
+        "ideas"
+    },
+    {
+      "login": "lalloni",
+      "name": "Pablo Lalloni",
+      "avatar_url": "https://avatars.githubusercontent.com/u/84328?v=4",
+      "profile": "https://github.com/lalloni",
+      "contributions": [
+        "ideas"
+    },
+    {
+      "login": "luismospinam",
+      "name": "Luis Miguel Ospina",
+      "avatar_url": "https://avatars.githubusercontent.com/u/25059970?v=4",
+      "profile": "https://github.com/luismospinam",
+      "contributions": [
+        "bug"
+    }
       ]
     }
   ],
