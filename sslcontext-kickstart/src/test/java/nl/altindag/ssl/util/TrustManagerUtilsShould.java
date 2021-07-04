@@ -26,15 +26,24 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import javax.net.ssl.CertPathTrustManagerParameters;
+import javax.net.ssl.ManagerFactoryParameters;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509ExtendedTrustManager;
 import javax.net.ssl.X509TrustManager;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.Provider;
 import java.security.Security;
+import java.security.cert.CertPathBuilder;
+import java.security.cert.PKIXBuilderParameters;
+import java.security.cert.PKIXRevocationChecker;
+import java.security.cert.X509CertSelector;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -321,11 +330,63 @@ class TrustManagerUtilsShould {
     }
 
     @Test
+    void createTrustManagerFromManagerParameters() throws NoSuchAlgorithmException, KeyStoreException, InvalidAlgorithmParameterException {
+        KeyStore trustStoreOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+        KeyStore trustStoreTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD);
+
+        CertPathTrustManagerParameters certPathTrustManagerParametersOne = createTrustManagerParameters(trustStoreOne);
+        CertPathTrustManagerParameters certPathTrustManagerParametersTwo = createTrustManagerParameters(trustStoreTwo);
+
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(certPathTrustManagerParametersOne, certPathTrustManagerParametersTwo);
+
+        assertThat(trustManager).isNotNull();
+    }
+
+    @Test
+    void createTrustManagerFromManagerParametersWithTrustManagerFactoryAlgorithm() throws NoSuchAlgorithmException, KeyStoreException, InvalidAlgorithmParameterException {
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+        CertPathTrustManagerParameters certPathTrustManagerParameters = createTrustManagerParameters(trustStore);
+
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(certPathTrustManagerParameters, TrustManagerFactory.getDefaultAlgorithm());
+
+        assertThat(trustManager).isNotNull();
+    }
+
+    @Test
+    void createTrustManagerFromManagerParametersWithSecurityProviderName() throws NoSuchAlgorithmException, KeyStoreException, InvalidAlgorithmParameterException {
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+        CertPathTrustManagerParameters certPathTrustManagerParameters = createTrustManagerParameters(trustStore);
+
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(certPathTrustManagerParameters, TrustManagerFactory.getDefaultAlgorithm(), "SunJSSE");
+
+        assertThat(trustManager).isNotNull();
+    }
+    @Test
+    void createTrustManagerFromManagerParametersWithSecurityProvider() throws NoSuchAlgorithmException, KeyStoreException, InvalidAlgorithmParameterException {
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+        CertPathTrustManagerParameters certPathTrustManagerParameters = createTrustManagerParameters(trustStore);
+
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(certPathTrustManagerParameters, TrustManagerFactory.getDefaultAlgorithm(), Security.getProvider("SunJSSE"));
+
+        assertThat(trustManager).isNotNull();
+    }
+
+    private CertPathTrustManagerParameters createTrustManagerParameters(KeyStore trustStore) throws NoSuchAlgorithmException, KeyStoreException, InvalidAlgorithmParameterException {
+        CertPathBuilder certPathBuilder = CertPathBuilder.getInstance("PKIX");
+        PKIXRevocationChecker revocationChecker = (PKIXRevocationChecker) certPathBuilder.getRevocationChecker();
+        revocationChecker.setOptions(EnumSet.of(PKIXRevocationChecker.Option.NO_FALLBACK));
+        PKIXBuilderParameters pkixParams = new PKIXBuilderParameters(trustStore, new X509CertSelector());
+        pkixParams.addCertPathChecker(revocationChecker);
+        CertPathTrustManagerParameters certPathTrustManagerParameters = new CertPathTrustManagerParameters(pkixParams);
+        return certPathTrustManagerParameters;
+    }
+
+    @Test
     void throwExceptionWhenInvalidTrustManagerAlgorithmIsProvided() {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 
         assertThatThrownBy(() -> TrustManagerUtils.createTrustManager(trustStore, "ABCD"))
-                .isInstanceOf(GenericSecurityException.class)
+                .isInstanceOf(GenericTrustManagerException.class)
                 .hasMessage("java.security.NoSuchAlgorithmException: ABCD TrustManagerFactory not available");
     }
 
@@ -335,7 +396,7 @@ class TrustManagerUtilsShould {
         String trustManagerFactoryAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
 
         assertThatThrownBy(() -> TrustManagerUtils.createTrustManager(trustStore, trustManagerFactoryAlgorithm, "test"))
-                .isInstanceOf(GenericSecurityException.class)
+                .isInstanceOf(GenericTrustManagerException.class)
                 .hasMessage("java.security.NoSuchProviderException: no such provider: test");
     }
 
@@ -345,7 +406,7 @@ class TrustManagerUtilsShould {
         String trustManagerFactoryAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
 
         assertThatThrownBy(() -> TrustManagerUtils.createTrustManager(trustStore, trustManagerFactoryAlgorithm, "SUN"))
-                .isInstanceOf(GenericSecurityException.class)
+                .isInstanceOf(GenericTrustManagerException.class)
                 .hasMessage("java.security.NoSuchAlgorithmException: no such algorithm: PKIX for provider SUN");
     }
 
@@ -356,8 +417,45 @@ class TrustManagerUtilsShould {
         Provider sunSecurityProvider = Security.getProvider("SUN");
 
         assertThatThrownBy(() -> TrustManagerUtils.createTrustManager(trustStore, trustManagerFactoryAlgorithm, sunSecurityProvider))
-                .isInstanceOf(GenericSecurityException.class)
+                .isInstanceOf(GenericTrustManagerException.class)
                 .hasMessage("java.security.NoSuchAlgorithmException: no such algorithm: PKIX for provider SUN");
+    }
+
+    @Test
+    void throwExceptionWhenInvalidTrustManagerAlgorithmIsProvidedWhenUsingManagerFactoryParameters() {
+        assertThatThrownBy(() -> TrustManagerUtils.createTrustManager(mock(ManagerFactoryParameters.class), "ABCD"))
+                .isInstanceOf(GenericTrustManagerException.class)
+                .hasMessage("java.security.NoSuchAlgorithmException: ABCD TrustManagerFactory not available");
+    }
+
+    @Test
+    void throwExceptionWhenInvalidSecurityProviderIsProvidedForTheTrustManagerFactoryAlgorithmWhenUsingManagerFactoryParameters() {
+        String trustManagerFactoryAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
+        Provider sunSecurityProvider = Security.getProvider("SUN");
+
+        assertThatThrownBy(() -> TrustManagerUtils.createTrustManager(mock(ManagerFactoryParameters.class), trustManagerFactoryAlgorithm, sunSecurityProvider))
+                .isInstanceOf(GenericTrustManagerException.class)
+                .hasMessage("java.security.NoSuchAlgorithmException: no such algorithm: PKIX for provider SUN");
+    }
+
+    @Test
+    void throwExceptionWhenInvalidSecurityProviderNameIsProvidedForTheTrustManagerFactoryAlgorithmWhenUsingManagerFactoryParameters() {
+        String trustManagerFactoryAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
+
+        assertThatThrownBy(() -> TrustManagerUtils.createTrustManager(mock(ManagerFactoryParameters.class), trustManagerFactoryAlgorithm, "SUN"))
+                .isInstanceOf(GenericTrustManagerException.class)
+                .hasMessage("java.security.NoSuchAlgorithmException: no such algorithm: PKIX for provider SUN");
+    }
+
+    @Test
+    void throwExceptionWhenSomethingUnexpectedHappensWhileInitializingTrustManagerWithManagerFactoryParameters() throws InvalidAlgorithmParameterException {
+        TrustManagerFactory trustManagerFactory = mock(TrustManagerFactory.class);
+        doThrow(new InvalidAlgorithmParameterException("KABOOM!!"))
+                .when(trustManagerFactory).init(any(ManagerFactoryParameters.class));
+
+        assertThatThrownBy(() -> TrustManagerUtils.createTrustManager(mock(ManagerFactoryParameters.class), trustManagerFactory))
+                .isInstanceOf(GenericTrustManagerException.class)
+                .hasMessageContaining("KABOOM!!");
     }
 
     @Test

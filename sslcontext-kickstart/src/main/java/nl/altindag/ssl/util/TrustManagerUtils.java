@@ -24,10 +24,12 @@ import nl.altindag.ssl.trustmanager.TrustManagerFactoryWrapper;
 import nl.altindag.ssl.trustmanager.UnsafeX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.X509TrustManagerWrapper;
 
+import javax.net.ssl.ManagerFactoryParameters;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509ExtendedTrustManager;
 import javax.net.ssl.X509TrustManager;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -124,6 +126,52 @@ public final class TrustManagerUtils {
             trustManagerFactory.init(trustStore);
             return TrustManagerUtils.getTrustManager(trustManagerFactory);
         } catch (KeyStoreException e) {
+            throw new GenericTrustManagerException(e);
+        }
+    }
+
+    public static X509ExtendedTrustManager createTrustManager(ManagerFactoryParameters... managerFactoryParameters) {
+        return Arrays.stream(managerFactoryParameters)
+                .map(TrustManagerUtils::createTrustManager)
+                .collect(Collectors.collectingAndThen(Collectors.toList(), TrustManagerUtils::combine));
+    }
+
+    public static X509ExtendedTrustManager createTrustManager(ManagerFactoryParameters managerFactoryParameters) {
+        return createTrustManager(managerFactoryParameters, TrustManagerFactory.getDefaultAlgorithm());
+    }
+
+    public static X509ExtendedTrustManager createTrustManager(ManagerFactoryParameters managerFactoryParameters, String trustManagerFactoryAlgorithm) {
+        try {
+            TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(trustManagerFactoryAlgorithm);
+            return createTrustManager(managerFactoryParameters, trustManagerFactory);
+        } catch (NoSuchAlgorithmException e) {
+            throw new GenericTrustManagerException(e);
+        }
+    }
+
+    public static X509ExtendedTrustManager createTrustManager(ManagerFactoryParameters managerFactoryParameters, String trustManagerFactoryAlgorithm, String securityProviderName) {
+        try {
+            TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(trustManagerFactoryAlgorithm, securityProviderName);
+            return createTrustManager(managerFactoryParameters, trustManagerFactory);
+        } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
+            throw new GenericTrustManagerException(e);
+        }
+    }
+
+    public static X509ExtendedTrustManager createTrustManager(ManagerFactoryParameters managerFactoryParameters, String trustManagerFactoryAlgorithm, Provider securityProvider) {
+        try {
+            TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(trustManagerFactoryAlgorithm, securityProvider);
+            return createTrustManager(managerFactoryParameters, trustManagerFactory);
+        } catch (NoSuchAlgorithmException e) {
+            throw new GenericTrustManagerException(e);
+        }
+    }
+
+    public static X509ExtendedTrustManager createTrustManager(ManagerFactoryParameters managerFactoryParameters, TrustManagerFactory trustManagerFactory) {
+        try {
+            trustManagerFactory.init(managerFactoryParameters);
+            return TrustManagerUtils.getTrustManager(trustManagerFactory);
+        } catch (InvalidAlgorithmParameterException e) {
             throw new GenericTrustManagerException(e);
         }
     }
