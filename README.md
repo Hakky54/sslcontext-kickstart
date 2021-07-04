@@ -87,6 +87,7 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "6.7.0"
 
 ## Introduction
 SSLContext Kickstart is a library which provides a High-Level SSLFactory class for configuring a http client to communicate over SSL/TLS for one way authentication or two-way authentication.
+It is designed to be as lightweight as possible by having minimized the external dependencies. The core library only depends on the SLF4J logging API.
 
 ### History
 As a Java developer I worked for different kinds of clients. Most of the time the application required to call other microservices within the organization or some other http servers. 
