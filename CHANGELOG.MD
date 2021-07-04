@@ -3,6 +3,8 @@
 This list is not intended to be all-encompassing - it will document major and breaking API 
 changes with their rationale when appropriate:
 
+### v6.7.0
+- Added OCSP support
 ### v6.6.3
 - Disabled providing transitive dependencies for Netty, Jetty, Apache 4 and Apache 5
 - Added shorter alternative for withTrustingAllCertificatesWithoutValidation option within SSLFactory called withUnsafeTrustMaterial
