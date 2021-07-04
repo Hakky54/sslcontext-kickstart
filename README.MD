@@ -51,9 +51,9 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "6.6.3"
      - [Loading keystore from the file system](#loading-keystore-and-trust-store-from-anywhere-on-the-filesystem)
      - [Loading keystore from InputStream](#loading-keystore-and-trust-store-from-inputstream)
      - [Loading trust material with OCSP options](#loading-trust-material-with-ocsp-options)
-         - [TrustStore](#loading-trust-material-with-truststore-and-with-ocsp-options)
-         - [TrustManager](#loading-trust-material-with-trustmanager-and-with-ocsp-options)
-         - [Certificates](#loading-trust-material-with-certificates-and-with-ocsp-options)
+         - [TrustStore](#loading-trust-material-with-truststore-and-ocsp-options)
+         - [TrustManager](#loading-trust-material-with-trustmanager-and-ocsp-options)
+         - [Certificates](#loading-trust-material-with-certificates-and-ocsp-options)
      - [Skip certificate validation](#trusting-all-certificates-without-validation-not-recommended-to-use-at-production)
      - [Loading JDK and OS trusted certificates](#loading-jdk-and-os-trusted-certificates)
      - [Using specific protocols and ciphers with custom secure-random and hostname-verifier](#using-specific-protocols-ciphers-with-custom-secure-random-and-hostname-verifier)
@@ -200,7 +200,7 @@ SSLFactory.builder()
 ```
 
 ##### Loading trust material with OCSP options
-##### Loading trust material with TrustStore and with OCSP options
+##### Loading trust material with TrustStore and OCSP options
 ```text
 CertPathBuilder certPathBuilder = CertPathBuilder.getInstance("PKIX");
 PKIXRevocationChecker revocationChecker = (PKIXRevocationChecker) certPathBuilder.getRevocationChecker();
@@ -214,7 +214,7 @@ SSLFactory sslFactory = SSLFactory.builder()
         })
         .build();
 ```
-##### Loading trust material with TrustManager and with OCSP options
+##### Loading trust material with TrustManager and OCSP options
 ```text
 X509ExtendedTrustManager trustManager = ...
 
@@ -231,7 +231,7 @@ SSLFactory sslFactory = SSLFactory.builder()
         .build();
 ```
 
-##### Loading trust material with certificates and with OCSP options
+##### Loading trust material with certificates and OCSP options
 ```text
 List<Certificate> certificates = ...
 
