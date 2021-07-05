@@ -124,17 +124,17 @@ class SSLFactoryShould {
 
     @Test
     void buildSSLFactoryWithTrustMaterialAndTrustOptions() throws NoSuchAlgorithmException {
-CertPathBuilder certPathBuilder = CertPathBuilder.getInstance("PKIX");
-PKIXRevocationChecker revocationChecker = (PKIXRevocationChecker) certPathBuilder.getRevocationChecker();
-revocationChecker.setOptions(EnumSet.of(PKIXRevocationChecker.Option.NO_FALLBACK));
+        CertPathBuilder certPathBuilder = CertPathBuilder.getInstance("PKIX");
+        PKIXRevocationChecker revocationChecker = (PKIXRevocationChecker) certPathBuilder.getRevocationChecker();
+        revocationChecker.setOptions(EnumSet.of(PKIXRevocationChecker.Option.NO_FALLBACK));
 
-SSLFactory sslFactory = SSLFactory.builder()
-        .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD, trustStore -> {
-            PKIXBuilderParameters pkixBuilderParameters = new PKIXBuilderParameters(trustStore, new X509CertSelector());
-            pkixBuilderParameters.addCertPathChecker(revocationChecker);
-            return new CertPathTrustManagerParameters(pkixBuilderParameters);
-        })
-        .build();
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD, trustStore -> {
+                    PKIXBuilderParameters pkixBuilderParameters = new PKIXBuilderParameters(trustStore, new X509CertSelector());
+                    pkixBuilderParameters.addCertPathChecker(revocationChecker);
+                    return new CertPathTrustManagerParameters(pkixBuilderParameters);
+                })
+                .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
 
