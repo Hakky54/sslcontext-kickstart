@@ -66,10 +66,13 @@ import java.util.stream.Collectors;
  * Reads PEM formatted private keys and certificates
  * as identity material and trust material and maps it
  * to either a {@link X509ExtendedKeyManager} or {@link X509ExtendedTrustManager}.
- *
+ * <br>
+ * <br>
  * The PemUtils provides also other methods for example to:
- * - load trusted certificates and map it into a list of {@link X509Certificate},
- * - load identity material and map it into a {@link PrivateKey}.
+ * <pre>
+ * - load trusted certificates and map it into a list of {@link X509Certificate}
+ * - load identity material and map it into a {@link PrivateKey}
+ * </pre>
  *
  * The PemUtils serves mainly as a helper class to easily supply the PEM formatted SSL material
  * for the {@link SSLFactory}, but can also be used for other purposes.
