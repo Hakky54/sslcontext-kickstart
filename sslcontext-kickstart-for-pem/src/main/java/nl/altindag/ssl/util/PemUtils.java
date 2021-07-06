@@ -65,7 +65,11 @@ import java.util.stream.Collectors;
 /**
  * Reads PEM formatted private keys and certificates
  * as identity material and trust material and maps it
- * to either a {@link X509ExtendedTrustManager} or {@link X509ExtendedKeyManager}.
+ * to either a {@link X509ExtendedKeyManager} or {@link X509ExtendedTrustManager}.
+ *
+ * The PemUtils provides also other methods for example to:
+ * - load trusted certificates and map it into a list of {@link X509Certificate},
+ * - load identity material and map it into a {@link PrivateKey}.
  *
  * The PemUtils serves mainly as a helper class to easily supply the PEM formatted SSL material
  * for the {@link SSLFactory}, but can also be used for other purposes.
@@ -90,24 +94,48 @@ public final class PemUtils {
      * Loads certificates from the classpath and maps it to an instance of {@link X509ExtendedTrustManager}
      */
     public static X509ExtendedTrustManager loadTrustMaterial(String... certificatePaths) {
-        List<X509Certificate> certificates = loadCertificate(certificatePaths, PemUtils::getResourceAsStream);
-        return mapTrustMaterial(certificates);
+        return mapTrustMaterial(
+                loadCertificate(certificatePaths)
+        );
     }
 
     /**
      * Loads certificates from the filesystem and maps it to an instance of {@link X509ExtendedTrustManager}
      */
     public static X509ExtendedTrustManager loadTrustMaterial(Path... certificatePaths) {
-        List<X509Certificate> certificates = loadCertificate(certificatePaths, PemUtils::getFileAsStream);
-        return mapTrustMaterial(certificates);
+        return mapTrustMaterial(
+                loadCertificate(certificatePaths)
+        );
     }
 
     /**
      * Loads certificates from multiple InputStreams and maps it to an instance of {@link X509ExtendedTrustManager}
      */
     public static X509ExtendedTrustManager loadTrustMaterial(InputStream... certificateStreams) {
-        List<X509Certificate> certificates = loadCertificate(certificateStreams, Function.identity());
-        return mapTrustMaterial(certificates);
+        return mapTrustMaterial(
+                loadCertificate(certificateStreams)
+        );
+    }
+
+    /**
+     * Loads certificates from the classpath and maps it to a list of {@link X509Certificate}
+     */
+    public static List<X509Certificate> loadCertificate(String... certificatePaths) {
+        return loadCertificate(certificatePaths, PemUtils::getResourceAsStream);
+    }
+
+    /**
+     * Loads certificates from the filesystem and maps it to a list of {@link X509Certificate}
+     */
+    public static List<X509Certificate> loadCertificate(Path... certificatePaths) {
+        return loadCertificate(certificatePaths, PemUtils::getFileAsStream);
+    }
+
+    /**
+     * Loads certificates from multiple InputStreams and maps it a list of {@link X509Certificate}
+     */
+    public static List<X509Certificate> loadCertificate(InputStream... certificateStreams) {
+        return loadCertificate(certificateStreams, Function.identity());
     }
 
     private static <T> List<X509Certificate> loadCertificate(T[] resources, Function<T, InputStream> resourceMapper) {
@@ -311,7 +339,70 @@ public final class PemUtils {
         return parseIdentityMaterial(certificateChain, privateKey);
     }
 
-    private static PrivateKey parsePrivateKey(String identityContent, char[] keyPassword) {
+    /**
+     * Loads the private key from the classpath and maps it to an instance of {@link PrivateKey}
+     */
+    public static PrivateKey loadPrivateKey(String identityPath) {
+        return loadPrivateKey(identityPath, NO_PASSWORD);
+    }
+
+    /**
+     * Loads the private key from the classpath and maps it to an instance of {@link PrivateKey}
+     */
+    public static PrivateKey loadPrivateKey(String identityPath, char[] keyPassword) {
+        return loadPrivateKey(identityPath, keyPassword, PemUtils::getResourceAsStream);
+    }
+
+    /**
+     * Loads the private key from the filesystem and maps it to an instance of {@link PrivateKey}
+     */
+    public static PrivateKey loadPrivateKey(Path identityPath) {
+        return loadPrivateKey(identityPath, NO_PASSWORD);
+    }
+
+    /**
+     * Loads the private key from the filesystem and maps it to an instance of {@link PrivateKey}
+     */
+    public static PrivateKey loadPrivateKey(Path identityPath, char[] keyPassword) {
+        return loadPrivateKey(identityPath, keyPassword, PemUtils::getFileAsStream);
+    }
+
+    /**
+     * Loads the private key from an InputStream and maps it to an instance of {@link PrivateKey}
+     */
+    public static PrivateKey loadPrivateKey(InputStream identityStream) {
+        return loadPrivateKey(identityStream, NO_PASSWORD);
+    }
+
+    /**
+     * Loads the private key from an InputStream and maps it to an instance of {@link PrivateKey}
+     */
+    public static PrivateKey loadPrivateKey(InputStream identityStream, char[] keyPassword) {
+        return loadPrivateKey(identityStream, keyPassword, Function.identity());
+    }
+
+    private static <T> PrivateKey loadPrivateKey(T privateKey, char[] keyPassword, Function<T, InputStream> resourceMapper) {
+        try(InputStream privateKeyStream = resourceMapper.apply(privateKey)) {
+            String privateKeyContent = IOUtils.getContent(privateKeyStream);
+            return parsePrivateKey(privateKeyContent, keyPassword);
+        } catch (IOException exception) {
+            throw new GenericIOException(exception);
+        }
+    }
+
+    /**
+     * Parses the private key based on a string representation of the private key
+     * and maps it to an instance of {@link PrivateKey}
+     */
+    public static PrivateKey parsePrivateKey(String identityContent) {
+        return parsePrivateKey(identityContent, NO_PASSWORD);
+    }
+
+    /**
+     * Parses the private key based on a string representation of the private key
+     * and maps it to an instance of {@link PrivateKey}
+     */
+    public static PrivateKey parsePrivateKey(String identityContent, char[] keyPassword) {
         try {
             Reader stringReader = new StringReader(identityContent);
             PEMParser pemParser = new PEMParser(stringReader);

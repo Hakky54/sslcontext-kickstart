@@ -43,13 +43,13 @@ import java.nio.file.StandardOpenOption;
 import java.security.Key;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.PrivateKey;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -362,6 +362,112 @@ class PemUtilsShould {
                 .hasRootCauseMessage("KABOOM!!!");
     }
 
+
+    @Test
+    void loadUnencryptedPrivateKeyFromClassPath() {
+        PrivateKey privateKey = PemUtils.loadPrivateKey(PEM_LOCATION + "unencrypted-identity.pem");
+
+        assertThat(privateKey).isNotNull();
+    }
+
+    @Test
+    void loadUnencryptedPrivateKeyFromDirectory() {
+        Path identityPath = Paths.get(TEST_RESOURCES_LOCATION + PEM_LOCATION, "unencrypted-identity.pem").toAbsolutePath();
+
+        PrivateKey privateKey = PemUtils.loadPrivateKey(identityPath);
+
+        assertThat(privateKey).isNotNull();
+    }
+
+    @Test
+    void loadUnencryptedPrivateKeyFromInputStream() throws IOException {
+        PrivateKey privateKey;
+        try(InputStream inputStream = getResource(PEM_LOCATION + "unencrypted-identity.pem")) {
+            privateKey = PemUtils.loadPrivateKey(inputStream);
+        }
+
+        assertThat(privateKey).isNotNull();
+    }
+
+    @Test
+    void loadRsaUnencryptedPrivateKeyFromClassPath() {
+        PrivateKey privateKey = PemUtils.loadPrivateKey(PEM_LOCATION + "rsa-unencrypted-identity.pem");
+
+        assertThat(privateKey).isNotNull();
+    }
+
+    @Test
+    void loadRsaEncryptedPrivateKeyFromClassPath() {
+        PrivateKey privateKey = PemUtils.loadPrivateKey(PEM_LOCATION + "encrypted-rsa-identity.pem", DEFAULT_PASSWORD);
+
+        assertThat(privateKey).isNotNull();
+    }
+
+    @Test
+    void loadEcUnencryptedPrivateKeyFromClassPath() {
+        PrivateKey privateKey = PemUtils.loadPrivateKey(PEM_LOCATION + "unencrypted-ec-identity.pem", DEFAULT_PASSWORD);
+
+        assertThat(privateKey).isNotNull();
+    }
+
+    @Test
+    void loadEcEncryptedPrivateKeyFromClassPath() {
+        PrivateKey privateKey = PemUtils.loadPrivateKey(PEM_LOCATION + "encrypted-ec-identity.pem", DEFAULT_PASSWORD);
+
+        assertThat(privateKey).isNotNull();
+    }
+
+    @Test
+    void loadEncryptedPrivateKeyFromClassPath() {
+        PrivateKey privateKey = PemUtils.loadPrivateKey(PEM_LOCATION + "encrypted-identity.pem", DEFAULT_PASSWORD);
+
+        assertThat(privateKey).isNotNull();
+    }
+
+    @Test
+    void loadEncryptedPrivateKeyFromDirectory() {
+        Path identityPath = Paths.get(TEST_RESOURCES_LOCATION + PEM_LOCATION, "encrypted-identity.pem").toAbsolutePath();
+
+        PrivateKey privateKey = PemUtils.loadPrivateKey(identityPath, DEFAULT_PASSWORD);
+
+        assertThat(privateKey).isNotNull();
+    }
+
+    @Test
+    void loadEncryptedPrivateKeyFromInputStream() throws IOException {
+        PrivateKey privateKey;
+        try(InputStream inputStream = getResource(PEM_LOCATION + "encrypted-identity.pem")) {
+            privateKey = PemUtils.loadPrivateKey(inputStream, DEFAULT_PASSWORD);
+        }
+
+        assertThat(privateKey).isNotNull();
+    }
+
+    @Test
+    void loadUnencryptedPrivateKeyFromClassPathWhichFirstContainsTheCertificate() {
+        PrivateKey privateKey = PemUtils.loadPrivateKey(PEM_LOCATION + "unencrypted-identity-with-certificate-first.pem");
+
+        assertThat(privateKey).isNotNull();
+    }
+
+    @Test
+    void parseEncryptedPrivateKeyFromContent() {
+        String identityContent = getResourceContent(PEM_LOCATION + "encrypted-identity.pem");
+
+        PrivateKey privateKey = PemUtils.parsePrivateKey(identityContent, DEFAULT_PASSWORD);
+
+        assertThat(privateKey).isNotNull();
+    }
+
+    @Test
+    void parseUnencryptedPrivateKeyFromContent() {
+        String identityContent = getResourceContent(PEM_LOCATION + "unencrypted-identity.pem");
+
+        PrivateKey privateKey = PemUtils.parsePrivateKey(identityContent);
+
+        assertThat(privateKey).isNotNull();
+    }
+
     @Test
     void throwGenericIOExceptionWhenInputStreamCanNotBeClosedWhenLoadingIdentity() throws IOException {
         InputStream identityStream = spy(getResource(PEM_LOCATION + "encrypted-identity.pem"));
@@ -375,6 +481,24 @@ class PemUtilsShould {
                     .close();
 
             assertThatThrownBy(() -> PemUtils.loadIdentityMaterial(identityStream, DEFAULT_PASSWORD))
+                    .isInstanceOf(GenericIOException.class)
+                    .hasRootCauseMessage("KABOOM!!!");
+        }
+    }
+
+    @Test
+    void throwGenericIOExceptionWhenInputStreamCanNotBeClosedWhenLoadingPrivateKey() throws IOException {
+        InputStream identityStream = spy(getResource(PEM_LOCATION + "encrypted-identity.pem"));
+        String identityContent = getResourceContent(PEM_LOCATION + "encrypted-identity.pem");
+
+        try (MockedStatic<IOUtils> ioUtilsMockedStatic = mockStatic(IOUtils.class, InvocationOnMock::getMock)) {
+            ioUtilsMockedStatic.when(() -> IOUtils.getContent(identityStream)).thenReturn(identityContent);
+
+            doThrow(new IOException("KABOOM!!!"))
+                    .when(identityStream)
+                    .close();
+
+            assertThatThrownBy(() -> PemUtils.loadPrivateKey(identityStream, DEFAULT_PASSWORD))
                     .isInstanceOf(GenericIOException.class)
                     .hasRootCauseMessage("KABOOM!!!");
         }
