@@ -295,7 +295,7 @@ class CertificateUtilsShould {
     @Test
     void throwsUncheckedIOExceptionWhenUrlIsUnreachable() {
         assertThatThrownBy(() -> CertificateUtils.getCertificate("https://localhost:1234/"))
-                .isInstanceOf(UncheckedIOException.class);
+                .isInstanceOf(GenericIOException.class);
     }
 
     @Test

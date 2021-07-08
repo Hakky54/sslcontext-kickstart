@@ -29,7 +29,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
@@ -106,7 +105,7 @@ public final class CertificateUtils {
             try {
                 return Files.newInputStream(certificatePath, StandardOpenOption.READ);
             } catch (IOException exception) {
-                throw new UncheckedIOException(exception);
+                throw new GenericIOException(exception);
             }
         }, certificatePaths);
     }
@@ -277,7 +276,7 @@ public final class CertificateUtils {
                 return Collections.emptyList();
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new GenericIOException(e);
         }
     }
 

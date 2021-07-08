@@ -23,10 +23,13 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 
 /**
@@ -43,11 +46,39 @@ class IOUtilsShould {
     }
 
     @Test
-    void bla() throws IOException {
+    void getContentThrowsGenericIOExceptionWhenStreamFailsToClose() throws IOException {
         ByteArrayInputStream inputStream = Mockito.spy(new ByteArrayInputStream("Hello".getBytes()));
         doThrow(new IOException("Could not read the content")).when(inputStream).close();
 
         assertThatThrownBy(() -> IOUtils.getContent(inputStream))
+                .isInstanceOf(GenericIOException.class)
+                .hasRootCauseMessage("Could not read the content");
+    }
+
+    @Test
+    void closeSilentlyDoesNotThrowExceptionWhenCloseFails() throws IOException {
+        ByteArrayInputStream inputStream = Mockito.spy(new ByteArrayInputStream("Hello".getBytes()));
+        doThrow(new IOException("Could not read the content")).when(inputStream).close();
+
+        assertThatCode(() -> IOUtils.closeSilently(inputStream))
+                .doesNotThrowAnyException();
+    }
+
+    @Test
+    void createCopy() {
+        ByteArrayInputStream inputStream = new ByteArrayInputStream("Hello".getBytes());
+        ByteArrayOutputStream copy = IOUtils.createCopy(inputStream);
+
+        String content = IOUtils.getContent(new ByteArrayInputStream(copy.toByteArray()));
+        assertThat(content).isEqualTo("Hello");
+    }
+
+    @Test
+    void createCopyThrowsGenericIOExceptionWhenReadingFails() throws IOException {
+        ByteArrayInputStream inputStream = Mockito.spy(new ByteArrayInputStream("Hello".getBytes()));
+        doThrow(new IOException("Could not read the content")).when(inputStream).read(any());
+
+        assertThatThrownBy(() -> IOUtils.createCopy(inputStream))
                 .isInstanceOf(GenericIOException.class)
                 .hasRootCauseMessage("Could not read the content");
     }
