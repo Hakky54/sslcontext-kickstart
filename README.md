@@ -66,9 +66,10 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "6.7.0"
      - [Updating client identity routes at runtime](#updating-client-identity-routes-at-runtime) 
      - [Managing ssl session](#managing-ssl-session)
      - [Extracting server certificates](#extracting-server-certificates)  
-     - [Using P7B/PKCS7 files](#using-p7b/PKCS7-files)
+     - [Using P7B/PKCS#7 files](#using-p7b-or-pkcs7-files)
      - [Using DER files](#using-der-files)
      - [Using PEM Files](#using-pem-files)
+     - [Using PFX/P12/PKCS#12 Files](#using-pfx-p12-or-pkcs12-files)
        - [Loading pem files from the classpath](#loading-pem-files-from-the-classpath)
        - [Loading pem files from the file system](#loading-pem-files-from-anywhere-on-the-filesystem)
        - [Loading pem files from InputStream](#loading-pem-files-from-inputstream)
@@ -439,7 +440,7 @@ Map<String, List<String>> certificatesAsPem = CertificateUtils.getCertificateAsP
 ```
 See here for a demo application: [GitHub - Certificate Ripper](https://github.com/Hakky54/certificate-ripper)
 
-#### Using P7B/PKCS7 Files
+#### Using P7B or PKCS#7 Files
 Support for using p7b formatted certificates and certificate-chain from classpath, any directory or as an InputStream. 
 P7b file is a text file containing a `-----BEGIN PKCS7-----` as header, `-----END PKCS7-----` as footer and has a Base64 encoded data between it.
 ```
@@ -458,6 +459,16 @@ List<Certificate> certificates = CertificateUtils.loadCertificate("certificate.c
 
 SSLFactory.builder()
           .withTrustMaterial(certificates)
+          .build();
+```
+
+#### Using PFX, P12 or PKCS#12 Files
+PFX and p12 are both Pkcs12 type keystores which are supported.
+
+```text
+SSLFactory.builder()
+          .withIdentityMaterial("identity.p12", "password".toCharArray())
+          .withTrustMaterial("truststore.p12", "password".toCharArray())
           .build();
 ```
 
