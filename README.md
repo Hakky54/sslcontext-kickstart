@@ -66,7 +66,7 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "6.7.0"
      - [Updating client identity routes at runtime](#updating-client-identity-routes-at-runtime) 
      - [Managing ssl session](#managing-ssl-session)
      - [Extracting server certificates](#extracting-server-certificates)  
-     - [Using P7B files](#using-p7b-files)
+     - [Using P7B/PKCS7 files](#using-p7b/PKCS7-files)
      - [Using DER files](#using-der-files)
      - [Using PEM Files](#using-pem-files)
        - [Loading pem files from the classpath](#loading-pem-files-from-the-classpath)
@@ -439,7 +439,7 @@ Map<String, List<String>> certificatesAsPem = CertificateUtils.getCertificateAsP
 ```
 See here for a demo application: [GitHub - Certificate Ripper](https://github.com/Hakky54/certificate-ripper)
 
-#### Using P7B Files
+#### Using P7B/PKCS7 Files
 Support for using p7b formatted certificates and certificate-chain from classpath, any directory or as an InputStream. 
 P7b file is a text file containing a `-----BEGIN PKCS7-----` as header, `-----END PKCS7-----` as footer and has a Base64 encoded data between it.
 ```
