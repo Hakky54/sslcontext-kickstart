@@ -61,7 +61,7 @@ class TrustManagerUtilsShould {
 
     private static final String TRUSTSTORE_FILE_NAME = "truststore.jks";
     private static final char[] TRUSTSTORE_PASSWORD = new char[] {'s', 'e', 'c', 'r', 'e', 't'};
-    private static final String KEYSTORE_LOCATION = "keystores-for-unit-tests/";
+    private static final String KEYSTORE_LOCATION = "keystore/";
     private static final String ORIGINAL_OS_NAME = System.getProperty("os.name");
 
     @Test

@@ -41,8 +41,8 @@ class SSLFactoryIT {
     void executeHttpsRequestWithMutualAuthentication() throws IOException {
         LogCaptor logCaptor = LogCaptor.forName("nl.altindag.ssl");
 
-        X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial("pems-for-unit-tests/badssl-identity.pem", IDENTITY_PASSWORD);
-        X509ExtendedTrustManager trustManager = PemUtils.loadTrustMaterial("pems-for-unit-tests/badssl-certificate.pem");
+        X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial("pem/badssl-identity.pem", IDENTITY_PASSWORD);
+        X509ExtendedTrustManager trustManager = PemUtils.loadTrustMaterial("pem/badssl-certificate.pem");
 
         SSLFactory sslFactory = SSLFactory.builder()
                 .withIdentityMaterial(keyManager)
@@ -70,8 +70,8 @@ class SSLFactoryIT {
     void executeHttpsRequestWithMutualAuthenticationWithUnencryptedPrivateKey() throws IOException {
         LogCaptor logCaptor = LogCaptor.forName("nl.altindag.ssl");
 
-        X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial("pems-for-unit-tests/unencrypted-badssl-identity.pem", IDENTITY_PASSWORD);
-        X509ExtendedTrustManager trustManager = PemUtils.loadTrustMaterial("pems-for-unit-tests/badssl-certificate.pem");
+        X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial("pem/unencrypted-badssl-identity.pem", IDENTITY_PASSWORD);
+        X509ExtendedTrustManager trustManager = PemUtils.loadTrustMaterial("pem/badssl-certificate.pem");
 
         SSLFactory sslFactory = SSLFactory.builder()
                 .withIdentityMaterial(keyManager)

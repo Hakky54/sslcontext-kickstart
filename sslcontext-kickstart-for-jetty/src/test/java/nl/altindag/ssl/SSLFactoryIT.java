@@ -38,8 +38,8 @@ class SSLFactoryIT {
         LogCaptor logCaptor = LogCaptor.forName("nl.altindag.ssl");
 
         SSLFactory sslFactory = SSLFactory.builder()
-                .withIdentityMaterial("keystores-for-unit-tests/badssl-identity.p12", "badssl.com".toCharArray())
-                .withTrustMaterial("keystores-for-unit-tests/badssl-truststore.p12", "badssl.com".toCharArray())
+                .withIdentityMaterial("keystore/badssl-identity.p12", "badssl.com".toCharArray())
+                .withTrustMaterial("keystore/badssl-truststore.p12", "badssl.com".toCharArray())
                 .withTrustMaterial(KeyStoreUtils.createKeyStore()) // Adding additional trust material forces usage of CompositeX509ExtendedTrustManager and verbose logging
                 .build();
 

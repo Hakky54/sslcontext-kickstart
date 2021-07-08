@@ -23,17 +23,13 @@ import org.junit.jupiter.api.Test;
 
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
-import javax.net.ssl.SSLException;
-import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSessionContext;
 import javax.net.ssl.X509ExtendedTrustManager;
-import java.io.IOException;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
@@ -54,7 +50,7 @@ class CompositeX509ExtendedTrustManagerShould {
     private static final char[] TRUSTSTORE_PASSWORD = new char[]{'s', 'e', 'c', 'r', 'e', 't'};
     private static final String KEYSTORE_FILE_NAME = "identity.jks";
     private static final char[] KEYSTORE_PASSWORD = new char[]{'s', 'e', 'c', 'r', 'e', 't'};
-    private static final String KEYSTORE_LOCATION = "keystores-for-unit-tests/";
+    private static final String KEYSTORE_LOCATION = "keystore/";
 
     private static final Socket SOCKET = new Socket();
     private static final SSLEngine SSL_ENGINE = new MockedSSLEngine();

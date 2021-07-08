@@ -49,7 +49,7 @@ class CompositeX509ExtendedKeyManagerShould {
     private static final String IDENTITY_FILE_NAME = "identity.jks";
     private static final String IDENTITY_TWO_FILE_NAME = "identity-two.jks";
     private static final char[] IDENTITY_PASSWORD = new char[] {'s', 'e', 'c', 'r', 'e', 't'};
-    private static final String KEYSTORE_LOCATION = "keystores-for-unit-tests/";
+    private static final String KEYSTORE_LOCATION = "keystore/";
 
     @Test
     void returnPrivateKeyForAlias() throws KeyStoreException {

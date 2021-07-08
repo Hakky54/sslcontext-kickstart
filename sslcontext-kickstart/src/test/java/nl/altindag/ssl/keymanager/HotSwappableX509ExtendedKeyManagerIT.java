@@ -83,7 +83,7 @@ class HotSwappableX509ExtendedKeyManagerIT {
     @Test
     @Order(2)
     void executeHttpsRequestWithExistingSslSocketFactoryContainingASwappedKeyManager() throws IOException {
-        KeyStore identityStore = KeyStoreUtils.loadKeyStore("keystores-for-unit-tests/identity.jks", "secret".toCharArray());
+        KeyStore identityStore = KeyStoreUtils.loadKeyStore("keystore/identity.jks", "secret".toCharArray());
         X509ExtendedKeyManager anotherKeyManager = KeyManagerUtils.createKeyManager(identityStore, "secret".toCharArray());
 
         KeyManagerUtils.swapKeyManager(keyManager, anotherKeyManager);

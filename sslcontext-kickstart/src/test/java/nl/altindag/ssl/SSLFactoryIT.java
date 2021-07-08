@@ -85,15 +85,15 @@ class SSLFactoryIT {
 
         char[] keyStorePassword = "secret".toCharArray();
         SSLFactory sslFactoryForServerOne = SSLFactory.builder()
-                .withIdentityMaterial("keystores-for-unit-tests/client-server/server-one/identity.jks", keyStorePassword)
-                .withTrustMaterial("keystores-for-unit-tests/client-server/server-one/truststore.jks", keyStorePassword)
+                .withIdentityMaterial("keystore/client-server/server-one/identity.jks", keyStorePassword)
+                .withTrustMaterial("keystore/client-server/server-one/truststore.jks", keyStorePassword)
                 .withNeedClientAuthentication()
                 .withProtocols("TLSv1.2")
                 .build();
 
         SSLFactory sslFactoryForServerTwo = SSLFactory.builder()
-                .withIdentityMaterial("keystores-for-unit-tests/client-server/server-two/identity.jks", keyStorePassword)
-                .withTrustMaterial("keystores-for-unit-tests/client-server/server-two/truststore.jks", keyStorePassword)
+                .withIdentityMaterial("keystore/client-server/server-two/identity.jks", keyStorePassword)
+                .withTrustMaterial("keystore/client-server/server-two/truststore.jks", keyStorePassword)
                 .withNeedClientAuthentication()
                 .withProtocols("TLSv1.2")
                 .build();
@@ -105,10 +105,10 @@ class SSLFactoryIT {
         serverTwo.start();
 
         SSLFactory sslFactoryForClient = SSLFactory.builder()
-                .withIdentityMaterial("keystores-for-unit-tests/client-server/client-one/identity.jks", keyStorePassword)
-                .withIdentityMaterial("keystores-for-unit-tests/client-server/client-two/identity.jks", keyStorePassword)
-                .withTrustMaterial("keystores-for-unit-tests/client-server/client-one/truststore.jks", keyStorePassword)
-                .withTrustMaterial("keystores-for-unit-tests/client-server/client-two/truststore.jks", keyStorePassword)
+                .withIdentityMaterial("keystore/client-server/client-one/identity.jks", keyStorePassword)
+                .withIdentityMaterial("keystore/client-server/client-two/identity.jks", keyStorePassword)
+                .withTrustMaterial("keystore/client-server/client-one/truststore.jks", keyStorePassword)
+                .withTrustMaterial("keystore/client-server/client-two/truststore.jks", keyStorePassword)
                 .withProtocols("TLSv1.2")
                 .build();
 
@@ -133,16 +133,16 @@ class SSLFactoryIT {
 
         char[] keyStorePassword = "secret".toCharArray();
         SSLFactory sslFactoryForServerOne = SSLFactory.builder()
-                .withIdentityMaterial("keystores-for-unit-tests/client-server/server-one/identity.jks", keyStorePassword)
-                .withTrustMaterial("keystores-for-unit-tests/client-server/server-one/truststore.jks", keyStorePassword)
+                .withIdentityMaterial("keystore/client-server/server-one/identity.jks", keyStorePassword)
+                .withTrustMaterial("keystore/client-server/server-one/truststore.jks", keyStorePassword)
                 .withNeedClientAuthentication()
                 .withSessionTimeout(1)
                 .withProtocols("TLSv1.2")
                 .build();
 
         SSLFactory sslFactoryForServerTwo = SSLFactory.builder()
-                .withIdentityMaterial("keystores-for-unit-tests/client-server/server-two/identity.jks", keyStorePassword)
-                .withTrustMaterial("keystores-for-unit-tests/client-server/server-two/truststore.jks", keyStorePassword)
+                .withIdentityMaterial("keystore/client-server/server-two/identity.jks", keyStorePassword)
+                .withTrustMaterial("keystore/client-server/server-two/truststore.jks", keyStorePassword)
                 .withNeedClientAuthentication()
                 .withSessionTimeout(1)
                 .withProtocols("TLSv1.2")
@@ -159,10 +159,10 @@ class SSLFactoryIT {
         clientAliasesToHosts.put("client-two", Collections.singletonList("https://localhost:8444/api/hello"));
 
         SSLFactory sslFactoryForClient = SSLFactory.builder()
-                .withIdentityMaterial("keystores-for-unit-tests/client-server/client-one/identity.jks", keyStorePassword)
-                .withIdentityMaterial("keystores-for-unit-tests/client-server/client-two/identity.jks", keyStorePassword)
-                .withTrustMaterial("keystores-for-unit-tests/client-server/client-one/truststore.jks", keyStorePassword)
-                .withTrustMaterial("keystores-for-unit-tests/client-server/client-two/truststore.jks", keyStorePassword)
+                .withIdentityMaterial("keystore/client-server/client-one/identity.jks", keyStorePassword)
+                .withIdentityMaterial("keystore/client-server/client-two/identity.jks", keyStorePassword)
+                .withTrustMaterial("keystore/client-server/client-one/truststore.jks", keyStorePassword)
+                .withTrustMaterial("keystore/client-server/client-two/truststore.jks", keyStorePassword)
                 .withClientIdentityRoute(clientAliasesToHosts)
                 .build();
 
@@ -179,10 +179,10 @@ class SSLFactoryIT {
         assertThat(response.getBody()).contains("Hello from server two");
 
         sslFactoryForClient = SSLFactory.builder()
-                .withIdentityMaterial("keystores-for-unit-tests/client-server/client-one/identity.jks", keyStorePassword)
-                .withIdentityMaterial("keystores-for-unit-tests/client-server/client-two/identity.jks", keyStorePassword)
-                .withTrustMaterial("keystores-for-unit-tests/client-server/client-one/truststore.jks", keyStorePassword)
-                .withTrustMaterial("keystores-for-unit-tests/client-server/client-two/truststore.jks", keyStorePassword)
+                .withIdentityMaterial("keystore/client-server/client-one/identity.jks", keyStorePassword)
+                .withIdentityMaterial("keystore/client-server/client-two/identity.jks", keyStorePassword)
+                .withTrustMaterial("keystore/client-server/client-one/truststore.jks", keyStorePassword)
+                .withTrustMaterial("keystore/client-server/client-two/truststore.jks", keyStorePassword)
                 .withClientIdentityRoute("client-one", "https://localhost:8444/api/hello")
                 .withClientIdentityRoute("client-two", "https://localhost:8443/api/hello")
                 .build();
@@ -206,15 +206,15 @@ class SSLFactoryIT {
         char[] keyStorePassword = "secret".toCharArray();
 
         SSLFactory sslFactoryForServerOne = SSLFactory.builder()
-                .withIdentityMaterial("keystores-for-unit-tests/client-server/server-one/identity.jks", keyStorePassword)
-                .withTrustMaterial("keystores-for-unit-tests/client-server/server-one/truststore.jks", keyStorePassword)
+                .withIdentityMaterial("keystore/client-server/server-one/identity.jks", keyStorePassword)
+                .withTrustMaterial("keystore/client-server/server-one/truststore.jks", keyStorePassword)
                 .withNeedClientAuthentication()
                 .withProtocols("TLSv1.2")
                 .build();
 
         SSLFactory sslFactoryForServerTwo = SSLFactory.builder()
-                .withIdentityMaterial("keystores-for-unit-tests/client-server/server-two/identity.jks", keyStorePassword)
-                .withTrustMaterial("keystores-for-unit-tests/client-server/server-two/truststore.jks", keyStorePassword)
+                .withIdentityMaterial("keystore/client-server/server-two/identity.jks", keyStorePassword)
+                .withTrustMaterial("keystore/client-server/server-two/truststore.jks", keyStorePassword)
                 .withNeedClientAuthentication()
                 .withProtocols("TLSv1.2")
                 .build();
@@ -226,8 +226,8 @@ class SSLFactoryIT {
         serverTwo.start();
 
         SSLFactory sslFactoryForClient = SSLFactory.builder()
-                .withIdentityMaterial("keystores-for-unit-tests/client-server/client-one/identity.jks", keyStorePassword)
-                .withTrustMaterial("keystores-for-unit-tests/client-server/client-one/truststore.jks", keyStorePassword)
+                .withIdentityMaterial("keystore/client-server/client-one/identity.jks", keyStorePassword)
+                .withTrustMaterial("keystore/client-server/client-one/truststore.jks", keyStorePassword)
                 .withSwappableIdentityMaterial()
                 .withSwappableTrustMaterial()
                 .build();
@@ -243,14 +243,14 @@ class SSLFactoryIT {
 
         X509ExtendedKeyManager swappableKeyManager = sslFactoryForClient.getKeyManager().get();
         X509ExtendedKeyManager toBeSwappedKeyManager = KeyManagerUtils.createKeyManager(
-                KeyStoreUtils.loadKeyStore("keystores-for-unit-tests/client-server/client-two/identity.jks", keyStorePassword), "secret".toCharArray()
+                KeyStoreUtils.loadKeyStore("keystore/client-server/client-two/identity.jks", keyStorePassword), "secret".toCharArray()
         );
 
         KeyManagerUtils.swapKeyManager(swappableKeyManager, toBeSwappedKeyManager);
 
         X509ExtendedTrustManager swappableTrustManager = sslFactoryForClient.getTrustManager().get();
         X509ExtendedTrustManager toBeSwappedTrustManager = TrustManagerUtils.createTrustManager(
-                KeyStoreUtils.loadKeyStore("keystores-for-unit-tests/client-server/client-two/truststore.jks", keyStorePassword)
+                KeyStoreUtils.loadKeyStore("keystore/client-server/client-two/truststore.jks", keyStorePassword)
         );
 
         TrustManagerUtils.swapTrustManager(swappableTrustManager, toBeSwappedTrustManager);

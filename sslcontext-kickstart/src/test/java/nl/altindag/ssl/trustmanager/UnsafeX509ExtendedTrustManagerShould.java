@@ -39,7 +39,7 @@ class UnsafeX509ExtendedTrustManagerShould {
     private static final char[] TRUSTSTORE_PASSWORD = new char[] {'s', 'e', 'c', 'r', 'e', 't'};
     private static final String KEYSTORE_FILE_NAME = "identity.jks";
     private static final char[] KEYSTORE_PASSWORD = new char[] {'s', 'e', 'c', 'r', 'e', 't'};
-    private static final String KEYSTORE_LOCATION = "keystores-for-unit-tests/";
+    private static final String KEYSTORE_LOCATION = "keystore/";
 
     @Test
     void checkClientTrusted() throws KeyStoreException {

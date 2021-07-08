@@ -79,8 +79,8 @@ class CertificateUtilsIT {
 
         char[] keyStorePassword = "secret".toCharArray();
         SSLFactory sslFactoryForServerOne = SSLFactory.builder()
-                .withIdentityMaterial("keystores-for-unit-tests/client-server/server-one/identity.jks", keyStorePassword)
-                .withTrustMaterial("keystores-for-unit-tests/client-server/server-one/truststore.jks", keyStorePassword)
+                .withIdentityMaterial("keystore/client-server/server-one/identity.jks", keyStorePassword)
+                .withTrustMaterial("keystore/client-server/server-one/truststore.jks", keyStorePassword)
                 .withProtocols("TLSv1.2")
                 .build();
 
@@ -102,8 +102,8 @@ class CertificateUtilsIT {
 
         char[] keyStorePassword = "secret".toCharArray();
         SSLFactory sslFactoryForServerOne = SSLFactory.builder()
-                .withIdentityMaterial("keystores-for-unit-tests/client-server/server-three/identity.jks", keyStorePassword)
-                .withTrustMaterial("keystores-for-unit-tests/client-server/server-three/truststore.jks", keyStorePassword)
+                .withIdentityMaterial("keystore/client-server/server-three/identity.jks", keyStorePassword)
+                .withTrustMaterial("keystore/client-server/server-three/truststore.jks", keyStorePassword)
                 .withProtocols("TLSv1.2")
                 .build();
 

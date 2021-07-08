@@ -39,7 +39,7 @@ class Apache5SslUtilsShould {
 
     private static final char[] IDENTITY_PASSWORD = "secret".toCharArray();
     private static final char[] TRUSTSTORE_PASSWORD = "secret".toCharArray();
-    private static final String KEYSTORE_LOCATION = "keystores-for-unit-tests/";
+    private static final String KEYSTORE_LOCATION = "keystore/";
 
     @Test
     void createLayeredConnectionSocketFactoryWithTrustMaterial() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {

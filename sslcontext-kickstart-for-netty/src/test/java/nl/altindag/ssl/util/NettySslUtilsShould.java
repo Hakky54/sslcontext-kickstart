@@ -36,7 +36,7 @@ class NettySslUtilsShould {
 
     private static final char[] IDENTITY_PASSWORD = "secret".toCharArray();
     private static final char[] TRUSTSTORE_PASSWORD = "secret".toCharArray();
-    private static final String KEYSTORE_LOCATION = "keystores-for-unit-tests/";
+    private static final String KEYSTORE_LOCATION = "keystore/";
 
     @Test
     void createNettySslContextBuilderForClientWithTrustMaterial() throws IOException {

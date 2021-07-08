@@ -66,7 +66,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class CertificateUtilsShould {
 
-    private static final String PEM_LOCATION = "pems-for-unit-tests/";
+    private static final String PEM_LOCATION = "pem/";
     private static final String TEMPORALLY_PEM_LOCATION = System.getProperty("user.home");
 
     @Test
@@ -94,7 +94,7 @@ class CertificateUtilsShould {
 
     @Test
     void loadDerCertificateFromClassPath() {
-        List<Certificate> certificates = CertificateUtils.loadCertificate("der-for-unit-tests/digicert.cer");
+        List<Certificate> certificates = CertificateUtils.loadCertificate("der/digicert.cer");
         assertThat(certificates).hasSize(1);
     }
 

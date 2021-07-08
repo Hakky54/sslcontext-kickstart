@@ -38,10 +38,10 @@ class Apache4SslUtilsShould {
 
     private static final char[] IDENTITY_PASSWORD = "secret".toCharArray();
     private static final char[] TRUSTSTORE_PASSWORD = "secret".toCharArray();
-    private static final String KEYSTORE_LOCATION = "keystores-for-unit-tests/";
+    private static final String KEYSTORE_LOCATION = "keystore/";
 
     @Test
-    void createLayeredConnectionSocketFactoryWithTrustMaterial() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
+    void createLayeredConnectionSocketFactoryWithTrustMaterial() {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 
         SSLFactory sslFactory = SSLFactory.builder()
@@ -65,7 +65,7 @@ class Apache4SslUtilsShould {
     }
 
     @Test
-    void createLayeredConnectionSocketFactoryWithIdentityMaterialAndTrustMaterial() throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException {
+    void createLayeredConnectionSocketFactoryWithIdentityMaterialAndTrustMaterial() {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 

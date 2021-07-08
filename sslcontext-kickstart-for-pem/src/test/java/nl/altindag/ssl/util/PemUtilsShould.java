@@ -62,7 +62,7 @@ import static org.mockito.Mockito.spy;
 @ExtendWith(MockitoExtension.class)
 class PemUtilsShould {
 
-    private static final String PEM_LOCATION = "pems-for-unit-tests/";
+    private static final String PEM_LOCATION = "pem/";
     private static final String TEST_RESOURCES_LOCATION = "src/test/resources/";
     public static final char[] DEFAULT_PASSWORD = "secret".toCharArray();
 
