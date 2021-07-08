@@ -28,7 +28,6 @@ import javax.net.ssl.X509ExtendedTrustManager;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.nio.file.Files;
@@ -53,7 +52,6 @@ import static nl.altindag.ssl.TestConstants.TRUSTSTORE_PASSWORD;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -327,7 +325,7 @@ class CertificateUtilsShould {
     @Test
     void throwGenericCertificateExceptionWhenUnsupportedDataIsProvided() throws IOException {
         try(ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream("Hello".getBytes())) {
-            assertThatThrownBy(() -> CertificateUtils.parseDerFormattedCertificate(byteArrayInputStream))
+            assertThatThrownBy(() -> CertificateUtils.parseDerCertificate(byteArrayInputStream))
                     .isInstanceOf(GenericCertificateException.class)
                     .hasMessage("There is no valid certificate present to parse. Please make sure to supply a valid der formatted certificate");
         }

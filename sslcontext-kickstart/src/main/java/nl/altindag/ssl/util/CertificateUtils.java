@@ -155,12 +155,12 @@ public final class CertificateUtils {
 
         if (isPemFormatted(certificateSupplier.get())) {
             String certificateContent = IOUtils.getContent(certificateSupplier.get());
-            certificates = parseCertificate(certificateContent);
+            certificates = parsePemCertificate(certificateContent);
         } else if(isP7bFormatted(certificateSupplier.get())) {
             String certificateContent = IOUtils.getContent(certificateSupplier.get());
-            certificates = parseP7bFormattedCertificate(certificateContent);
+            certificates = parseP7bCertificate(certificateContent);
         } else {
-            certificates = parseDerFormattedCertificate(certificateSupplier.get());
+            certificates = parseDerCertificate(certificateSupplier.get());
         }
 
         toBeClosedStreams.forEach(IOUtils::closeSilently);
@@ -188,7 +188,7 @@ public final class CertificateUtils {
      */
     @Deprecated
     public static List<Certificate> parseCertificate(String certificateContent) {
-        return parsePemFormattedCertificate(certificateContent);
+        return parsePemCertificate(certificateContent);
     }
 
     /**
@@ -197,7 +197,7 @@ public final class CertificateUtils {
      * or header as -----BEGIN PKCS7----- and footer as -----END PKCS7-----
      * with a base64 encoded data between the header and footer.
      */
-    public static List<Certificate> parsePemFormattedCertificate(String certificateContent) {
+    public static List<Certificate> parsePemCertificate(String certificateContent) {
         Matcher pemMatcher = PEM_PATTERN.matcher(certificateContent);
         return parseCertificate(pemMatcher);
     }
@@ -207,7 +207,7 @@ public final class CertificateUtils {
      * header as -----BEGIN PKCS7----- and footer as -----END PKCS7-----
      * with a base64 encoded data between the header and footer.
      */
-    public static List<Certificate> parseP7bFormattedCertificate(String certificateContent) {
+    public static List<Certificate> parseP7bCertificate(String certificateContent) {
         Matcher p7bMatcher = P7B_PATTERN.matcher(certificateContent);
         return parseCertificate(p7bMatcher);
     }
@@ -218,7 +218,7 @@ public final class CertificateUtils {
             String sanitizedCertificate = certificateMatcher.group(1).replace(System.lineSeparator(), EMPTY).trim();
             byte[] decodedCertificate = Base64.getDecoder().decode(sanitizedCertificate);
             ByteArrayInputStream certificateAsInputStream = new ByteArrayInputStream(decodedCertificate);
-            List<Certificate> parsedCertificates = CertificateUtils.parseDerFormattedCertificate(certificateAsInputStream);
+            List<Certificate> parsedCertificates = CertificateUtils.parseDerCertificate(certificateAsInputStream);
             certificates.addAll(parsedCertificates);
             IOUtils.closeSilently(certificateAsInputStream);
         }
@@ -226,7 +226,7 @@ public final class CertificateUtils {
         return Collections.unmodifiableList(certificates);
     }
 
-    public static List<Certificate> parseDerFormattedCertificate(InputStream certificateStream) {
+    public static List<Certificate> parseDerCertificate(InputStream certificateStream) {
         try(BufferedInputStream bufferedCertificateStream = new BufferedInputStream(certificateStream)) {
             CertificateFactory certificateFactory = CertificateFactory.getInstance(CERTIFICATE_TYPE);
             return certificateFactory.generateCertificates(bufferedCertificateStream).stream()
@@ -364,7 +364,7 @@ public final class CertificateUtils {
             }
 
             InputStream inputStream = connection.getInputStream();
-            List<X509Certificate> certificates = CertificateUtils.parseDerFormattedCertificate(inputStream).stream()
+            List<X509Certificate> certificates = CertificateUtils.parseDerCertificate(inputStream).stream()
                     .filter(X509Certificate.class::isInstance)
                     .map(X509Certificate.class::cast)
                     .filter(issuer -> CertificateUtils.isIssuerOfIntermediateCertificate(intermediateCertificate, issuer))
