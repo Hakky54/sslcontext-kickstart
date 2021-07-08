@@ -44,7 +44,7 @@ public final class IOUtils {
         }
     }
 
-    public static ByteArrayOutputStream createCopy(InputStream inputStream) {
+    static ByteArrayOutputStream createCopy(InputStream inputStream) {
         try {
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             byte[] buffer = new byte[1024];
@@ -59,7 +59,7 @@ public final class IOUtils {
         }
     }
 
-    public static void closeSilently(AutoCloseable autoCloseable) {
+    static void closeSilently(AutoCloseable autoCloseable) {
         try {
             autoCloseable.close();
         } catch (Exception ignored) {
