@@ -65,9 +65,12 @@ import java.util.stream.Stream;
 public final class CertificateUtils {
 
     private static final String CERTIFICATE_TYPE = "X.509";
-    private static final String CERTIFICATE_HEADER = "-----BEGIN CERTIFICATE-----";
-    private static final String CERTIFICATE_FOOTER = "-----END CERTIFICATE-----";
-    private static final Pattern CERTIFICATE_PATTERN = Pattern.compile(CERTIFICATE_HEADER + "(.*?)" + CERTIFICATE_FOOTER, Pattern.DOTALL);
+    private static final String P7B_HEADER = "-----BEGIN PKCS7-----";
+    private static final String P7B_FOOTER = "-----END PKCS7-----";
+    private static final String PEM_HEADER = "-----BEGIN CERTIFICATE-----";
+    private static final String PEM_FOOTER = "-----END CERTIFICATE-----";
+    private static final Pattern PEM_PATTERN = Pattern.compile(PEM_HEADER + "(.*?)" + PEM_FOOTER, Pattern.DOTALL);
+    private static final Pattern P7B_PATTERN = Pattern.compile(P7B_HEADER + "(.*?)" + P7B_FOOTER, Pattern.DOTALL);
 
     private static final String EMPTY = "";
     private static final Pattern CA_ISSUERS_AUTHORITY_INFO_ACCESS = Pattern.compile("(?s)^AuthorityInfoAccess\\h+\\[\\R\\s*\\[\\R.*?accessMethod:\\h+caIssuers\\R\\h*accessLocation: URIName:\\h+(https?://\\S+)", Pattern.MULTILINE);
@@ -89,7 +92,7 @@ public final class CertificateUtils {
     /**
      * Loads certificates from the classpath and maps it into a list of {@link Certificate}.
      * <br>
-     * Supported input format: PEM and DER
+     * Supported input format: PEM, P7B and DER
      */
     public static List<Certificate> loadCertificate(String... certificatePaths) {
         return loadCertificate(certificatePath -> CertificateUtils.class.getClassLoader().getResourceAsStream(certificatePath), certificatePaths);
@@ -98,7 +101,7 @@ public final class CertificateUtils {
     /**
      * Loads certificates from the filesystem and maps it into a list of {@link Certificate}.
      * <br>
-     * Supported input format: PEM and DER
+     * Supported input format: PEM, P7B and DER
      */
     public static List<Certificate> loadCertificate(Path... certificatePaths) {
         return loadCertificate(certificatePath -> {
@@ -113,7 +116,7 @@ public final class CertificateUtils {
     /**
      * Loads certificates from multiple InputStreams and maps it into a list of {@link Certificate}.
      * <br>
-     * Supported input format: PEM and DER
+     * Supported input format: PEM, P7B and DER
      */
     public static List<Certificate> loadCertificate(InputStream... certificateStreams) {
         return loadCertificate(Function.identity(), certificateStreams);
@@ -134,7 +137,7 @@ public final class CertificateUtils {
 
     /**
      * Tries to map the InputStream to a list of {@link Certificate}.
-     * It assumes that the content of the InputStream is either PEM or DER.
+     * It assumes that the content of the InputStream is either PEM, P7B or DER.
      * The InputStream will copied into an OutputStream so it can be read multiple times.
      */
     private static List<Certificate> parseCertificate(InputStream certificateStream) {
@@ -152,7 +155,10 @@ public final class CertificateUtils {
 
         if (isPemFormatted(certificateSupplier.get())) {
             String certificateContent = IOUtils.getContent(certificateSupplier.get());
-            certificates = parsePemFormattedCertificate(certificateContent);
+            certificates = parseCertificate(certificateContent);
+        } else if(isP7bFormatted(certificateSupplier.get())) {
+            String certificateContent = IOUtils.getContent(certificateSupplier.get());
+            certificates = parseP7bFormattedCertificate(certificateContent);
         } else {
             certificates = parseDerFormattedCertificate(certificateSupplier.get());
         }
@@ -164,8 +170,60 @@ public final class CertificateUtils {
 
     private static boolean isPemFormatted(InputStream certificateStream) {
         String content = IOUtils.getContent(certificateStream);
-        Matcher certificateMatcher = CERTIFICATE_PATTERN.matcher(content);
+        Matcher certificateMatcher = PEM_PATTERN.matcher(content);
         return certificateMatcher.find();
+    }
+
+    private static boolean isP7bFormatted(InputStream certificateStream) {
+        String content = IOUtils.getContent(certificateStream);
+        Matcher certificateMatcher = P7B_PATTERN.matcher(content);
+        return certificateMatcher.find();
+    }
+
+    /**
+     * Parses PEM formatted certificates containing a
+     * header as -----BEGIN CERTIFICATE----- and footer as -----END CERTIFICATE-----
+     * or header as -----BEGIN PKCS7----- and footer as -----END PKCS7-----
+     * with a base64 encoded data between the header and footer.
+     */
+    @Deprecated
+    public static List<Certificate> parseCertificate(String certificateContent) {
+        return parsePemFormattedCertificate(certificateContent);
+    }
+
+    /**
+     * Parses PEM formatted certificates containing a
+     * header as -----BEGIN CERTIFICATE----- and footer as -----END CERTIFICATE-----
+     * or header as -----BEGIN PKCS7----- and footer as -----END PKCS7-----
+     * with a base64 encoded data between the header and footer.
+     */
+    public static List<Certificate> parsePemFormattedCertificate(String certificateContent) {
+        Matcher pemMatcher = PEM_PATTERN.matcher(certificateContent);
+        return parseCertificate(pemMatcher);
+    }
+
+    /**
+     * Parses P7B formatted certificates containing a
+     * header as -----BEGIN PKCS7----- and footer as -----END PKCS7-----
+     * with a base64 encoded data between the header and footer.
+     */
+    public static List<Certificate> parseP7bFormattedCertificate(String certificateContent) {
+        Matcher p7bMatcher = P7B_PATTERN.matcher(certificateContent);
+        return parseCertificate(p7bMatcher);
+    }
+
+    private static List<Certificate> parseCertificate(Matcher certificateMatcher) {
+        List<Certificate> certificates = new ArrayList<>();
+        while (certificateMatcher.find()) {
+            String sanitizedCertificate = certificateMatcher.group(1).replace(System.lineSeparator(), EMPTY).trim();
+            byte[] decodedCertificate = Base64.getDecoder().decode(sanitizedCertificate);
+            ByteArrayInputStream certificateAsInputStream = new ByteArrayInputStream(decodedCertificate);
+            List<Certificate> parsedCertificates = CertificateUtils.parseDerFormattedCertificate(certificateAsInputStream);
+            certificates.addAll(parsedCertificates);
+            IOUtils.closeSilently(certificateAsInputStream);
+        }
+
+        return Collections.unmodifiableList(certificates);
     }
 
     public static List<Certificate> parseDerFormattedCertificate(InputStream certificateStream) {
@@ -176,38 +234,6 @@ public final class CertificateUtils {
         } catch (CertificateException | IOException e) {
             throw new GenericCertificateException("There is no valid certificate present to parse. Please make sure to supply a valid der formatted certificate", e);
         }
-    }
-
-    @Deprecated
-    public static List<Certificate> parseCertificate(String certificateContent) {
-        return parsePemFormattedCertificate(certificateContent);
-    }
-
-    public static List<Certificate> parsePemFormattedCertificate(String certificateContent) {
-        List<Certificate> certificates = new ArrayList<>();
-        Matcher certificateMatcher = CERTIFICATE_PATTERN.matcher(certificateContent);
-
-        while (certificateMatcher.find()) {
-            String sanitizedCertificate = certificateMatcher.group(1).replace(System.lineSeparator(), EMPTY).trim();
-            byte[] decodedCertificate = Base64.getDecoder().decode(sanitizedCertificate);
-            ByteArrayInputStream certificateAsInputStream = new ByteArrayInputStream(decodedCertificate);
-            List<Certificate> parsedCertificates = CertificateUtils.parseDerFormattedCertificate(certificateAsInputStream);
-            certificates.addAll(parsedCertificates);
-            IOUtils.closeSilently(certificateAsInputStream);
-        }
-
-        if (certificates.isEmpty()) {
-            throw new GenericCertificateException(
-                    String.format(
-                        "There are no valid certificates present to parse. " +
-                        "Please make sure to supply at least one valid pem formatted certificate containing the header %s and the footer %s",
-                        CERTIFICATE_HEADER,
-                        CERTIFICATE_FOOTER
-                    )
-            );
-        }
-
-        return Collections.unmodifiableList(certificates);
     }
 
     public static List<X509Certificate> getJdkTrustedCertificates() {
@@ -383,8 +409,8 @@ public final class CertificateUtils {
 
             List<String> certificateContainer = Stream.of(parsedCertificate.split("(?<=\\G.{64})"))
                     .collect(Collectors.toCollection(ArrayList::new));
-            certificateContainer.add(0, CERTIFICATE_HEADER);
-            certificateContainer.add(CERTIFICATE_FOOTER);
+            certificateContainer.add(0, PEM_HEADER);
+            certificateContainer.add(PEM_FOOTER);
 
             if (certificate instanceof X509Certificate) {
                 X509Certificate x509Certificate = (X509Certificate) certificate;

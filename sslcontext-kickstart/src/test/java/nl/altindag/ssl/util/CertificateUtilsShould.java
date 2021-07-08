@@ -67,6 +67,8 @@ import static org.mockito.Mockito.when;
 class CertificateUtilsShould {
 
     private static final String PEM_LOCATION = "pem/";
+    private static final String DER_LOCATION = "der/";
+    private static final String P7B_LOCATION = "p7b/";
     private static final String TEMPORALLY_PEM_LOCATION = System.getProperty("user.home");
 
     @Test
@@ -94,8 +96,20 @@ class CertificateUtilsShould {
 
     @Test
     void loadDerCertificateFromClassPath() {
-        List<Certificate> certificates = CertificateUtils.loadCertificate("der/digicert.cer");
+        List<Certificate> certificates = CertificateUtils.loadCertificate(DER_LOCATION + "digicert.cer");
         assertThat(certificates).hasSize(1);
+    }
+
+    @Test
+    void loadP7bSingleCertificateFromClassPath() {
+        List<Certificate> certificates = CertificateUtils.loadCertificate(P7B_LOCATION + "digicert.p7b");
+        assertThat(certificates).hasSize(1);
+    }
+
+    @Test
+    void loadP7bCertificateChainFromClassPath() {
+        List<Certificate> certificates = CertificateUtils.loadCertificate(P7B_LOCATION + "siggycentral-chain.p7b");
+        assertThat(certificates).hasSize(3);
     }
 
     @Test
@@ -307,18 +321,6 @@ class CertificateUtilsShould {
         assertThatThrownBy(() -> CertificateUtils.loadCertificate(inputStream))
                 .isInstanceOf(GenericIOException.class)
                 .hasRootCauseMessage("Could not read the content");
-    }
-
-    @Test
-    void throwsGenericCertificateExceptionWhenParsingNonSupportedCertificate() {
-        assertThatThrownBy(() -> CertificateUtils.parseCertificate("test"))
-                .isInstanceOf(GenericCertificateException.class)
-                .hasMessage(
-                        "There are no valid certificates present to parse. " +
-                        "Please make sure to supply at least one valid pem formatted " +
-                        "certificate containing the header -----BEGIN CERTIFICATE----- " +
-                        "and the footer -----END CERTIFICATE-----"
-                );
     }
 
     private Path copyFileToHomeDirectory(String path, String fileName) throws IOException {
