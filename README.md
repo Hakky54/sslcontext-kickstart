@@ -463,7 +463,7 @@ SSLFactory.builder()
 ```
 
 #### Using PFX, P12 or PKCS#12 Files
-PFX and p12 are both Pkcs12 type keystores which are supported.
+PFX and p12 are both PKCS#12 type keystores which are supported.
 
 ```text
 SSLFactory.builder()
