@@ -191,12 +191,10 @@ public final class CertificateUtils {
         while (certificateMatcher.find()) {
             String sanitizedCertificate = certificateMatcher.group(1).replace(System.lineSeparator(), EMPTY).trim();
             byte[] decodedCertificate = Base64.getDecoder().decode(sanitizedCertificate);
-            try(ByteArrayInputStream certificateAsInputStream = new ByteArrayInputStream(decodedCertificate)) {
-                List<Certificate> parsedCertificates = CertificateUtils.parseDerFormattedCertificate(certificateAsInputStream);
-                certificates.addAll(parsedCertificates);
-            } catch (IOException e) {
-                throw new GenericCertificateException(e);
-            }
+            ByteArrayInputStream certificateAsInputStream = new ByteArrayInputStream(decodedCertificate);
+            List<Certificate> parsedCertificates = CertificateUtils.parseDerFormattedCertificate(certificateAsInputStream);
+            certificates.addAll(parsedCertificates);
+            IOUtils.closeSilently(certificateAsInputStream);
         }
 
         if (certificates.isEmpty()) {

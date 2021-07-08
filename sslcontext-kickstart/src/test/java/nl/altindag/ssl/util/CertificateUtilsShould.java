@@ -321,22 +321,6 @@ class CertificateUtilsShould {
                 );
     }
 
-    @Test
-    void throwsGenericCertificateExceptionWhenParseCertificateFails() throws CertificateException {
-        try (MockedStatic<CertificateFactory> certificateFactoryMockedStatic = mockStatic(CertificateFactory.class, InvocationOnMock::getMock)) {
-            CertificateFactory certificateFactory = mock(CertificateFactory.class);
-            when(certificateFactory.generateCertificate(any(InputStream.class))).thenThrow(new CertificateException("KABOOM!!!"));
-            certificateFactoryMockedStatic.when(() -> CertificateFactory.getInstance(anyString())).thenReturn(certificateFactory);
-
-            InputStream resource = getResource(PEM_LOCATION + "github-certificate.pem");
-            String content = IOUtils.getContent(resource);
-
-            assertThatThrownBy(() -> CertificateUtils.parseCertificate(content))
-                    .isInstanceOf(GenericCertificateException.class)
-                    .hasMessageContaining("KABOOM!!!");
-        }
-    }
-
     private Path copyFileToHomeDirectory(String path, String fileName) throws IOException {
         try (InputStream file = Thread.currentThread().getContextClassLoader().getResourceAsStream(path + fileName)) {
             Path destination = Paths.get(TEMPORALLY_PEM_LOCATION, fileName);
