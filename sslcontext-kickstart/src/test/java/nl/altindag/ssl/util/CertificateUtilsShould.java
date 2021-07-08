@@ -25,6 +25,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.net.ssl.X509ExtendedTrustManager;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -321,6 +322,15 @@ class CertificateUtilsShould {
         assertThatThrownBy(() -> CertificateUtils.loadCertificate(inputStream))
                 .isInstanceOf(GenericIOException.class)
                 .hasRootCauseMessage("Could not read the content");
+    }
+
+    @Test
+    void throwGenericCertificateExceptionWhenUnsupportedDataIsProvided() throws IOException {
+        try(ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream("Hello".getBytes())) {
+            assertThatThrownBy(() -> CertificateUtils.parseDerFormattedCertificate(byteArrayInputStream))
+                    .isInstanceOf(GenericCertificateException.class)
+                    .hasMessage("There is no valid certificate present to parse. Please make sure to supply a valid der formatted certificate");
+        }
     }
 
     private Path copyFileToHomeDirectory(String path, String fileName) throws IOException {
