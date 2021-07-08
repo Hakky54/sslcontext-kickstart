@@ -66,12 +66,14 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "6.7.0"
      - [Updating client identity routes at runtime](#updating-client-identity-routes-at-runtime) 
      - [Managing ssl session](#managing-ssl-session)
      - [Extracting server certificates](#extracting-server-certificates)  
+     - [Using P7B files](#using-p7b-files)
+     - [Using DER files](#using-der-files)
      - [Using PEM Files](#using-pem-files)
-         - [Loading pem files from the classpath](#loading-pem-files-from-the-classpath)
-         - [Loading pem files from the file system](#loading-pem-files-from-anywhere-on-the-filesystem)
-         - [Loading pem files from InputStream](#loading-pem-files-from-inputstream)
-         - [Loading pem files from string content](#loading-pem-files-from-string-content)
-         - [Loading encrypted pem files](#loading-encrypted-pem-files)
+           - [Loading pem files from the classpath](#loading-pem-files-from-the-classpath)
+           - [Loading pem files from the file system](#loading-pem-files-from-anywhere-on-the-filesystem)
+           - [Loading pem files from InputStream](#loading-pem-files-from-inputstream)
+           - [Loading pem files from string content](#loading-pem-files-from-string-content)
+           - [Loading encrypted pem files](#loading-encrypted-pem-files)
      - [Migrating from classic configuration](#migrating-from-classic-configuration)
    - [Returnable values from the SSLFactory](#returnable-values-from-the-sslfactory)
 3. [Additional mappers for specific libraries](#additional-mappers-for-specific-libraries)
@@ -436,6 +438,28 @@ Map<String, List<String>> certificatesAsPem = CertificateUtils.getCertificateAsP
             "https://www.youtube.com/");
 ```
 See here for a demo application: [GitHub - Certificate Ripper](https://github.com/Hakky54/certificate-ripper)
+
+#### Using P7B Files
+Support for using p7b formatted certificates and certificate-chain from classpath, any directory or as an InputStream. 
+P7b file is a text file containing a `-----BEGIN PKCS7-----` as header, `-----END PKCS7-----` as footer and has a Base64 encoded data between it.
+```
+List<Certificate> certificates = CertificateUtils.loadCertificate("certificate.p7b");
+
+SSLFactory.builder()
+          .withTrustMaterial(certificates)
+          .build();
+```
+
+#### Using DER Files
+Support for using der formatted certificates and certificate-chain from classpath, any directory or as an InputStream.
+Der file is a binary form of a certificate. Commonly used extensions are `.cer` and `crt`.
+```
+List<Certificate> certificates = CertificateUtils.loadCertificate("certificate.cer");
+
+SSLFactory.builder()
+          .withTrustMaterial(certificates)
+          .build();
+```
 
 #### Using PEM Files
 Support for using pem formatted private key and certificates from classpath, any directory or as an InputStream. See [PemUtilsShould](sslcontext-kickstart-for-pem/src/test/java/nl/altindag/ssl/util/PemUtilsShould.java) for detailed usages.
