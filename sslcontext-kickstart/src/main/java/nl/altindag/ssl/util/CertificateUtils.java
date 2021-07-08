@@ -24,7 +24,9 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.X509TrustManager;
 import javax.security.auth.x500.X500Principal;
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -52,6 +54,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -84,10 +87,20 @@ public final class CertificateUtils {
         }
     }
 
+    /**
+     * Loads certificates from the classpath and maps it into a list of {@link Certificate}.
+     * <br>
+     * Supported input format: PEM and DER
+     */
     public static List<Certificate> loadCertificate(String... certificatePaths) {
         return loadCertificate(certificatePath -> CertificateUtils.class.getClassLoader().getResourceAsStream(certificatePath), certificatePaths);
     }
 
+    /**
+     * Loads certificates from the filesystem and maps it into a list of {@link Certificate}.
+     * <br>
+     * Supported input format: PEM and DER
+     */
     public static List<Certificate> loadCertificate(Path... certificatePaths) {
         return loadCertificate(certificatePath -> {
             try {
@@ -98,6 +111,11 @@ public final class CertificateUtils {
         }, certificatePaths);
     }
 
+    /**
+     * Loads certificates from multiple InputStreams and maps it into a list of {@link Certificate}.
+     * <br>
+     * Supported input format: PEM and DER
+     */
     public static List<Certificate> loadCertificate(InputStream... certificateStreams) {
         return loadCertificate(Function.identity(), certificateStreams);
     }
@@ -115,12 +133,58 @@ public final class CertificateUtils {
         return Collections.unmodifiableList(certificates);
     }
 
+    /**
+     * Tries to map the InputStream to a list of {@link Certificate}.
+     * It assumes that the content of the InputStream is either PEM or DER.
+     * The InputStream will copied into an OutputStream so it can be read multiple times.
+     */
     private static List<Certificate> parseCertificate(InputStream certificateStream) {
-        String content = IOUtils.getContent(certificateStream);
-        return parseCertificate(content);
+        List<Certificate> certificates;
+        List<InputStream> toBeClosedStreams = new ArrayList<>();
+        ByteArrayOutputStream duplicatedCertificateStream = IOUtils.createCopy(certificateStream);
+
+        Function<byte[], InputStream> inputStreamMapper = bytes -> {
+            InputStream inputStream = new ByteArrayInputStream(bytes);
+            toBeClosedStreams.add(inputStream);
+            return inputStream;
+        };
+
+        Supplier<InputStream> certificateSupplier = () -> inputStreamMapper.apply(duplicatedCertificateStream.toByteArray());
+
+        if (isPemFormatted(certificateSupplier.get())) {
+            String certificateContent = IOUtils.getContent(certificateSupplier.get());
+            certificates = parsePemFormattedCertificate(certificateContent);
+        } else {
+            certificates = parseDerFormattedCertificate(certificateSupplier.get());
+        }
+
+        toBeClosedStreams.forEach(IOUtils::closeSilently);
+        IOUtils.closeSilently(duplicatedCertificateStream);
+        return certificates;
     }
 
+    private static boolean isPemFormatted(InputStream certificateStream) {
+        String content = IOUtils.getContent(certificateStream);
+        Matcher certificateMatcher = CERTIFICATE_PATTERN.matcher(content);
+        return certificateMatcher.find();
+    }
+
+    public static List<Certificate> parseDerFormattedCertificate(InputStream certificateStream) {
+        try(BufferedInputStream bufferedCertificateStream = new BufferedInputStream(certificateStream)) {
+            CertificateFactory certificateFactory = CertificateFactory.getInstance(CERTIFICATE_TYPE);
+            return certificateFactory.generateCertificates(bufferedCertificateStream).stream()
+                    .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
+        } catch (CertificateException | IOException e) {
+            throw new GenericCertificateException("There is no valid certificate present to parse. Please make sure to supply a valid der formatted certificate", e);
+        }
+    }
+
+    @Deprecated
     public static List<Certificate> parseCertificate(String certificateContent) {
+        return parsePemFormattedCertificate(certificateContent);
+    }
+
+    public static List<Certificate> parsePemFormattedCertificate(String certificateContent) {
         List<Certificate> certificates = new ArrayList<>();
         Matcher certificateMatcher = CERTIFICATE_PATTERN.matcher(certificateContent);
 
@@ -128,10 +192,9 @@ public final class CertificateUtils {
             String sanitizedCertificate = certificateMatcher.group(1).replace(System.lineSeparator(), EMPTY).trim();
             byte[] decodedCertificate = Base64.getDecoder().decode(sanitizedCertificate);
             try(ByteArrayInputStream certificateAsInputStream = new ByteArrayInputStream(decodedCertificate)) {
-                CertificateFactory certificateFactory = CertificateFactory.getInstance(CERTIFICATE_TYPE);
-                Certificate certificate = certificateFactory.generateCertificate(certificateAsInputStream);
-                certificates.add(certificate);
-            } catch (IOException | CertificateException e) {
+                List<Certificate> parsedCertificates = CertificateUtils.parseDerFormattedCertificate(certificateAsInputStream);
+                certificates.addAll(parsedCertificates);
+            } catch (IOException e) {
                 throw new GenericCertificateException(e);
             }
         }
@@ -278,9 +341,7 @@ public final class CertificateUtils {
             }
 
             InputStream inputStream = connection.getInputStream();
-
-            CertificateFactory certificateFactory = CertificateFactory.getInstance(CERTIFICATE_TYPE);
-            List<X509Certificate> certificates = certificateFactory.generateCertificates(inputStream).stream()
+            List<X509Certificate> certificates = CertificateUtils.parseDerFormattedCertificate(inputStream).stream()
                     .filter(X509Certificate.class::isInstance)
                     .map(X509Certificate.class::cast)
                     .filter(issuer -> CertificateUtils.isIssuerOfIntermediateCertificate(intermediateCertificate, issuer))
@@ -289,7 +350,7 @@ public final class CertificateUtils {
             inputStream.close();
 
             return certificates;
-        } catch (IOException | CertificateException e) {
+        } catch (IOException e) {
             throw new GenericCertificateException(e);
         }
     }

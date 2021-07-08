@@ -19,8 +19,11 @@ package nl.altindag.ssl.util;
 import nl.altindag.ssl.exception.GenericIOException;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -40,6 +43,29 @@ public final class IOUtils {
                     .collect(Collectors.joining(System.lineSeparator()));
         } catch (Exception e) {
             throw new GenericIOException(e);
+        }
+    }
+
+    public static ByteArrayOutputStream createCopy(InputStream inputStream) {
+        try {
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = inputStream.read(buffer)) > -1) {
+                outputStream.write(buffer, 0, length);
+            }
+            outputStream.flush();
+            return outputStream;
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public static void closeSilently(AutoCloseable autoCloseable) {
+        try {
+            autoCloseable.close();
+        } catch (Exception ignored) {
+            //ignore exception
         }
     }
 

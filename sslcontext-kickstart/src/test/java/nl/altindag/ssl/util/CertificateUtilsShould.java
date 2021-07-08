@@ -93,6 +93,12 @@ class CertificateUtilsShould {
     }
 
     @Test
+    void loadDerCertificateFromClassPath() {
+        List<Certificate> certificates = CertificateUtils.loadCertificate("der-for-unit-tests/digicert.cer");
+        assertThat(certificates).hasSize(1);
+    }
+
+    @Test
     void loadMultipleCertificatesFromDifferentFiles() {
         List<Certificate> certificates = CertificateUtils.loadCertificate(
                 PEM_LOCATION + "badssl-certificate.pem",
