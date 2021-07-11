@@ -128,7 +128,7 @@ public final class SSLFactory {
     public List<X509Certificate> getTrustedCertificates() {
         return getTrustManager()
                 .map(X509ExtendedTrustManager::getAcceptedIssuers)
-                .flatMap(x509Certificates -> Optional.of(Arrays.asList(x509Certificates)))
+                .map(Arrays::asList)
                 .map(Collections::unmodifiableList)
                 .orElse(Collections.emptyList());
     }
