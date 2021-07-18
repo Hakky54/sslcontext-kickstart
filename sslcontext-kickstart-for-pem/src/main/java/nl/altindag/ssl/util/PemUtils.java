@@ -142,21 +142,12 @@ public final class PemUtils {
     }
 
     private static <T> List<X509Certificate> loadCertificate(T[] resources, Function<T, InputStream> resourceMapper) {
-        List<X509Certificate> certificates = new ArrayList<>();
-        for (T resource : resources) {
-            try(InputStream certificateStream = resourceMapper.apply(resource)) {
-                certificates.addAll(PemUtils.parseCertificate(certificateStream));
-            } catch (Exception e) {
-                throw new GenericIOException(e);
-            }
-        }
-
-        return Collections.unmodifiableList(certificates);
-    }
-
-    private static List<X509Certificate> parseCertificate(InputStream certificateStream) {
-        String content = IOUtils.getContent(certificateStream);
-        return parseCertificate(content);
+        return Arrays.stream(resources)
+                .map(resourceMapper)
+                .map(IOUtils::getContent)
+                .map(PemUtils::parseCertificate)
+                .flatMap(Collection::stream)
+                .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
     }
 
     private static List<X509Certificate> parseCertificate(String certContent) {
