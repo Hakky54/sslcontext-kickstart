@@ -23,8 +23,8 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -67,9 +67,9 @@ class IOUtilsShould {
     @Test
     void createCopy() {
         ByteArrayInputStream inputStream = new ByteArrayInputStream("Hello".getBytes());
-        ByteArrayOutputStream copy = IOUtils.createCopy(inputStream);
+        byte[] copy = IOUtils.copyToByteArray(inputStream);
 
-        String content = IOUtils.getContent(new ByteArrayInputStream(copy.toByteArray()));
+        String content = new String(copy, StandardCharsets.UTF_8);
         assertThat(content).isEqualTo("Hello");
     }
 
@@ -78,7 +78,7 @@ class IOUtilsShould {
         ByteArrayInputStream inputStream = Mockito.spy(new ByteArrayInputStream("Hello".getBytes()));
         doThrow(new IOException("Could not read the content")).when(inputStream).read(any());
 
-        assertThatThrownBy(() -> IOUtils.createCopy(inputStream))
+        assertThatThrownBy(() -> IOUtils.copyToByteArray(inputStream))
                 .isInstanceOf(GenericIOException.class)
                 .hasRootCauseMessage("Could not read the content");
     }

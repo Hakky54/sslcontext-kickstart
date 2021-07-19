@@ -26,12 +26,12 @@ import javax.net.ssl.X509TrustManager;
 import javax.security.auth.x500.X500Principal;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -53,7 +53,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -142,41 +141,27 @@ public final class CertificateUtils {
      */
     private static List<Certificate> parseCertificate(InputStream certificateStream) {
         List<Certificate> certificates;
-        List<InputStream> toBeClosedStreams = new ArrayList<>();
-        ByteArrayOutputStream duplicatedCertificateStream = IOUtils.createCopy(certificateStream);
+        byte[] certificateData = IOUtils.copyToByteArray(certificateStream);
+        String certificateContent = new String(certificateData, StandardCharsets.UTF_8);
 
-        Function<byte[], InputStream> inputStreamMapper = bytes -> {
-            InputStream inputStream = new ByteArrayInputStream(bytes);
-            toBeClosedStreams.add(inputStream);
-            return inputStream;
-        };
-
-        Supplier<InputStream> certificateSupplier = () -> inputStreamMapper.apply(duplicatedCertificateStream.toByteArray());
-
-        if (isPemFormatted(certificateSupplier.get())) {
-            String certificateContent = IOUtils.getContent(certificateSupplier.get());
+        if (isPemFormatted(certificateContent)) {
             certificates = parsePemCertificate(certificateContent);
-        } else if(isP7bFormatted(certificateSupplier.get())) {
-            String certificateContent = IOUtils.getContent(certificateSupplier.get());
+        } else if(isP7bFormatted(certificateContent)) {
             certificates = parseP7bCertificate(certificateContent);
         } else {
-            certificates = parseDerCertificate(certificateSupplier.get());
+            certificates = parseDerCertificate(new ByteArrayInputStream(certificateData));
         }
 
-        toBeClosedStreams.forEach(IOUtils::closeSilently);
-        IOUtils.closeSilently(duplicatedCertificateStream);
         return certificates;
     }
 
-    private static boolean isPemFormatted(InputStream certificateStream) {
-        String content = IOUtils.getContent(certificateStream);
-        Matcher certificateMatcher = PEM_PATTERN.matcher(content);
+    private static boolean isPemFormatted(String certificateContent) {
+        Matcher certificateMatcher = PEM_PATTERN.matcher(certificateContent);
         return certificateMatcher.find();
     }
 
-    private static boolean isP7bFormatted(InputStream certificateStream) {
-        String content = IOUtils.getContent(certificateStream);
-        Matcher certificateMatcher = P7B_PATTERN.matcher(content);
+    private static boolean isP7bFormatted(String certificateContent) {
+        Matcher certificateMatcher = P7B_PATTERN.matcher(certificateContent);
         return certificateMatcher.find();
     }
 

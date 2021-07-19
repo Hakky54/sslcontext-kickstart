@@ -44,16 +44,15 @@ public final class IOUtils {
         }
     }
 
-    static ByteArrayOutputStream createCopy(InputStream inputStream) {
-        try {
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    static byte[] copyToByteArray(InputStream inputStream) {
+        try(ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             byte[] buffer = new byte[1024];
             int length;
             while ((length = inputStream.read(buffer)) > -1) {
                 outputStream.write(buffer, 0, length);
             }
             outputStream.flush();
-            return outputStream;
+            return outputStream.toByteArray();
         } catch (Exception e) {
             throw new GenericIOException(e);
         }
