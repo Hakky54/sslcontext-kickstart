@@ -44,11 +44,12 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -156,13 +157,11 @@ public final class CertificateUtils {
     }
 
     private static boolean isPemFormatted(String certificateContent) {
-        Matcher certificateMatcher = PEM_PATTERN.matcher(certificateContent);
-        return certificateMatcher.find();
+        return PEM_PATTERN.matcher(certificateContent).find();
     }
 
     private static boolean isP7bFormatted(String certificateContent) {
-        Matcher certificateMatcher = P7B_PATTERN.matcher(certificateContent);
-        return certificateMatcher.find();
+        return P7B_PATTERN.matcher(certificateContent).find();
     }
 
     /**
@@ -255,12 +254,9 @@ public final class CertificateUtils {
     }
 
     public static Map<String, List<Certificate>> getCertificate(List<String> urls) {
-        Map<String, List<Certificate>> certificates = new HashMap<>();
-        for (String url : urls) {
-            List<Certificate> serverCertificates = CertificateUtils.getCertificateFromExternalSource(url);
-            certificates.put(url, serverCertificates);
-        }
-        return Collections.unmodifiableMap(certificates);
+        return urls.stream()
+                .map(url -> new AbstractMap.SimpleEntry<>(url, CertificateUtils.getCertificateFromExternalSource(url)))
+                .collect(Collectors.collectingAndThen(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue), Collections::unmodifiableMap));
     }
 
     private static List<Certificate> getCertificateFromExternalSource(String url) {
@@ -272,15 +268,12 @@ public final class CertificateUtils {
                 connection.setSSLSocketFactory(unsafeSslSocketFactory);
                 connection.connect();
 
-                Certificate[] serverCertificates = connection.getServerCertificates();
+                List<Certificate> serverCertificates = Arrays.asList(connection.getServerCertificates());
                 List<X509Certificate> rootCa = CertificateUtils.getRootCaFromChainIfPossible(serverCertificates);
 
-                List<Certificate> certificates = new ArrayList<>();
-                certificates.addAll(Arrays.asList(serverCertificates));
-                certificates.addAll(rootCa);
-
                 connection.disconnect();
-                return certificates.stream()
+                return Stream.of(serverCertificates, rootCa)
+                        .flatMap(Collection::stream)
                         .distinct()
                         .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
             } else {
@@ -301,9 +294,9 @@ public final class CertificateUtils {
         return unsafeSslSocketFactory;
     }
 
-    static List<X509Certificate> getRootCaFromChainIfPossible(Certificate[] certificates) {
-        if (certificates.length > 0 && certificates[certificates.length - 1] instanceof X509Certificate) {
-            X509Certificate certificate = (X509Certificate) certificates[certificates.length - 1];
+    static List<X509Certificate> getRootCaFromChainIfPossible(List<Certificate> certificates) {
+        if (!certificates.isEmpty() && certificates.get(certificates.size() - 1) instanceof X509Certificate) {
+            X509Certificate certificate = (X509Certificate) certificates.get(certificates.size() - 1);
             String issuer = certificate.getIssuerX500Principal().getName();
             String subject = certificate.getSubjectX500Principal().getName();
 

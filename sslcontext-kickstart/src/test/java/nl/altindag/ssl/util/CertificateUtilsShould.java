@@ -258,13 +258,13 @@ class CertificateUtilsShould {
 
     @Test
     void getRootCaFromChainIfPossibleReturnsEmptyListWhenNoCertificatesHaveBeenProvided() {
-        List<X509Certificate> rootCa = CertificateUtils.getRootCaFromChainIfPossible(new Certificate[]{});
+        List<X509Certificate> rootCa = CertificateUtils.getRootCaFromChainIfPossible(Collections.emptyList());
         assertThat(rootCa).isEmpty();
     }
 
     @Test
     void getRootCaFromChainIfPossibleReturnsEmptyListWhenProvidedCertificateIsNotAnInstanceOfX509Certificate() {
-        List<X509Certificate> rootCa = CertificateUtils.getRootCaFromChainIfPossible(new Certificate[]{mock(Certificate.class)});
+        List<X509Certificate> rootCa = CertificateUtils.getRootCaFromChainIfPossible(Collections.singletonList(mock(Certificate.class)));
         assertThat(rootCa).isEmpty();
     }
 
