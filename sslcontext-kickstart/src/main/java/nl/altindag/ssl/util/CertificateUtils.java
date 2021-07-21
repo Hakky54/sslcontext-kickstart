@@ -286,11 +286,8 @@ public final class CertificateUtils {
 
     private static SSLSocketFactory getUnsafeSslSocketFactory() {
         if (unsafeSslSocketFactory == null) {
-            unsafeSslSocketFactory = SSLFactory.builder()
-                    .withTrustingAllCertificatesWithoutValidation()
-                    .build().getSslSocketFactory();
+            unsafeSslSocketFactory = SSLSocketUtils.createUnsafeSslSocketFactory();
         }
-
         return unsafeSslSocketFactory;
     }
 
