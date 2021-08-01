@@ -38,7 +38,7 @@
 
     <properties>
         <version.sslcontext-kickstart>6.7.1-SNAPSHOT</version.sslcontext-kickstart>
-        <version.jetty-reactive-httpclient>1.1.9</version.jetty-reactive-httpclient>
+        <version.jetty-reactive-httpclient>1.1.10</version.jetty-reactive-httpclient>
     </properties>
 
     <dependencies>
