@@ -164,8 +164,6 @@ public final class SSLFactory {
         private static final String IDENTITY_AND_TRUST_MATERIAL_VALIDATION_EXCEPTION_MESSAGE = "Could not create instance of SSLFactory because Identity " +
                 "and Trust material are not present. Please provide at least a Trust material.";
 
-        private static final char[] EMPTY_PASSWORD = {};
-
         private String sslContextAlgorithm = "TLS";
         private Provider securityProvider = null;
         private String securityProviderName = null;
