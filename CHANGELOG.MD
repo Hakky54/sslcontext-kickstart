@@ -3,6 +3,11 @@
 This list is not intended to be all-encompassing - it will document major and breaking API 
 changes with their rationale when appropriate:
 
+### v6.8.0
+- Added support for handling P7B and DER certificates
+- Added basic Unsafe SSLSocketFactory
+- Marked CertificateUtils.parseCertificate(String certificateContent) as deprecated, instead use CertificateUtils.parsePemCertificate(String certificateContent)
+- Added support to return X509Certificate and PrivateKey from PemUtils
 ### v6.7.0
 - Added OCSP support
 ### v6.6.3
