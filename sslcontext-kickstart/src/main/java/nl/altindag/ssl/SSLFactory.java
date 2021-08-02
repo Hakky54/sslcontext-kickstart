@@ -413,7 +413,7 @@ public final class SSLFactory {
             }
 
             KeyStore identity = KeyStoreUtils.loadKeyStore(identityStorePath, identityStorePassword, identityStoreType);
-            KeyStoreHolder identityHolder = new KeyStoreHolder(identity, identityStorePassword, identityPassword);
+            KeyStoreHolder identityHolder = new KeyStoreHolder(identity, identityPassword);
             identities.add(identityHolder);
             return this;
         }
@@ -436,7 +436,7 @@ public final class SSLFactory {
             }
 
             KeyStore identity = KeyStoreUtils.loadKeyStore(identityStorePath, identityStorePassword, identityStoreType);
-            KeyStoreHolder identityHolder = new KeyStoreHolder(identity, identityStorePassword, identityPassword);
+            KeyStoreHolder identityHolder = new KeyStoreHolder(identity, identityPassword);
             identities.add(identityHolder);
             return this;
         }
@@ -459,18 +459,14 @@ public final class SSLFactory {
             }
 
             KeyStore identity = KeyStoreUtils.loadKeyStore(identityStream, identityStorePassword, identityStoreType);
-            KeyStoreHolder identityHolder = new KeyStoreHolder(identity, identityStorePassword, identityPassword);
+            KeyStoreHolder identityHolder = new KeyStoreHolder(identity, identityPassword);
             identities.add(identityHolder);
             return this;
         }
 
-        public Builder withIdentityMaterial(KeyStore identityStore, char[] identityStorePassword) {
-            return withIdentityMaterial(identityStore, identityStorePassword, identityStorePassword);
-        }
-
-        public Builder withIdentityMaterial(KeyStore identityStore, char[] identityStorePassword, char[] identityPassword) {
+        public Builder withIdentityMaterial(KeyStore identityStore, char[] identityPassword) {
             validateKeyStore(identityStore, IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
-            KeyStoreHolder identityHolder = new KeyStoreHolder(identityStore, identityStorePassword, identityPassword);
+            KeyStoreHolder identityHolder = new KeyStoreHolder(identityStore, identityPassword);
             identities.add(identityHolder);
             return this;
         }
@@ -481,7 +477,7 @@ public final class SSLFactory {
 
         public Builder withIdentityMaterial(Key privateKey, char[] privateKeyPassword, String alias, Certificate... certificateChain) {
             KeyStore identityStore = KeyStoreUtils.createIdentityStore(privateKey, privateKeyPassword, alias, certificateChain);
-            identities.add(new KeyStoreHolder(identityStore, KeyStoreUtils.DUMMY_PASSWORD.toCharArray(), privateKeyPassword));
+            identities.add(new KeyStoreHolder(identityStore, privateKeyPassword));
             return this;
         }
 
