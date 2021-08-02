@@ -24,11 +24,7 @@ import java.security.KeyStore;
 public final class KeyStoreHolder {
 
     private final KeyStore keyStore;
-    private char[] keyPassword = {};
-
-    public KeyStoreHolder(KeyStore keyStore) {
-        this.keyStore = keyStore;
-    }
+    private char[] keyPassword;
 
     public KeyStoreHolder(KeyStore keyStore, char[] keyPassword) {
         this.keyStore = keyStore;

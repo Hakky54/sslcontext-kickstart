@@ -173,7 +173,7 @@ public final class SSLFactory {
         private HostnameVerifier hostnameVerifier = (host, sslSession) -> host.equalsIgnoreCase(sslSession.getPeerHost());
 
         private final List<KeyStoreHolder> identities = new ArrayList<>();
-        private final List<KeyStoreHolder> trustStores = new ArrayList<>();
+        private final List<KeyStore> trustStores = new ArrayList<>();
         private final List<X509ExtendedKeyManager> identityManagers = new ArrayList<>();
         private final List<X509ExtendedTrustManager> trustManagers = new ArrayList<>();
         private final SSLParameters sslParameters = new SSLParameters();
@@ -259,8 +259,7 @@ public final class SSLFactory {
             }
 
             KeyStore trustStore = KeyStoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType);
-            KeyStoreHolder trustStoreHolder = new KeyStoreHolder(trustStore, trustStorePassword);
-            trustStores.add(trustStoreHolder);
+            trustStores.add(trustStore);
 
             return this;
         }
@@ -295,8 +294,7 @@ public final class SSLFactory {
             }
 
             KeyStore trustStore = KeyStoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType);
-            KeyStoreHolder trustStoreHolder = new KeyStoreHolder(trustStore, trustStorePassword);
-            trustStores.add(trustStoreHolder);
+            trustStores.add(trustStore);
 
             return this;
         }
@@ -327,8 +325,7 @@ public final class SSLFactory {
 
         public Builder withTrustMaterial(InputStream trustStoreStream, char[] trustStorePassword, String trustStoreType) {
             KeyStore trustStore = KeyStoreUtils.loadKeyStore(trustStoreStream, trustStorePassword, trustStoreType);
-            KeyStoreHolder trustStoreHolder = new KeyStoreHolder(trustStore, trustStorePassword);
-            trustStores.add(trustStoreHolder);
+            trustStores.add(trustStore);
             return this;
         }
 
@@ -342,8 +339,7 @@ public final class SSLFactory {
 
         public Builder withTrustMaterial(KeyStore trustStore) {
             validateKeyStore(trustStore, TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
-            KeyStoreHolder trustStoreHolder = new KeyStoreHolder(trustStore, EMPTY_PASSWORD);
-            trustStores.add(trustStoreHolder);
+            trustStores.add(trustStore);
 
             return this;
         }
@@ -383,8 +379,7 @@ public final class SSLFactory {
 
         public <T extends Certificate> Builder withTrustMaterial(List<T> certificates) {
             KeyStore trustStore = KeyStoreUtils.createTrustStore(certificates);
-            KeyStoreHolder trustStoreHolder = new KeyStoreHolder(trustStore, KeyStoreUtils.DUMMY_PASSWORD.toCharArray());
-            trustStores.add(trustStoreHolder);
+            trustStores.add(trustStore);
             return this;
         }
 
@@ -681,9 +676,7 @@ public final class SSLFactory {
         private X509ExtendedTrustManager createTrustManagers() {
             return TrustManagerUtils.trustManagerBuilder()
                     .withTrustManagers(trustManagers)
-                    .withTrustStores(trustStores.stream()
-                            .map(KeyStoreHolder::getKeyStore)
-                            .collect(Collectors.toList()))
+                    .withTrustStores(trustStores)
                     .withSwappableTrustManager(swappableTrustManagerEnabled)
                     .build();
         }
