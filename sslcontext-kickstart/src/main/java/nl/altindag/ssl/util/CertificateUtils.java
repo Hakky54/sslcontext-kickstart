@@ -16,7 +16,6 @@
 
 package nl.altindag.ssl.util;
 
-import nl.altindag.ssl.SSLFactory;
 import nl.altindag.ssl.exception.GenericCertificateException;
 import nl.altindag.ssl.exception.GenericIOException;
 
@@ -162,17 +161,6 @@ public final class CertificateUtils {
 
     private static boolean isP7bFormatted(String certificateContent) {
         return P7B_PATTERN.matcher(certificateContent).find();
-    }
-
-    /**
-     * Parses PEM formatted certificates containing a
-     * header as -----BEGIN CERTIFICATE----- and footer as -----END CERTIFICATE-----
-     * or header as -----BEGIN PKCS7----- and footer as -----END PKCS7-----
-     * with a base64 encoded data between the header and footer.
-     */
-    @Deprecated
-    public static List<Certificate> parseCertificate(String certificateContent) {
-        return parsePemCertificate(certificateContent);
     }
 
     /**

@@ -18,10 +18,8 @@ package nl.altindag.ssl;
 
 import nl.altindag.ssl.exception.GenericKeyStoreException;
 import nl.altindag.ssl.exception.GenericSecurityException;
-import nl.altindag.ssl.model.IdentityMaterial;
 import nl.altindag.ssl.model.KeyStoreHolder;
 import nl.altindag.ssl.model.SSLMaterial;
-import nl.altindag.ssl.model.TrustMaterial;
 import nl.altindag.ssl.trustmanager.TrustAnchorTrustOptions;
 import nl.altindag.ssl.trustmanager.TrustStoreTrustOptions;
 import nl.altindag.ssl.util.KeyManagerUtils;
@@ -87,16 +85,6 @@ public final class SSLFactory {
         this.sslMaterial = sslMaterial;
     }
 
-    @Deprecated
-    public List<KeyStoreHolder> getIdentities() {
-        return sslMaterial.getIdentityMaterial().getIdentities();
-    }
-
-    @Deprecated
-    public List<KeyStoreHolder> getTrustStores() {
-        return sslMaterial.getTrustMaterial().getTrustStores();
-    }
-
     public SSLContext getSslContext() {
         return sslMaterial.getSslContext();
     }
@@ -110,7 +98,7 @@ public final class SSLFactory {
     }
 
     public Optional<X509ExtendedKeyManager> getKeyManager() {
-        return Optional.ofNullable(sslMaterial.getIdentityMaterial().getKeyManager());
+        return Optional.ofNullable(sslMaterial.getKeyManager());
     }
 
     public Optional<KeyManagerFactory> getKeyManagerFactory() {
@@ -118,7 +106,7 @@ public final class SSLFactory {
     }
 
     public Optional<X509ExtendedTrustManager> getTrustManager() {
-        return Optional.ofNullable(sslMaterial.getTrustMaterial().getTrustManager());
+        return Optional.ofNullable(sslMaterial.getTrustManager());
     }
 
     public Optional<TrustManagerFactory> getTrustManagerFactory() {
@@ -191,7 +179,6 @@ public final class SSLFactory {
         private final SSLParameters sslParameters = new SSLParameters();
         private final Map<String, List<URI>> preferredClientAliasToHost = new HashMap<>();
 
-        private boolean passwordCachingEnabled = false;
         private boolean swappableKeyManagerEnabled = false;
         private boolean swappableTrustManagerEnabled = false;
 
@@ -354,7 +341,10 @@ public final class SSLFactory {
         }
 
         public Builder withTrustMaterial(KeyStore trustStore) {
-            withTrustMaterial(trustStore, EMPTY_PASSWORD);
+            validateKeyStore(trustStore, TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
+            KeyStoreHolder trustStoreHolder = new KeyStoreHolder(trustStore, EMPTY_PASSWORD);
+            trustStores.add(trustStoreHolder);
+
             return this;
         }
 
@@ -378,15 +368,6 @@ public final class SSLFactory {
             } catch (Exception e) {
                 throw new GenericSecurityException(e);
             }
-        }
-
-        @Deprecated
-        public Builder withTrustMaterial(KeyStore trustStore, char[] trustStorePassword) {
-            validateKeyStore(trustStore, TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
-            KeyStoreHolder trustStoreHolder = new KeyStoreHolder(trustStore, trustStorePassword);
-            trustStores.add(trustStoreHolder);
-
-            return this;
         }
 
         @SafeVarargs
@@ -643,12 +624,6 @@ public final class SSLFactory {
             return this;
         }
 
-        @Deprecated
-        public Builder withPasswordCaching() {
-            passwordCachingEnabled = true;
-            return this;
-        }
-
         public SSLFactory build() {
             if (!isIdentityMaterialPresent() && !isTrustMaterialPresent()) {
                 throw new GenericSecurityException(IDENTITY_AND_TRUST_MATERIAL_VALIDATION_EXCEPTION_MESSAGE);
@@ -675,28 +650,10 @@ public final class SSLFactory {
 
             SSLParameters baseSslParameters = SSLParametersUtils.merge(sslParameters, sslContext.getDefaultSSLParameters());
 
-            if (!passwordCachingEnabled && !identities.isEmpty()) {
-                KeyStoreUtils.sanitizeKeyStores(identities);
-            }
-
-            if (!passwordCachingEnabled && !trustStores.isEmpty()) {
-                KeyStoreUtils.sanitizeKeyStores(trustStores);
-            }
-
-            IdentityMaterial identityMaterial = new IdentityMaterial.Builder()
-                    .withKeyManager(keyManager)
-                    .withIdentities(Collections.unmodifiableList(identities))
-                    .build();
-
-            TrustMaterial trustMaterial = new TrustMaterial.Builder()
-                    .withTrustManager(trustManager)
-                    .withTrustStores(Collections.unmodifiableList(trustStores))
-                    .build();
-
             SSLMaterial sslMaterial = new SSLMaterial.Builder()
                     .withSslContext(sslContext)
-                    .withIdentityMaterial(identityMaterial)
-                    .withTrustMaterial(trustMaterial)
+                    .withKeyManager(keyManager)
+                    .withTrustManager(trustManager)
                     .withSslParameters(baseSslParameters)
                     .withHostnameVerifier(hostnameVerifier)
                     .withCiphers(Collections.unmodifiableList(Arrays.asList(baseSslParameters.getCipherSuites())))

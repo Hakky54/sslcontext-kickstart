@@ -17,14 +17,12 @@
 package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.exception.GenericKeyStoreException;
-import nl.altindag.ssl.model.KeyStoreHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.X509TrustManager;
 
 import static java.util.Objects.isNull;
-import static java.util.stream.Collectors.toList;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,7 +48,6 @@ public final class KeyStoreUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(KeyStoreUtils.class);
 
     public static final String DUMMY_PASSWORD = "dummy-password";
-    private static final char[] EMPTY_PASSWORD = {};
     private static final String KEYSTORE_TYPE = "PKCS12";
 
     private KeyStoreUtils() {}
@@ -177,16 +174,6 @@ public final class KeyStoreUtils {
         }
 
         return keyStores;
-    }
-
-    @Deprecated
-    public static void sanitizeKeyStores(List<KeyStoreHolder> keyStores) {
-        List<KeyStoreHolder> sanitizedKeyStores = keyStores.stream()
-                .map(keyStoreHolder -> new KeyStoreHolder(keyStoreHolder.getKeyStore(), EMPTY_PASSWORD, EMPTY_PASSWORD))
-                .collect(toList());
-
-        keyStores.clear();
-        keyStores.addAll(sanitizedKeyStores);
     }
 
 }

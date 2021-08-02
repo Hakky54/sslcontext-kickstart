@@ -19,6 +19,8 @@ package nl.altindag.ssl.model;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLParameters;
+import javax.net.ssl.X509ExtendedKeyManager;
+import javax.net.ssl.X509ExtendedTrustManager;
 import java.util.List;
 
 /**
@@ -32,8 +34,8 @@ import java.util.List;
 public final class SSLMaterial {
 
     private SSLContext sslContext;
-    private IdentityMaterial identityMaterial;
-    private TrustMaterial trustMaterial;
+    private X509ExtendedKeyManager keyManager;
+    private X509ExtendedTrustManager trustManager;
     private HostnameVerifier hostnameVerifier;
     private SSLParameters sslParameters;
     private List<String> ciphers;
@@ -45,12 +47,12 @@ public final class SSLMaterial {
         return sslContext;
     }
 
-    public IdentityMaterial getIdentityMaterial() {
-        return identityMaterial;
+    public X509ExtendedKeyManager getKeyManager() {
+        return keyManager;
     }
 
-    public TrustMaterial getTrustMaterial() {
-        return trustMaterial;
+    public X509ExtendedTrustManager getTrustManager() {
+        return trustManager;
     }
 
     public SSLParameters getSslParameters() {
@@ -72,8 +74,8 @@ public final class SSLMaterial {
     public static class Builder {
 
         private SSLContext sslContext;
-        private IdentityMaterial identityMaterial;
-        private TrustMaterial trustMaterial;
+        private X509ExtendedKeyManager keyManager;
+        private X509ExtendedTrustManager trustManager;
         private HostnameVerifier hostnameVerifier;
         private SSLParameters sslParameters;
         private List<String> ciphers;
@@ -104,21 +106,21 @@ public final class SSLMaterial {
             return this;
         }
 
-        public Builder withIdentityMaterial(IdentityMaterial identityMaterial) {
-            this.identityMaterial = identityMaterial;
+        public Builder withKeyManager(X509ExtendedKeyManager keyManager) {
+            this.keyManager = keyManager;
             return this;
         }
 
-        public Builder withTrustMaterial(TrustMaterial trustMaterial) {
-            this.trustMaterial = trustMaterial;
+        public Builder withTrustManager(X509ExtendedTrustManager trustManager) {
+            this.trustManager = trustManager;
             return this;
         }
 
         public SSLMaterial build() {
             SSLMaterial sslMaterial = new SSLMaterial();
             sslMaterial.sslContext = sslContext;
-            sslMaterial.identityMaterial = identityMaterial;
-            sslMaterial.trustMaterial = trustMaterial;
+            sslMaterial.keyManager = keyManager;
+            sslMaterial.trustManager = trustManager;
             sslMaterial.hostnameVerifier = hostnameVerifier;
             sslMaterial.sslParameters = sslParameters;
             sslMaterial.ciphers = ciphers;
