@@ -77,6 +77,7 @@ public final class TrustManagerUtils {
         return Optional.of(trustManager);
     }
 
+    @Deprecated
     public static X509ExtendedTrustManager createTrustManager(KeyStoreHolder... trustStoreHolders) {
         return Arrays.stream(trustStoreHolders)
                 .map(KeyStoreHolder::getKeyStore)
