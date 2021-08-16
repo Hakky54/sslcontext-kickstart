@@ -17,7 +17,6 @@
 package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.exception.GenericTrustManagerException;
-import nl.altindag.ssl.model.KeyStoreHolder;
 import nl.altindag.ssl.trustmanager.CompositeX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.HotSwappableX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.TrustManagerFactoryWrapper;
@@ -75,14 +74,6 @@ public final class TrustManagerUtils {
 
         X509ExtendedTrustManager trustManager = createTrustManager(trustStores.toArray(new KeyStore[]{}));
         return Optional.of(trustManager);
-    }
-
-    @Deprecated
-    public static X509ExtendedTrustManager createTrustManager(KeyStoreHolder... trustStoreHolders) {
-        return Arrays.stream(trustStoreHolders)
-                .map(KeyStoreHolder::getKeyStore)
-                .map(TrustManagerUtils::createTrustManager)
-                .collect(Collectors.collectingAndThen(Collectors.toList(), TrustManagerUtils::combine));
     }
 
     public static X509ExtendedTrustManager createTrustManager(KeyStore... trustStores) {

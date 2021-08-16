@@ -18,7 +18,6 @@ package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.exception.GenericSecurityException;
 import nl.altindag.ssl.exception.GenericTrustManagerException;
-import nl.altindag.ssl.model.KeyStoreHolder;
 import nl.altindag.ssl.trustmanager.CompositeX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.UnsafeX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.X509TrustManagerWrapper;
@@ -96,22 +95,6 @@ class TrustManagerUtilsShould {
         assertThat(combinedCombinedTrustManager).isInstanceOf(CompositeX509ExtendedTrustManager.class);
         assertThat(((CompositeX509ExtendedTrustManager) combinedTrustManager).size()).isEqualTo(2);
         assertThat(((CompositeX509ExtendedTrustManager) combinedCombinedTrustManager).size()).isEqualTo(4);
-    }
-
-    @Test
-    void combineTrustManagersWithTrustStoreHolders() throws KeyStoreException {
-        KeyStore trustStoreOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
-        KeyStore trustStoreTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD);
-
-        KeyStoreHolder trustStoreHolderOne = new KeyStoreHolder(trustStoreOne, TRUSTSTORE_PASSWORD);
-        KeyStoreHolder trustStoreHolderTwo = new KeyStoreHolder(trustStoreTwo, TRUSTSTORE_PASSWORD);
-
-        X509ExtendedTrustManager trustManager = TrustManagerUtils
-                .combine(TrustManagerUtils.createTrustManager(trustStoreHolderOne, trustStoreHolderTwo));
-
-        assertThat(trustStoreOne.size()).isEqualTo(1);
-        assertThat(trustStoreTwo.size()).isEqualTo(1);
-        assertThat(trustManager.getAcceptedIssuers()).hasSize(2);
     }
 
     @Test
