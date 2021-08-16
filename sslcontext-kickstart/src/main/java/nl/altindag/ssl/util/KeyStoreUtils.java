@@ -38,6 +38,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.List;
 
 /**
@@ -94,11 +95,21 @@ public final class KeyStoreUtils {
         }
     }
 
-    public static KeyStore createIdentityStore(Key privateKey, char[] privateKeyPassword, Certificate... certificateChain) {
+    public static KeyStore createIdentityStore(Key privateKey, char[] privateKeyPassword, String alias, List<? extends Certificate> certificateChain) {
+        return createIdentityStore(privateKey, privateKeyPassword, alias, certificateChain.toArray(new Certificate[]{}));
+    }
+
+    public static KeyStore createIdentityStore(Key privateKey, char[] privateKeyPassword, List<? extends Certificate> certificateChain) {
+        return createIdentityStore(privateKey, privateKeyPassword, null, certificateChain.toArray(new Certificate[]{}));
+    }
+
+    @SafeVarargs
+    public static <T extends Certificate> KeyStore createIdentityStore(Key privateKey, char[] privateKeyPassword, T... certificateChain) {
         return createIdentityStore(privateKey, privateKeyPassword, null, certificateChain);
     }
 
-    public static KeyStore createIdentityStore(Key privateKey, char[] privateKeyPassword, String alias, Certificate... certificateChain) {
+    @SafeVarargs
+    public static <T extends Certificate> KeyStore createIdentityStore(Key privateKey, char[] privateKeyPassword, String alias, T... certificateChain) {
         try {
             KeyStore keyStore = createKeyStore();
             String privateKeyAlias = StringUtils.isBlank(alias) ? CertificateUtils.generateAlias(certificateChain[0]) : alias;
@@ -174,6 +185,45 @@ public final class KeyStoreUtils {
         }
 
         return keyStores;
+    }
+
+    public static int countAmountOfTrustMaterial(KeyStore keyStore) {
+        return amountOfSpecifiedMaterial(keyStore, KeyStore::isCertificateEntry, Integer.MAX_VALUE);
+    }
+
+    public static int countAmountOfIdentityMaterial(KeyStore keyStore) {
+        return amountOfSpecifiedMaterial(keyStore, KeyStore::isKeyEntry, Integer.MAX_VALUE);
+    }
+
+    public static boolean containsTrustMaterial(KeyStore keyStore) {
+        return amountOfSpecifiedMaterial(keyStore, KeyStore::isCertificateEntry, 1) > 0;
+    }
+
+    public static boolean containsIdentityMaterial(KeyStore keyStore) {
+        return amountOfSpecifiedMaterial(keyStore, KeyStore::isKeyEntry, 1) > 0;
+    }
+
+    private static int amountOfSpecifiedMaterial(KeyStore keyStore,
+                                          KeyStoreBiPredicate<KeyStore, String> predicate,
+                                          int upperBoundaryForMaterialCounter) {
+
+        try {
+            int materialCounter = 0;
+            Enumeration<String> aliases = keyStore.aliases();
+            while (aliases.hasMoreElements() && materialCounter < upperBoundaryForMaterialCounter) {
+                String alias = aliases.nextElement();
+                if (predicate.test(keyStore, alias)) {
+                    materialCounter++;
+                }
+            }
+            return materialCounter;
+        } catch (KeyStoreException e) {
+            throw new GenericKeyStoreException(e);
+        }
+    }
+
+    private interface KeyStoreBiPredicate<T extends KeyStore, U> {
+        boolean test(T t, U u) throws KeyStoreException;
     }
 
 }

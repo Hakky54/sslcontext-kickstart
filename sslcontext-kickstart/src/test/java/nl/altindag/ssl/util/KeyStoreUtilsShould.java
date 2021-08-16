@@ -35,11 +35,16 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
+import java.util.Arrays;
 import java.util.List;
 
 import static nl.altindag.ssl.TestConstants.IDENTITY_FILE_NAME;
+import static nl.altindag.ssl.TestConstants.IDENTITY_PASSWORD;
 import static nl.altindag.ssl.TestConstants.KEYSTORE_LOCATION;
 import static nl.altindag.ssl.TestConstants.TRUSTSTORE_FILE_NAME;
 import static nl.altindag.ssl.TestConstants.TRUSTSTORE_PASSWORD;
@@ -51,6 +56,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Hakan Altindag
@@ -213,6 +219,97 @@ class KeyStoreUtilsShould {
         assertThat(customTrustManager.getAcceptedIssuers().length).isNotZero();
         assertThat(trustStore.size()).isNotZero();
         assertThat(trustStore.size()).isEqualTo(jdkTrustManager.getAcceptedIssuers().length + customTrustManager.getAcceptedIssuers().length);
+    }
+
+    @Test
+    void countAmountOfTrustMaterial() {
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+
+        int amountOfTrustMaterial = KeyStoreUtils.countAmountOfTrustMaterial(trustStore);
+        assertThat(amountOfTrustMaterial).isEqualTo(1);
+    }
+
+    @Test
+    void containsTrustMaterial() {
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+
+        boolean containsTrustMaterial = KeyStoreUtils.containsTrustMaterial(trustStore);
+        assertThat(containsTrustMaterial).isTrue();
+    }
+
+    @Test
+    void doesNotContainsTrustMaterial() {
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+
+        boolean containsTrustMaterial = KeyStoreUtils.containsTrustMaterial(trustStore);
+        assertThat(containsTrustMaterial).isFalse();
+    }
+
+    @Test
+    void countAmountOfIdentityMaterial() {
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+
+        int amountOfIdentityMaterial = KeyStoreUtils.countAmountOfIdentityMaterial(trustStore);
+        assertThat(amountOfIdentityMaterial).isEqualTo(1);
+    }
+
+    @Test
+    void containsIdentityMaterial() {
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+
+        boolean containsIdentityMaterial = KeyStoreUtils.containsIdentityMaterial(trustStore);
+        assertThat(containsIdentityMaterial).isTrue();
+    }
+
+    @Test
+    void containsIdentityMaterialReturnsTrueWithFirstMatchEvenThoughKeyStoreContainsMoreIdentityMaterial() {
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "identity-with-multiple-keys.jks", IDENTITY_PASSWORD);
+
+        boolean containsIdentityMaterial = KeyStoreUtils.containsIdentityMaterial(trustStore);
+        assertThat(containsIdentityMaterial).isTrue();
+    }
+
+    @Test
+    void doesNotContainsIdentityMaterial() {
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+
+        boolean containsIdentityMaterial = KeyStoreUtils.containsIdentityMaterial(trustStore);
+        assertThat(containsIdentityMaterial).isFalse();
+    }
+
+    @Test
+    void createIdentityStoreWithPrivateKeyAndCertificateChainAsListAndAlias() throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException {
+        KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        PrivateKey privateKey = (PrivateKey) identity.getKey("dummy-client", IDENTITY_PASSWORD);
+        Certificate[] certificateChain = identity.getCertificateChain("dummy-client");
+
+        KeyStore identityStore = KeyStoreUtils.createIdentityStore(privateKey, IDENTITY_PASSWORD, "dummy-client", Arrays.asList(certificateChain));
+
+        assertThat(identityStore).isNotNull();
+        assertThat(identityStore.size()).isEqualTo(1);
+        assertThat(identityStore.isKeyEntry("dummy-client")).isTrue();
+    }
+
+    @Test
+    void createIdentityStoreWithPrivateKeyAndCertificateChainAsList() throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException {
+        KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        PrivateKey privateKey = (PrivateKey) identity.getKey("dummy-client", IDENTITY_PASSWORD);
+        Certificate[] certificateChain = identity.getCertificateChain("dummy-client");
+
+        KeyStore identityStore = KeyStoreUtils.createIdentityStore(privateKey, IDENTITY_PASSWORD, Arrays.asList(certificateChain));
+
+        assertThat(identityStore).isNotNull();
+        assertThat(identityStore.size()).isEqualTo(1);
+        assertThat(identityStore.isKeyEntry("cn=prof oak,ou=oak pokémon research lab,o=oak pokémon research lab,c=pallet town")).isTrue();
+    }
+
+    @Test
+    void throwsGenericKeyStoreExceptionWhenKeyStoreMethodThrowsAKeyStoreException() throws KeyStoreException {
+        KeyStore trustStore = mock(KeyStore.class);
+        when(trustStore.aliases()).thenThrow(new KeyStoreException("KABOOM!"));
+
+        assertThatThrownBy(() -> KeyStoreUtils.containsIdentityMaterial(trustStore))
+                .isInstanceOf(GenericKeyStoreException.class);
     }
 
     @Test
