@@ -105,6 +105,7 @@ The sslcontext-kickstart library is taking the responsibility of creating an ins
 I wanted the library to be as easy as possible to use for all developers to give them a kickstart when configuring their Http Client. So feel free to provide feedback or feature requests.
 The library also provides other utilities such as:
 - [CertificateUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/CertificateUtils.java)
+- [HostnameVerifierUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/HostnameVerifierUtils.java)
 - [KeyStoreUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/KeyStoreUtils.java)
 - [KeyManagerUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/KeyManagerUtils.java)
 - [TrustManagerUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/TrustManagerUtils.java)

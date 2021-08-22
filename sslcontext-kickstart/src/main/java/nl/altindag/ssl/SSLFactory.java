@@ -22,6 +22,7 @@ import nl.altindag.ssl.model.KeyStoreHolder;
 import nl.altindag.ssl.model.SSLMaterial;
 import nl.altindag.ssl.trustmanager.TrustAnchorTrustOptions;
 import nl.altindag.ssl.trustmanager.TrustStoreTrustOptions;
+import nl.altindag.ssl.util.HostnameVerifierUtils;
 import nl.altindag.ssl.util.KeyManagerUtils;
 import nl.altindag.ssl.util.KeyStoreUtils;
 import nl.altindag.ssl.util.SSLContextUtils;
@@ -168,7 +169,7 @@ public final class SSLFactory {
         private Provider securityProvider = null;
         private String securityProviderName = null;
         private SecureRandom secureRandom = null;
-        private HostnameVerifier hostnameVerifier = (host, sslSession) -> host.equalsIgnoreCase(sslSession.getPeerHost());
+        private HostnameVerifier hostnameVerifier = HostnameVerifierUtils.createBasic();
 
         private final List<KeyStoreHolder> identities = new ArrayList<>();
         private final List<KeyStore> trustStores = new ArrayList<>();
