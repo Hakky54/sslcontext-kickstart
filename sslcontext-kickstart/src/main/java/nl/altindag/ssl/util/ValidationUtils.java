@@ -29,10 +29,6 @@ public final class ValidationUtils {
     private ValidationUtils() {
     }
 
-    public static <T> T requireNotNull(T maybeNull) {
-        return requireNotNull(maybeNull, () -> new IllegalArgumentException(GENERIC_EXCEPTION_MESSAGE.apply(maybeNull.getClass().getSimpleName())));
-    }
-
     public static <T> T requireNotNull(T maybeNull, String message) {
         return requireNotNull(maybeNull, () -> new IllegalArgumentException(message));
     }
