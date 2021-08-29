@@ -16,22 +16,25 @@
 
 package nl.altindag.ssl.keymanager;
 
+import nl.altindag.ssl.util.ValidationUtils;
+
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509KeyManager;
 import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
-import java.util.Objects;
 
 /**
  * @author Hakan Altindag
  */
 abstract class DelegatingX509ExtendedKeyManager<T extends X509KeyManager> extends X509ExtendedKeyManager {
 
+    private static final String NO_KEY_MANAGER_EXCEPTION_MESSAGE = "No valid KeyManager has been provided. KeyManager must be present, but was absent.";
+
     T keyManager;
 
     DelegatingX509ExtendedKeyManager(T keyManager) {
-        this.keyManager = Objects.requireNonNull(keyManager);
+        this.keyManager = ValidationUtils.requireNotNull(keyManager, NO_KEY_MANAGER_EXCEPTION_MESSAGE);
     }
 
     @Override

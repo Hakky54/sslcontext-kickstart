@@ -125,9 +125,10 @@ class HotSwappableX509ExtendedTrustManagerShould {
     }
 
     @Test
-    void throwNullPointerExceptionWhenKeyManagerIsNotPresent() {
+    void throwExceptionWhenKeyManagerIsNotPresent() {
         assertThatThrownBy(() -> new HotSwappableX509ExtendedTrustManager(null))
-                .isInstanceOf(NullPointerException.class);
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("No valid TrustManager has been provided. TrustManager must be present, but was absent.");
     }
 
 }

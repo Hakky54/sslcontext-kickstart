@@ -20,7 +20,9 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedKeyManager;
 import java.net.Socket;
 import java.security.Principal;
-import java.util.Objects;
+
+import static nl.altindag.ssl.util.ValidationUtils.GENERIC_EXCEPTION_MESSAGE;
+import static nl.altindag.ssl.util.ValidationUtils.requireNotNull;
 
 /**
  * <strong>NOTE:</strong>
@@ -57,7 +59,7 @@ public final class HotSwappableX509ExtendedKeyManager extends DelegatingX509Exte
     }
 
     public void setKeyManager(X509ExtendedKeyManager keyManager) {
-        this.keyManager = Objects.requireNonNull(keyManager);
+        this.keyManager = requireNotNull(keyManager, GENERIC_EXCEPTION_MESSAGE.apply("KeyManager"));
     }
 
 }

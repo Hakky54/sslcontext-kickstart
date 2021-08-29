@@ -113,9 +113,10 @@ class X509TrustManagerWrapperShould {
     }
 
     @Test
-    void throwNullPointerExceptionWhenKeyManagerIsNotPresent() {
+    void throwExceptionWhenKeyManagerIsNotPresent() {
         assertThatThrownBy(() -> new X509TrustManagerWrapper(null))
-                .isInstanceOf(NullPointerException.class);
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("No valid TrustManager has been provided. TrustManager must be present, but was absent.");
     }
 
 }

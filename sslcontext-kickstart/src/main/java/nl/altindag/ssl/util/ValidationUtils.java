@@ -17,16 +17,27 @@
 package nl.altindag.ssl.util;
 
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 /**
  * @author Benoit Tellier
  */
 public final class ValidationUtils {
 
+    public static final UnaryOperator<String> GENERIC_EXCEPTION_MESSAGE = objectType -> String.format("No valid %s has been provided. %s must be present, but was absent.", objectType, objectType);
+
     private ValidationUtils() {
     }
 
-    static <T> T requireNotNull(T maybeNull, Supplier<RuntimeException> exceptionSupplier) {
+    public static <T> T requireNotNull(T maybeNull) {
+        return requireNotNull(maybeNull, () -> new IllegalArgumentException(GENERIC_EXCEPTION_MESSAGE.apply(maybeNull.getClass().getSimpleName())));
+    }
+
+    public static <T> T requireNotNull(T maybeNull, String message) {
+        return requireNotNull(maybeNull, () -> new IllegalArgumentException(message));
+    }
+
+    public static <T> T requireNotNull(T maybeNull, Supplier<RuntimeException> exceptionSupplier) {
         if (maybeNull == null) {
             throw exceptionSupplier.get();
         }

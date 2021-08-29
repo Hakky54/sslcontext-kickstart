@@ -136,9 +136,10 @@ class X509KeyManagerWrapperShould {
     }
 
     @Test
-    void throwNullPointerExceptionWhenKeyManagerIsNotPresent() {
+    void throwExceptionWhenKeyManagerIsNotPresent() {
         assertThatThrownBy(() -> new X509KeyManagerWrapper(null))
-                .isInstanceOf(NullPointerException.class);
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("No valid KeyManager has been provided. KeyManager must be present, but was absent.");
     }
 
 }

@@ -21,7 +21,9 @@ import javax.net.ssl.X509TrustManager;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
-import java.util.Objects;
+
+import static nl.altindag.ssl.util.ValidationUtils.GENERIC_EXCEPTION_MESSAGE;
+import static nl.altindag.ssl.util.ValidationUtils.requireNotNull;
 
 /**
  * @author Hakan Altindag
@@ -31,7 +33,7 @@ abstract class DelegatingX509ExtendedTrustManager<T extends X509TrustManager> ex
     T trustManager;
 
     DelegatingX509ExtendedTrustManager(T trustManager) {
-        this.trustManager = Objects.requireNonNull(trustManager);
+        this.trustManager = requireNotNull(trustManager, GENERIC_EXCEPTION_MESSAGE.apply("TrustManager"));
     }
 
     @Override

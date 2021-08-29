@@ -21,7 +21,9 @@ import javax.net.ssl.X509ExtendedTrustManager;
 import java.net.Socket;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.Objects;
+
+import static nl.altindag.ssl.util.ValidationUtils.GENERIC_EXCEPTION_MESSAGE;
+import static nl.altindag.ssl.util.ValidationUtils.requireNotNull;
 
 /**
  * <strong>NOTE:</strong>
@@ -58,7 +60,7 @@ public class HotSwappableX509ExtendedTrustManager extends DelegatingX509Extended
     }
 
     public void setTrustManager(X509ExtendedTrustManager trustManager) {
-        this.trustManager = Objects.requireNonNull(trustManager);
+        this.trustManager = requireNotNull(trustManager, GENERIC_EXCEPTION_MESSAGE.apply("TrustManager"));
     }
 
 }

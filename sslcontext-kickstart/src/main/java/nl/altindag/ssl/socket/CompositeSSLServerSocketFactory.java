@@ -22,7 +22,9 @@ import javax.net.ssl.SSLServerSocketFactory;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
-import java.util.Objects;
+
+import static nl.altindag.ssl.util.ValidationUtils.GENERIC_EXCEPTION_MESSAGE;
+import static nl.altindag.ssl.util.ValidationUtils.requireNotNull;
 
 /**
  * <strong>NOTE:</strong>
@@ -38,8 +40,8 @@ public final class CompositeSSLServerSocketFactory extends SSLServerSocketFactor
     private final SSLParameters sslParameters;
 
     public CompositeSSLServerSocketFactory(SSLServerSocketFactory sslServerSocketFactory, SSLParameters sslParameters) {
-        this.sslServerSocketFactory = Objects.requireNonNull(sslServerSocketFactory);
-        this.sslParameters = Objects.requireNonNull(sslParameters);
+        this.sslServerSocketFactory = requireNotNull(sslServerSocketFactory, GENERIC_EXCEPTION_MESSAGE.apply("SSLServerSocketFactory"));
+        this.sslParameters = requireNotNull(sslParameters, GENERIC_EXCEPTION_MESSAGE.apply("SSLParameters"));
     }
 
     @Override

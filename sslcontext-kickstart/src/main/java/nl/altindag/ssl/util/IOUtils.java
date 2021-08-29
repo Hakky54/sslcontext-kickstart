@@ -23,8 +23,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 import java.util.stream.Collectors;
+
+import static nl.altindag.ssl.util.ValidationUtils.GENERIC_EXCEPTION_MESSAGE;
+import static nl.altindag.ssl.util.ValidationUtils.requireNotNull;
 
 /**
  * @author Hakan Altindag
@@ -34,7 +36,7 @@ public final class IOUtils {
     private IOUtils() {}
 
     static String getContent(InputStream inputStream) {
-        try (InputStreamReader inputStreamReader = new InputStreamReader(Objects.requireNonNull(inputStream), StandardCharsets.UTF_8);
+        try (InputStreamReader inputStreamReader = new InputStreamReader(requireNotNull(inputStream, GENERIC_EXCEPTION_MESSAGE.apply("InputStream")), StandardCharsets.UTF_8);
              BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
 
             return bufferedReader.lines()

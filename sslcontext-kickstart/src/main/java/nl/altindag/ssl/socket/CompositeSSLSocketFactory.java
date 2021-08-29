@@ -24,7 +24,9 @@ import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.Objects;
+
+import static nl.altindag.ssl.util.ValidationUtils.GENERIC_EXCEPTION_MESSAGE;
+import static nl.altindag.ssl.util.ValidationUtils.requireNotNull;
 
 /**
  * <strong>NOTE:</strong>
@@ -40,8 +42,8 @@ public final class CompositeSSLSocketFactory extends SSLSocketFactory {
     private final SSLParameters sslParameters;
 
     public CompositeSSLSocketFactory(SSLSocketFactory sslSocketFactory, SSLParameters sslParameters) {
-        this.sslSocketFactory = Objects.requireNonNull(sslSocketFactory);
-        this.sslParameters = Objects.requireNonNull(sslParameters);
+        this.sslSocketFactory = requireNotNull(sslSocketFactory, GENERIC_EXCEPTION_MESSAGE.apply("SSLSocketFactory"));
+        this.sslParameters = requireNotNull(sslParameters, GENERIC_EXCEPTION_MESSAGE.apply("SSLParameters"));
     }
 
     @Override

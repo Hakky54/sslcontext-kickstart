@@ -44,8 +44,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.stream.Collectors;
+
+import static nl.altindag.ssl.util.ValidationUtils.GENERIC_EXCEPTION_MESSAGE;
+import static nl.altindag.ssl.util.ValidationUtils.requireNotNull;
 
 /**
  * @author Hakan Altindag
@@ -213,9 +215,9 @@ public final class KeyManagerUtils {
                                                String[] hosts,
                                                boolean overrideExistingRouteEnabled) {
 
-        Objects.requireNonNull(keyManager);
-        Objects.requireNonNull(clientAlias);
-        Objects.requireNonNull(hosts);
+        requireNotNull(keyManager, GENERIC_EXCEPTION_MESSAGE.apply("KeyManager"));
+        requireNotNull(clientAlias, GENERIC_EXCEPTION_MESSAGE.apply("Client Alias"));
+        requireNotNull(keyManager, GENERIC_EXCEPTION_MESSAGE.apply("Host"));
 
         if (keyManager instanceof CompositeX509ExtendedKeyManager) {
             CompositeX509ExtendedKeyManager compositeX509ExtendedKeyManager = (CompositeX509ExtendedKeyManager) keyManager;
@@ -248,7 +250,7 @@ public final class KeyManagerUtils {
     }
 
     public static Map<String, List<String>> getClientIdentityRoute(X509ExtendedKeyManager keyManager) {
-        Objects.requireNonNull(keyManager);
+        requireNotNull(keyManager, GENERIC_EXCEPTION_MESSAGE.apply("KeyManager"));
 
         if (keyManager instanceof CompositeX509ExtendedKeyManager) {
             return ((CompositeX509ExtendedKeyManager) keyManager)

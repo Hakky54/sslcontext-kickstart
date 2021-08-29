@@ -150,9 +150,10 @@ class HotSwappableX509ExtendedKeyManagerShould {
     }
 
     @Test
-    void throwNullPointerExceptionWhenKeyManagerIsNotPresent() {
+    void throwExceptionWhenKeyManagerIsNotPresent() {
         assertThatThrownBy(() -> new HotSwappableX509ExtendedKeyManager(null))
-                .isInstanceOf(NullPointerException.class);
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("No valid KeyManager has been provided. KeyManager must be present, but was absent.");
     }
 
 }
