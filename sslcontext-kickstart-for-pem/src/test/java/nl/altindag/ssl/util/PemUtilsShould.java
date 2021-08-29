@@ -276,7 +276,7 @@ class PemUtilsShould {
                 PEM_LOCATION + "splitted-encrypted-identity-containing-private-key.pem",
                 null))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("'password' is mandatory with an encrypted key");
+            .hasMessage("A password is mandatory with encrypted private key informations");
     }
 
     @Test
