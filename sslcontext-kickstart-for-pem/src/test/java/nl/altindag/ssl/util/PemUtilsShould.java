@@ -270,6 +270,16 @@ class PemUtilsShould {
     }
 
     @Test
+    void loadEncryptedPrivateKeyShouldFailWhenMissingPassword() {
+        assertThatThrownBy(() -> PemUtils.loadIdentityMaterial(
+                PEM_LOCATION + "splitted-encrypted-identity-containing-certificate.pem",
+                PEM_LOCATION + "splitted-encrypted-identity-containing-private-key.pem",
+                null))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("A password is mandatory with encrypted private key informations");
+    }
+
+    @Test
     void loadRsaUnencryptedIdentityMaterialFromClassPath() {
         X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(PEM_LOCATION + "rsa-unencrypted-identity.pem");
 

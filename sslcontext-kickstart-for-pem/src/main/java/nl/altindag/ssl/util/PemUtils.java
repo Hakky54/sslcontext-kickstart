@@ -88,8 +88,10 @@ public final class PemUtils {
     private static final JcaX509CertificateConverter CERTIFICATE_CONVERTER = new JcaX509CertificateConverter().setProvider(BOUNCY_CASTLE_PROVIDER);
     private static final JceOpenSSLPKCS8DecryptorProviderBuilder OPEN_SSL_PKCS8_DECRYPTOR_PROVIDER_BUILDER = new JceOpenSSLPKCS8DecryptorProviderBuilder().setProvider(BOUNCY_CASTLE_PROVIDER);
     private static final JcePEMDecryptorProviderBuilder PEM_DECRYPTOR_PROVIDER_BUILDER = new JcePEMDecryptorProviderBuilder().setProvider(BOUNCY_CASTLE_PROVIDER);
-    private static final BouncyFunction<char[], InputDecryptorProvider> INPUT_DECRYPTOR_PROVIDER = password -> OPEN_SSL_PKCS8_DECRYPTOR_PROVIDER_BUILDER.build(Objects.requireNonNull(password));
-    private static final BouncyFunction<char[], PEMDecryptorProvider> PEM_DECRYPTOR_PROVIDER = password -> PEM_DECRYPTOR_PROVIDER_BUILDER.build(Objects.requireNonNull(password));
+    private static final BouncyFunction<char[], InputDecryptorProvider> INPUT_DECRYPTOR_PROVIDER = password -> OPEN_SSL_PKCS8_DECRYPTOR_PROVIDER_BUILDER.build(
+        ValidationUtils.requireNotNull(password, () -> new IllegalArgumentException("A password is mandatory with encrypted private key informations")));
+    private static final BouncyFunction<char[], PEMDecryptorProvider> PEM_DECRYPTOR_PROVIDER = password -> PEM_DECRYPTOR_PROVIDER_BUILDER.build(
+        ValidationUtils.requireNotNull(password, () -> new IllegalArgumentException("A password is mandatory with an encrypted key")));
 
     private PemUtils() {}
 
