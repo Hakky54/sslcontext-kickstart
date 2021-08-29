@@ -3,6 +3,11 @@
 This list is not intended to be all-encompassing - it will document major and breaking API 
 changes with their rationale when appropriate:
 
+### v7.0.0
+- Removed deprecated methods
+- Added Additional methods to KeyStoreUtils
+- Replaced all NPE with IllegalArgumentException with explaining message
+- Removed optional password caching for KeyStores (was disabled by default) 
 ### v6.8.0
 - Added support for handling P7B and DER certificates
 - Added basic Unsafe SSLSocketFactory
