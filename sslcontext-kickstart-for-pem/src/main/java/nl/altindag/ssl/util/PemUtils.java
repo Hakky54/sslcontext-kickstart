@@ -83,15 +83,16 @@ public final class PemUtils {
 
     private static final char[] DUMMY_PASSWORD = KeyStoreUtils.DUMMY_PASSWORD.toCharArray();
     private static final char[] NO_PASSWORD = null;
+    private static final String NO_PASSWORD_EXCEPTION_MESSAGE = "A password is mandatory with an encrypted key";
     private static final BouncyCastleProvider BOUNCY_CASTLE_PROVIDER = new BouncyCastleProvider();
     private static final JcaPEMKeyConverter KEY_CONVERTER = new JcaPEMKeyConverter().setProvider(BOUNCY_CASTLE_PROVIDER);
     private static final JcaX509CertificateConverter CERTIFICATE_CONVERTER = new JcaX509CertificateConverter().setProvider(BOUNCY_CASTLE_PROVIDER);
     private static final JceOpenSSLPKCS8DecryptorProviderBuilder OPEN_SSL_PKCS8_DECRYPTOR_PROVIDER_BUILDER = new JceOpenSSLPKCS8DecryptorProviderBuilder().setProvider(BOUNCY_CASTLE_PROVIDER);
     private static final JcePEMDecryptorProviderBuilder PEM_DECRYPTOR_PROVIDER_BUILDER = new JcePEMDecryptorProviderBuilder().setProvider(BOUNCY_CASTLE_PROVIDER);
     private static final BouncyFunction<char[], InputDecryptorProvider> INPUT_DECRYPTOR_PROVIDER = password -> OPEN_SSL_PKCS8_DECRYPTOR_PROVIDER_BUILDER.build(
-        ValidationUtils.requireNotNull(password, () -> new IllegalArgumentException("A password is mandatory with encrypted private key informations")));
+        ValidationUtils.requireNotNull(password, () -> new IllegalArgumentException(NO_PASSWORD_EXCEPTION_MESSAGE)));
     private static final BouncyFunction<char[], PEMDecryptorProvider> PEM_DECRYPTOR_PROVIDER = password -> PEM_DECRYPTOR_PROVIDER_BUILDER.build(
-        ValidationUtils.requireNotNull(password, () -> new IllegalArgumentException("A password is mandatory with an encrypted key")));
+        ValidationUtils.requireNotNull(password, () -> new IllegalArgumentException(NO_PASSWORD_EXCEPTION_MESSAGE)));
 
     private PemUtils() {}
 
@@ -448,7 +449,7 @@ public final class PemUtils {
         }
     }
 
-    protected static InputStream getResourceAsStream(String name) {
+    static InputStream getResourceAsStream(String name) {
         return PemUtils.class.getClassLoader().getResourceAsStream(name);
     }
 

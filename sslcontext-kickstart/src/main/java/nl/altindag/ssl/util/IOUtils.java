@@ -33,7 +33,7 @@ public final class IOUtils {
 
     private IOUtils() {}
 
-    public static String getContent(InputStream inputStream) {
+    static String getContent(InputStream inputStream) {
         try (InputStreamReader inputStreamReader = new InputStreamReader(Objects.requireNonNull(inputStream), StandardCharsets.UTF_8);
              BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
 

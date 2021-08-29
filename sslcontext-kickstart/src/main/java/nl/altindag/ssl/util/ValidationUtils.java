@@ -18,7 +18,14 @@ package nl.altindag.ssl.util;
 
 import java.util.function.Supplier;
 
-public class ValidationUtils {
+/**
+ * @author Benoit Tellier
+ */
+public final class ValidationUtils {
+
+    private ValidationUtils() {
+    }
+
     static <T> T requireNotNull(T maybeNull, Supplier<RuntimeException> exceptionSupplier) {
         if (maybeNull == null) {
             throw exceptionSupplier.get();

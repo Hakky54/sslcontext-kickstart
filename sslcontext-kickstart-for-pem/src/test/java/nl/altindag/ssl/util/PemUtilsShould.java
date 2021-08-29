@@ -276,7 +276,16 @@ class PemUtilsShould {
                 PEM_LOCATION + "splitted-encrypted-identity-containing-private-key.pem",
                 null))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("A password is mandatory with encrypted private key informations");
+            .hasMessage("A password is mandatory with an encrypted key");
+    }
+
+    @Test
+    void loadRsaEncryptedPrivateKeyShouldFailWhenMissingPassword() {
+        assertThatThrownBy(() -> PemUtils.loadIdentityMaterial(
+                PEM_LOCATION + "encrypted-rsa-identity.pem",
+                        (char[]) null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("A password is mandatory with an encrypted key");
     }
 
     @Test
