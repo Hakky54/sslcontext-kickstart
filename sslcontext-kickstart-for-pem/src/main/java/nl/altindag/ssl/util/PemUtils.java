@@ -181,7 +181,7 @@ public final class PemUtils {
                 throw new CertificateParseException("Received an unsupported certificate type");
             }
 
-            return certificates;
+            return Collections.unmodifiableList(certificates);
         } catch (IOException | CertificateException e) {
             throw new CertificateParseException(e);
         }
