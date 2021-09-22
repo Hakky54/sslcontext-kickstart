@@ -260,7 +260,7 @@ SSLFactory sslFactory = SSLFactory.builder()
 ##### Trusting all certificates without validation, not recommended to use at production!
 ```text
 SSLFactory.builder()
-          .withTrustingAllCertificatesWithoutValidation()
+          .withUnsafeTrustMaterial()
           .build();
 ```
 
