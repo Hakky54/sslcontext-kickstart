@@ -29,10 +29,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
-import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -42,10 +40,13 @@ import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static nl.altindag.ssl.TestConstants.IDENTITY_FILE_NAME;
 import static nl.altindag.ssl.TestConstants.IDENTITY_PASSWORD;
 import static nl.altindag.ssl.TestConstants.KEYSTORE_LOCATION;
+import static nl.altindag.ssl.TestConstants.TEMPORALLY_KEYSTORE_LOCATION;
 import static nl.altindag.ssl.TestConstants.TRUSTSTORE_FILE_NAME;
 import static nl.altindag.ssl.TestConstants.TRUSTSTORE_PASSWORD;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -55,7 +56,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 /**
@@ -327,28 +327,14 @@ class KeyStoreUtilsShould {
     }
 
     @Test
-    void throwGenericKeyStoreExceptionWhenFailingToCloseStreamProperly() throws IOException {
-        String keystoreType = KeyStore.getDefaultType();
-        Path keystorePath = Paths.get(TEST_RESOURCES_LOCATION + KEYSTORE_LOCATION + IDENTITY_FILE_NAME).toAbsolutePath();
-        InputStream inputStream = spy(Files.newInputStream(keystorePath, StandardOpenOption.READ));
+    void throwExceptionWhenLoadingNonExistingKeystoreTypeWhenUsingPath() throws IOException {
+        Path trustStorePath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
 
-        try (MockedStatic<Files> filesMockedStatic = mockStatic(Files.class, invocation -> {
-            Method method = invocation.getMethod();
-            if ("newInputStream".equals(method.getName())) {
-                return invocation.getMock();
-            } else {
-                return invocation.callRealMethod();
-            }
-        })) {
+        assertThatThrownBy(() -> KeyStoreUtils.loadKeyStore(trustStorePath, KEYSTORE_PASSWORD, "unknown"))
+                .isInstanceOf(GenericKeyStoreException.class)
+                .hasMessageContaining("unknown not found");
 
-            doThrow(new IOException("Could not close the stream")).when(inputStream).close();
-
-            filesMockedStatic.when(() -> Files.newInputStream(any(Path.class), any(OpenOption.class))).thenReturn(inputStream);
-
-            assertThatThrownBy(() -> KeyStoreUtils.loadKeyStore(keystorePath, KEYSTORE_PASSWORD, keystoreType))
-                    .isInstanceOf(GenericKeyStoreException.class)
-                    .hasMessageContaining("Could not close the stream");
-        }
+        Files.delete(trustStorePath);
     }
 
     @Test
@@ -388,6 +374,15 @@ class KeyStoreUtilsShould {
 
     private void resetOsName() {
         System.setProperty("os.name", ORIGINAL_OS_NAME);
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private Path copyKeystoreToHomeDirectory(String path, String fileName) throws IOException {
+        try (InputStream keystoreInputStream = getResource(path + fileName)) {
+            Path destination = Paths.get(TEMPORALLY_KEYSTORE_LOCATION, fileName);
+            Files.copy(Objects.requireNonNull(keystoreInputStream), destination, REPLACE_EXISTING);
+            return destination;
+        }
     }
 
     private InputStream getResource(String path) {
