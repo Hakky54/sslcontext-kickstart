@@ -74,6 +74,8 @@ public final class CertificateUtils {
     private static final String EMPTY = "";
     private static final Pattern CA_ISSUERS_AUTHORITY_INFO_ACCESS = Pattern.compile("(?s)^AuthorityInfoAccess\\h+\\[\\R\\s*\\[\\R.*?accessMethod:\\h+caIssuers\\R\\h*accessLocation: URIName:\\h+(https?://\\S+)", Pattern.MULTILINE);
 
+    private static final int DEFAULT_TIMEOUT_IN_MILLI_SECONDS = 10_000;
+
     private static SSLSocketFactory unsafeSslSocketFactory = null;
 
     private CertificateUtils() {}
@@ -252,6 +254,7 @@ public final class CertificateUtils {
             URL parsedUrl = new URL(url);
             if ("https".equalsIgnoreCase(parsedUrl.getProtocol())) {
                 HttpsURLConnection connection = (HttpsURLConnection) parsedUrl.openConnection();
+                connection.setConnectTimeout(DEFAULT_TIMEOUT_IN_MILLI_SECONDS);
                 SSLSocketFactory unsafeSslSocketFactory = CertificateUtils.getUnsafeSslSocketFactory();
                 connection.setSSLSocketFactory(unsafeSslSocketFactory);
                 connection.connect();
