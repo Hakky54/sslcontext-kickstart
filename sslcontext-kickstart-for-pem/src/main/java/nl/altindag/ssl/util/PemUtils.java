@@ -88,9 +88,9 @@ public final class PemUtils {
     private static final BouncyCastleProvider BOUNCY_CASTLE_PROVIDER = new BouncyCastleProvider();
     private static final JcaPEMKeyConverter KEY_CONVERTER = new JcaPEMKeyConverter().setProvider(BOUNCY_CASTLE_PROVIDER);
     private static final JcaX509CertificateConverter CERTIFICATE_CONVERTER = new JcaX509CertificateConverter().setProvider(BOUNCY_CASTLE_PROVIDER);
-    private static final JceOpenSSLPKCS8DecryptorProviderBuilder OPEN_SSL_PKCS8_DECRYPTOR_PROVIDER_BUILDER = new JceOpenSSLPKCS8DecryptorProviderBuilder().setProvider(BOUNCY_CASTLE_PROVIDER);
+    private static final JceOpenSSLPKCS8DecryptorProviderBuilder PKCS8_DECRYPTOR_PROVIDER_BUILDER = new JceOpenSSLPKCS8DecryptorProviderBuilder().setProvider(BOUNCY_CASTLE_PROVIDER);
     private static final JcePEMDecryptorProviderBuilder PEM_DECRYPTOR_PROVIDER_BUILDER = new JcePEMDecryptorProviderBuilder().setProvider(BOUNCY_CASTLE_PROVIDER);
-    private static final BouncyFunction<char[], InputDecryptorProvider> INPUT_DECRYPTOR_PROVIDER = password -> OPEN_SSL_PKCS8_DECRYPTOR_PROVIDER_BUILDER.build(
+    private static final BouncyFunction<char[], InputDecryptorProvider> PKCS8_DECRYPTOR_PROVIDER = password -> PKCS8_DECRYPTOR_PROVIDER_BUILDER.build(
         requireNotNull(password, () -> new IllegalArgumentException(NO_PASSWORD_EXCEPTION_MESSAGE)));
     private static final BouncyFunction<char[], PEMDecryptorProvider> PEM_DECRYPTOR_PROVIDER = password -> PEM_DECRYPTOR_PROVIDER_BUILDER.build(
         requireNotNull(password, () -> new IllegalArgumentException(NO_PASSWORD_EXCEPTION_MESSAGE)));
@@ -412,14 +412,16 @@ public final class PemUtils {
                 if (object instanceof PrivateKeyInfo) {
                     privateKeyInfo = (PrivateKeyInfo) object;
                 } else if (object instanceof PKCS8EncryptedPrivateKeyInfo) {
-                    InputDecryptorProvider inputDecryptorProvider = INPUT_DECRYPTOR_PROVIDER.apply(keyPassword);
-                    privateKeyInfo = ((PKCS8EncryptedPrivateKeyInfo) object).decryptPrivateKeyInfo(inputDecryptorProvider);
+                    privateKeyInfo = PKCS8_DECRYPTOR_PROVIDER
+                            .andThen(((PKCS8EncryptedPrivateKeyInfo) object)::decryptPrivateKeyInfo)
+                            .apply(keyPassword);
                 } else if (object instanceof PEMKeyPair) {
                     privateKeyInfo = ((PEMKeyPair) object).getPrivateKeyInfo();
                 } else if (object instanceof PEMEncryptedKeyPair) {
-                    PEMDecryptorProvider pemDecryptorProvider = PEM_DECRYPTOR_PROVIDER.apply(keyPassword);
-                    PEMKeyPair pemKeyPair = ((PEMEncryptedKeyPair) object).decryptKeyPair(pemDecryptorProvider);
-                    privateKeyInfo = pemKeyPair.getPrivateKeyInfo();
+                    privateKeyInfo = PEM_DECRYPTOR_PROVIDER
+                            .andThen(((PEMEncryptedKeyPair) object)::decryptKeyPair)
+                            .andThen(PEMKeyPair::getPrivateKeyInfo)
+                            .apply(keyPassword);
                 }
 
                 if (privateKeyInfo == null) {
@@ -462,7 +464,13 @@ public final class PemUtils {
 
     @FunctionalInterface
     private interface BouncyFunction<T, R> {
-        R apply(T t) throws OperatorCreationException;
+
+        R apply(T t) throws OperatorCreationException, PKCSException, IOException;
+
+        default <V> BouncyFunction<T, V> andThen(BouncyFunction<? super R, ? extends V> after) throws OperatorCreationException, PKCSException, IOException {
+            return (T t) -> after.apply(apply(t));
+        }
+
     }
 
 }
