@@ -3,6 +3,9 @@
 This list is not intended to be all-encompassing - it will document major and breaking API 
 changes with their rationale when appropriate:
 
+### v7.0.1
+- Fixed base64 decoding issues
+- Increased client timeout for fetching remote certificates
 ### v7.0.0
 - Removed deprecated methods
 - Added Additional methods to KeyStoreUtils
