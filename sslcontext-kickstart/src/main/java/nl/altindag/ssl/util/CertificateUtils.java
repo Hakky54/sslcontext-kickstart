@@ -189,7 +189,8 @@ public final class CertificateUtils {
     private static List<Certificate> parseCertificate(Matcher certificateMatcher) {
         List<Certificate> certificates = new ArrayList<>();
         while (certificateMatcher.find()) {
-            String sanitizedCertificate = certificateMatcher.group(1).replace(System.lineSeparator(), EMPTY).trim();
+            String certificate = certificateMatcher.group(1);
+            String sanitizedCertificate = certificate.replaceAll("[\\n|\\r]+", EMPTY).trim();
             byte[] decodedCertificate = Base64.getDecoder().decode(sanitizedCertificate);
             ByteArrayInputStream certificateAsInputStream = new ByteArrayInputStream(decodedCertificate);
             List<Certificate> parsedCertificates = CertificateUtils.parseDerCertificate(certificateAsInputStream);
