@@ -398,7 +398,8 @@ public final class PemUtils {
 
     /**
      * Parses the private key based on a string representation of the private key
-     * and maps it to an instance of {@link PrivateKey}
+     * and maps it to an instance of {@link PrivateKey}. If the identity content
+     * contains multiple private keys it will use only the first one.
      */
     public static PrivateKey parsePrivateKey(String identityContent, char[] keyPassword) {
         try {

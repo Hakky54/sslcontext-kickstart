@@ -271,7 +271,7 @@ public final class CertificateUtils {
                 return Collections.emptyList();
             }
         } catch (IOException e) {
-            throw new GenericIOException(e);
+            throw new GenericIOException(String.format("Failed getting certificate from: [%s]", url), e);
         }
     }
 

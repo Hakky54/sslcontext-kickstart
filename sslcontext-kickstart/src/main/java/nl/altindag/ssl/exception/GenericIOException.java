@@ -25,4 +25,8 @@ public final class GenericIOException extends GenericSecurityException {
         super(cause);
     }
 
+    public GenericIOException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
 }
