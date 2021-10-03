@@ -19,6 +19,7 @@ package nl.altindag.ssl.util;
 import com.sun.net.httpserver.HttpsServer;
 import nl.altindag.ssl.SSLFactory;
 import nl.altindag.ssl.ServerUtils;
+import nl.altindag.ssl.exception.GenericCertificateException;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -27,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -37,17 +39,31 @@ class CertificateUtilsIT {
 
     @Test
     void getRemoteCertificates() {
-        Map<String, List<Certificate>> certificatesFromRemote = CertificateUtils.getCertificate(
+        Supplier<Map<String, List<Certificate>>> certificateSupplier = () -> CertificateUtils.getCertificate(
                 "https://stackoverflow.com/",
                 "https://github.com/",
                 "https://www.linkedin.com/"
         );
 
-        assertThat(certificatesFromRemote).containsKeys(
-                "https://stackoverflow.com/",
-                "https://github.com/",
-                "https://www.linkedin.com/"
-        );
+        int amountOfRetries = 0;
+        int maxAmountOfRetries = 10;
+
+        Map<String, List<Certificate>> certificatesFromRemote = null;
+
+        while (certificatesFromRemote == null && amountOfRetries < maxAmountOfRetries) {
+            try {
+                certificatesFromRemote = certificateSupplier.get();
+                amountOfRetries++;
+            } catch (GenericCertificateException ignored) {}
+        }
+
+        assertThat(certificatesFromRemote)
+                .isNotNull()
+                .containsKeys(
+                        "https://stackoverflow.com/",
+                        "https://github.com/",
+                        "https://www.linkedin.com/"
+                );
 
         assertThat(certificatesFromRemote.get("https://stackoverflow.com/")).hasSizeGreaterThan(0);
         assertThat(certificatesFromRemote.get("https://github.com/")).hasSizeGreaterThan(0);
