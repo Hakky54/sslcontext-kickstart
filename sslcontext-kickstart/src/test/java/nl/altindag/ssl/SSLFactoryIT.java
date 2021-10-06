@@ -157,12 +157,15 @@ class SSLFactoryIT {
         Map<String, List<String>> clientAliasesToHosts = new HashMap<>();
         clientAliasesToHosts.put("client-one", Collections.singletonList("https://localhost:8443/api/hello"));
         clientAliasesToHosts.put("client-two", Collections.singletonList("https://localhost:8444/api/hello"));
+        clientAliasesToHosts.put("1", Collections.singletonList("https://client.badssl.com:443/"));
 
         SSLFactory sslFactoryForClient = SSLFactory.builder()
                 .withIdentityMaterial("keystore/client-server/client-one/identity.jks", keyStorePassword)
                 .withIdentityMaterial("keystore/client-server/client-two/identity.jks", keyStorePassword)
+                .withIdentityMaterial(KEYSTORE_LOCATION + "badssl-identity.p12", "badssl.com".toCharArray())
                 .withTrustMaterial("keystore/client-server/client-one/truststore.jks", keyStorePassword)
                 .withTrustMaterial("keystore/client-server/client-two/truststore.jks", keyStorePassword)
+                .withTrustMaterial(KEYSTORE_LOCATION + "badssl-truststore.p12", "badssl.com".toCharArray())
                 .withClientIdentityRoute(clientAliasesToHosts)
                 .build();
 
@@ -177,6 +180,9 @@ class SSLFactoryIT {
 
         assertThat(response.getStatusCode()).isEqualTo(200);
         assertThat(response.getBody()).contains("Hello from server two");
+
+        response = executeRequest("https://client.badssl.com/", sslSocketFactoryWithCorrectClientRoutes);
+        assertThat(response.getStatusCode()).isEqualTo(200);
 
         sslFactoryForClient = SSLFactory.builder()
                 .withIdentityMaterial("keystore/client-server/client-one/identity.jks", keyStorePassword)
