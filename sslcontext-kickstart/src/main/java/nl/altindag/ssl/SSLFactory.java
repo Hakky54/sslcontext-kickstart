@@ -620,7 +620,7 @@ public final class SSLFactory {
             }
 
             X509ExtendedKeyManager keyManager = isIdentityMaterialPresent() ? createKeyManager() : null;
-            X509ExtendedTrustManager trustManager = isTrustMaterialPresent() ? createTrustManagers() : null;
+            X509ExtendedTrustManager trustManager = isTrustMaterialPresent() ? createTrustManager() : null;
             SSLContext sslContext = SSLContextUtils.createSslContext(
                     keyManager,
                     trustManager,
@@ -672,7 +672,7 @@ public final class SSLFactory {
                     .build();
         }
 
-        private X509ExtendedTrustManager createTrustManagers() {
+        private X509ExtendedTrustManager createTrustManager() {
             return TrustManagerUtils.trustManagerBuilder()
                     .withTrustManagers(trustManagers)
                     .withTrustStores(trustStores)
