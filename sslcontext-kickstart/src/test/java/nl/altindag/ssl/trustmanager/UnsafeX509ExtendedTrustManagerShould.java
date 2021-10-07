@@ -16,7 +16,6 @@
 
 package nl.altindag.ssl.trustmanager;
 
-import nl.altindag.log.LogCaptor;
 import nl.altindag.ssl.util.KeyStoreUtils;
 import org.junit.jupiter.api.Test;
 
@@ -43,8 +42,6 @@ class UnsafeX509ExtendedTrustManagerShould {
 
     @Test
     void checkClientTrusted() throws KeyStoreException {
-        LogCaptor logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
-
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         X509ExtendedTrustManager trustManager = UnsafeX509ExtendedTrustManager.getInstance();
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
@@ -55,16 +52,10 @@ class UnsafeX509ExtendedTrustManagerShould {
 
         assertThatCode(() -> trustManager.checkClientTrusted(trustedCerts, "RSA"))
                 .doesNotThrowAnyException();
-
-        assertThat(logCaptor.getWarnLogs())
-                .hasSize(1)
-                .containsExactly("Accepting the following client certificates without validating: [{CN=*.google.com, O=Google LLC, L=Mountain View, ST=California, C=US}]");
     }
 
     @Test
     void checkClientTrustedWithSslEngine() throws KeyStoreException {
-        LogCaptor logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
-
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         X509ExtendedTrustManager trustManager = UnsafeX509ExtendedTrustManager.getInstance();
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
@@ -75,16 +66,10 @@ class UnsafeX509ExtendedTrustManagerShould {
 
         assertThatCode(() -> trustManager.checkClientTrusted(trustedCerts, "RSA", (SSLEngine) null))
                 .doesNotThrowAnyException();
-
-        assertThat(logCaptor.getWarnLogs())
-                .hasSize(1)
-                .contains("Accepting the following client certificates without validating: [{CN=*.google.com, O=Google LLC, L=Mountain View, ST=California, C=US}]");
     }
 
     @Test
     void checkClientTrustedWithSocket() throws KeyStoreException {
-        LogCaptor logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
-
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         X509ExtendedTrustManager trustManager = UnsafeX509ExtendedTrustManager.getInstance();
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
@@ -95,16 +80,10 @@ class UnsafeX509ExtendedTrustManagerShould {
 
         assertThatCode(() -> trustManager.checkClientTrusted(trustedCerts, "RSA", (Socket) null))
                 .doesNotThrowAnyException();
-
-        assertThat(logCaptor.getWarnLogs())
-                .hasSize(1)
-                .contains("Accepting the following client certificates without validating: [{CN=*.google.com, O=Google LLC, L=Mountain View, ST=California, C=US}]");
     }
 
     @Test
     void checkServerTrusted() throws KeyStoreException {
-        LogCaptor logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
-
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
         X509ExtendedTrustManager trustManager = UnsafeX509ExtendedTrustManager.getInstance();
@@ -114,16 +93,10 @@ class UnsafeX509ExtendedTrustManagerShould {
 
         assertThatCode(() -> trustManager.checkServerTrusted(trustedCerts, "RSA"))
                 .doesNotThrowAnyException();
-
-        assertThat(logCaptor.getWarnLogs())
-                .hasSize(1)
-                .contains("Accepting the following server certificates without validating: [{CN=Prof Oak, OU=Oak Pokémon Research Lab, O=Oak Pokémon Research Lab, C=Pallet Town}]");
     }
 
     @Test
     void checkServerTrustedWithSslEngine() throws KeyStoreException {
-        LogCaptor logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
-
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
         X509ExtendedTrustManager trustManager = UnsafeX509ExtendedTrustManager.getInstance();
@@ -133,16 +106,10 @@ class UnsafeX509ExtendedTrustManagerShould {
 
         assertThatCode(() -> trustManager.checkServerTrusted(trustedCerts, "RSA", (SSLEngine) null))
                 .doesNotThrowAnyException();
-
-        assertThat(logCaptor.getWarnLogs())
-                .hasSize(1)
-                .contains("Accepting the following server certificates without validating: [{CN=Prof Oak, OU=Oak Pokémon Research Lab, O=Oak Pokémon Research Lab, C=Pallet Town}]");
     }
 
     @Test
     void checkServerTrustedWitSocket() throws KeyStoreException {
-        LogCaptor logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
-
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
         X509ExtendedTrustManager trustManager = UnsafeX509ExtendedTrustManager.getInstance();
@@ -152,16 +119,10 @@ class UnsafeX509ExtendedTrustManagerShould {
 
         assertThatCode(() -> trustManager.checkServerTrusted(trustedCerts, "RSA", (Socket) null))
                 .doesNotThrowAnyException();
-
-        assertThat(logCaptor.getWarnLogs())
-                .hasSize(1)
-                .contains("Accepting the following server certificates without validating: [{CN=Prof Oak, OU=Oak Pokémon Research Lab, O=Oak Pokémon Research Lab, C=Pallet Town}]");
     }
 
     @Test
     void checkClientTrustedDoesNotLogAnythingWhenDebugLevelIsDisabled() throws KeyStoreException {
-        LogCaptor logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
-
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         X509ExtendedTrustManager trustManager = UnsafeX509ExtendedTrustManager.getInstance();
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
@@ -172,16 +133,10 @@ class UnsafeX509ExtendedTrustManagerShould {
 
         assertThatCode(() -> trustManager.checkClientTrusted(trustedCerts, "RSA"))
                 .doesNotThrowAnyException();
-
-        assertThat(logCaptor.getWarnLogs())
-                .hasSize(1)
-                .contains("Accepting the following client certificates without validating: [{CN=*.google.com, O=Google LLC, L=Mountain View, ST=California, C=US}]");
     }
 
     @Test
     void checkClientTrustedWithSslEngineDoesNotLogAnythingWhenDebugLevelIsDisabled() throws KeyStoreException {
-        LogCaptor logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
-
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         X509ExtendedTrustManager trustManager = UnsafeX509ExtendedTrustManager.getInstance();
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
@@ -192,16 +147,10 @@ class UnsafeX509ExtendedTrustManagerShould {
 
         assertThatCode(() -> trustManager.checkClientTrusted(trustedCerts, "RSA", (SSLEngine) null))
                 .doesNotThrowAnyException();
-
-        assertThat(logCaptor.getWarnLogs())
-                .hasSize(1)
-                .contains("Accepting the following client certificates without validating: [{CN=*.google.com, O=Google LLC, L=Mountain View, ST=California, C=US}]");
     }
 
     @Test
     void checkClientTrustedWithSocketDoesNotLogAnythingWhenDebugLevelIsDisabled() throws KeyStoreException {
-        LogCaptor logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
-
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         X509ExtendedTrustManager trustManager = UnsafeX509ExtendedTrustManager.getInstance();
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
@@ -212,16 +161,10 @@ class UnsafeX509ExtendedTrustManagerShould {
 
         assertThatCode(() -> trustManager.checkClientTrusted(trustedCerts, "RSA", (Socket) null))
                 .doesNotThrowAnyException();
-
-        assertThat(logCaptor.getWarnLogs())
-                .hasSize(1)
-                .contains("Accepting the following client certificates without validating: [{CN=*.google.com, O=Google LLC, L=Mountain View, ST=California, C=US}]");
     }
 
     @Test
     void checkServerTrustedDoesNotLogAnythingWhenDebugLevelIsDisabled() throws KeyStoreException {
-        LogCaptor logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
-
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
         X509ExtendedTrustManager trustManager = UnsafeX509ExtendedTrustManager.getInstance();
@@ -231,16 +174,10 @@ class UnsafeX509ExtendedTrustManagerShould {
 
         assertThatCode(() -> trustManager.checkServerTrusted(trustedCerts, "RSA"))
                 .doesNotThrowAnyException();
-
-        assertThat(logCaptor.getWarnLogs())
-                .hasSize(1)
-                .contains("Accepting the following server certificates without validating: [{CN=Prof Oak, OU=Oak Pokémon Research Lab, O=Oak Pokémon Research Lab, C=Pallet Town}]");
     }
 
     @Test
     void checkServerTrustedWithSslEngineDoesNotLogAnythingWhenDebugLevelIsDisabled() throws KeyStoreException {
-        LogCaptor logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
-
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
         X509ExtendedTrustManager trustManager = UnsafeX509ExtendedTrustManager.getInstance();
@@ -250,16 +187,10 @@ class UnsafeX509ExtendedTrustManagerShould {
 
         assertThatCode(() -> trustManager.checkServerTrusted(trustedCerts, "RSA", (SSLEngine) null))
                 .doesNotThrowAnyException();
-
-        assertThat(logCaptor.getWarnLogs())
-                .hasSize(1)
-                .contains("Accepting the following server certificates without validating: [{CN=Prof Oak, OU=Oak Pokémon Research Lab, O=Oak Pokémon Research Lab, C=Pallet Town}]");
     }
 
     @Test
     void checkServerTrustedWithSocketDoesNotLogAnythingWhenDebugLevelIsDisabled() throws KeyStoreException {
-        LogCaptor logCaptor = LogCaptor.forClass(UnsafeX509ExtendedTrustManager.class);
-
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
         X509ExtendedTrustManager trustManager = UnsafeX509ExtendedTrustManager.getInstance();
@@ -269,10 +200,6 @@ class UnsafeX509ExtendedTrustManagerShould {
 
         assertThatCode(() -> trustManager.checkServerTrusted(trustedCerts, "RSA", (Socket) null))
                 .doesNotThrowAnyException();
-
-        assertThat(logCaptor.getWarnLogs())
-                .hasSize(1)
-                .contains("Accepting the following server certificates without validating: [{CN=Prof Oak, OU=Oak Pokémon Research Lab, O=Oak Pokémon Research Lab, C=Pallet Town}]");
     }
 
 }

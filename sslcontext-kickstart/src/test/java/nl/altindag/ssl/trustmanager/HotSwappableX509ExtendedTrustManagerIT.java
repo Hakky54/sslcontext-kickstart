@@ -16,7 +16,6 @@
 
 package nl.altindag.ssl.trustmanager;
 
-import nl.altindag.log.LogCaptor;
 import nl.altindag.ssl.SSLFactory;
 import nl.altindag.ssl.util.KeyStoreUtils;
 import nl.altindag.ssl.util.SSLSessionUtils;
@@ -26,8 +25,6 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSessionContext;
@@ -86,8 +83,6 @@ class HotSwappableX509ExtendedTrustManagerIT {
     @Test
     @Order(2)
     void executeHttpsRequestWithExistingSslSocketFactoryContainingASwappedUnsafeTrustManager() throws IOException {
-        LogCaptor logCaptor = LogCaptor.forName("nl.altindag.ssl.trustmanager.UnsafeX509ExtendedTrustManager");
-
         TrustManagerUtils.swapTrustManager(trustManager, TrustManagerUtils.createUnsafeTrustManager());
         SSLSessionUtils.invalidateCaches(sslSessionContext);
 
@@ -102,7 +97,6 @@ class HotSwappableX509ExtendedTrustManagerIT {
             fail("Certificate may have expired and needs to be updated");
         } else {
             assertThat(statusCode).isEqualTo(200);
-            assertThat(logCaptor.getLogs()).containsExactly("Accepting the following server certificates without validating: [{CN=*.badssl.com, O=Lucas Garron Torres, L=Walnut Creek, ST=California, C=US},{CN=DigiCert SHA2 Secure Server CA, O=DigiCert Inc, C=US}]");
         }
     }
 

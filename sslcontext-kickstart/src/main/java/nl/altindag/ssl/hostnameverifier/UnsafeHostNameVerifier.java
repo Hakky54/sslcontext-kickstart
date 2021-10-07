@@ -16,9 +16,6 @@
 
 package nl.altindag.ssl.hostnameverifier;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLSession;
 
@@ -33,14 +30,12 @@ import javax.net.ssl.SSLSession;
  */
 public class UnsafeHostNameVerifier implements HostnameVerifier {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(UnsafeHostNameVerifier.class);
     private static final HostnameVerifier INSTANCE = new UnsafeHostNameVerifier();
 
     private UnsafeHostNameVerifier() {}
 
     @Override
     public boolean verify(String host, SSLSession sslSession) {
-        LOGGER.warn("Accepting the following hostname without verifying: {}", sslSession.getPeerHost());
         return true;
     }
 
