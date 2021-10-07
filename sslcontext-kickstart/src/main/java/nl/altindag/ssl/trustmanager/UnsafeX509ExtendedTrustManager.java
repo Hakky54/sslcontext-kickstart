@@ -16,16 +16,10 @@
 
 package nl.altindag.ssl.trustmanager;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedTrustManager;
 import java.net.Socket;
-import java.security.Principal;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
-import java.util.stream.Collectors;
 
 /**
  * An insecure {@link UnsafeX509ExtendedTrustManager TrustManager} that trusts all X.509 certificates without any verification.
@@ -52,13 +46,7 @@ import java.util.stream.Collectors;
 @SuppressWarnings("java:S4830")
 public final class UnsafeX509ExtendedTrustManager extends X509ExtendedTrustManager {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(UnsafeX509ExtendedTrustManager.class);
-
     private static final X509ExtendedTrustManager INSTANCE = new UnsafeX509ExtendedTrustManager();
-
-    private static final String SERVER = "server";
-    private static final String CLIENT = "client";
-    private static final String CERTIFICATE_LOG_MESSAGE = "Accepting the following {} certificates without validating: {}";
     private static final X509Certificate[] EMPTY_CERTIFICATES = new X509Certificate[0];
 
     private UnsafeX509ExtendedTrustManager() {}
@@ -69,45 +57,32 @@ public final class UnsafeX509ExtendedTrustManager extends X509ExtendedTrustManag
 
     @Override
     public void checkClientTrusted(X509Certificate[] certificates, String authType) {
-        logCertificate(certificates, CLIENT);
+        // ignore certificate validation
     }
 
     @Override
     public void checkClientTrusted(X509Certificate[] certificates, String authType, Socket socket) {
-        logCertificate(certificates, CLIENT);
+        // ignore certificate validation
     }
 
     @Override
     public void checkClientTrusted(X509Certificate[] certificates, String authType, SSLEngine sslEngine) {
-        logCertificate(certificates, CLIENT);
+        // ignore certificate validation
     }
 
     @Override
     public void checkServerTrusted(X509Certificate[] certificates, String authType) {
-        logCertificate(certificates, SERVER);
+        // ignore certificate validation
     }
 
     @Override
     public void checkServerTrusted(X509Certificate[] certificates, String authType, Socket socket) {
-        logCertificate(certificates, SERVER);
+        // ignore certificate validation
     }
 
     @Override
     public void checkServerTrusted(X509Certificate[] certificates, String authType, SSLEngine sslEngine) {
-        logCertificate(certificates, SERVER);
-    }
-
-    private static void logCertificate(X509Certificate[] certificates, String serverOrClient) {
-        String principals = extractPrincipals(certificates);
-        LOGGER.warn(CERTIFICATE_LOG_MESSAGE, serverOrClient, principals);
-    }
-
-    private static String extractPrincipals(X509Certificate[] certificates) {
-        return Arrays.stream(certificates)
-                .map(X509Certificate::getSubjectX500Principal)
-                .map(Principal::toString)
-                .map(principal -> String.format("{%s}", principal))
-                .collect(Collectors.joining(",", "[", "]"));
+        // ignore certificate validation
     }
 
     @Override
