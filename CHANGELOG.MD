@@ -3,6 +3,9 @@
 This list is not intended to be all-encompassing - it will document major and breaking API 
 changes with their rationale when appropriate:
 
+### v7.0.2
+- Removed logger from UnsafeHostNameVerifier and UnsafeX509ExtendedTrustManager
+- Removed client timeout for fetching remote certificates
 ### v7.0.1
 - Fixed base64 decoding issues
 - Increased client timeout for fetching remote certificates
