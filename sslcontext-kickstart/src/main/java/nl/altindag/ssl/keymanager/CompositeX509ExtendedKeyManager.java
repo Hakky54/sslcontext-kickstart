@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -217,11 +218,7 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
      */
     @Override
     public String[] getClientAliases(String keyType, Principal[] issuers) {
-        return keyManagers.stream()
-                .map(keyManager -> keyManager.getClientAliases(keyType, issuers))
-                .filter(Objects::nonNull)
-                .flatMap(Arrays::stream)
-                .collect(Collectors.collectingAndThen(Collectors.toList(), this::emptyToNull));
+        return getAliases(keyManager -> keyManager.getClientAliases(keyType, issuers));
     }
 
     /**
@@ -230,8 +227,12 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
      */
     @Override
     public String[] getServerAliases(String keyType, Principal[] issuers) {
+        return getAliases(keyManager -> keyManager.getServerAliases(keyType, issuers));
+    }
+
+    private String[] getAliases(Function<X509ExtendedKeyManager, String[]> aliasExtractor) {
         return keyManagers.stream()
-                .map(keyManager -> keyManager.getServerAliases(keyType, issuers))
+                .map(aliasExtractor)
                 .filter(Objects::nonNull)
                 .flatMap(Arrays::stream)
                 .collect(Collectors.collectingAndThen(Collectors.toList(), this::emptyToNull));
