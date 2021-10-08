@@ -176,12 +176,12 @@ public final class KeyManagerUtils {
     }
 
     /**
-     * Swaps the internal TrustManager instance with the given keyManager object.
+     * Swaps the internal KeyManager instance with the given keyManager object.
      * The baseKeyManager should be an instance of {@link HotSwappableX509ExtendedKeyManager}
      * and can be created with {@link KeyManagerUtils#createSwappableKeyManager(X509KeyManager)}
      *
      * @param baseKeyManager                an instance of {@link HotSwappableX509ExtendedKeyManager}
-     * @param newKeyManager                 to be injected instance of a TrustManager
+     * @param newKeyManager                 to be injected instance of a KeyManager
      * @throws GenericKeyManagerException   if {@code baseKeyManager} is not instance of {@link HotSwappableX509ExtendedKeyManager}
      */
     public static void swapKeyManager(X509KeyManager baseKeyManager, X509KeyManager newKeyManager) {
