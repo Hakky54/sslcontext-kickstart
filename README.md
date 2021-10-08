@@ -297,6 +297,7 @@ SSLFactory.builder()
           .withTrustMaterial("truststore-4.jks", password)
           .build();
 ```
+In some use cases multiple identities can fail to work. If that happens please try to add the additional SSLFactory option of client identity route. See here for more: [Routing client identity to specific host](#routing-identity-material-to-specific-host)
 
 ##### Support for using X509ExtendedKeyManager and X509ExtendedTrustManager
 ```text
