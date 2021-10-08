@@ -24,13 +24,14 @@ import java.net.URI;
 import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Represents an ordered list of {@link X509ExtendedKeyManager} with most-preferred managers first.
@@ -216,12 +217,11 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
      */
     @Override
     public String[] getClientAliases(String keyType, Principal[] issuers) {
-        List<String> clientAliases = new ArrayList<>();
-        for (X509ExtendedKeyManager keyManager : keyManagers) {
-            Optional.ofNullable(keyManager.getClientAliases(keyType, issuers))
-                    .ifPresent(aliases -> clientAliases.addAll(Arrays.asList(aliases)));
-        }
-        return emptyToNull(clientAliases.toArray(new String[]{}));
+        return keyManagers.stream()
+                .map(keyManager -> keyManager.getClientAliases(keyType, issuers))
+                .filter(Objects::nonNull)
+                .flatMap(Arrays::stream)
+                .collect(Collectors.collectingAndThen(Collectors.toList(), this::emptyToNull));
     }
 
     /**
@@ -230,16 +230,15 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
      */
     @Override
     public String[] getServerAliases(String keyType, Principal[] issuers) {
-        List<String> serverAliases = new ArrayList<>();
-        for (X509ExtendedKeyManager keyManager : keyManagers) {
-            Optional.ofNullable(keyManager.getServerAliases(keyType, issuers))
-                    .ifPresent(aliases -> serverAliases.addAll(Arrays.asList(aliases)));
-        }
-        return emptyToNull(serverAliases.toArray(new String[]{}));
+        return keyManagers.stream()
+                .map(keyManager -> keyManager.getServerAliases(keyType, issuers))
+                .filter(Objects::nonNull)
+                .flatMap(Arrays::stream)
+                .collect(Collectors.collectingAndThen(Collectors.toList(), this::emptyToNull));
     }
 
-    private <T> T[] emptyToNull(T[] arr) {
-        return (arr.length == 0) ? null : arr;
+    private String[] emptyToNull(List<String> list) {
+        return list.isEmpty() ? null : list.toArray(new String[]{});
     }
 
     public int size() {
