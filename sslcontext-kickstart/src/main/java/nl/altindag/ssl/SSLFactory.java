@@ -550,6 +550,11 @@ public final class SSLFactory {
             return this;
         }
 
+        public Builder withUnsafeHostnameVerifier() {
+            this.hostnameVerifier = HostnameVerifierUtils.createUnsafe();
+            return this;
+        }
+
         public Builder withCiphers(String... ciphers) {
             sslParameters.setCipherSuites(ciphers);
             return this;

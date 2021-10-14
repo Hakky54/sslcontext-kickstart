@@ -61,6 +61,7 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "7.0.2"
      - [Skip certificate validation](#trusting-all-certificates-without-validation-not-recommended-to-use-at-production)
      - [Loading JDK and OS trusted certificates](#loading-jdk-and-os-trusted-certificates)
      - [Using specific protocols and ciphers with custom secure-random and hostname-verifier](#using-specific-protocols-ciphers-with-custom-secure-random-and-hostname-verifier)
+     - [Using Unsafe HostnameVerifier](#using-unsafe-hostnameverifier)
      - [Using multiple identity materials and trust materials](#support-for-using-multiple-identity-materials-and-trust-materials)
      - [Using custom KeyManager and TrustManager](#support-for-using-x509extendedkeymanager-and-x509extendedtrustmanager)
      - [Hot swap KeyManager and TrustManager at runtime](#support-for-swapping-keymanager-and-trustmanager-at-runtime)
@@ -284,6 +285,14 @@ SSLFactory.builder()
           .withCiphers("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384", "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384")
           .withHostnameVerifier(hostnameVerifier)
           .withSecureRandom(secureRandom)
+          .build();
+```
+
+##### Using Unsafe HostnameVerifier
+```text
+SSLFactory.builder()
+          .withDefaultTrustMaterial()
+          .withUnsafeHostnameVerifier()
           .build();
 ```
 

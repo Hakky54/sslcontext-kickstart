@@ -986,6 +986,17 @@ class SSLFactoryShould {
     }
 
     @Test
+    void buildSSLFactoryWithUnsafeHostnameVerifier() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
+                .withUnsafeHostnameVerifier()
+                .build();
+
+        HostnameVerifier hostnameVerifier = sslFactory.getHostnameVerifier();
+        assertThat(hostnameVerifier.verify("qwerty", null)).isTrue();
+    }
+
+    @Test
     void buildSSLFactoryWithoutHostnameVerifierProvidesDefaultHostnameVerifier() {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
