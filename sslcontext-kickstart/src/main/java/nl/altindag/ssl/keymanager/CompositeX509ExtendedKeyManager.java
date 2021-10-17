@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -67,6 +68,8 @@ import java.util.stream.Collectors;
  */
 public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManager {
 
+    private static final Predicate<String> NON_NULL = Objects::nonNull;
+
     private final List<X509ExtendedKeyManager> keyManagers;
     private final Map<String, List<URI>> preferredClientAliasToHost;
 
@@ -97,25 +100,16 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
      */
     @Override
     public String chooseClientAlias(String[] keyType, Principal[] issuers, Socket socket) {
-        Optional<String> preferredAlias = Optional.empty();
-        if (!preferredClientAliasToHost.isEmpty() && socket != null && socket.getRemoteSocketAddress() instanceof InetSocketAddress) {
-            InetSocketAddress address = (InetSocketAddress) socket.getRemoteSocketAddress();
-            preferredAlias = getPreferredClientAlias(address.getHostName(), address.getPort());
-        }
+        Optional<String> preferredAlias = getPreferredClientAlias(socket);
 
-        for (X509ExtendedKeyManager keyManager : keyManagers) {
-            String alias = keyManager.chooseClientAlias(keyType, issuers, socket);
-            if (alias != null) {
-                if (preferredAlias.isPresent()) {
-                    if (preferredAlias.get().equals(alias)) {
-                        return alias;
-                    }
-                } else {
-                    return alias;
-                }
-            }
+        if (preferredAlias.isPresent()) {
+            return extractInnerField(
+                    keyManager -> keyManager.chooseClientAlias(keyType, issuers, socket),
+                    NON_NULL.and(alias -> preferredAlias.get().equals(alias))
+            );
+        } else {
+            return extractInnerField(keyManager -> keyManager.chooseClientAlias(keyType, issuers, socket), NON_NULL);
         }
-        return null;
     }
 
     /**
@@ -124,24 +118,33 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
      */
     @Override
     public String chooseEngineClientAlias(String[] keyTypes, Principal[] issuers, SSLEngine sslEngine) {
-        Optional<String> preferredAlias = Optional.empty();
-        if (!preferredClientAliasToHost.isEmpty() && sslEngine != null) {
-            preferredAlias = getPreferredClientAlias(sslEngine.getPeerHost(), sslEngine.getPeerPort());
-        }
+        Optional<String> preferredAlias = getPreferredClientAlias(sslEngine);
 
-        for (X509ExtendedKeyManager keyManager : keyManagers) {
-            String alias = keyManager.chooseEngineClientAlias(keyTypes, issuers, sslEngine);
-            if (alias != null) {
-                if (preferredAlias.isPresent()) {
-                    if (preferredAlias.get().equals(alias)) {
-                        return alias;
-                    }
-                } else {
-                    return alias;
-                }
-            }
+        if (preferredAlias.isPresent()) {
+            return extractInnerField(
+                    keyManager -> keyManager.chooseEngineClientAlias(keyTypes, issuers, sslEngine),
+                    NON_NULL.and(alias -> preferredAlias.get().equals(alias))
+            );
+        } else {
+            return extractInnerField(keyManager -> keyManager.chooseEngineClientAlias(keyTypes, issuers, sslEngine), NON_NULL);
         }
-        return null;
+    }
+
+    private Optional<String> getPreferredClientAlias(Socket socket) {
+        if (!preferredClientAliasToHost.isEmpty() && socket != null && socket.getRemoteSocketAddress() instanceof InetSocketAddress) {
+            InetSocketAddress address = (InetSocketAddress) socket.getRemoteSocketAddress();
+            return getPreferredClientAlias(address.getHostName(), address.getPort());
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    private Optional<String> getPreferredClientAlias(SSLEngine sslEngine) {
+        if (!preferredClientAliasToHost.isEmpty() && sslEngine != null) {
+            return getPreferredClientAlias(sslEngine.getPeerHost(), sslEngine.getPeerPort());
+        } else {
+            return Optional.empty();
+        }
     }
 
     private Optional<String> getPreferredClientAlias(String peerHost, int peerPort) {
@@ -158,13 +161,10 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
      */
     @Override
     public String chooseServerAlias(String keyType, Principal[] issuers, Socket socket) {
-        for (X509ExtendedKeyManager keyManager : keyManagers) {
-            String alias = keyManager.chooseServerAlias(keyType, issuers, socket);
-            if (alias != null) {
-                return alias;
-            }
-        }
-        return null;
+        return extractInnerField(
+                keyManager -> keyManager.chooseServerAlias(keyType, issuers, socket),
+                Objects::nonNull
+        );
     }
 
     /**
@@ -173,13 +173,10 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
      */
     @Override
     public String chooseEngineServerAlias(String keyType, Principal[] issuers, SSLEngine sslEngine) {
-        for (X509ExtendedKeyManager keyManager : keyManagers) {
-            String alias = keyManager.chooseEngineServerAlias(keyType, issuers, sslEngine);
-            if (alias != null) {
-                return alias;
-            }
-        }
-        return null;
+        return extractInnerField(
+                keyManager -> keyManager.chooseEngineServerAlias(keyType, issuers, sslEngine),
+                Objects::nonNull
+        );
     }
 
     /**
@@ -188,13 +185,10 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
      */
     @Override
     public PrivateKey getPrivateKey(String alias) {
-        for (X509ExtendedKeyManager keyManager : keyManagers) {
-            PrivateKey privateKey = keyManager.getPrivateKey(alias);
-            if (privateKey != null) {
-                return privateKey;
-            }
-        }
-        return null;
+        return extractInnerField(
+                keyManager -> keyManager.getPrivateKey(alias),
+                Objects::nonNull
+        );
     }
 
     /**
@@ -203,13 +197,18 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
      */
     @Override
     public X509Certificate[] getCertificateChain(String alias) {
-        for (X509ExtendedKeyManager keyManager : keyManagers) {
-            X509Certificate[] chain = keyManager.getCertificateChain(alias);
-            if (chain != null && chain.length > 0) {
-                return chain;
-            }
-        }
-        return null;
+        return extractInnerField(
+                keyManager -> keyManager.getCertificateChain(alias),
+                chain -> chain != null && chain.length > 0
+        );
+    }
+
+    private <T> T extractInnerField(Function<X509ExtendedKeyManager, T> keyManagerMapper, Predicate<T> predicate) {
+        return keyManagers.stream()
+                .map(keyManagerMapper)
+                .filter(predicate)
+                .findFirst()
+                .orElse(null);
     }
 
     /**
