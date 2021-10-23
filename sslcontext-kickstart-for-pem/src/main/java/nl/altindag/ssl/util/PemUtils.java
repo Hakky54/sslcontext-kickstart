@@ -139,7 +139,7 @@ public final class PemUtils {
     }
 
     /**
-     * Loads certificates from multiple InputStreams and maps it a list of {@link X509Certificate}
+     * Loads certificates from multiple InputStreams and maps it to a list of {@link X509Certificate}
      */
     public static List<X509Certificate> loadCertificate(InputStream... certificateStreams) {
         return loadCertificate(certificateStreams, Function.identity());
@@ -227,6 +227,10 @@ public final class PemUtils {
         return loadIdentityMaterial(certificateChainStream, privateKeyStream, NO_PASSWORD);
     }
 
+    /**
+     * Loads the identity material based on a certificate chain and a private key
+     * as an InputStream and maps it to an instance of {@link X509ExtendedKeyManager}
+     */
     public static X509ExtendedKeyManager loadIdentityMaterial(InputStream certificateChainStream, InputStream privateKeyStream, char[] keyPassword) {
         return loadIdentityMaterial(certificateChainStream, privateKeyStream, keyPassword, Function.identity());
     }
