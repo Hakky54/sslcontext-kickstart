@@ -35,11 +35,8 @@ import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.security.Key;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -568,40 +565,6 @@ class PemUtilsShould {
     void throwPublicKeyParseExceptionWhenPublicKeyIsMissing() {
         assertThatThrownBy(() -> PemUtils.loadIdentityMaterial(PEM_LOCATION + "splitted-unencrypted-identity-containing-private-key.pem"))
                 .hasMessageContaining("Received an unsupported certificate type");
-    }
-
-    @Test
-    void throwGenericIOExceptionWhenStreamCannotBeClosed() throws IOException {
-        Path identityPath = Paths.get(TEST_RESOURCES_LOCATION + PEM_LOCATION, "unencrypted-identity.pem").toAbsolutePath();
-        InputStream inputStream = spy(Files.newInputStream(identityPath, StandardOpenOption.READ));
-
-        try (MockedStatic<Files> filesMockedStatic = mockStatic(Files.class, InvocationOnMock::getMock)) {
-            doThrow(new IOException("Could not close the stream")).when(inputStream).close();
-
-            filesMockedStatic.when(() -> Files.newInputStream(any(Path.class), any(OpenOption.class))).thenReturn(inputStream);
-
-            assertThatThrownBy(() -> PemUtils.loadIdentityMaterial(identityPath))
-                    .isInstanceOf(GenericIOException.class)
-                    .hasRootCauseMessage("Could not close the stream");
-        }
-    }
-
-    @Test
-    void throwGenericIOExceptionWhenStreamCannotBeClosedForAnotherMethod() throws IOException {
-        Path certificatePath = Paths.get(TEST_RESOURCES_LOCATION + PEM_LOCATION, "splitted-unencrypted-identity-containing-certificate.pem").toAbsolutePath();
-        Path privateKeyPath = Paths.get(TEST_RESOURCES_LOCATION + PEM_LOCATION, "splitted-unencrypted-identity-containing-private-key.pem").toAbsolutePath();
-
-        InputStream inputStream = spy(Files.newInputStream(privateKeyPath, StandardOpenOption.READ));
-
-        try (MockedStatic<Files> filesMockedStatic = mockStatic(Files.class, InvocationOnMock::getMock)) {
-            doThrow(new IOException("Could not close the stream")).when(inputStream).close();
-
-            filesMockedStatic.when(() -> Files.newInputStream(any(Path.class), any(OpenOption.class))).thenReturn(inputStream);
-
-            assertThatThrownBy(() -> PemUtils.loadIdentityMaterial(certificatePath, privateKeyPath))
-                    .isInstanceOf(GenericIOException.class)
-                    .hasRootCauseMessage("Could not close the stream");
-        }
     }
 
     @Test
