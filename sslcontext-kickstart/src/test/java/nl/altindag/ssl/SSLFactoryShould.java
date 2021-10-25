@@ -89,6 +89,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anySet;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
@@ -1604,11 +1605,9 @@ class SSLFactoryShould {
 
     @Test
     void throwExceptionWhenKeyManagerFactoryDoesNotContainsKeyManagersOfX509KeyManagerType() throws Exception {
-        KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyManagerFactory keyManagerFactory = spy(KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm()));
-        keyManagerFactory.init(identity, IDENTITY_PASSWORD);
 
-        when(keyManagerFactory.getKeyManagers()).thenReturn(new KeyManager[] { mock(KeyManager.class) });
+        doReturn(new KeyManager[] { mock(KeyManager.class) }).when(keyManagerFactory).getKeyManagers();
         SSLFactory.Builder sslFactoryBuilder = SSLFactory.builder();
 
         assertThatThrownBy(() -> sslFactoryBuilder.withIdentityMaterial(keyManagerFactory))
@@ -1618,11 +1617,9 @@ class SSLFactoryShould {
 
     @Test
     void throwExceptionWhenTrustManagerFactoryDoesNotContainsTrustManagersOfX509TrustManagerType() throws Exception {
-        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         TrustManagerFactory trustManagerFactory = spy(TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm()));
-        trustManagerFactory.init(trustStore);
 
-        when(trustManagerFactory.getTrustManagers()).thenReturn(new TrustManager[] { mock(TrustManager.class) });
+        doReturn(new TrustManager[] { mock(TrustManager.class) }).when(trustManagerFactory).getTrustManagers();
         SSLFactory.Builder sslFactoryBuilder = SSLFactory.builder();
 
         assertThatThrownBy(() -> sslFactoryBuilder.withTrustMaterial(trustManagerFactory))
