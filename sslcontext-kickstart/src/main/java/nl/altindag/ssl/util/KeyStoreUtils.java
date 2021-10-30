@@ -38,6 +38,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 
@@ -184,7 +185,7 @@ public final class KeyStoreUtils {
             LOGGER.warn("No system KeyStores available for [{}]", operatingSystem);
         }
 
-        return keyStores;
+        return Collections.unmodifiableList(keyStores);
     }
 
     public static int countAmountOfTrustMaterial(KeyStore keyStore) {
