@@ -38,7 +38,7 @@
 
     <properties>
         <version.netty-handler>4.1.69.Final</version.netty-handler>
-        <version.reactor-netty>1.0.11</version.reactor-netty>
+        <version.reactor-netty>1.0.12</version.reactor-netty>
         <version.sslcontext-kickstart>7.0.3-SNAPSHOT</version.sslcontext-kickstart>
     </properties>
 
@@ -128,6 +128,30 @@
                 <version>${version.netty-handler}</version>
                 <scope>test</scope>
             </dependency>
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-buffer</artifactId>
+                <version>${version.netty-handler}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-codec</artifactId>
+                <version>${version.netty-handler}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-common</artifactId>
+                <version>${version.netty-handler}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-transport</artifactId>
+                <version>${version.netty-handler}</version>
+                <scope>test</scope>
+            </dependency>
 
             <dependency>
                 <groupId>io.projectreactor.netty</groupId>
@@ -153,6 +177,10 @@
                     </exclusion>
                     <exclusion>
                         <groupId>io.netty</groupId>
+                        <artifactId>netty-codec</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>io.netty</groupId>
                         <artifactId>netty-codec-http</artifactId>
                     </exclusion>
                     <exclusion>
@@ -166,6 +194,18 @@
                     <exclusion>
                         <groupId>io.netty</groupId>
                         <artifactId>netty-resolver-dns-native-macos</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>io.netty</groupId>
+                        <artifactId>netty-buffer</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>io.netty</groupId>
+                        <artifactId>netty-common</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>io.netty</groupId>
+                        <artifactId>netty-transport</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
