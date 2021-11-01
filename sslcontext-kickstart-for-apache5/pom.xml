@@ -38,7 +38,7 @@
 
     <properties>
         <version.sslcontext-kickstart>7.0.3-SNAPSHOT</version.sslcontext-kickstart>
-        <version.httpcomponents.httpclient5>5.1</version.httpcomponents.httpclient5>
+        <version.httpcomponents.httpclient5>5.1.1</version.httpcomponents.httpclient5>
     </properties>
 
     <dependencies>
