@@ -560,7 +560,18 @@ Below is an example of the classic configuration for enabling ssl for your appli
 -Dhttps.protocols=TLSv1.3
 ```
 
-This can be refactored to the configuration below:
+SSLFactory can be used with these properties together with the existing properties with the following snippet:
+```
+SSLFactory sslFactory = SSLFactory.builder()
+        .withIdentityMaterial(Paths.get(System.getProperty("javax.net.ssl.keyStore")), System.getProperty("javax.net.ssl.keyStorePassword").toCharArray(), System.getProperty("javax.net.ssl.keyStoreType"))
+        .withTrustMaterial(Paths.get(System.getProperty("javax.net.ssl.trustStore")), System.getProperty("javax.net.ssl.trustStorePassword").toCharArray(), System.getProperty("javax.net.ssl.trustStoreType"))
+        .withProtocols(System.getProperty("jdk.tls.client.protocols"))
+        .build();
+
+SSLContext.setDefault(sslFactory.getSslContext());
+```
+
+Or it can be refactored to the configuration below:
 ```
 SSLFactory sslFactory = SSLFactory.builder()
         .withIdentityMaterial(Paths.get("/path/to/keystore.jks"), "changeit".toCharArray(), "jks")
