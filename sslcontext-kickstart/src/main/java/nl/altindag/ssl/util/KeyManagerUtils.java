@@ -256,11 +256,13 @@ public final class KeyManagerUtils {
             return ((CompositeX509ExtendedKeyManager) keyManager)
                     .getPreferredClientAliasToHosts()
                     .entrySet().stream()
-                    .collect(Collectors.toMap(
-                            Map.Entry::getKey,
-                            hosts -> hosts.getValue().stream()
-                                    .map(URI::toString)
-                                    .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList)))
+                    .collect(Collectors.collectingAndThen(
+                            Collectors.toMap(
+                                    Entry::getKey,
+                                    hosts -> hosts.getValue().stream()
+                                            .map(URI::toString)
+                                            .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList))),
+                            Collections::unmodifiableMap)
                     );
         } else {
             throw new GenericKeyManagerException(String.format(
