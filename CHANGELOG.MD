@@ -3,6 +3,12 @@
 This list is not intended to be all-encompassing - it will document major and breaking API 
 changes with their rationale when appropriate:
 
+### v7.0.3
+- Added option for unsafe hostname verifier
+- Eliminated duplicate code within CompositeX509ExtendedKeyManager
+- Simplified PemUtils
+- Improved immutability
+- Bumped transitive dependencies
 ### v7.0.2
 - Removed logger from UnsafeHostNameVerifier and UnsafeX509ExtendedTrustManager
 - Removed client timeout for fetching remote certificates
