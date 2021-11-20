@@ -17,6 +17,8 @@
 package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.SSLFactory;
+import nl.altindag.ssl.decryptor.PemDecryptor;
+import nl.altindag.ssl.decryptor.Pkcs8Decryptor;
 import nl.altindag.ssl.exception.CertificateParseException;
 import nl.altindag.ssl.exception.GenericIOException;
 import nl.altindag.ssl.exception.GenericKeyStoreException;
@@ -25,15 +27,11 @@ import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.openssl.PEMDecryptorProvider;
 import org.bouncycastle.openssl.PEMEncryptedKeyPair;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.X509TrustedCertificateBlock;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
-import org.bouncycastle.openssl.jcajce.JceOpenSSLPKCS8DecryptorProviderBuilder;
-import org.bouncycastle.openssl.jcajce.JcePEMDecryptorProviderBuilder;
-import org.bouncycastle.operator.InputDecryptorProvider;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.pkcs.PKCS8EncryptedPrivateKeyInfo;
 import org.bouncycastle.pkcs.PKCSException;
@@ -44,9 +42,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.PrivateKey;
@@ -84,16 +80,10 @@ public final class PemUtils {
 
     private static final char[] DUMMY_PASSWORD = KeyStoreUtils.DUMMY_PASSWORD.toCharArray();
     private static final char[] NO_PASSWORD = null;
-    private static final String NO_PASSWORD_EXCEPTION_MESSAGE = "A password is mandatory with an encrypted key";
+
     private static final BouncyCastleProvider BOUNCY_CASTLE_PROVIDER = new BouncyCastleProvider();
     private static final JcaPEMKeyConverter KEY_CONVERTER = new JcaPEMKeyConverter().setProvider(BOUNCY_CASTLE_PROVIDER);
     private static final JcaX509CertificateConverter CERTIFICATE_CONVERTER = new JcaX509CertificateConverter().setProvider(BOUNCY_CASTLE_PROVIDER);
-    private static final JceOpenSSLPKCS8DecryptorProviderBuilder PKCS8_DECRYPTOR_PROVIDER_BUILDER = new JceOpenSSLPKCS8DecryptorProviderBuilder().setProvider(BOUNCY_CASTLE_PROVIDER);
-    private static final JcePEMDecryptorProviderBuilder PEM_DECRYPTOR_PROVIDER_BUILDER = new JcePEMDecryptorProviderBuilder().setProvider(BOUNCY_CASTLE_PROVIDER);
-    private static final BouncyFunction<char[], InputDecryptorProvider> PKCS8_DECRYPTOR_PROVIDER = password -> PKCS8_DECRYPTOR_PROVIDER_BUILDER.build(
-        requireNotNull(password, () -> new IllegalArgumentException(NO_PASSWORD_EXCEPTION_MESSAGE)));
-    private static final BouncyFunction<char[], PEMDecryptorProvider> PEM_DECRYPTOR_PROVIDER = password -> PEM_DECRYPTOR_PROVIDER_BUILDER.build(
-        requireNotNull(password, () -> new IllegalArgumentException(NO_PASSWORD_EXCEPTION_MESSAGE)));
 
     private PemUtils() {}
 
@@ -128,14 +118,14 @@ public final class PemUtils {
      * Loads certificates from the classpath and maps it to a list of {@link X509Certificate}
      */
     public static List<X509Certificate> loadCertificate(String... certificatePaths) {
-        return loadCertificate(certificatePaths, PemUtils::getResourceAsStream);
+        return loadCertificate(certificatePaths, IOUtils::getResourceAsStream);
     }
 
     /**
      * Loads certificates from the filesystem and maps it to a list of {@link X509Certificate}
      */
     public static List<X509Certificate> loadCertificate(Path... certificatePaths) {
-        return loadCertificate(certificatePaths, PemUtils::getFileAsStream);
+        return loadCertificate(certificatePaths, IOUtils::getFileAsStream);
     }
 
     /**
@@ -216,7 +206,7 @@ public final class PemUtils {
      * the classpath and maps it to an instance of {@link X509ExtendedKeyManager}
      */
     public static X509ExtendedKeyManager loadIdentityMaterial(String certificateChainPath, String privateKeyPath, char[] keyPassword) {
-        return loadIdentityMaterial(certificateChainPath, privateKeyPath, keyPassword, PemUtils::getResourceAsStream);
+        return loadIdentityMaterial(certificateChainPath, privateKeyPath, keyPassword, IOUtils::getResourceAsStream);
     }
 
     /**
@@ -248,7 +238,7 @@ public final class PemUtils {
      * from the filesystem and maps it to an instance of {@link X509ExtendedKeyManager}
      */
     public static X509ExtendedKeyManager loadIdentityMaterial(Path certificateChainPath, Path privateKeyPath, char[] keyPassword) {
-        return loadIdentityMaterial(certificateChainPath, privateKeyPath, keyPassword, PemUtils::getFileAsStream);
+        return loadIdentityMaterial(certificateChainPath, privateKeyPath, keyPassword, IOUtils::getFileAsStream);
     }
 
     /**
@@ -264,7 +254,7 @@ public final class PemUtils {
      * from the classpath and maps it to an instance of {@link X509ExtendedKeyManager}
      */
     public static X509ExtendedKeyManager loadIdentityMaterial(String identityPath, char[] keyPassword) {
-        return loadIdentityMaterial(identityPath, keyPassword, PemUtils::getResourceAsStream);
+        return loadIdentityMaterial(identityPath, keyPassword, IOUtils::getResourceAsStream);
     }
 
     /**
@@ -280,7 +270,7 @@ public final class PemUtils {
      * from the filesystem and maps it to an instance of {@link X509ExtendedKeyManager}
      */
     public static X509ExtendedKeyManager loadIdentityMaterial(Path identityPath, char[] keyPassword) {
-        return loadIdentityMaterial(identityPath, keyPassword, PemUtils::getFileAsStream);
+        return loadIdentityMaterial(identityPath, keyPassword, IOUtils::getFileAsStream);
     }
 
     /**
@@ -352,7 +342,7 @@ public final class PemUtils {
      * Loads the private key from the classpath and maps it to an instance of {@link PrivateKey}
      */
     public static PrivateKey loadPrivateKey(String identityPath, char[] keyPassword) {
-        return loadPrivateKey(identityPath, keyPassword, PemUtils::getResourceAsStream);
+        return loadPrivateKey(identityPath, keyPassword, IOUtils::getResourceAsStream);
     }
 
     /**
@@ -366,7 +356,7 @@ public final class PemUtils {
      * Loads the private key from the filesystem and maps it to an instance of {@link PrivateKey}
      */
     public static PrivateKey loadPrivateKey(Path identityPath, char[] keyPassword) {
-        return loadPrivateKey(identityPath, keyPassword, PemUtils::getFileAsStream);
+        return loadPrivateKey(identityPath, keyPassword, IOUtils::getFileAsStream);
     }
 
     /**
@@ -417,13 +407,13 @@ public final class PemUtils {
                 if (object instanceof PrivateKeyInfo) {
                     privateKeyInfo = (PrivateKeyInfo) object;
                 } else if (object instanceof PKCS8EncryptedPrivateKeyInfo) {
-                    privateKeyInfo = PKCS8_DECRYPTOR_PROVIDER
+                    privateKeyInfo = Pkcs8Decryptor.getInstance()
                             .andThen(((PKCS8EncryptedPrivateKeyInfo) object)::decryptPrivateKeyInfo)
                             .apply(keyPassword);
                 } else if (object instanceof PEMKeyPair) {
                     privateKeyInfo = ((PEMKeyPair) object).getPrivateKeyInfo();
                 } else if (object instanceof PEMEncryptedKeyPair) {
-                    privateKeyInfo = PEM_DECRYPTOR_PROVIDER
+                    privateKeyInfo = PemDecryptor.getInstance()
                             .andThen(((PEMEncryptedKeyPair) object)::decryptKeyPair)
                             .andThen(PEMKeyPair::getPrivateKeyInfo)
                             .apply(keyPassword);
@@ -453,29 +443,6 @@ public final class PemUtils {
         } catch (KeyStoreException e) {
             throw new GenericKeyStoreException(e);
         }
-    }
-
-    static InputStream getResourceAsStream(String name) {
-        return PemUtils.class.getClassLoader().getResourceAsStream(name);
-    }
-
-    private static InputStream getFileAsStream(Path path) {
-        try {
-            return Files.newInputStream(path, StandardOpenOption.READ);
-        } catch (IOException e) {
-            throw new GenericIOException(e);
-        }
-    }
-
-    @FunctionalInterface
-    private interface BouncyFunction<T, R> {
-
-        R apply(T t) throws OperatorCreationException, PKCSException, IOException;
-
-        default <V> BouncyFunction<T, V> andThen(BouncyFunction<? super R, ? extends V> after) throws OperatorCreationException, PKCSException, IOException {
-            return (T t) -> after.apply(apply(t));
-        }
-
     }
 
 }

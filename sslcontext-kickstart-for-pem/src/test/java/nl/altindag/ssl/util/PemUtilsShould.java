@@ -575,7 +575,7 @@ class PemUtilsShould {
         InputStream certificateStream = spy(getResource(certificatePath));
         InputStream privateKeyStream = spy(getResource(privateKeyPath));
 
-        try (MockedStatic<PemUtils> pemUtilsMockedStatic = mockStatic(PemUtils.class, invocation -> {
+        try (MockedStatic<IOUtils> pemUtilsMockedStatic = mockStatic(IOUtils.class, invocation -> {
             Method method = invocation.getMethod();
             if ("getResourceAsStream".equals(method.getName()) && method.getParameterCount() == 0) {
                 return invocation.getMock();
@@ -586,8 +586,8 @@ class PemUtilsShould {
 
             doThrow(new IOException("Could not close the stream")).when(certificateStream).close();
             doThrow(new IOException("Could not close the stream")).when(privateKeyStream).close();
-            pemUtilsMockedStatic.when(() -> PemUtils.getResourceAsStream(certificatePath)).thenReturn(certificateStream);
-            pemUtilsMockedStatic.when(() -> PemUtils.getResourceAsStream(privateKeyPath)).thenReturn(privateKeyStream);
+            pemUtilsMockedStatic.when(() -> IOUtils.getResourceAsStream(certificatePath)).thenReturn(certificateStream);
+            pemUtilsMockedStatic.when(() -> IOUtils.getResourceAsStream(privateKeyPath)).thenReturn(privateKeyStream);
 
             assertThatThrownBy(() -> PemUtils.loadIdentityMaterial(certificatePath, privateKeyPath))
                     .isInstanceOf(GenericIOException.class)

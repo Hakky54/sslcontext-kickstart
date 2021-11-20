@@ -20,9 +20,13 @@ import nl.altindag.ssl.exception.GenericIOException;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.stream.Collectors;
 
 import static nl.altindag.ssl.util.ValidationUtils.GENERIC_EXCEPTION_MESSAGE;
@@ -65,6 +69,18 @@ public final class IOUtils {
             autoCloseable.close();
         } catch (Exception ignored) {
             //ignore exception
+        }
+    }
+
+    static InputStream getResourceAsStream(String name) {
+        return IOUtils.class.getClassLoader().getResourceAsStream(name);
+    }
+
+    static InputStream getFileAsStream(Path path) {
+        try {
+            return Files.newInputStream(path, StandardOpenOption.READ);
+        } catch (IOException e) {
+            throw new GenericIOException(e);
         }
     }
 
