@@ -18,13 +18,13 @@ public final class Pkcs8Decryptor implements BouncyFunction<char[], InputDecrypt
 
     private static final Pkcs8Decryptor INSTANCE = new Pkcs8Decryptor();
     private static final JceOpenSSLPKCS8DecryptorProviderBuilder PKCS8_DECRYPTOR_PROVIDER_BUILDER = new JceOpenSSLPKCS8DecryptorProviderBuilder()
-            .setProvider(BOUNCY_CASTLE_PROVIDER);
+            .setProvider("BC");
 
     private Pkcs8Decryptor() {}
 
     @Override
     public InputDecryptorProvider apply(char[] password) throws OperatorCreationException {
-        requireNotNull(password, () -> new IllegalArgumentException(NO_PASSWORD_EXCEPTION_MESSAGE));
+        requireNotNull(password, () -> new IllegalArgumentException("A password is mandatory with an encrypted key"));
         return PKCS8_DECRYPTOR_PROVIDER_BUILDER.build(password);
     }
 

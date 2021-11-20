@@ -17,13 +17,13 @@ public final class PemDecryptor implements BouncyFunction<char[], PEMDecryptorPr
 
     private static final PemDecryptor INSTANCE = new PemDecryptor();
     private static final JcePEMDecryptorProviderBuilder PEM_DECRYPTOR_PROVIDER_BUILDER = new JcePEMDecryptorProviderBuilder()
-            .setProvider(BOUNCY_CASTLE_PROVIDER);
+            .setProvider("BC");
 
     private PemDecryptor() {}
 
     @Override
     public PEMDecryptorProvider apply(char[] password) {
-        requireNotNull(password, () -> new IllegalArgumentException(NO_PASSWORD_EXCEPTION_MESSAGE));
+        requireNotNull(password, () -> new IllegalArgumentException("A password is mandatory with an encrypted key"));
         return PEM_DECRYPTOR_PROVIDER_BUILDER.build(password);
     }
 

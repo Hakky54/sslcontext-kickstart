@@ -1,6 +1,5 @@
 package nl.altindag.ssl.decryptor;
 
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.pkcs.PKCSException;
 
@@ -16,9 +15,6 @@ import java.io.IOException;
  */
 @FunctionalInterface
 public interface BouncyFunction<T, R> {
-
-    BouncyCastleProvider BOUNCY_CASTLE_PROVIDER = new BouncyCastleProvider();
-    String NO_PASSWORD_EXCEPTION_MESSAGE = "A password is mandatory with an encrypted key";
 
     R apply(T t) throws OperatorCreationException, PKCSException, IOException;
 
