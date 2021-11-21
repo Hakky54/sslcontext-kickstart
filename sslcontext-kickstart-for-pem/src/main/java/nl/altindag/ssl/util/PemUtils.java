@@ -80,7 +80,7 @@ import static nl.altindag.ssl.util.ValidationUtils.requireNotNull;
 public final class PemUtils {
 
     static {
-        if (Security.getProvider("BC") == null) {
+        if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
             Security.addProvider(new BouncyCastleProvider());
         }
     }
@@ -88,8 +88,8 @@ public final class PemUtils {
     private static final char[] DUMMY_PASSWORD = KeyStoreUtils.DUMMY_PASSWORD.toCharArray();
     private static final char[] NO_PASSWORD = null;
 
-    private static final JcaPEMKeyConverter KEY_CONVERTER = new JcaPEMKeyConverter().setProvider("BC");
-    private static final JcaX509CertificateConverter CERTIFICATE_CONVERTER = new JcaX509CertificateConverter().setProvider("BC");
+    private static final JcaPEMKeyConverter KEY_CONVERTER = new JcaPEMKeyConverter().setProvider(BouncyCastleProvider.PROVIDER_NAME);
+    private static final JcaX509CertificateConverter CERTIFICATE_CONVERTER = new JcaX509CertificateConverter().setProvider(BouncyCastleProvider.PROVIDER_NAME);
 
     private PemUtils() {}
 

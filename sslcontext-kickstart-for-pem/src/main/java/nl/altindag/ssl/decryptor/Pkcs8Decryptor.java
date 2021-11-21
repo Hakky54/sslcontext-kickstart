@@ -1,5 +1,6 @@
 package nl.altindag.ssl.decryptor;
 
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.jcajce.JceOpenSSLPKCS8DecryptorProviderBuilder;
 import org.bouncycastle.operator.InputDecryptorProvider;
 import org.bouncycastle.operator.OperatorCreationException;
@@ -18,7 +19,7 @@ public final class Pkcs8Decryptor implements BouncyFunction<char[], InputDecrypt
 
     private static final Pkcs8Decryptor INSTANCE = new Pkcs8Decryptor();
     private static final JceOpenSSLPKCS8DecryptorProviderBuilder PKCS8_DECRYPTOR_PROVIDER_BUILDER = new JceOpenSSLPKCS8DecryptorProviderBuilder()
-            .setProvider("BC");
+            .setProvider(BouncyCastleProvider.PROVIDER_NAME);
 
     private Pkcs8Decryptor() {}
 
