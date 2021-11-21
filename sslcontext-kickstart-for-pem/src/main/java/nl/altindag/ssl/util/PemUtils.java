@@ -80,7 +80,9 @@ import static nl.altindag.ssl.util.ValidationUtils.requireNotNull;
 public final class PemUtils {
 
     static {
-        Security.addProvider(new BouncyCastleProvider());
+        if (Security.getProvider("BC") == null) {
+            Security.addProvider(new BouncyCastleProvider());
+        }
     }
 
     private static final char[] DUMMY_PASSWORD = KeyStoreUtils.DUMMY_PASSWORD.toCharArray();
