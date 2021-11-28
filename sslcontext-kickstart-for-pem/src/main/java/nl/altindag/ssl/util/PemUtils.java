@@ -55,10 +55,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static nl.altindag.ssl.util.ValidationUtils.requireNotNull;
 
 /**
  * Reads PEM formatted private keys and certificates
@@ -158,15 +157,7 @@ public final class PemUtils {
 
             Object object = pemParser.readObject();
             while (object != null) {
-                if (object instanceof X509CertificateHolder) {
-                    X509Certificate certificate = CERTIFICATE_CONVERTER.getCertificate((X509CertificateHolder) object);
-                    certificates.add(certificate);
-                } else if (object instanceof X509TrustedCertificateBlock) {
-                    X509CertificateHolder certificateHolder = ((X509TrustedCertificateBlock) object).getCertificateHolder();
-                    X509Certificate certificate = CERTIFICATE_CONVERTER.getCertificate(certificateHolder);
-                    certificates.add(certificate);
-                }
-
+                extractCertificate(object).ifPresent(certificates::add);
                 object = pemParser.readObject();
             }
 
@@ -181,6 +172,17 @@ public final class PemUtils {
         } catch (IOException | CertificateException e) {
             throw new CertificateParseException(e);
         }
+    }
+
+    private static Optional<X509Certificate> extractCertificate(Object object) throws CertificateException {
+        X509Certificate certificate = null;
+        if (object instanceof X509CertificateHolder) {
+            certificate = CERTIFICATE_CONVERTER.getCertificate((X509CertificateHolder) object);
+        } else if (object instanceof X509TrustedCertificateBlock) {
+            X509CertificateHolder certificateHolder = ((X509TrustedCertificateBlock) object).getCertificateHolder();
+            certificate = CERTIFICATE_CONVERTER.getCertificate(certificateHolder);
+        }
+        return Optional.ofNullable(certificate);
     }
 
     /**
@@ -405,40 +407,40 @@ public final class PemUtils {
         try {
             Reader stringReader = new StringReader(identityContent);
             PEMParser pemParser = new PEMParser(stringReader);
-            PrivateKeyInfo privateKeyInfo = null;
+            Optional<PrivateKeyInfo> privateKeyInfo = Optional.empty();
 
             Object object = pemParser.readObject();
-
-            while (object != null && privateKeyInfo == null) {
-                if (object instanceof PrivateKeyInfo) {
-                    privateKeyInfo = (PrivateKeyInfo) object;
-                } else if (object instanceof PKCS8EncryptedPrivateKeyInfo) {
-                    privateKeyInfo = Pkcs8Decryptor.getInstance()
-                            .andThen(((PKCS8EncryptedPrivateKeyInfo) object)::decryptPrivateKeyInfo)
-                            .apply(keyPassword);
-                } else if (object instanceof PEMKeyPair) {
-                    privateKeyInfo = ((PEMKeyPair) object).getPrivateKeyInfo();
-                } else if (object instanceof PEMEncryptedKeyPair) {
-                    privateKeyInfo = PemDecryptor.getInstance()
-                            .andThen(((PEMEncryptedKeyPair) object)::decryptKeyPair)
-                            .andThen(PEMKeyPair::getPrivateKeyInfo)
-                            .apply(keyPassword);
-                }
-
-                if (privateKeyInfo == null) {
-                    object = pemParser.readObject();
-                }
+            while (object != null && !privateKeyInfo.isPresent()) {
+                privateKeyInfo = extractPrivateKeyInfo(object, keyPassword);
+                object = pemParser.readObject();
             }
 
             pemParser.close();
             stringReader.close();
 
-            requireNotNull(privateKeyInfo, () -> new PrivateKeyParseException("Received an unsupported private key type"));
-
-            return KEY_CONVERTER.getPrivateKey(privateKeyInfo);
+            return KEY_CONVERTER.getPrivateKey(privateKeyInfo.orElseThrow(() -> new PrivateKeyParseException("Received an unsupported private key type")));
         } catch (OperatorCreationException | PKCSException | IOException e) {
             throw new PrivateKeyParseException(e);
         }
+    }
+
+    private static Optional<PrivateKeyInfo> extractPrivateKeyInfo(Object object, char[] keyPassword) throws IOException, OperatorCreationException, PKCSException {
+        PrivateKeyInfo privateKeyInfo = null;
+        if (object instanceof PrivateKeyInfo) {
+            privateKeyInfo = (PrivateKeyInfo) object;
+        } else if (object instanceof PKCS8EncryptedPrivateKeyInfo) {
+            privateKeyInfo = Pkcs8Decryptor.getInstance()
+                    .andThen(((PKCS8EncryptedPrivateKeyInfo) object)::decryptPrivateKeyInfo)
+                    .apply(keyPassword);
+        } else if (object instanceof PEMKeyPair) {
+            privateKeyInfo = ((PEMKeyPair) object).getPrivateKeyInfo();
+        } else if (object instanceof PEMEncryptedKeyPair) {
+            privateKeyInfo = PemDecryptor.getInstance()
+                    .andThen(((PEMEncryptedKeyPair) object)::decryptKeyPair)
+                    .andThen(PEMKeyPair::getPrivateKeyInfo)
+                    .apply(keyPassword);
+        }
+        return Optional.ofNullable(privateKeyInfo);
     }
 
     private static X509ExtendedKeyManager parseIdentityMaterial(Certificate[] certificatesChain, PrivateKey privateKey) {
