@@ -24,9 +24,8 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.impl.client.HttpClients;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -38,9 +37,8 @@ import static org.assertj.core.api.Assertions.fail;
  */
 class SSLFactoryIT {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SSLFactoryIT.class);
-
     @Test
+    @Tag("it-with-badssl.com")
     void executeHttpsRequestWithMutualAuthentication() throws IOException {
         LogCaptor logCaptor = LogCaptor.forName("nl.altindag.ssl");
 

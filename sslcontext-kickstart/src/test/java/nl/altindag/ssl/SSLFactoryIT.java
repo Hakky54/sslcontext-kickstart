@@ -22,6 +22,7 @@ import nl.altindag.ssl.util.KeyManagerUtils;
 import nl.altindag.ssl.util.KeyStoreUtils;
 import nl.altindag.ssl.util.SSLSessionUtils;
 import nl.altindag.ssl.util.TrustManagerUtils;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -54,6 +55,7 @@ import static org.assertj.core.api.Assertions.fail;
 class SSLFactoryIT {
 
     @Test
+    @Tag("it-with-badssl.com")
     void executeHttpsRequestWithMutualAuthentication() throws IOException {
         LogCaptor logCaptor = LogCaptor.forName("nl.altindag.ssl");
 
@@ -128,6 +130,7 @@ class SSLFactoryIT {
     }
 
     @Test
+    @Tag("it-with-badssl.com")
     void executeRequestToTwoServersWithMutualAuthenticationWithReroutingClientCertificates() throws IOException {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
 

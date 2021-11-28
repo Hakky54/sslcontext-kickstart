@@ -214,6 +214,7 @@
                 <version>${version.maven-fail-safe}</version>
                 <configuration>
                     <useModulePath>false</useModulePath>
+                    <excludedGroups>it-with-badssl.com</excludedGroups>
                 </configuration>
                 <executions>
                     <execution>

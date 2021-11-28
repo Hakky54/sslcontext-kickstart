@@ -24,6 +24,7 @@ import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,6 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class SSLFactoryIT {
 
     @Test
+    @Tag("it-with-badssl.com")
     void executeHttpsRequestWithMutualAuthentication() throws Exception {
         LogCaptor logCaptor = LogCaptor.forName("nl.altindag.ssl");
 

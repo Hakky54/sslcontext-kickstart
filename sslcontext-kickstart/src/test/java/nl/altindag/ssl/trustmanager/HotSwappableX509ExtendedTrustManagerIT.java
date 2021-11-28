@@ -23,6 +23,7 @@ import nl.altindag.ssl.util.TrustManagerUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
@@ -65,6 +66,7 @@ class HotSwappableX509ExtendedTrustManagerIT {
 
     @Test
     @Order(1)
+    @Tag("it-with-badssl.com")
     void executeHttpsRequestWithSslSocketFactoryContainingBadSslTrustManager() throws IOException {
         HttpsURLConnection connection = (HttpsURLConnection) new URL("https://client.badssl.com/").openConnection();
         connection.setSSLSocketFactory(sslSocketFactory);
@@ -82,6 +84,7 @@ class HotSwappableX509ExtendedTrustManagerIT {
 
     @Test
     @Order(2)
+    @Tag("it-with-badssl.com")
     void executeHttpsRequestWithExistingSslSocketFactoryContainingASwappedUnsafeTrustManager() throws IOException {
         TrustManagerUtils.swapTrustManager(trustManager, TrustManagerUtils.createUnsafeTrustManager());
         SSLSessionUtils.invalidateCaches(sslSessionContext);

@@ -23,6 +23,7 @@ import nl.altindag.ssl.util.SSLSessionUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
@@ -65,6 +66,7 @@ class HotSwappableX509ExtendedKeyManagerIT {
 
     @Test
     @Order(1)
+    @Tag("it-with-badssl.com")
     void executeHttpsRequestWithSslSocketFactoryContainingBadSslKeyManager() throws IOException {
         HttpsURLConnection connection = (HttpsURLConnection) new URL("https://client.badssl.com/").openConnection();
         connection.setSSLSocketFactory(sslSocketFactory);

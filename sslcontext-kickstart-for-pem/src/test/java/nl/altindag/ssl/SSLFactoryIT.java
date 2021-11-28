@@ -18,6 +18,7 @@ package nl.altindag.ssl;
 import nl.altindag.log.LogCaptor;
 import nl.altindag.ssl.util.KeyStoreUtils;
 import nl.altindag.ssl.util.PemUtils;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -38,6 +39,7 @@ class SSLFactoryIT {
     private static final char[] IDENTITY_PASSWORD = "badssl.com".toCharArray();
 
     @Test
+    @Tag("it-with-badssl.com")
     void executeHttpsRequestWithMutualAuthentication() throws IOException {
         LogCaptor logCaptor = LogCaptor.forName("nl.altindag.ssl");
 
@@ -67,6 +69,7 @@ class SSLFactoryIT {
     }
 
     @Test
+    @Tag("it-with-badssl.com")
     void executeHttpsRequestWithMutualAuthenticationWithUnencryptedPrivateKey() throws IOException {
         LogCaptor logCaptor = LogCaptor.forName("nl.altindag.ssl");
 
@@ -96,6 +99,7 @@ class SSLFactoryIT {
     }
 
     @Test
+    @Tag("it-with-badssl.com")
     void executeHttpsRequestWithMutualAuthenticationFromRawSslMaterial() throws IOException {
         LogCaptor logCaptor = LogCaptor.forName("nl.altindag.ssl");
 
