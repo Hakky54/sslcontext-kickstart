@@ -62,3 +62,19 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         if: github.actor == 'Hakky54'
+
+  build-with-thundra:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: '8'
+      - name: Thundra Maven Test Instrumentation
+        uses: thundra-io/thundra-maven-test-action@v1
+        with:
+          apikey: ${{ secrets.THUNDRA_API_KEY }}
+          project_id: ${{ secrets.THUNDRA_PROJECT_ID }}
+          command: mvn clean verify --no-transfer-progress
