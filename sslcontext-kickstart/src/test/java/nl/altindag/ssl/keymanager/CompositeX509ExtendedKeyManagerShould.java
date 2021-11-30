@@ -363,7 +363,8 @@ class CompositeX509ExtendedKeyManagerShould {
 
         CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
                 Arrays.asList(keyManagerOne, keyManagerTwo),
-                Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://localhost:8443/")))
+                Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://localhost:8443/"))),
+                Collections.emptyMap()
         );
 
         Socket socket = mock(Socket.class);
@@ -392,7 +393,8 @@ class CompositeX509ExtendedKeyManagerShould {
 
         CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
                 Arrays.asList(keyManagerOne, keyManagerTwo),
-                Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://localhost:8443/")))
+                Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://localhost:8443/"))),
+                Collections.emptyMap()
         );
 
         Socket socket = mock(Socket.class);
@@ -418,7 +420,8 @@ class CompositeX509ExtendedKeyManagerShould {
 
         CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
                 Arrays.asList(keyManagerOne, keyManagerTwo),
-                Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://localhost:8443/")))
+                Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://localhost:8443/"))),
+                Collections.emptyMap()
         );
 
         String alias = keyManager.chooseClientAlias(new String[]{"RSA"}, null, null);
@@ -461,7 +464,8 @@ class CompositeX509ExtendedKeyManagerShould {
 
         CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
                 Arrays.asList(keyManagerOne, keyManagerTwo),
-                Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://localhost:8443/")))
+                Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://localhost:8443/"))),
+                Collections.emptyMap()
         );
 
         SSLEngine sslEngine = mock(SSLEngine.class);
@@ -487,7 +491,8 @@ class CompositeX509ExtendedKeyManagerShould {
 
         CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
                 Arrays.asList(keyManagerOne, keyManagerTwo),
-                Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://localhost:8443/")))
+                Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://localhost:8443/"))),
+                Collections.emptyMap()
         );
 
         String alias = keyManager.chooseEngineClientAlias(new String[]{"RSA"}, null, null);

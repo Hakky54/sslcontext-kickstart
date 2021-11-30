@@ -177,6 +177,7 @@ public final class SSLFactory {
         private final List<X509ExtendedTrustManager> trustManagers = new ArrayList<>();
         private final SSLParameters sslParameters = new SSLParameters();
         private final Map<String, List<URI>> preferredClientAliasToHost = new HashMap<>();
+        private final Map<String, List<URI>> preferredServerAliasToHost = new HashMap<>();
 
         private boolean swappableKeyManagerEnabled = false;
         private boolean swappableTrustManagerEnabled = false;
@@ -545,6 +546,47 @@ public final class SSLFactory {
             return this;
         }
 
+        public Builder withServerIdentityRoute(String serverAlias, String... hosts) {
+            return withServerIdentityRoute(
+                    serverAlias,
+                    Arrays.stream(hosts)
+                            .map(URI::create)
+                            .collect(Collectors.toList())
+            );
+        }
+
+        public Builder withServerIdentityRoute(Map<String, List<String>> serverAliasesToHosts) {
+            serverAliasesToHosts.entrySet().stream()
+                    .map(clientAliasToHosts -> new AbstractMap.SimpleEntry<>(
+                            clientAliasToHosts.getKey(),
+                            clientAliasToHosts.getValue().stream()
+                                    .map(URI::create)
+                                    .collect(Collectors.toList())))
+                    .forEach(clientAliasToHosts -> withClientIdentityRoute(clientAliasToHosts.getKey(), clientAliasToHosts.getValue()));
+            return this;
+        }
+
+        private Builder withServerIdentityRoute(String serverAlias, List<URI> hosts) {
+            if (StringUtils.isBlank(serverAlias)) {
+                throw new IllegalArgumentException("serverAlias should be present");
+            }
+
+            if (hosts.isEmpty()) {
+                throw new IllegalArgumentException(String.format("At least one host should be present. No host(s) found for the given alias: [%s]", serverAlias));
+            }
+
+            for (URI host : hosts) {
+                UriUtils.validate(host);
+
+                if (preferredServerAliasToHost.containsKey(serverAlias)) {
+                    preferredServerAliasToHost.get(serverAlias).add(host);
+                } else {
+                    preferredServerAliasToHost.put(serverAlias, new ArrayList<>(Collections.singletonList(host)));
+                }
+            }
+            return this;
+        }
+
         public <T extends HostnameVerifier> Builder withHostnameVerifier(T hostnameVerifier) {
             this.hostnameVerifier = hostnameVerifier;
             return this;
@@ -674,6 +716,7 @@ public final class SSLFactory {
                     .withIdentities(identities)
                     .withSwappableKeyManager(swappableKeyManagerEnabled)
                     .withClientAliasToHost(preferredClientAliasToHost)
+                    .withServerAliasToHost(preferredServerAliasToHost)
                     .build();
         }
 

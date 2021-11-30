@@ -295,6 +295,7 @@ public final class KeyManagerUtils {
 
         private final List<X509ExtendedKeyManager> keyManagers = new ArrayList<>();
         private final Map<String, List<URI>> clientAliasToHost = new HashMap<>();
+        private final Map<String, List<URI>> serverAliasToHost = new HashMap<>();
         private boolean swappableKeyManagerEnabled = false;
 
         private KeyManagerBuilder() {}
@@ -344,6 +345,11 @@ public final class KeyManagerUtils {
             return this;
         }
 
+        public KeyManagerBuilder withServerAliasToHost(Map<String, List<URI>> serverAliasToHost) {
+            this.serverAliasToHost.putAll(serverAliasToHost);
+            return this;
+        }
+
         public X509ExtendedKeyManager build() {
             if (keyManagers.isEmpty()) {
                 throw new GenericKeyManagerException(EMPTY_KEY_MANAGER_EXCEPTION);
@@ -358,7 +364,7 @@ public final class KeyManagerUtils {
                         .flatMap(Collection::stream)
                         .collect(Collectors.collectingAndThen(
                                 Collectors.toList(),
-                                extendedKeyManagers -> new CompositeX509ExtendedKeyManager(extendedKeyManagers, clientAliasToHost)
+                                extendedKeyManagers -> new CompositeX509ExtendedKeyManager(extendedKeyManagers, clientAliasToHost, serverAliasToHost)
                         ));
             }
 

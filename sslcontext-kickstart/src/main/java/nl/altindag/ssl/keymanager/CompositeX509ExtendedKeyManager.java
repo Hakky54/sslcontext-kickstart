@@ -16,7 +16,11 @@
 
 package nl.altindag.ssl.keymanager;
 
+import javax.net.ssl.ExtendedSSLSession;
+import javax.net.ssl.SNIServerName;
 import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocket;
 import javax.net.ssl.X509ExtendedKeyManager;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -31,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -72,6 +77,7 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
 
     private final List<X509ExtendedKeyManager> keyManagers;
     private final Map<String, List<URI>> preferredClientAliasToHost;
+    private final Map<String, List<URI>> preferredServerAliasToHost;
 
     /**
      * Creates a new {@link CompositeX509ExtendedKeyManager}.
@@ -79,7 +85,7 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
      * @param keyManagers the {@link X509ExtendedKeyManager}, ordered with the most-preferred managers first.
      */
     public CompositeX509ExtendedKeyManager(List<? extends X509ExtendedKeyManager> keyManagers) {
-        this(keyManagers, Collections.emptyMap());
+        this(keyManagers, Collections.emptyMap(), Collections.emptyMap());
     }
 
     /**
@@ -89,9 +95,11 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
      * @param preferredClientAliasToHost the preferred client alias to be used for the given host
      */
     public CompositeX509ExtendedKeyManager(List<? extends X509ExtendedKeyManager> keyManagers,
-                                           Map<String, List<URI>> preferredClientAliasToHost) {
+                                           Map<String, List<URI>> preferredClientAliasToHost,
+                                           Map<String, List<URI>> preferredServerAliasToHost) {
         this.keyManagers = Collections.unmodifiableList(keyManagers);
         this.preferredClientAliasToHost = new HashMap<>(preferredClientAliasToHost);
+        this.preferredServerAliasToHost = new HashMap<>(preferredServerAliasToHost);
     }
 
     /**
@@ -161,10 +169,16 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
      */
     @Override
     public String chooseServerAlias(String keyType, Principal[] issuers, Socket socket) {
-        return extractInnerField(
-                keyManager -> keyManager.chooseServerAlias(keyType, issuers, socket),
-                Objects::nonNull
-        );
+        Optional<String> preferredAlias = getPreferredServerAlias(socket);
+
+        if (preferredAlias.isPresent()) {
+            return extractInnerField(
+                    keyManager -> keyManager.chooseServerAlias(keyType, issuers, socket),
+                    NON_NULL.and(alias -> preferredAlias.get().equals(alias))
+            );
+        } else {
+            return extractInnerField(keyManager -> keyManager.chooseServerAlias(keyType, issuers, socket), NON_NULL);
+        }
     }
 
     /**
@@ -173,10 +187,52 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
      */
     @Override
     public String chooseEngineServerAlias(String keyType, Principal[] issuers, SSLEngine sslEngine) {
-        return extractInnerField(
-                keyManager -> keyManager.chooseEngineServerAlias(keyType, issuers, sslEngine),
-                Objects::nonNull
-        );
+        Optional<String> preferredAlias = getPreferredServerAlias(sslEngine);
+
+        if (preferredAlias.isPresent()) {
+            return extractInnerField(
+                    keyManager -> keyManager.chooseEngineServerAlias(keyType, issuers, sslEngine),
+                    NON_NULL.and(alias -> preferredAlias.get().equals(alias))
+            );
+        } else {
+            return extractInnerField(keyManager -> keyManager.chooseEngineServerAlias(keyType, issuers, sslEngine), NON_NULL);
+        }
+    }
+
+    private Optional<String> getPreferredServerAlias(Socket socket) {
+        if (!preferredClientAliasToHost.isEmpty() && socket instanceof SSLSocket) {
+            return getPreferredServerAlias(((SSLSocket) socket).getHandshakeSession());
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    private Optional<String> getPreferredServerAlias(SSLEngine sslEngine) {
+        if (!preferredClientAliasToHost.isEmpty() && sslEngine != null) {
+            return getPreferredServerAlias(sslEngine.getHandshakeSession());
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    private Optional<String> getPreferredServerAlias(SSLSession sslSession) {
+        if (!preferredServerAliasToHost.isEmpty() && sslSession instanceof ExtendedSSLSession) {
+            List<SNIServerName> requestedServerNames = ((ExtendedSSLSession) sslSession).getRequestedServerNames();
+            Set<String> hostnames = requestedServerNames.stream()
+                    .map(sniServerName -> new String(sniServerName.getEncoded()))
+                    .collect(Collectors.toSet());
+
+            return getPreferredServerAlias(hostnames);
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    private Optional<String> getPreferredServerAlias(Set<String> hostnames) {
+        return preferredClientAliasToHost.entrySet().stream()
+                .filter(entry -> entry.getValue().stream().anyMatch(uri -> hostnames.contains(uri.getHost())))
+                .findFirst()
+                .map(Map.Entry::getKey);
     }
 
     /**
