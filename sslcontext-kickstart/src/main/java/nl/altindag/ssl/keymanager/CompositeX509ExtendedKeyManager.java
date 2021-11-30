@@ -76,8 +76,7 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
     private static final Predicate<String> NON_NULL = Objects::nonNull;
 
     private final List<X509ExtendedKeyManager> keyManagers;
-    private final Map<String, List<URI>> preferredClientAliasToHost;
-    private final Map<String, List<URI>> preferredServerAliasToHost;
+    private final Map<String, List<URI>> preferredAliasToHost;
 
     /**
      * Creates a new {@link CompositeX509ExtendedKeyManager}.
@@ -85,21 +84,19 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
      * @param keyManagers the {@link X509ExtendedKeyManager}, ordered with the most-preferred managers first.
      */
     public CompositeX509ExtendedKeyManager(List<? extends X509ExtendedKeyManager> keyManagers) {
-        this(keyManagers, Collections.emptyMap(), Collections.emptyMap());
+        this(keyManagers, Collections.emptyMap());
     }
 
     /**
      * Creates a new {@link CompositeX509ExtendedKeyManager}.
      *
      * @param keyManagers                the {@link X509ExtendedKeyManager}, ordered with the most-preferred managers first.
-     * @param preferredClientAliasToHost the preferred client alias to be used for the given host
+     * @param preferredAliasToHost the preferred client alias to be used for the given host
      */
     public CompositeX509ExtendedKeyManager(List<? extends X509ExtendedKeyManager> keyManagers,
-                                           Map<String, List<URI>> preferredClientAliasToHost,
-                                           Map<String, List<URI>> preferredServerAliasToHost) {
+                                           Map<String, List<URI>> preferredAliasToHost) {
         this.keyManagers = Collections.unmodifiableList(keyManagers);
-        this.preferredClientAliasToHost = new HashMap<>(preferredClientAliasToHost);
-        this.preferredServerAliasToHost = new HashMap<>(preferredServerAliasToHost);
+        this.preferredAliasToHost = new HashMap<>(preferredAliasToHost);
     }
 
     /**
@@ -139,7 +136,7 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
     }
 
     private Optional<String> getPreferredClientAlias(Socket socket) {
-        if (!preferredClientAliasToHost.isEmpty() && socket != null && socket.getRemoteSocketAddress() instanceof InetSocketAddress) {
+        if (!preferredAliasToHost.isEmpty() && socket != null && socket.getRemoteSocketAddress() instanceof InetSocketAddress) {
             InetSocketAddress address = (InetSocketAddress) socket.getRemoteSocketAddress();
             return getPreferredClientAlias(address.getHostName(), address.getPort());
         } else {
@@ -148,7 +145,7 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
     }
 
     private Optional<String> getPreferredClientAlias(SSLEngine sslEngine) {
-        if (!preferredClientAliasToHost.isEmpty() && sslEngine != null) {
+        if (!preferredAliasToHost.isEmpty() && sslEngine != null) {
             return getPreferredClientAlias(sslEngine.getPeerHost(), sslEngine.getPeerPort());
         } else {
             return Optional.empty();
@@ -156,7 +153,7 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
     }
 
     private Optional<String> getPreferredClientAlias(String peerHost, int peerPort) {
-        return preferredClientAliasToHost.entrySet().stream()
+        return preferredAliasToHost.entrySet().stream()
                 .filter(entry -> entry.getValue().stream().anyMatch(uri -> uri.getHost().equals(peerHost)))
                 .filter(entry -> entry.getValue().stream().anyMatch(uri -> uri.getPort() == peerPort))
                 .findFirst()
@@ -200,7 +197,7 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
     }
 
     private Optional<String> getPreferredServerAlias(Socket socket) {
-        if (!preferredClientAliasToHost.isEmpty() && socket instanceof SSLSocket) {
+        if (!preferredAliasToHost.isEmpty() && socket instanceof SSLSocket) {
             return getPreferredServerAlias(((SSLSocket) socket).getHandshakeSession());
         } else {
             return Optional.empty();
@@ -208,7 +205,7 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
     }
 
     private Optional<String> getPreferredServerAlias(SSLEngine sslEngine) {
-        if (!preferredClientAliasToHost.isEmpty() && sslEngine != null) {
+        if (!preferredAliasToHost.isEmpty() && sslEngine != null) {
             return getPreferredServerAlias(sslEngine.getHandshakeSession());
         } else {
             return Optional.empty();
@@ -216,7 +213,7 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
     }
 
     private Optional<String> getPreferredServerAlias(SSLSession sslSession) {
-        if (!preferredServerAliasToHost.isEmpty() && sslSession instanceof ExtendedSSLSession) {
+        if (!preferredAliasToHost.isEmpty() && sslSession instanceof ExtendedSSLSession) {
             List<SNIServerName> requestedServerNames = ((ExtendedSSLSession) sslSession).getRequestedServerNames();
             Set<String> hostnames = requestedServerNames.stream()
                     .map(sniServerName -> new String(sniServerName.getEncoded()))
@@ -229,7 +226,7 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
     }
 
     private Optional<String> getPreferredServerAlias(Set<String> hostnames) {
-        return preferredClientAliasToHost.entrySet().stream()
+        return preferredAliasToHost.entrySet().stream()
                 .filter(entry -> entry.getValue().stream().anyMatch(uri -> hostnames.contains(uri.getHost())))
                 .findFirst()
                 .map(Map.Entry::getKey);
@@ -305,8 +302,13 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
         return keyManagers;
     }
 
+    @Deprecated
     public Map<String, List<URI>> getPreferredClientAliasToHosts() {
-        return preferredClientAliasToHost;
+        return preferredAliasToHost;
+    }
+
+    public Map<String, List<URI>> getPreferredAliasToHosts() {
+        return preferredAliasToHost;
     }
 
 }

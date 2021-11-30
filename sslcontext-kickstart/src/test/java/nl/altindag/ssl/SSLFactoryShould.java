@@ -1632,7 +1632,7 @@ class SSLFactoryShould {
         SSLFactory.Builder sslFactoryBuilder = SSLFactory.builder();
         assertThatThrownBy(() -> sslFactoryBuilder.withClientIdentityRoute(null, "https://localhost:8443"))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("clientAlias should be present");
+                .hasMessage("alias should be present");
     }
 
     @Test

@@ -176,8 +176,7 @@ public final class SSLFactory {
         private final List<X509ExtendedKeyManager> identityManagers = new ArrayList<>();
         private final List<X509ExtendedTrustManager> trustManagers = new ArrayList<>();
         private final SSLParameters sslParameters = new SSLParameters();
-        private final Map<String, List<URI>> preferredClientAliasToHost = new HashMap<>();
-        private final Map<String, List<URI>> preferredServerAliasToHost = new HashMap<>();
+        private final Map<String, List<URI>> preferredAliasToHost = new HashMap<>();
 
         private boolean swappableKeyManagerEnabled = false;
         private boolean swappableTrustManagerEnabled = false;
@@ -505,83 +504,52 @@ public final class SSLFactory {
             }
         }
 
+        @Deprecated
         public Builder withClientIdentityRoute(String clientAlias, String... hosts) {
-            return withClientIdentityRoute(
-                    clientAlias,
-                    Arrays.stream(hosts)
-                            .map(URI::create)
-                            .collect(Collectors.toList())
-            );
+            return withIdentityRoute(clientAlias, hosts);
         }
 
+        @Deprecated
         public Builder withClientIdentityRoute(Map<String, List<String>> clientAliasesToHosts) {
-            clientAliasesToHosts.entrySet().stream()
-                    .map(clientAliasToHosts -> new AbstractMap.SimpleEntry<>(
-                            clientAliasToHosts.getKey(),
-                            clientAliasToHosts.getValue().stream()
-                                    .map(URI::create)
-                                    .collect(Collectors.toList())))
-                    .forEach(clientAliasToHosts -> withClientIdentityRoute(clientAliasToHosts.getKey(), clientAliasToHosts.getValue()));
-            return this;
+            return withIdentityRoute(clientAliasesToHosts);
         }
 
-        private Builder withClientIdentityRoute(String clientAlias, List<URI> hosts) {
-            if (StringUtils.isBlank(clientAlias)) {
-                throw new IllegalArgumentException("clientAlias should be present");
-            }
-
-            if (hosts.isEmpty()) {
-                throw new IllegalArgumentException(String.format("At least one host should be present. No host(s) found for the given alias: [%s]", clientAlias));
-            }
-
-            for (URI host : hosts) {
-                UriUtils.validate(host);
-
-                if (preferredClientAliasToHost.containsKey(clientAlias)) {
-                    preferredClientAliasToHost.get(clientAlias).add(host);
-                } else {
-                    preferredClientAliasToHost.put(clientAlias, new ArrayList<>(Collections.singletonList(host)));
-                }
-            }
-            return this;
-        }
-
-        public Builder withServerIdentityRoute(String serverAlias, String... hosts) {
-            return withServerIdentityRoute(
-                    serverAlias,
+        public Builder withIdentityRoute(String alias, String... hosts) {
+            return withIdentityRoute(
+                    alias,
                     Arrays.stream(hosts)
                             .map(URI::create)
                             .collect(Collectors.toList())
             );
         }
 
-        public Builder withServerIdentityRoute(Map<String, List<String>> serverAliasesToHosts) {
-            serverAliasesToHosts.entrySet().stream()
-                    .map(clientAliasToHosts -> new AbstractMap.SimpleEntry<>(
-                            clientAliasToHosts.getKey(),
-                            clientAliasToHosts.getValue().stream()
+        public Builder withIdentityRoute(Map<String, List<String>> aliasesToHosts) {
+            aliasesToHosts.entrySet().stream()
+                    .map(aliasToHosts -> new AbstractMap.SimpleEntry<>(
+                            aliasToHosts.getKey(),
+                            aliasToHosts.getValue().stream()
                                     .map(URI::create)
                                     .collect(Collectors.toList())))
-                    .forEach(clientAliasToHosts -> withClientIdentityRoute(clientAliasToHosts.getKey(), clientAliasToHosts.getValue()));
+                    .forEach(aliasToHosts -> withIdentityRoute(aliasToHosts.getKey(), aliasToHosts.getValue()));
             return this;
         }
 
-        private Builder withServerIdentityRoute(String serverAlias, List<URI> hosts) {
-            if (StringUtils.isBlank(serverAlias)) {
-                throw new IllegalArgumentException("serverAlias should be present");
+        private Builder withIdentityRoute(String alias, List<URI> hosts) {
+            if (StringUtils.isBlank(alias)) {
+                throw new IllegalArgumentException("alias should be present");
             }
 
             if (hosts.isEmpty()) {
-                throw new IllegalArgumentException(String.format("At least one host should be present. No host(s) found for the given alias: [%s]", serverAlias));
+                throw new IllegalArgumentException(String.format("At least one host should be present. No host(s) found for the given alias: [%s]", alias));
             }
 
             for (URI host : hosts) {
                 UriUtils.validate(host);
 
-                if (preferredServerAliasToHost.containsKey(serverAlias)) {
-                    preferredServerAliasToHost.get(serverAlias).add(host);
+                if (preferredAliasToHost.containsKey(alias)) {
+                    preferredAliasToHost.get(alias).add(host);
                 } else {
-                    preferredServerAliasToHost.put(serverAlias, new ArrayList<>(Collections.singletonList(host)));
+                    preferredAliasToHost.put(alias, new ArrayList<>(Collections.singletonList(host)));
                 }
             }
             return this;
@@ -715,8 +683,7 @@ public final class SSLFactory {
                     .withKeyManagers(identityManagers)
                     .withIdentities(identities)
                     .withSwappableKeyManager(swappableKeyManagerEnabled)
-                    .withClientAliasToHost(preferredClientAliasToHost)
-                    .withServerAliasToHost(preferredServerAliasToHost)
+                    .withAliasToHost(preferredAliasToHost)
                     .build();
         }
 
