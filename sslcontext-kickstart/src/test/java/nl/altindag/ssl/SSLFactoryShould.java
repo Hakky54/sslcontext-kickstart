@@ -1277,7 +1277,8 @@ class SSLFactoryShould {
     }
 
     @Test
-    void createMultipleRoutesForSingleClientIdentity() {
+    @Deprecated
+    void createMultipleRoutesForSingleClientIdentityToBeRemoved() {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withIdentityMaterial(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD)
                 .withIdentityMaterial(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD)
@@ -1295,7 +1296,26 @@ class SSLFactoryShould {
     }
 
     @Test
-    void createMultipleRoutesForSingleClientIdentityAndUpdateAfterCreation() {
+    void createMultipleRoutesForSingleClientIdentity() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD)
+                .withIdentityMaterial(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD)
+                .withIdentityRoute("some-client-alias", "https://localhost:8443", "https://localhost:8444")
+                .build();
+
+        assertThat(sslFactory.getKeyManager()).isPresent();
+        assertThat(KeyManagerUtils.getIdentityRoute(sslFactory.getKeyManager().get()))
+                .containsKey("some-client-alias")
+                .containsValue(Arrays.asList("https://localhost:8443", "https://localhost:8444"));
+
+        assertThat(((CompositeX509ExtendedKeyManager)sslFactory.getKeyManager().get()).getPreferredClientAliasToHosts())
+                .containsKey("some-client-alias")
+                .containsValue(Arrays.asList(URI.create("https://localhost:8443"), URI.create("https://localhost:8444")));
+    }
+
+    @Test
+    @Deprecated
+    void createMultipleRoutesForSingleClientIdentityAndUpdateAfterCreationToBeRemoved() {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withIdentityMaterial(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD)
                 .withIdentityMaterial(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD)
@@ -1311,6 +1331,27 @@ class SSLFactoryShould {
         KeyManagerUtils.addClientIdentityRoute(sslFactory.getKeyManager().get(), "some-client-alias", "https://localhost:8445");
 
         assertThat(KeyManagerUtils.getClientIdentityRoute(sslFactory.getKeyManager().get()))
+                .containsKey("some-client-alias")
+                .containsValue(Arrays.asList("https://localhost:8443", "https://localhost:8444", "https://localhost:8445"));
+    }
+
+    @Test
+    void createMultipleRoutesForSingleClientIdentityAndUpdateAfterCreation() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD)
+                .withIdentityMaterial(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD)
+                .withIdentityRoute("some-client-alias", "https://localhost:8443", "https://localhost:8444")
+                .build();
+
+        assertThat(sslFactory.getKeyManager()).isPresent();
+        assertThat(KeyManagerUtils.getIdentityRoute(sslFactory.getKeyManager().get()))
+                .containsKey("some-client-alias")
+                .containsValue(Arrays.asList("https://localhost:8443", "https://localhost:8444"))
+                .doesNotContainValue(Collections.singletonList("https://localhost:8445"));
+
+        KeyManagerUtils.addIdentityRoute(sslFactory.getKeyManager().get(), "some-client-alias", "https://localhost:8445");
+
+        assertThat(KeyManagerUtils.getIdentityRoute(sslFactory.getKeyManager().get()))
                 .containsKey("some-client-alias")
                 .containsValue(Arrays.asList("https://localhost:8443", "https://localhost:8444", "https://localhost:8445"));
     }

@@ -154,7 +154,7 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
 
     private Optional<String> getPreferredClientAlias(String peerHost, int peerPort) {
         return preferredAliasToHost.entrySet().stream()
-                .filter(entry -> entry.getValue().stream().anyMatch(uri -> uri.getHost().equals(peerHost)))
+                .filter(entry -> entry.getValue().stream().anyMatch(uri -> uri.getHost().contains(peerHost)))
                 .filter(entry -> entry.getValue().stream().anyMatch(uri -> uri.getPort() == peerPort))
                 .findFirst()
                 .map(Map.Entry::getKey);
@@ -166,7 +166,7 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
      */
     @Override
     public String chooseServerAlias(String keyType, Principal[] issuers, Socket socket) {
-        Optional<String> preferredAlias = getPreferredServerAlias(socket);
+        Optional<String> preferredAlias = getPreferredServerAlias(socket, SSLSocket.class::isInstance, aSocket -> ((SSLSocket) aSocket).getHandshakeSession());
 
         if (preferredAlias.isPresent()) {
             return extractInnerField(
@@ -184,7 +184,7 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
      */
     @Override
     public String chooseEngineServerAlias(String keyType, Principal[] issuers, SSLEngine sslEngine) {
-        Optional<String> preferredAlias = getPreferredServerAlias(sslEngine);
+        Optional<String> preferredAlias = getPreferredServerAlias(sslEngine, Objects::nonNull, SSLEngine::getHandshakeSession);
 
         if (preferredAlias.isPresent()) {
             return extractInnerField(
@@ -196,17 +196,9 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
         }
     }
 
-    private Optional<String> getPreferredServerAlias(Socket socket) {
-        if (!preferredAliasToHost.isEmpty() && socket instanceof SSLSocket) {
-            return getPreferredServerAlias(((SSLSocket) socket).getHandshakeSession());
-        } else {
-            return Optional.empty();
-        }
-    }
-
-    private Optional<String> getPreferredServerAlias(SSLEngine sslEngine) {
-        if (!preferredAliasToHost.isEmpty() && sslEngine != null) {
-            return getPreferredServerAlias(sslEngine.getHandshakeSession());
+    private <T> Optional<String> getPreferredServerAlias(T object, Predicate<T> predicate, Function<T, SSLSession> sslSessionExtractor) {
+        if (!preferredAliasToHost.isEmpty() && predicate.test(object)) {
+            return getPreferredServerAlias(sslSessionExtractor.apply(object));
         } else {
             return Optional.empty();
         }
@@ -227,7 +219,7 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
 
     private Optional<String> getPreferredServerAlias(Set<String> hostnames) {
         return preferredAliasToHost.entrySet().stream()
-                .filter(entry -> entry.getValue().stream().anyMatch(uri -> hostnames.contains(uri.getHost())))
+                .filter(entry -> entry.getValue().stream().anyMatch(uri -> hostnames.stream().anyMatch(hostname -> uri.getHost().contains(hostname))))
                 .findFirst()
                 .map(Map.Entry::getKey);
     }

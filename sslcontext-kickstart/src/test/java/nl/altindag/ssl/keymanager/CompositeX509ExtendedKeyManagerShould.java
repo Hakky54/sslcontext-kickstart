@@ -22,7 +22,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import javax.net.ssl.ExtendedSSLSession;
+import javax.net.ssl.SNIServerName;
 import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLSocket;
 import javax.net.ssl.X509ExtendedKeyManager;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -228,6 +231,35 @@ class CompositeX509ExtendedKeyManagerShould {
     }
 
     @Test
+    void chooseFirstServerAliasWithMatchingKeyTypeWithPreferredAlias() throws KeyStoreException {
+        KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
+
+        CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
+                Arrays.asList(keyManagerOne, keyManagerTwo), Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://another-server.com:443/")))
+        );
+
+        SSLSocket socket = mock(SSLSocket.class);
+        ExtendedSSLSession sslSession = mock(ExtendedSSLSession.class);
+        when(socket.getHandshakeSession()).thenReturn(sslSession);
+
+        SNIServerName sniServerName = mock(SNIServerName.class);
+        when(sslSession.getRequestedServerNames()).thenReturn(Collections.singletonList(sniServerName));
+        when(sniServerName.getEncoded()).thenReturn("another-server".getBytes());
+
+        String alias = keyManager.chooseServerAlias("RSA", null, socket);
+
+        assertThat(keyManager).isNotNull();
+        assertThat(keyManager.size()).isEqualTo(2);
+        assertThat(identityOne.size()).isEqualTo(1);
+        assertThat(identityTwo.size()).isEqualTo(1);
+        assertThat(alias).isEqualTo("another-server");
+    }
+
+    @Test
     void chooseFirstEngineServerAliasWithMatchingKeyType() throws KeyStoreException {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
@@ -246,6 +278,35 @@ class CompositeX509ExtendedKeyManagerShould {
         assertThat(identityOne.size()).isEqualTo(1);
         assertThat(identityTwo.size()).isEqualTo(1);
         assertThat(alias).isEqualTo("dummy-client");
+    }
+
+    @Test
+    void chooseFirstEngineServerAliasWithMatchingKeyTypeWithPreferredAlias() throws KeyStoreException {
+        KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
+
+        CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
+                Arrays.asList(keyManagerOne, keyManagerTwo), Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://another-server.com:443/")))
+        );
+
+        SSLEngine sslEngine = mock(SSLEngine.class);
+        ExtendedSSLSession sslSession = mock(ExtendedSSLSession.class);
+        when(sslEngine.getHandshakeSession()).thenReturn(sslSession);
+
+        SNIServerName sniServerName = mock(SNIServerName.class);
+        when(sslSession.getRequestedServerNames()).thenReturn(Collections.singletonList(sniServerName));
+        when(sniServerName.getEncoded()).thenReturn("another-server".getBytes());
+
+        String alias = keyManager.chooseEngineServerAlias("RSA", null, sslEngine);
+
+        assertThat(keyManager).isNotNull();
+        assertThat(keyManager.size()).isEqualTo(2);
+        assertThat(identityOne.size()).isEqualTo(1);
+        assertThat(identityTwo.size()).isEqualTo(1);
+        assertThat(alias).isEqualTo("another-server");
     }
 
     @Test
@@ -363,15 +424,15 @@ class CompositeX509ExtendedKeyManagerShould {
 
         CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
                 Arrays.asList(keyManagerOne, keyManagerTwo),
-                Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://localhost:8443/")))
+                Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://another-server.com:443/")))
         );
 
         Socket socket = mock(Socket.class);
         InetSocketAddress socketAddress = mock(InetSocketAddress.class);
 
         when(socket.getRemoteSocketAddress()).thenReturn(socketAddress);
-        when(socketAddress.getPort()).thenReturn(8443);
-        when(socketAddress.getHostName()).thenReturn("localhost");
+        when(socketAddress.getPort()).thenReturn(443);
+        when(socketAddress.getHostName()).thenReturn("another-server");
 
         String alias = keyManager.chooseClientAlias(new String[]{"RSA"}, null, socket);
 
@@ -392,7 +453,7 @@ class CompositeX509ExtendedKeyManagerShould {
 
         CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
                 Arrays.asList(keyManagerOne, keyManagerTwo),
-                Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://localhost:8443/")))
+                Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://another-server.com:443/")))
         );
 
         Socket socket = mock(Socket.class);
@@ -418,7 +479,7 @@ class CompositeX509ExtendedKeyManagerShould {
 
         CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
                 Arrays.asList(keyManagerOne, keyManagerTwo),
-                Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://localhost:8443/")))
+                Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://another-server.com:443/")))
         );
 
         String alias = keyManager.chooseClientAlias(new String[]{"RSA"}, null, null);
@@ -461,12 +522,12 @@ class CompositeX509ExtendedKeyManagerShould {
 
         CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
                 Arrays.asList(keyManagerOne, keyManagerTwo),
-                Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://localhost:8443/")))
+                Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://another-server.com:443/")))
         );
 
         SSLEngine sslEngine = mock(SSLEngine.class);
-        when(sslEngine.getPeerPort()).thenReturn(8443);
-        when(sslEngine.getPeerHost()).thenReturn("localhost");
+        when(sslEngine.getPeerPort()).thenReturn(443);
+        when(sslEngine.getPeerHost()).thenReturn("another-server");
 
         String alias = keyManager.chooseEngineClientAlias(new String[]{"RSA"}, null, sslEngine);
 
@@ -487,7 +548,7 @@ class CompositeX509ExtendedKeyManagerShould {
 
         CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
                 Arrays.asList(keyManagerOne, keyManagerTwo),
-                Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://localhost:8443/")))
+                Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://another-server.com:443/")))
         );
 
         String alias = keyManager.chooseEngineClientAlias(new String[]{"RSA"}, null, null);
