@@ -185,11 +185,15 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
 
         return getPreferredServerAlias(object, predicate, sslSessionExtractor)
                 .map(preferredAlias -> extractInnerField(aliasExtractor, NON_NULL.and(preferredAlias::equals)))
-                .orElse(extractInnerField(aliasExtractor, NON_NULL));
+                .orElseGet(() -> extractInnerField(aliasExtractor, NON_NULL));
     }
 
     private <T> Optional<String> getPreferredServerAlias(T object, Predicate<T> predicate, Function<T, SSLSession> sslSessionExtractor) {
-        if (!preferredAliasToHost.isEmpty() && predicate.test(object)) {
+        if (preferredAliasToHost.isEmpty()) {
+            return Optional.empty();
+        }
+
+        if (predicate.test(object)) {
             SSLSession sslSession = sslSessionExtractor.apply(object);
             if (sslSession instanceof ExtendedSSLSession) {
                 List<SNIServerName> requestedServerNames = ((ExtendedSSLSession) sslSession).getRequestedServerNames();
