@@ -470,6 +470,34 @@ class CompositeX509ExtendedKeyManagerShould {
     }
 
     @Test
+    void chooseFirstClientAliasWithMatchingKeyTypWhilePreferredAliasIsIgnoredBecausePortIsNotMatching() throws KeyStoreException {
+        KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
+
+        CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
+                Arrays.asList(keyManagerOne, keyManagerTwo),
+                Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://another-server.com:443/")))
+        );
+
+        Socket socket = mock(Socket.class);
+        InetSocketAddress socketAddress = mock(InetSocketAddress.class);
+        when(socket.getRemoteSocketAddress()).thenReturn(socketAddress);
+        when(socketAddress.getHostName()).thenReturn("another-server");
+        when(socketAddress.getPort()).thenReturn(1234);
+
+        String alias = keyManager.chooseClientAlias(new String[]{"RSA"}, null, socket);
+
+        assertThat(keyManager).isNotNull();
+        assertThat(keyManager.size()).isEqualTo(2);
+        assertThat(identityOne.size()).isEqualTo(1);
+        assertThat(identityTwo.size()).isEqualTo(1);
+        assertThat(alias).isEqualTo("dummy-client");
+    }
+
+    @Test
     void chooseFirstClientAliasWithMatchingKeyTypeWhilePreferredAliasIsIgnoredBecauseSocketIsNull() throws KeyStoreException {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
