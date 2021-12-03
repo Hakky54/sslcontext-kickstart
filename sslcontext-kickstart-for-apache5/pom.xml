@@ -5,11 +5,11 @@
     <parent>
         <artifactId>sslcontext-kickstart-parent</artifactId>
         <groupId>io.github.hakky54</groupId>
-        <version>7.0.4-SNAPSHOT</version>
+        <version>7.1.0</version>
     </parent>
 
     <artifactId>sslcontext-kickstart-for-apache5</artifactId>
-    <version>7.0.4-SNAPSHOT</version>
+    <version>7.1.0</version>
     <packaging>jar</packaging>
 
     <name>${project.artifactId}</name>
@@ -37,7 +37,7 @@
     </developers>
 
     <properties>
-        <version.sslcontext-kickstart>7.0.4-SNAPSHOT</version.sslcontext-kickstart>
+        <version.sslcontext-kickstart>7.1.0</version.sslcontext-kickstart>
         <version.httpcomponents.httpclient5>5.1.2</version.httpcomponents.httpclient5>
     </properties>
 
