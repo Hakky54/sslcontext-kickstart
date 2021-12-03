@@ -62,14 +62,15 @@ import java.util.stream.Collectors;
  * while it has a stable API because it is part of the public API.
  * </p>
  *
- * @author Cody Ray
- * @author Hakan Altinda
  * @see <a href="http://stackoverflow.com/questions/1793979/registering-multiple-keystores-in-jvm">
- * http://stackoverflow.com/questions/1793979/registering-multiple-keystores-in-jvm
- * </a>
+ *     http://stackoverflow.com/questions/1793979/registering-multiple-keystores-in-jvm
+ *     </a>
  * @see <a href="http://codyaray.com/2013/04/java-ssl-with-multiple-keystores">
- * http://codyaray.com/2013/04/java-ssl-with-multiple-keystores
- * </a>
+ *     http://codyaray.com/2013/04/java-ssl-with-multiple-keystores
+ *     </a>
+ *
+ * @author Cody Ray
+ * @author Hakan Altindag
  */
 public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManager {
 
