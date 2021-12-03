@@ -28,6 +28,7 @@ import java.net.URI;
 import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
+import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -42,7 +43,7 @@ import java.util.stream.Collectors;
 
 /**
  * Represents an ordered list of {@link X509ExtendedKeyManager} with most-preferred managers first.
- *
+ * <p>
  * This is necessary because of the fine-print on {@link javax.net.ssl.SSLContext#init}:
  * Only the first instance of a particular key and/or key manager implementation type in the
  * array is used. (For example, only the first javax.net.ssl.X509KeyManager in the array will be used.)
@@ -61,15 +62,14 @@ import java.util.stream.Collectors;
  * while it has a stable API because it is part of the public API.
  * </p>
  *
- * @see <a href="http://stackoverflow.com/questions/1793979/registering-multiple-keystores-in-jvm">
- *     http://stackoverflow.com/questions/1793979/registering-multiple-keystores-in-jvm
- *     </a>
- * @see <a href="http://codyaray.com/2013/04/java-ssl-with-multiple-keystores">
- *     http://codyaray.com/2013/04/java-ssl-with-multiple-keystores
- *     </a>
- *
  * @author Cody Ray
  * @author Hakan Altinda
+ * @see <a href="http://stackoverflow.com/questions/1793979/registering-multiple-keystores-in-jvm">
+ * http://stackoverflow.com/questions/1793979/registering-multiple-keystores-in-jvm
+ * </a>
+ * @see <a href="http://codyaray.com/2013/04/java-ssl-with-multiple-keystores">
+ * http://codyaray.com/2013/04/java-ssl-with-multiple-keystores
+ * </a>
  */
 public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManager {
 
@@ -90,7 +90,7 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
     /**
      * Creates a new {@link CompositeX509ExtendedKeyManager}.
      *
-     * @param keyManagers                the {@link X509ExtendedKeyManager}, ordered with the most-preferred managers first.
+     * @param keyManagers          the {@link X509ExtendedKeyManager}, ordered with the most-preferred managers first.
      * @param preferredAliasToHost the preferred client alias to be used for the given host
      */
     public CompositeX509ExtendedKeyManager(List<? extends X509ExtendedKeyManager> keyManagers,
@@ -105,16 +105,15 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
      */
     @Override
     public String chooseClientAlias(String[] keyType, Principal[] issuers, Socket socket) {
-        Optional<String> preferredAlias = getPreferredClientAlias(socket);
-
-        if (preferredAlias.isPresent()) {
-            return extractInnerField(
-                    keyManager -> keyManager.chooseClientAlias(keyType, issuers, socket),
-                    NON_NULL.and(alias -> preferredAlias.get().equals(alias))
-            );
-        } else {
-            return extractInnerField(keyManager -> keyManager.chooseClientAlias(keyType, issuers, socket), NON_NULL);
-        }
+        return chooseClientAlias(
+                socket,
+                aSocket -> aSocket != null && aSocket.getRemoteSocketAddress() instanceof InetSocketAddress,
+                aSocket -> {
+                    InetSocketAddress socketAddress = (InetSocketAddress) aSocket.getRemoteSocketAddress();
+                    return new SimpleImmutableEntry<>(socketAddress.getHostName(), socketAddress.getPort());
+                },
+                keyManager -> keyManager.chooseClientAlias(keyType, issuers, socket)
+        );
     }
 
     /**
@@ -123,33 +122,35 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
      */
     @Override
     public String chooseEngineClientAlias(String[] keyTypes, Principal[] issuers, SSLEngine sslEngine) {
-        Optional<String> preferredAlias = getPreferredClientAlias(sslEngine);
-
-        if (preferredAlias.isPresent()) {
-            return extractInnerField(
-                    keyManager -> keyManager.chooseEngineClientAlias(keyTypes, issuers, sslEngine),
-                    NON_NULL.and(alias -> preferredAlias.get().equals(alias))
-            );
-        } else {
-            return extractInnerField(keyManager -> keyManager.chooseEngineClientAlias(keyTypes, issuers, sslEngine), NON_NULL);
-        }
+        return chooseClientAlias(
+                sslEngine,
+                Objects::nonNull,
+                aSslEngine -> new SimpleImmutableEntry<>(aSslEngine.getPeerHost(), aSslEngine.getPeerPort()),
+                keyManager -> keyManager.chooseEngineClientAlias(keyTypes, issuers, sslEngine)
+        );
     }
 
-    private Optional<String> getPreferredClientAlias(Socket socket) {
-        if (!preferredAliasToHost.isEmpty() && socket != null && socket.getRemoteSocketAddress() instanceof InetSocketAddress) {
-            InetSocketAddress address = (InetSocketAddress) socket.getRemoteSocketAddress();
-            return getPreferredClientAlias(address.getHostName(), address.getPort());
-        } else {
-            return Optional.empty();
-        }
+    private <T> String chooseClientAlias(T object,
+                                         Predicate<T> predicate,
+                                         Function<T, SimpleImmutableEntry<String, Integer>> hostToPortExtractor,
+                                         Function<X509ExtendedKeyManager, String> aliasExtractor) {
+
+        return getPreferredClientAlias(object, predicate, hostToPortExtractor)
+                .map(preferredAlias -> extractInnerField(aliasExtractor, NON_NULL.and(preferredAlias::equals)))
+                .orElseGet(() -> extractInnerField(aliasExtractor, NON_NULL));
     }
 
-    private Optional<String> getPreferredClientAlias(SSLEngine sslEngine) {
-        if (!preferredAliasToHost.isEmpty() && sslEngine != null) {
-            return getPreferredClientAlias(sslEngine.getPeerHost(), sslEngine.getPeerPort());
-        } else {
+    private <T> Optional<String> getPreferredClientAlias(T object, Predicate<T> predicate, Function<T, SimpleImmutableEntry<String, Integer>> hostToPortExtractor) {
+        if (preferredAliasToHost.isEmpty()) {
             return Optional.empty();
         }
+
+        if (predicate.test(object)) {
+            SimpleImmutableEntry<String, Integer> hostToPort = hostToPortExtractor.apply(object);
+            return getPreferredClientAlias(hostToPort.getKey(), hostToPort.getValue());
+        }
+
+        return Optional.empty();
     }
 
     private Optional<String> getPreferredClientAlias(String peerHost, int peerPort) {
@@ -166,7 +167,12 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
      */
     @Override
     public String chooseServerAlias(String keyType, Principal[] issuers, Socket socket) {
-        return chooseServerAlias(socket, SSLSocket.class::isInstance, aSocket -> ((SSLSocket) aSocket).getHandshakeSession(), keyManager -> keyManager.chooseServerAlias(keyType, issuers, socket));
+        return chooseServerAlias(
+                socket,
+                SSLSocket.class::isInstance,
+                aSocket -> ((SSLSocket) aSocket).getHandshakeSession(),
+                keyManager -> keyManager.chooseServerAlias(keyType, issuers, socket)
+        );
     }
 
     /**
@@ -175,7 +181,12 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
      */
     @Override
     public String chooseEngineServerAlias(String keyType, Principal[] issuers, SSLEngine sslEngine) {
-        return chooseServerAlias(sslEngine, Objects::nonNull, SSLEngine::getHandshakeSession, keyManager -> keyManager.chooseEngineServerAlias(keyType, issuers, sslEngine));
+        return chooseServerAlias(
+                sslEngine,
+                Objects::nonNull,
+                SSLEngine::getHandshakeSession,
+                keyManager -> keyManager.chooseEngineServerAlias(keyType, issuers, sslEngine)
+        );
     }
 
     private <T> String chooseServerAlias(T object,
