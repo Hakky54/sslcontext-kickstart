@@ -166,16 +166,7 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
      */
     @Override
     public String chooseServerAlias(String keyType, Principal[] issuers, Socket socket) {
-        Optional<String> preferredAlias = getPreferredServerAlias(socket, SSLSocket.class::isInstance, aSocket -> ((SSLSocket) aSocket).getHandshakeSession());
-
-        if (preferredAlias.isPresent()) {
-            return extractInnerField(
-                    keyManager -> keyManager.chooseServerAlias(keyType, issuers, socket),
-                    NON_NULL.and(alias -> preferredAlias.get().equals(alias))
-            );
-        } else {
-            return extractInnerField(keyManager -> keyManager.chooseServerAlias(keyType, issuers, socket), NON_NULL);
-        }
+        return chooseServerAlias(socket, SSLSocket.class::isInstance, aSocket -> ((SSLSocket) aSocket).getHandshakeSession(), keyManager -> keyManager.chooseServerAlias(keyType, issuers, socket));
     }
 
     /**
@@ -184,16 +175,17 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
      */
     @Override
     public String chooseEngineServerAlias(String keyType, Principal[] issuers, SSLEngine sslEngine) {
-        Optional<String> preferredAlias = getPreferredServerAlias(sslEngine, Objects::nonNull, SSLEngine::getHandshakeSession);
+        return chooseServerAlias(sslEngine, Objects::nonNull, SSLEngine::getHandshakeSession, keyManager -> keyManager.chooseEngineServerAlias(keyType, issuers, sslEngine));
+    }
 
-        if (preferredAlias.isPresent()) {
-            return extractInnerField(
-                    keyManager -> keyManager.chooseEngineServerAlias(keyType, issuers, sslEngine),
-                    NON_NULL.and(alias -> preferredAlias.get().equals(alias))
-            );
-        } else {
-            return extractInnerField(keyManager -> keyManager.chooseEngineServerAlias(keyType, issuers, sslEngine), NON_NULL);
-        }
+    private <T> String chooseServerAlias(T object,
+                                         Predicate<T> predicate,
+                                         Function<T, SSLSession> sslSessionExtractor,
+                                         Function<X509ExtendedKeyManager, String> aliasExtractor) {
+
+        return getPreferredServerAlias(object, predicate, sslSessionExtractor)
+                .map(preferredAlias -> extractInnerField(aliasExtractor, NON_NULL.and(preferredAlias::equals)))
+                .orElse(extractInnerField(aliasExtractor, NON_NULL));
     }
 
     private <T> Optional<String> getPreferredServerAlias(T object, Predicate<T> predicate, Function<T, SSLSession> sslSessionExtractor) {
