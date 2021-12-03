@@ -190,23 +190,18 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
 
     private <T> Optional<String> getPreferredServerAlias(T object, Predicate<T> predicate, Function<T, SSLSession> sslSessionExtractor) {
         if (!preferredAliasToHost.isEmpty() && predicate.test(object)) {
-            return getPreferredServerAlias(sslSessionExtractor.apply(object));
-        } else {
-            return Optional.empty();
-        }
-    }
+            SSLSession sslSession = sslSessionExtractor.apply(object);
+            if (sslSession instanceof ExtendedSSLSession) {
+                List<SNIServerName> requestedServerNames = ((ExtendedSSLSession) sslSession).getRequestedServerNames();
+                Set<String> hostnames = requestedServerNames.stream()
+                        .map(sniServerName -> new String(sniServerName.getEncoded()))
+                        .collect(Collectors.toSet());
 
-    private Optional<String> getPreferredServerAlias(SSLSession sslSession) {
-        if (!preferredAliasToHost.isEmpty() && sslSession instanceof ExtendedSSLSession) {
-            List<SNIServerName> requestedServerNames = ((ExtendedSSLSession) sslSession).getRequestedServerNames();
-            Set<String> hostnames = requestedServerNames.stream()
-                    .map(sniServerName -> new String(sniServerName.getEncoded()))
-                    .collect(Collectors.toSet());
-
-            return getPreferredServerAlias(hostnames);
-        } else {
-            return Optional.empty();
+                return getPreferredServerAlias(hostnames);
+            }
         }
+
+        return Optional.empty();
     }
 
     private Optional<String> getPreferredServerAlias(Set<String> hostnames) {
