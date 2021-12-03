@@ -202,26 +202,36 @@ public final class KeyManagerUtils {
         }
     }
 
+    @Deprecated
     public static void addClientIdentityRoute(X509ExtendedKeyManager keyManager, String clientAlias, String... hosts) {
-        addClientIdentityRoute(keyManager, clientAlias, hosts, false);
+        addIdentityRoute(keyManager, clientAlias, hosts, false);
     }
 
+    @Deprecated
     public static void overrideClientIdentityRoute(X509ExtendedKeyManager keyManager, String clientAlias, String... hosts) {
-        addClientIdentityRoute(keyManager, clientAlias, hosts, true);
+        addIdentityRoute(keyManager, clientAlias, hosts, true);
     }
 
-    private static void addClientIdentityRoute(X509ExtendedKeyManager keyManager,
-                                               String clientAlias,
-                                               String[] hosts,
-                                               boolean overrideExistingRouteEnabled) {
+    public static void addIdentityRoute(X509ExtendedKeyManager keyManager, String alias, String... hosts) {
+        addIdentityRoute(keyManager, alias, hosts, false);
+    }
+
+    public static void overrideIdentityRoute(X509ExtendedKeyManager keyManager, String alias, String... hosts) {
+        addIdentityRoute(keyManager, alias, hosts, true);
+    }
+
+    private static void addIdentityRoute(X509ExtendedKeyManager keyManager,
+                                         String alias,
+                                         String[] hosts,
+                                         boolean overrideExistingRouteEnabled) {
 
         requireNotNull(keyManager, GENERIC_EXCEPTION_MESSAGE.apply("KeyManager"));
-        requireNotNull(clientAlias, GENERIC_EXCEPTION_MESSAGE.apply("Client Alias"));
+        requireNotNull(alias, GENERIC_EXCEPTION_MESSAGE.apply("Alias"));
         requireNotNull(keyManager, GENERIC_EXCEPTION_MESSAGE.apply("Host"));
 
         if (keyManager instanceof CompositeX509ExtendedKeyManager) {
             CompositeX509ExtendedKeyManager compositeX509ExtendedKeyManager = (CompositeX509ExtendedKeyManager) keyManager;
-            Map<String, List<URI>> clientAliasToHosts = compositeX509ExtendedKeyManager.getPreferredClientAliasToHosts();
+            Map<String, List<URI>> aliasToHosts = compositeX509ExtendedKeyManager.getPreferredAliasToHosts();
 
             List<URI> uris = new ArrayList<>();
             for (String host : hosts) {
@@ -230,15 +240,15 @@ public final class KeyManagerUtils {
                 uris.add(uri);
             }
 
-            if (overrideExistingRouteEnabled && clientAliasToHosts.containsKey(clientAlias)) {
-                clientAliasToHosts.get(clientAlias).clear();
+            if (overrideExistingRouteEnabled && aliasToHosts.containsKey(alias)) {
+                aliasToHosts.get(alias).clear();
             }
 
             for (URI uri : uris) {
-                if (clientAliasToHosts.containsKey(clientAlias)) {
-                    clientAliasToHosts.get(clientAlias).add(uri);
+                if (aliasToHosts.containsKey(alias)) {
+                    aliasToHosts.get(alias).add(uri);
                 } else {
-                    clientAliasToHosts.put(clientAlias, new ArrayList<>(Collections.singleton(uri)));
+                    aliasToHosts.put(alias, new ArrayList<>(Collections.singleton(uri)));
                 }
             }
         } else {
@@ -249,12 +259,17 @@ public final class KeyManagerUtils {
         }
     }
 
+    @Deprecated
     public static Map<String, List<String>> getClientIdentityRoute(X509ExtendedKeyManager keyManager) {
+        return getIdentityRoute(keyManager);
+    }
+
+    public static Map<String, List<String>> getIdentityRoute(X509ExtendedKeyManager keyManager) {
         requireNotNull(keyManager, GENERIC_EXCEPTION_MESSAGE.apply("KeyManager"));
 
         if (keyManager instanceof CompositeX509ExtendedKeyManager) {
             return ((CompositeX509ExtendedKeyManager) keyManager)
-                    .getPreferredClientAliasToHosts()
+                    .getPreferredAliasToHosts()
                     .entrySet().stream()
                     .collect(Collectors.collectingAndThen(
                             Collectors.toMap(
@@ -294,7 +309,7 @@ public final class KeyManagerUtils {
         private static final String EMPTY_KEY_MANAGER_EXCEPTION = "Input does not contain KeyManagers";
 
         private final List<X509ExtendedKeyManager> keyManagers = new ArrayList<>();
-        private final Map<String, List<URI>> clientAliasToHost = new HashMap<>();
+        private final Map<String, List<URI>> aliasToHost = new HashMap<>();
         private boolean swappableKeyManagerEnabled = false;
 
         private KeyManagerBuilder() {}
@@ -339,8 +354,13 @@ public final class KeyManagerUtils {
             return this;
         }
 
+        @Deprecated
         public KeyManagerBuilder withClientAliasToHost(Map<String, List<URI>> clientAliasToHost) {
-            this.clientAliasToHost.putAll(clientAliasToHost);
+            return withAliasToHost(clientAliasToHost);
+        }
+
+        public KeyManagerBuilder withAliasToHost(Map<String, List<URI>> serverAliasToHost) {
+            this.aliasToHost.putAll(serverAliasToHost);
             return this;
         }
 
@@ -358,7 +378,7 @@ public final class KeyManagerUtils {
                         .flatMap(Collection::stream)
                         .collect(Collectors.collectingAndThen(
                                 Collectors.toList(),
-                                extendedKeyManagers -> new CompositeX509ExtendedKeyManager(extendedKeyManagers, clientAliasToHost)
+                                extendedKeyManagers -> new CompositeX509ExtendedKeyManager(extendedKeyManagers, aliasToHost)
                         ));
             }
 

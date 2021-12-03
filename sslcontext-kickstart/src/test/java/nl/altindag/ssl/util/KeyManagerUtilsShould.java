@@ -27,6 +27,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509KeyManager;
+import java.net.URI;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.Provider;
@@ -274,7 +275,8 @@ class KeyManagerUtilsShould {
     }
 
     @Test
-    void addMultipleClientIdentityRoutes() {
+    @Deprecated
+    void addMultipleClientIdentityRoutesToBeRemoved() {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
@@ -292,7 +294,27 @@ class KeyManagerUtilsShould {
     }
 
     @Test
-    void overrideClientIdentityRoutes() {
+    @Deprecated
+    void addMultipleClientIdentityRoutes() {
+        KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager keyManager = KeyManagerUtils.combine(keyManagerOne, keyManagerTwo);
+        KeyManagerUtils.addIdentityRoute(keyManager, "client","https://localhost:8443/");
+        KeyManagerUtils.addIdentityRoute(keyManager, "client","https://localhost:8453/");
+        Map<String, List<String>> identityRoute = KeyManagerUtils.getClientIdentityRoute(keyManager);
+
+        assertThat(identityRoute)
+                .containsKey("client")
+                .containsValue(Arrays.asList("https://localhost:8443/", "https://localhost:8453/"));
+    }
+
+    @Test
+    @Deprecated
+    void overrideClientIdentityRoutesToBeRemoved() {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
@@ -317,6 +339,53 @@ class KeyManagerUtilsShould {
     }
 
     @Test
+    void overrideIdentityRoutes() {
+        KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager keyManager = KeyManagerUtils.combine(keyManagerOne, keyManagerTwo);
+        KeyManagerUtils.addIdentityRoute(keyManager, "client","https://localhost:8443/", "https://localhost:8453/");
+        Map<String, List<String>> identityRoute = KeyManagerUtils.getIdentityRoute(keyManager);
+
+        assertThat(identityRoute)
+                .containsKey("client")
+                .containsValue(Arrays.asList("https://localhost:8443/", "https://localhost:8453/"));
+
+        KeyManagerUtils.overrideIdentityRoute(keyManager, "client", "https://localhost:9443/", "https://localhost:9453/");
+        identityRoute = KeyManagerUtils.getIdentityRoute(keyManager);
+
+        assertThat(identityRoute)
+                .containsKey("client")
+                .doesNotContainValue(Arrays.asList("https://localhost:8443/", "https://localhost:8453/"))
+                .containsValue(Arrays.asList("https://localhost:9443/", "https://localhost:9453/"));
+    }
+
+    @Test
+    @Deprecated
+    void addClientIdentities() {
+        KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
+
+        Map<String, List<URI>> hostsToUris = new HashMap<>();
+        hostsToUris.put("client", Arrays.asList(URI.create("https://localhost:8443/"), URI.create("https://localhost:8453/")));
+
+        X509ExtendedKeyManager keyManager = KeyManagerUtils.keyManagerBuilder()
+                .withIdentity(identityOne, IDENTITY_PASSWORD, KeyManagerFactory.getDefaultAlgorithm())
+                .withIdentity(identityTwo, IDENTITY_PASSWORD, KeyManagerFactory.getDefaultAlgorithm())
+                .withClientAliasToHost(hostsToUris)
+                .build();
+
+        Map<String, List<String>> clientIdentityRoute = KeyManagerUtils.getClientIdentityRoute(keyManager);
+
+        assertThat(clientIdentityRoute)
+                .containsKey("client")
+                .containsValue(Arrays.asList("https://localhost:8443/", "https://localhost:8453/"));
+    }
+
+    @Test
     void addClientIdentityRoutesWhenTryingToOverrideANonExistingRoute() {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
@@ -326,7 +395,7 @@ class KeyManagerUtilsShould {
 
         X509ExtendedKeyManager keyManager = KeyManagerUtils.combine(keyManagerOne, keyManagerTwo);
         KeyManagerUtils.overrideClientIdentityRoute(keyManager, "client","https://localhost:8443/", "https://localhost:8453/");
-        Map<String, List<String>> clientIdentityRoute = KeyManagerUtils.getClientIdentityRoute(keyManager);
+        Map<String, List<String>> clientIdentityRoute = KeyManagerUtils.getIdentityRoute(keyManager);
 
         assertThat(clientIdentityRoute)
                 .containsKey("client")
