@@ -69,7 +69,7 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "7.0.3"
      - [Using KeyStore with multiple keys having different passwords](#support-for-using-a-single-keystore-which-contains-multiple-keys-with-different-passwords)
      - [Using custom PrivateKey and Certificates](#support-for-using-privatekey-and-certificates)
      - [Routing client identity to specific host](#routing-identity-material-to-specific-host) 
-     - [Updating client identity routes at runtime](#updating-client-identity-routes-at-runtime) 
+     - [Updating client identity routes at runtime](#updating-identity-routes-at-runtime) 
      - [Managing ssl session](#managing-ssl-session)
      - [Extracting server certificates](#extracting-server-certificates)  
      - [Using P7B or PKCS#7 files](#using-p7b-or-pkcs7-files)
@@ -310,7 +310,7 @@ SSLFactory.builder()
           .withTrustMaterial("truststore-4.jks", password)
           .build();
 ```
-In some use cases multiple identities can fail to work. If that happens please try to add the additional SSLFactory option of client identity route. See here for more: [Routing client identity to specific host](#routing-identity-material-to-specific-host)
+In some use cases multiple identities can fail to work. If that happens please try to add the additional SSLFactory option of identity route. See here for more: [Routing identity to specific host](#routing-identity-material-to-specific-host)
 
 ##### Support for using X509ExtendedKeyManager and X509ExtendedTrustManager
 ```text
@@ -388,27 +388,27 @@ SSLFactory.builder()
           .withIdentityMaterial("identity-1.jks", password)
           .withIdentityMaterial("identity-2.jks", password)
           .withTrustMaterial("truststore.jks", password)
-          .withClientIdentityRoute("client-alias-one", "https://localhost:8443/", "https://localhost:8453/")
-          .withClientIdentityRoute("client-alias-two", "https://localhost:8463/", "https://localhost:8473/")
+          .withIdentityRoute("client-alias-one", "https://localhost:8443/", "https://localhost:8453/")
+          .withIdentityRoute("client-alias-two", "https://localhost:8463/", "https://localhost:8473/")
           .build();
 ```
-##### Updating client identity routes at runtime
+##### Updating identity routes at runtime
 ```text
 SSLFactory sslFactory = SSLFactory.builder()
           .withIdentityMaterial("identity-1.jks", password)
           .withIdentityMaterial("identity-2.jks", password)
           .withTrustMaterial("truststore.jks", password)
-          .withClientIdentityRoute("client-alias-one", "https://localhost:8443/", "https://localhost:8453/")
-          .withClientIdentityRoute("client-alias-two", "https://localhost:8463/", "https://localhost:8473/")
+          .withIdentityRoute("client-alias-one", "https://localhost:8443/", "https://localhost:8453/")
+          .withIdentityRoute("client-alias-two", "https://localhost:8463/", "https://localhost:8473/")
           .build();
 
 X509ExtendedKeyManager keyManager = sslFactory.getKeyManager().get()
 
 // Add additional routes next to the existing ones
-KeyManagerUtils.addClientIdentityRoute(keyManager, "client-alias-one", "https://localhost:8463/", "https://localhost:8473/")
+KeyManagerUtils.addIdentityRoute(keyManager, "client-alias-one", "https://localhost:8463/", "https://localhost:8473/")
 
 // Override existing routes
-KeyManagerUtils.overrideClientIdentityRoute(keyManager, "client-alias-two", "https://localhost:9463/", "https://localhost:9473/")
+KeyManagerUtils.overrideIdentityRoute(keyManager, "client-alias-two", "https://localhost:9463/", "https://localhost:9473/")
 ```
 ##### Managing ssl session
 ```text
