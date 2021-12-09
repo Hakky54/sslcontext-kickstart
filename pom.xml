@@ -116,6 +116,12 @@
                 <groupId>io.github.hakky54</groupId>
                 <artifactId>logcaptor</artifactId>
                 <version>${version.logcaptor}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.apache.logging.log4j</groupId>
+                        <artifactId>log4j-to-slf4j</artifactId>
+                    </exclusion>
+                </exclusions>
                 <scope>test</scope>
             </dependency>
         </dependencies>
