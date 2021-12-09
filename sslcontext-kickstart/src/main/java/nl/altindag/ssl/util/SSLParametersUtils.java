@@ -26,9 +26,9 @@ public final class SSLParametersUtils {
         SSLParameters target = new SSLParameters();
 
         String[] ciphers = Optional.ofNullable(baseSslParameters.getCipherSuites())
-                .orElse(alternativeSslParameters.getCipherSuites());
+                .orElseGet(alternativeSslParameters::getCipherSuites);
         String[] protocols = Optional.ofNullable(baseSslParameters.getProtocols())
-                .orElse(alternativeSslParameters.getProtocols());
+                .orElseGet(alternativeSslParameters::getProtocols);
 
         target.setCipherSuites(ciphers);
         target.setProtocols(protocols);

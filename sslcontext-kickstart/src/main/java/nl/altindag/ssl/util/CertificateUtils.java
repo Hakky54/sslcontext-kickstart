@@ -222,7 +222,7 @@ public final class CertificateUtils {
                 .map(X509TrustManager::getAcceptedIssuers)
                 .map(Arrays::asList)
                 .map(Collections::unmodifiableList)
-                .orElse(Collections.emptyList());
+                .orElseGet(Collections::emptyList);
     }
 
     public static Map<String, List<String>> getCertificateAsPem(String... urls) {

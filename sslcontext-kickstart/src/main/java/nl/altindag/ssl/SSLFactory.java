@@ -119,7 +119,7 @@ public final class SSLFactory {
                 .map(X509ExtendedTrustManager::getAcceptedIssuers)
                 .map(Arrays::asList)
                 .map(Collections::unmodifiableList)
-                .orElse(Collections.emptyList());
+                .orElseGet(Collections::emptyList);
     }
 
     public HostnameVerifier getHostnameVerifier() {
