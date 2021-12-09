@@ -110,8 +110,8 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
                 socket,
                 aSocket -> aSocket != null && aSocket.getRemoteSocketAddress() instanceof InetSocketAddress,
                 aSocket -> {
-                    InetSocketAddress socketAddress = (InetSocketAddress) aSocket.getRemoteSocketAddress();
-                    return new SimpleImmutableEntry<>(socketAddress.getHostName(), socketAddress.getPort());
+                    InetSocketAddress address = (InetSocketAddress) aSocket.getRemoteSocketAddress();
+                    return new SimpleImmutableEntry<>(address.getHostName(), address.getPort());
                 },
                 keyManager -> keyManager.chooseClientAlias(keyType, issuers, socket)
         );
@@ -136,9 +136,12 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
                                          Function<T, SimpleImmutableEntry<String, Integer>> hostToPortExtractor,
                                          Function<X509ExtendedKeyManager, String> aliasExtractor) {
 
-        return getPreferredClientAlias(object, predicate, hostToPortExtractor)
-                .map(preferredAlias -> extractInnerField(aliasExtractor, NON_NULL.and(preferredAlias::equals)))
-                .orElseGet(() -> extractInnerField(aliasExtractor, NON_NULL));
+        Optional<String> preferredClientAlias = getPreferredClientAlias(object, predicate, hostToPortExtractor);
+        if (preferredClientAlias.isPresent()) {
+            return extractInnerField(aliasExtractor, NON_NULL.and(alias -> preferredClientAlias.get().equals(alias)));
+        } else {
+            return extractInnerField(aliasExtractor, NON_NULL);
+        }
     }
 
     private <T> Optional<String> getPreferredClientAlias(T object, Predicate<T> predicate, Function<T, SimpleImmutableEntry<String, Integer>> hostToPortExtractor) {
