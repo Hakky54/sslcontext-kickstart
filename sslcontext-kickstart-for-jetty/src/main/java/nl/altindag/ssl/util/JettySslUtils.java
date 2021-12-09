@@ -29,13 +29,13 @@ public final class JettySslUtils {
     private JettySslUtils() {}
 
     /**
-     * Creates a basic {@link SslContextFactory.Client Client SslContextFactory}
+     * Creates a basic {@link SslContextFactory Client SslContextFactory}
      * with the available properties from {@link SSLFactory}.
      *
      * The returned object can be enriched with additional configuration for your needs
      *
      * @param sslFactory {@link SSLFactory}
-     * @return {@link SslContextFactory.Client}
+     * @return {@link SslContextFactory}
      */
     public static SslContextFactory.Client forClient(SSLFactory sslFactory) {
         SslContextFactory.Client sslContextFactory = createSslContextFactory(sslFactory, new SslContextFactory.Client());
@@ -44,13 +44,13 @@ public final class JettySslUtils {
     }
 
     /**
-     * Creates a basic {@link SslContextFactory.Server Server SslContextFactory}
+     * Creates a basic {@link SslContextFactory Server SslContextFactory}
      * with the available properties from {@link SSLFactory}.
      *
      * The returned object can be enriched with additional configuration for your needs
      *
      * @param sslFactory {@link SSLFactory}
-     * @return {@link SslContextFactory.Server}
+     * @return {@link SslContextFactory}
      */
     public static SslContextFactory.Server forServer(SSLFactory sslFactory) {
         SslContextFactory.Server sslContextFactory = createSslContextFactory(sslFactory, new SslContextFactory.Server());
