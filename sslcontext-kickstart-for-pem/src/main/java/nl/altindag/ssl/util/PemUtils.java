@@ -426,6 +426,7 @@ public final class PemUtils {
 
     private static Optional<PrivateKeyInfo> extractPrivateKeyInfo(Object object, char[] keyPassword) throws IOException, OperatorCreationException, PKCSException {
         PrivateKeyInfo privateKeyInfo = null;
+
         if (object instanceof PrivateKeyInfo) {
             privateKeyInfo = (PrivateKeyInfo) object;
         } else if (object instanceof PKCS8EncryptedPrivateKeyInfo) {
@@ -440,6 +441,7 @@ public final class PemUtils {
                     .andThen(PEMKeyPair::getPrivateKeyInfo)
                     .apply(keyPassword);
         }
+
         return Optional.ofNullable(privateKeyInfo);
     }
 
