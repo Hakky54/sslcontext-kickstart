@@ -25,9 +25,9 @@ interface RoutableX509ExtendedKeyManager extends CombinableX509ExtendedKeyManage
     Map<String, List<URI>> getIdentityRoute();
 
     default <T> String chooseClientAlias(T object,
-                                          Predicate<T> predicate,
-                                          Function<T, SimpleImmutableEntry<String, Integer>> hostToPortExtractor,
-                                          Function<X509ExtendedKeyManager, String> aliasExtractor) {
+                                         Predicate<T> predicate,
+                                         Function<T, SimpleImmutableEntry<String, Integer>> hostToPortExtractor,
+                                         Function<X509ExtendedKeyManager, String> aliasExtractor) {
 
         return chooseAlias(() -> getPreferredClientAlias(object, predicate, hostToPortExtractor), aliasExtractor);
     }
