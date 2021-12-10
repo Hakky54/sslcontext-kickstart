@@ -25,6 +25,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import javax.net.ssl.ExtendedSSLSession;
 import javax.net.ssl.SNIServerName;
 import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.X509ExtendedKeyManager;
 import java.net.InetSocketAddress;
@@ -257,6 +258,43 @@ class CompositeX509ExtendedKeyManagerShould {
         assertThat(identityOne.size()).isEqualTo(1);
         assertThat(identityTwo.size()).isEqualTo(1);
         assertThat(alias).isEqualTo("another-server");
+    }
+
+    @Test
+    void ignorePreferredServerAliasWhenSocketIsNotAnInstanceOfSSLSocket() {
+        SSLSocket socket = mock(SSLSocket.class);
+        SSLSession sslSession = mock(SSLSession.class);
+        when(socket.getHandshakeSession()).thenReturn(sslSession);
+
+        X509ExtendedKeyManager keyManagerOne = mock(X509ExtendedKeyManager.class);
+        X509ExtendedKeyManager keyManagerTwo = mock(X509ExtendedKeyManager.class);
+
+        CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
+                Arrays.asList(keyManagerOne, keyManagerTwo), Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://another-server.com:443/")))
+        );
+
+        String alias = keyManager.chooseServerAlias("RSA", null, socket);
+
+        assertThat(keyManager).isNotNull();
+        assertThat(keyManager.getKeyManagers().size()).isEqualTo(2);
+        assertThat(alias).isNull();
+    }
+
+    @Test
+    void ignorePreferredServerAliasWhenSSLSessionIsNotAnInstanceOfExtendedSSLSession() {
+        Socket socket = mock(Socket.class);
+        X509ExtendedKeyManager keyManagerOne = mock(X509ExtendedKeyManager.class);
+        X509ExtendedKeyManager keyManagerTwo = mock(X509ExtendedKeyManager.class);
+
+        CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
+                Arrays.asList(keyManagerOne, keyManagerTwo), Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://another-server.com:443/")))
+        );
+
+        String alias = keyManager.chooseServerAlias("RSA", null, socket);
+
+        assertThat(keyManager).isNotNull();
+        assertThat(keyManager.getKeyManagers().size()).isEqualTo(2);
+        assertThat(alias).isNull();
     }
 
     @Test
