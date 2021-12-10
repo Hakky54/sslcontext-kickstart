@@ -19,7 +19,6 @@ package nl.altindag.ssl.util;
 import nl.altindag.ssl.exception.CertificateParseException;
 import nl.altindag.ssl.exception.GenericIOException;
 import nl.altindag.ssl.exception.PrivateKeyParseException;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
@@ -480,17 +479,6 @@ class PemUtilsShould {
         PrivateKey privateKey = PemUtils.parsePrivateKey(identityContent);
 
         assertThat(privateKey).isNotNull();
-    }
-
-    @Test
-    void stillParseTrustMaterialWhenAddingCustomSecurityProvider() {
-        Security.addProvider(new BouncyCastleProvider());
-
-        String certificateContent = getResourceContent(PEM_LOCATION + "github-certificate.pem");
-        X509ExtendedTrustManager trustManager = PemUtils.parseTrustMaterial(certificateContent);
-
-        assertThat(trustManager).isNotNull();
-        assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
     }
 
     @Test

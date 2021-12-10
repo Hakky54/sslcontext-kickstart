@@ -79,9 +79,7 @@ import java.util.stream.Collectors;
 public final class PemUtils {
 
     static {
-        if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
-            Security.addProvider(new BouncyCastleProvider());
-        }
+        Security.addProvider(new BouncyCastleProvider());
     }
 
     private static final char[] DUMMY_PASSWORD = KeyStoreUtils.DUMMY_PASSWORD.toCharArray();
