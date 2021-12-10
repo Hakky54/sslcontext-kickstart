@@ -1,6 +1,7 @@
 package nl.altindag.ssl.trustmanager;
 
 import javax.net.ssl.X509ExtendedTrustManager;
+import javax.net.ssl.X509TrustManager;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,7 +9,7 @@ import java.util.List;
 /**
  * @author Hakan Altindag
  */
-interface CombinableX509ExtendedTrustManager {
+interface CombinableX509ExtendedTrustManager extends X509TrustManager {
 
     String CERTIFICATE_EXCEPTION_MESSAGE = "None of the TrustManagers trust this certificate chain";
 
