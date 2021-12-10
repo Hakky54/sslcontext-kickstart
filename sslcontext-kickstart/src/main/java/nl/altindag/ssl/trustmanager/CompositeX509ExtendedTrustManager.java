@@ -24,7 +24,6 @@ import javax.net.ssl.X509ExtendedTrustManager;
 import java.net.Socket;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -58,10 +57,9 @@ import java.util.List;
  * @author Cody Ray
  * @author Hakan Altindag
  */
-public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustManager {
+public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustManager implements CombinableX509ExtendedTrustManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CompositeX509ExtendedTrustManager.class);
-    private static final String CERTIFICATE_EXCEPTION_MESSAGE = "None of the TrustManagers trust this certificate chain";
     private static final String CLIENT_CERTIFICATE_LOG_MESSAGE = "Received the following client certificate: [{}]";
     private static final String SERVER_CERTIFICATE_LOG_MESSAGE = "Received the following server certificate: [{}]";
 
@@ -70,7 +68,7 @@ public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustMa
 
     public CompositeX509ExtendedTrustManager(List<? extends X509ExtendedTrustManager> trustManagers) {
         this.trustManagers = Collections.unmodifiableList(trustManagers);
-        this.acceptedIssuers = this.trustManagers.stream()
+        this.acceptedIssuers = trustManagers.stream()
                 .map(X509ExtendedTrustManager::getAcceptedIssuers)
                 .flatMap(Arrays::stream)
                 .distinct()
@@ -118,29 +116,9 @@ public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustMa
         return Arrays.copyOf(acceptedIssuers, acceptedIssuers.length);
     }
 
-    public int size() {
-        return trustManagers.size();
-    }
-
+    @Override
     public List<X509ExtendedTrustManager> getTrustManagers() {
         return trustManagers;
-    }
-
-    private void checkTrusted(TrustManagerConsumer callBackConsumer) throws CertificateException {
-        List<CertificateException> certificateExceptions = new ArrayList<>();
-        for (X509ExtendedTrustManager trustManager : trustManagers) {
-            try {
-                callBackConsumer.checkTrusted(trustManager);
-                return;
-            } catch (CertificateException e) {
-                certificateExceptions.add(e);
-            }
-        }
-
-        CertificateException certificateException = new CertificateException(CERTIFICATE_EXCEPTION_MESSAGE);
-        certificateExceptions.forEach(certificateException::addSuppressed);
-
-        throw certificateException;
     }
 
     private static void logCertificate(String messageTemplate, X509Certificate[] chain) {
@@ -149,8 +127,4 @@ public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustMa
         }
     }
 
-    @FunctionalInterface
-    private interface TrustManagerConsumer {
-        void checkTrusted(X509ExtendedTrustManager trustManager) throws CertificateException;
-    }
 }
