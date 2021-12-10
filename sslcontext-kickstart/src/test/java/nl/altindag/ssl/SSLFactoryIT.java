@@ -169,7 +169,7 @@ class SSLFactoryIT {
                 .withTrustMaterial("keystore/client-server/client-one/truststore.jks", keyStorePassword)
                 .withTrustMaterial("keystore/client-server/client-two/truststore.jks", keyStorePassword)
                 .withTrustMaterial(KEYSTORE_LOCATION + "badssl-truststore.p12", "badssl.com".toCharArray())
-                .withClientIdentityRoute(clientAliasesToHosts)
+                .withIdentityRoute(clientAliasesToHosts)
                 .build();
 
         SSLSocketFactory sslSocketFactoryWithCorrectClientRoutes = sslFactoryForClient.getSslSocketFactory();
@@ -192,8 +192,8 @@ class SSLFactoryIT {
                 .withIdentityMaterial("keystore/client-server/client-two/identity.jks", keyStorePassword)
                 .withTrustMaterial("keystore/client-server/client-one/truststore.jks", keyStorePassword)
                 .withTrustMaterial("keystore/client-server/client-two/truststore.jks", keyStorePassword)
-                .withClientIdentityRoute("client-one", "https://localhost:8444/api/hello")
-                .withClientIdentityRoute("client-two", "https://localhost:8443/api/hello")
+                .withIdentityRoute("client-one", "https://localhost:8444/api/hello")
+                .withIdentityRoute("client-two", "https://localhost:8443/api/hello")
                 .build();
 
         SSLSocketFactory sslSocketFactoryWithIncorrectClientRoutes = sslFactoryForClient.getSslSocketFactory();

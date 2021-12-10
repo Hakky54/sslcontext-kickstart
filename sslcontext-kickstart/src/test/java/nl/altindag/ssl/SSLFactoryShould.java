@@ -1273,25 +1273,6 @@ class SSLFactoryShould {
     }
 
     @Test
-    @Deprecated
-    void createMultipleRoutesForSingleClientIdentityToBeRemoved() {
-        SSLFactory sslFactory = SSLFactory.builder()
-                .withIdentityMaterial(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD)
-                .withIdentityMaterial(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD)
-                .withClientIdentityRoute("some-client-alias", "https://localhost:8443", "https://localhost:8444")
-                .build();
-
-        assertThat(sslFactory.getKeyManager()).isPresent();
-        assertThat(KeyManagerUtils.getClientIdentityRoute(sslFactory.getKeyManager().get()))
-                .containsKey("some-client-alias")
-                .containsValue(Arrays.asList("https://localhost:8443", "https://localhost:8444"));
-
-        assertThat(((CompositeX509ExtendedKeyManager)sslFactory.getKeyManager().get()).getIdentityRoute())
-                .containsKey("some-client-alias")
-                .containsValue(Arrays.asList(URI.create("https://localhost:8443"), URI.create("https://localhost:8444")));
-    }
-
-    @Test
     void createMultipleRoutesForSingleClientIdentity() {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withIdentityMaterial(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD)
@@ -1307,28 +1288,6 @@ class SSLFactoryShould {
         assertThat(((CompositeX509ExtendedKeyManager)sslFactory.getKeyManager().get()).getIdentityRoute())
                 .containsKey("some-client-alias")
                 .containsValue(Arrays.asList(URI.create("https://localhost:8443"), URI.create("https://localhost:8444")));
-    }
-
-    @Test
-    @Deprecated
-    void createMultipleRoutesForSingleClientIdentityAndUpdateAfterCreationToBeRemoved() {
-        SSLFactory sslFactory = SSLFactory.builder()
-                .withIdentityMaterial(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD)
-                .withIdentityMaterial(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD)
-                .withClientIdentityRoute("some-client-alias", "https://localhost:8443", "https://localhost:8444")
-                .build();
-
-        assertThat(sslFactory.getKeyManager()).isPresent();
-        assertThat(KeyManagerUtils.getClientIdentityRoute(sslFactory.getKeyManager().get()))
-                .containsKey("some-client-alias")
-                .containsValue(Arrays.asList("https://localhost:8443", "https://localhost:8444"))
-                .doesNotContainValue(Collections.singletonList("https://localhost:8445"));
-
-        KeyManagerUtils.addClientIdentityRoute(sslFactory.getKeyManager().get(), "some-client-alias", "https://localhost:8445");
-
-        assertThat(KeyManagerUtils.getClientIdentityRoute(sslFactory.getKeyManager().get()))
-                .containsKey("some-client-alias")
-                .containsValue(Arrays.asList("https://localhost:8443", "https://localhost:8444", "https://localhost:8445"));
     }
 
     @Test
@@ -1667,7 +1626,7 @@ class SSLFactoryShould {
     @Test
     void throwExceptionWhenClientAliasIsNotPresentWhenRoutingIdentities() {
         SSLFactory.Builder sslFactoryBuilder = SSLFactory.builder();
-        assertThatThrownBy(() -> sslFactoryBuilder.withClientIdentityRoute(null, "https://localhost:8443"))
+        assertThatThrownBy(() -> sslFactoryBuilder.withIdentityRoute(null, "https://localhost:8443"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("alias should be present");
     }
@@ -1675,7 +1634,7 @@ class SSLFactoryShould {
     @Test
     void throwExceptionWhenRouteIsNotPresentForClientIdentityRoute() {
         SSLFactory.Builder sslFactoryBuilder = SSLFactory.builder();
-        assertThatThrownBy(() -> sslFactoryBuilder.withClientIdentityRoute("some-client-alias"))
+        assertThatThrownBy(() -> sslFactoryBuilder.withIdentityRoute("some-client-alias"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("At least one host should be present. No host(s) found for the given alias: [some-client-alias]");
     }

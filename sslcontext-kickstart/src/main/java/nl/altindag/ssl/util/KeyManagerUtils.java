@@ -202,16 +202,6 @@ public final class KeyManagerUtils {
         }
     }
 
-    @Deprecated
-    public static void addClientIdentityRoute(X509ExtendedKeyManager keyManager, String clientAlias, String... hosts) {
-        addIdentityRoute(keyManager, clientAlias, hosts, false);
-    }
-
-    @Deprecated
-    public static void overrideClientIdentityRoute(X509ExtendedKeyManager keyManager, String clientAlias, String... hosts) {
-        addIdentityRoute(keyManager, clientAlias, hosts, true);
-    }
-
     public static void addIdentityRoute(X509ExtendedKeyManager keyManager, String alias, String... hosts) {
         addIdentityRoute(keyManager, alias, hosts, false);
     }
@@ -257,11 +247,6 @@ public final class KeyManagerUtils {
                     CompositeX509ExtendedKeyManager.class.getName(),
                     keyManager.getClass().getName()));
         }
-    }
-
-    @Deprecated
-    public static Map<String, List<String>> getClientIdentityRoute(X509ExtendedKeyManager keyManager) {
-        return getIdentityRoute(keyManager);
     }
 
     public static Map<String, List<String>> getIdentityRoute(X509ExtendedKeyManager keyManager) {
@@ -354,13 +339,8 @@ public final class KeyManagerUtils {
             return this;
         }
 
-        @Deprecated
-        public KeyManagerBuilder withClientAliasToHost(Map<String, List<URI>> clientAliasToHost) {
-            return withAliasToHost(clientAliasToHost);
-        }
-
-        public KeyManagerBuilder withAliasToHost(Map<String, List<URI>> serverAliasToHost) {
-            this.aliasToHost.putAll(serverAliasToHost);
+        public KeyManagerBuilder withIdentityRoute(Map<String, List<URI>> aliasToHost) {
+            this.aliasToHost.putAll(aliasToHost);
             return this;
         }
 

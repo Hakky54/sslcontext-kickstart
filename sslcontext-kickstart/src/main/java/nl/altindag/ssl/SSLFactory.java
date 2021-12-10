@@ -504,16 +504,6 @@ public final class SSLFactory {
             }
         }
 
-        @Deprecated
-        public Builder withClientIdentityRoute(String clientAlias, String... hosts) {
-            return withIdentityRoute(clientAlias, hosts);
-        }
-
-        @Deprecated
-        public Builder withClientIdentityRoute(Map<String, List<String>> clientAliasesToHosts) {
-            return withIdentityRoute(clientAliasesToHosts);
-        }
-
         public Builder withIdentityRoute(String alias, String... hosts) {
             return withIdentityRoute(
                     alias,
@@ -683,7 +673,7 @@ public final class SSLFactory {
                     .withKeyManagers(identityManagers)
                     .withIdentities(identities)
                     .withSwappableKeyManager(swappableKeyManagerEnabled)
-                    .withAliasToHost(preferredAliasToHost)
+                    .withIdentityRoute(preferredAliasToHost)
                     .build();
         }
 
