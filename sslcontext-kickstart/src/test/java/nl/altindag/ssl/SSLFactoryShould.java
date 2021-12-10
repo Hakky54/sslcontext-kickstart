@@ -52,7 +52,6 @@ import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -71,17 +70,14 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static nl.altindag.ssl.TestConstants.EMPTY;
 import static nl.altindag.ssl.TestConstants.IDENTITY_FILE_NAME;
 import static nl.altindag.ssl.TestConstants.IDENTITY_PASSWORD;
 import static nl.altindag.ssl.TestConstants.KEYSTORE_LOCATION;
-import static nl.altindag.ssl.TestConstants.TEMPORALLY_KEYSTORE_LOCATION;
 import static nl.altindag.ssl.TestConstants.TRUSTSTORE_FILE_NAME;
 import static nl.altindag.ssl.TestConstants.TRUSTSTORE_PASSWORD;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -209,7 +205,7 @@ class SSLFactoryShould {
 
     @Test
     void buildSSLFactoryWithTrustMaterialFromPath() throws IOException {
-        Path trustStorePath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
+        Path trustStorePath = IOTestUtils.copyFileToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
 
         SSLFactory sslFactory = SSLFactory.builder()
                 .withTrustMaterial(trustStorePath, TRUSTSTORE_PASSWORD)
@@ -230,7 +226,7 @@ class SSLFactoryShould {
 
     @Test
     void buildSSLFactoryWithTrustMaterialFromPathWithTrustOptions() throws IOException, NoSuchAlgorithmException {
-        Path trustStorePath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
+        Path trustStorePath = IOTestUtils.copyFileToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
 
         CertPathBuilder certPathBuilder = CertPathBuilder.getInstance("PKIX");
         PKIXRevocationChecker revocationChecker = (PKIXRevocationChecker) certPathBuilder.getRevocationChecker();
@@ -259,7 +255,7 @@ class SSLFactoryShould {
 
     @Test
     void buildSSLFactoryWithTrustMaterialFromInputStream() {
-        InputStream trustStoreStream = getResourceAsStream(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
+        InputStream trustStoreStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME);
 
         SSLFactory sslFactory = SSLFactory.builder()
                 .withTrustMaterial(trustStoreStream, TRUSTSTORE_PASSWORD)
@@ -277,7 +273,7 @@ class SSLFactoryShould {
 
     @Test
     void buildSSLFactoryWithTrustMaterialFromInputStreamWithTrustOptions() throws NoSuchAlgorithmException {
-        InputStream trustStoreStream = getResourceAsStream(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
+        InputStream trustStoreStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME);
 
         CertPathBuilder certPathBuilder = CertPathBuilder.getInstance("PKIX");
         PKIXRevocationChecker revocationChecker = (PKIXRevocationChecker) certPathBuilder.getRevocationChecker();
@@ -678,8 +674,8 @@ class SSLFactoryShould {
 
     @Test
     void buildSSLFactoryWithIdentityMaterialAndTrustMaterialFromInputStream() {
-        InputStream identityStream = getResourceAsStream(KEYSTORE_LOCATION, IDENTITY_FILE_NAME);
-        InputStream trustStoreStream = getResourceAsStream(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
+        InputStream identityStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + IDENTITY_FILE_NAME);
+        InputStream trustStoreStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME);
 
         SSLFactory sslFactory = SSLFactory.builder()
                 .withIdentityMaterial(identityStream, IDENTITY_PASSWORD)
@@ -699,8 +695,8 @@ class SSLFactoryShould {
 
     @Test
     void buildSSLFactoryWithIdentityMaterialAndTrustMaterialFromInputStreamWithCustomKeyStoreType() {
-        InputStream identityStream = getResourceAsStream(KEYSTORE_LOCATION, IDENTITY_FILE_NAME);
-        InputStream trustStoreStream = getResourceAsStream(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
+        InputStream identityStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + IDENTITY_FILE_NAME);
+        InputStream trustStoreStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME);
 
         SSLFactory sslFactory = SSLFactory.builder()
                 .withIdentityMaterial(identityStream, IDENTITY_PASSWORD, KeyStore.getDefaultType())
@@ -846,7 +842,7 @@ class SSLFactoryShould {
 
     @Test
     void buildSSLFactoryWithIdentityMaterialAndTrustMaterialFromKeyStorePathWithDifferentKeyPasswordAndOnlyJdkTrustedCertificates() throws IOException {
-        Path identityPath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, "identity-with-different-key-password.jks");
+        Path identityPath = IOTestUtils.copyFileToHomeDirectory(KEYSTORE_LOCATION, "identity-with-different-key-password.jks");
 
         SSLFactory sslFactory = SSLFactory.builder()
                 .withIdentityMaterial(identityPath, IDENTITY_PASSWORD, "my-precious".toCharArray())
@@ -868,8 +864,8 @@ class SSLFactoryShould {
 
     @Test
     void buildSSLFactoryWithIdentityMaterialAndTrustMaterialFromKeyStoreAndTrustStoreWithPath() throws IOException {
-        Path identityPath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, IDENTITY_FILE_NAME);
-        Path trustStorePath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
+        Path identityPath = IOTestUtils.copyFileToHomeDirectory(KEYSTORE_LOCATION, IDENTITY_FILE_NAME);
+        Path trustStorePath = IOTestUtils.copyFileToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
 
         SSLFactory sslFactory = SSLFactory.builder()
                 .withIdentityMaterial(identityPath, IDENTITY_PASSWORD)
@@ -892,8 +888,8 @@ class SSLFactoryShould {
 
     @Test
     void buildSSLFactoryWithIdentityMaterialAndTrustMaterialFromKeyStoreAndTrustStoreWithPathAndWithKeyStoreTypesIncluded() throws IOException {
-        Path identityPath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, IDENTITY_FILE_NAME);
-        Path trustStorePath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
+        Path identityPath = IOTestUtils.copyFileToHomeDirectory(KEYSTORE_LOCATION, IDENTITY_FILE_NAME);
+        Path trustStorePath = IOTestUtils.copyFileToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
 
         SSLFactory sslFactory = SSLFactory.builder()
                 .withIdentityMaterial(identityPath, IDENTITY_PASSWORD, KeyStore.getDefaultType())
@@ -1408,7 +1404,7 @@ class SSLFactoryShould {
 
     @Test
     void throwExceptionWhenBuildingSSLFactoryWithTrustStoreFromPathWhileProvidingWrongPassword() throws IOException {
-        Path trustStorePath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
+        Path trustStorePath = IOTestUtils.copyFileToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
         SSLFactory.Builder factoryBuilder = SSLFactory.builder();
         char[] trustStorePassword = "password".toCharArray();
 
@@ -1431,7 +1427,7 @@ class SSLFactoryShould {
 
     @Test
     void throwExceptionWhenBuildingSSLFactoryWithIdentityFromPathWhileProvidingWrongPassword() throws IOException {
-        Path identityPath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, IDENTITY_FILE_NAME);
+        Path identityPath = IOTestUtils.copyFileToHomeDirectory(KEYSTORE_LOCATION, IDENTITY_FILE_NAME);
         char[] identityStorePassword = "password".toCharArray();
         SSLFactory.Builder factoryBuilder = SSLFactory.builder();
 
@@ -1453,7 +1449,7 @@ class SSLFactoryShould {
 
     @Test
     void throwExceptionWhenBuildingSSLFactoryWithEmptyTrustStoreType() throws IOException {
-        Path trustStorePath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
+        Path trustStorePath = IOTestUtils.copyFileToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
         SSLFactory.Builder factoryBuilder = SSLFactory.builder();
 
         assertThatThrownBy(() -> factoryBuilder.withTrustMaterial(trustStorePath, TRUSTSTORE_PASSWORD, EMPTY))
@@ -1546,7 +1542,7 @@ class SSLFactoryShould {
 
     @Test
     void throwExceptionWhenIdentityTypeIsNotProvidedWhileUsingPath() throws IOException {
-        Path identityPath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, IDENTITY_FILE_NAME);
+        Path identityPath = IOTestUtils.copyFileToHomeDirectory(KEYSTORE_LOCATION, IDENTITY_FILE_NAME);
         SSLFactory.Builder factoryBuilder = SSLFactory.builder();
 
         assertThatThrownBy(() -> factoryBuilder.withIdentityMaterial(identityPath, IDENTITY_PASSWORD, EMPTY))
@@ -1567,7 +1563,7 @@ class SSLFactoryShould {
 
     @Test
     void throwExceptionWhenIdentityTypeIsNotProvidedWhileUsingInputStream() {
-        InputStream identityStream = getResourceAsStream(KEYSTORE_LOCATION, IDENTITY_FILE_NAME);
+        InputStream identityStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + IDENTITY_FILE_NAME);
         SSLFactory.Builder factoryBuilder = SSLFactory.builder();
 
         assertThatThrownBy(() -> factoryBuilder.withIdentityMaterial(identityStream, IDENTITY_PASSWORD, EMPTY))
@@ -1577,7 +1573,7 @@ class SSLFactoryShould {
 
     @Test
     void throwExceptionWhenUnknownIdentityTypeIsProvidedWhileUsingInputStream() {
-        InputStream identityStream = getResourceAsStream(KEYSTORE_LOCATION, IDENTITY_FILE_NAME);
+        InputStream identityStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + IDENTITY_FILE_NAME);
         SSLFactory.Builder factoryBuilder = SSLFactory.builder();
 
         assertThatThrownBy(() -> factoryBuilder.withIdentityMaterial(identityStream, IDENTITY_PASSWORD, "KABOOM"))
@@ -1587,7 +1583,7 @@ class SSLFactoryShould {
 
     @Test
     void throwExceptionWhenUnknownTrustStoreTypeIsProvidedWhileUsingInputStream() {
-        InputStream trustStoreStream = getResourceAsStream(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
+        InputStream trustStoreStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME);
         SSLFactory.Builder factoryBuilder = SSLFactory.builder();
 
         assertThatThrownBy(() -> factoryBuilder.withTrustMaterial(trustStoreStream, TRUSTSTORE_PASSWORD, "KABOOM"))
@@ -1721,7 +1717,7 @@ class SSLFactoryShould {
 
     @Test
     void throwExceptionWhenBuildingSSLFactoryWithEmptyTrustStoreTypeWhileUsingTrustOptions() throws IOException {
-        Path trustStorePath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
+        Path trustStorePath = IOTestUtils.copyFileToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
         SSLFactory.Builder factoryBuilder = SSLFactory.builder();
 
         assertThatThrownBy(() -> factoryBuilder.withTrustMaterial(trustStorePath, TRUSTSTORE_PASSWORD, EMPTY, null))
@@ -1774,19 +1770,6 @@ class SSLFactoryShould {
         assertThatThrownBy(() -> factoryBuilder.withTrustMaterial("/some-path", TRUSTSTORE_PASSWORD, (String) null))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE);
-    }
-
-    @SuppressWarnings("SameParameterValue")
-    private Path copyKeystoreToHomeDirectory(String path, String fileName) throws IOException {
-        try (InputStream keystoreInputStream = getResourceAsStream(path, fileName)) {
-            Path destination = Paths.get(TEMPORALLY_KEYSTORE_LOCATION, fileName);
-            Files.copy(Objects.requireNonNull(keystoreInputStream), destination, REPLACE_EXISTING);
-            return destination;
-        }
-    }
-
-    private InputStream getResourceAsStream(String path, String fileName) {
-        return Thread.currentThread().getContextClassLoader().getResourceAsStream(path + fileName);
     }
 
 }

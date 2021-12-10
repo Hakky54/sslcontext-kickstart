@@ -17,6 +17,7 @@
 package nl.altindag.ssl.util;
 
 import nl.altindag.log.LogCaptor;
+import nl.altindag.ssl.IOTestUtils;
 import nl.altindag.ssl.SSLFactory;
 import nl.altindag.ssl.exception.GenericKeyStoreException;
 import org.junit.jupiter.api.Test;
@@ -40,13 +41,10 @@ import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static nl.altindag.ssl.TestConstants.IDENTITY_FILE_NAME;
 import static nl.altindag.ssl.TestConstants.IDENTITY_PASSWORD;
 import static nl.altindag.ssl.TestConstants.KEYSTORE_LOCATION;
-import static nl.altindag.ssl.TestConstants.TEMPORALLY_KEYSTORE_LOCATION;
 import static nl.altindag.ssl.TestConstants.TRUSTSTORE_FILE_NAME;
 import static nl.altindag.ssl.TestConstants.TRUSTSTORE_PASSWORD;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -99,7 +97,7 @@ class KeyStoreUtilsShould {
     @Test
     void loadKeyStoreAsInputStream() throws IOException {
         KeyStore keyStore;
-        try(InputStream inputStream = getResource(KEYSTORE_LOCATION + IDENTITY_FILE_NAME)) {
+        try(InputStream inputStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + IDENTITY_FILE_NAME)) {
             keyStore = KeyStoreUtils.loadKeyStore(inputStream, "secret".toCharArray());
         }
 
@@ -328,7 +326,7 @@ class KeyStoreUtilsShould {
 
     @Test
     void throwExceptionWhenLoadingNonExistingKeystoreTypeWhenUsingPath() throws IOException {
-        Path trustStorePath = copyKeystoreToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
+        Path trustStorePath = IOTestUtils.copyFileToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
 
         assertThatThrownBy(() -> KeyStoreUtils.loadKeyStore(trustStorePath, KEYSTORE_PASSWORD, "unknown"))
                 .isInstanceOf(GenericKeyStoreException.class)
@@ -374,19 +372,6 @@ class KeyStoreUtilsShould {
 
     private void resetOsName() {
         System.setProperty("os.name", ORIGINAL_OS_NAME);
-    }
-
-    @SuppressWarnings("SameParameterValue")
-    private Path copyKeystoreToHomeDirectory(String path, String fileName) throws IOException {
-        try (InputStream keystoreInputStream = getResource(path + fileName)) {
-            Path destination = Paths.get(TEMPORALLY_KEYSTORE_LOCATION, fileName);
-            Files.copy(Objects.requireNonNull(keystoreInputStream), destination, REPLACE_EXISTING);
-            return destination;
-        }
-    }
-
-    private InputStream getResource(String path) {
-        return this.getClass().getClassLoader().getResourceAsStream(path);
     }
 
 }

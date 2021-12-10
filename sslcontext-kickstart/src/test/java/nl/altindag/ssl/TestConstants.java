@@ -27,7 +27,7 @@ public class TestConstants {
     public static final char[] IDENTITY_PASSWORD = "secret".toCharArray();
     public static final char[] TRUSTSTORE_PASSWORD = "secret".toCharArray();
     public static final String KEYSTORE_LOCATION = "keystore/";
-    public static final String TEMPORALLY_KEYSTORE_LOCATION = System.getProperty("user.home");
+    public static final String HOME_DIRECTORY = System.getProperty("user.home");
     public static final String EMPTY = "";
 
 }

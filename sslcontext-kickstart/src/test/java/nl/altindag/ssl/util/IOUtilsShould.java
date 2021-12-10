@@ -16,6 +16,7 @@
 
 package nl.altindag.ssl.util;
 
+import nl.altindag.ssl.IOTestUtils;
 import nl.altindag.ssl.exception.GenericIOException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,7 +25,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -71,6 +76,31 @@ class IOUtilsShould {
 
         String content = new String(copy, StandardCharsets.UTF_8);
         assertThat(content).isEqualTo("Hello");
+    }
+
+    @Test
+    void getResourceAsStream() throws IOException {
+        try (InputStream inputStream = IOUtils.getResourceAsStream("pem/badssl-certificate.pem")) {
+            assertThat(inputStream).isNotNull();
+        }
+    }
+
+    @Test
+    void getFileAsStream() throws IOException {
+        Path path = IOTestUtils.copyFileToHomeDirectory("pem/", "badssl-certificate.pem");
+
+        try (InputStream inputStream = IOUtils.getFileAsStream(path)) {
+            assertThat(inputStream).isNotNull();
+        }
+
+        Files.delete(path);
+    }
+
+    @Test
+    void getFileAsStreamThrowsGenericIOExceptionWhenSomethingGoesWrong() {
+        Path path = Paths.get("/path/to/non-existing.file");
+        assertThatThrownBy(() -> IOUtils.getFileAsStream(path))
+                .isInstanceOf(GenericIOException.class);
     }
 
     @Test
