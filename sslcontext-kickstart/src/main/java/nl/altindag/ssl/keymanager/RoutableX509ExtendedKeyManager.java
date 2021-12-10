@@ -11,8 +11,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -29,17 +29,12 @@ interface RoutableX509ExtendedKeyManager extends CombinableX509ExtendedKeyManage
                                           Function<T, SimpleImmutableEntry<String, Integer>> hostToPortExtractor,
                                           Function<X509ExtendedKeyManager, String> aliasExtractor) {
 
-        Optional<String> preferredClientAlias = getPreferredClientAlias(object, predicate, hostToPortExtractor);
-        if (preferredClientAlias.isPresent()) {
-            return extractInnerField(aliasExtractor, NON_NULL.and(alias -> preferredClientAlias.get().equals(alias)));
-        } else {
-            return extractInnerField(aliasExtractor, NON_NULL);
-        }
+        return chooseAlias(() -> getPreferredClientAlias(object, predicate, hostToPortExtractor), aliasExtractor);
     }
 
-    default <T> Optional<String> getPreferredClientAlias(T object, Predicate<T> predicate, Function<T, SimpleImmutableEntry<String, Integer>> hostToPortExtractor) {
+    default <T> String getPreferredClientAlias(T object, Predicate<T> predicate, Function<T, SimpleImmutableEntry<String, Integer>> hostToPortExtractor) {
         if (getIdentityRoute().isEmpty()) {
-            return Optional.empty();
+            return null;
         }
 
         if (predicate.test(object)) {
@@ -47,15 +42,16 @@ interface RoutableX509ExtendedKeyManager extends CombinableX509ExtendedKeyManage
             return getPreferredClientAlias(hostToPort.getKey(), hostToPort.getValue());
         }
 
-        return Optional.empty();
+        return null;
     }
 
-    default Optional<String> getPreferredClientAlias(String peerHost, int peerPort) {
+    default String getPreferredClientAlias(String peerHost, int peerPort) {
         return getIdentityRoute().entrySet().stream()
                 .filter(entry -> entry.getValue().stream().anyMatch(uri -> uri.getHost().contains(peerHost)))
                 .filter(entry -> entry.getValue().stream().anyMatch(uri -> uri.getPort() == peerPort))
                 .findFirst()
-                .map(Map.Entry::getKey);
+                .map(Map.Entry::getKey)
+                .orElse(null);
     }
 
     default <T> String chooseServerAlias(T object,
@@ -63,17 +59,12 @@ interface RoutableX509ExtendedKeyManager extends CombinableX509ExtendedKeyManage
                                          Function<T, SSLSession> sslSessionExtractor,
                                          Function<X509ExtendedKeyManager, String> aliasExtractor) {
 
-        Optional<String> preferredServerAlias = getPreferredServerAlias(object, predicate, sslSessionExtractor);
-        if (preferredServerAlias.isPresent()) {
-            return extractInnerField(aliasExtractor, NON_NULL.and(alias -> preferredServerAlias.get().equals(alias)));
-        } else {
-            return extractInnerField(aliasExtractor, NON_NULL);
-        }
+        return chooseAlias(() -> getPreferredServerAlias(object, predicate, sslSessionExtractor), aliasExtractor);
     }
 
-    default <T> Optional<String> getPreferredServerAlias(T object, Predicate<T> predicate, Function<T, SSLSession> sslSessionExtractor) {
+    default <T> String getPreferredServerAlias(T object, Predicate<T> predicate, Function<T, SSLSession> sslSessionExtractor) {
         if (getIdentityRoute().isEmpty()) {
-            return Optional.empty();
+            return null;
         }
 
         if (predicate.test(object)) {
@@ -88,14 +79,25 @@ interface RoutableX509ExtendedKeyManager extends CombinableX509ExtendedKeyManage
             }
         }
 
-        return Optional.empty();
+        return null;
     }
 
-    default Optional<String> getPreferredServerAlias(Set<String> hostnames) {
+    default String getPreferredServerAlias(Set<String> hostnames) {
         return getIdentityRoute().entrySet().stream()
                 .filter(entry -> entry.getValue().stream().anyMatch(uri -> hostnames.stream().anyMatch(hostname -> uri.getHost().contains(hostname))))
                 .findFirst()
-                .map(Map.Entry::getKey);
+                .map(Map.Entry::getKey)
+                .orElse(null);
+    }
+
+    default String chooseAlias(Supplier<String> preferredAliasSupplier, Function<X509ExtendedKeyManager, String> aliasExtractor) {
+        String preferredAlias = preferredAliasSupplier.get();
+
+        if (preferredAlias != null) {
+            return extractInnerField(aliasExtractor, NON_NULL.and(preferredAlias::equals));
+        } else {
+            return extractInnerField(aliasExtractor, NON_NULL);
+        }
     }
 
 }
