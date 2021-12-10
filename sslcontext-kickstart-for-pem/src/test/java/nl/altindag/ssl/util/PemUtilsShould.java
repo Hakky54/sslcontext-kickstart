@@ -19,6 +19,7 @@ package nl.altindag.ssl.util;
 import nl.altindag.ssl.exception.CertificateParseException;
 import nl.altindag.ssl.exception.GenericIOException;
 import nl.altindag.ssl.exception.PrivateKeyParseException;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
@@ -37,10 +38,7 @@ import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.Key;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.PrivateKey;
+import java.security.*;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -482,6 +480,17 @@ class PemUtilsShould {
         PrivateKey privateKey = PemUtils.parsePrivateKey(identityContent);
 
         assertThat(privateKey).isNotNull();
+    }
+
+    @Test
+    void stillParseTrustMaterialWhenAddingCustomSecurityProvider() {
+        Security.addProvider(new BouncyCastleProvider());
+
+        String certificateContent = getResourceContent(PEM_LOCATION + "github-certificate.pem");
+        X509ExtendedTrustManager trustManager = PemUtils.parseTrustMaterial(certificateContent);
+
+        assertThat(trustManager).isNotNull();
+        assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
     }
 
     @Test
