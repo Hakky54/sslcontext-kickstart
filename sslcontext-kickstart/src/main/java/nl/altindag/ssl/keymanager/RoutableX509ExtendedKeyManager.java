@@ -5,9 +5,9 @@ import javax.net.ssl.SNIServerName;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.X509ExtendedKeyManager;
 import java.net.URI;
-import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -26,19 +26,19 @@ interface RoutableX509ExtendedKeyManager extends CombinableX509ExtendedKeyManage
 
     default <T> String chooseClientAlias(T object,
                                          Predicate<T> predicate,
-                                         Function<T, SimpleImmutableEntry<String, Integer>> hostToPortExtractor,
+                                         Function<T, Entry<String, Integer>> hostToPortExtractor,
                                          Function<X509ExtendedKeyManager, String> aliasExtractor) {
 
         return chooseAlias(() -> getPreferredClientAlias(object, predicate, hostToPortExtractor), aliasExtractor);
     }
 
-    default <T> String getPreferredClientAlias(T object, Predicate<T> predicate, Function<T, SimpleImmutableEntry<String, Integer>> hostToPortExtractor) {
+    default <T> String getPreferredClientAlias(T object, Predicate<T> predicate, Function<T, Entry<String, Integer>> hostToPortExtractor) {
         if (getIdentityRoute().isEmpty()) {
             return null;
         }
 
         if (predicate.test(object)) {
-            SimpleImmutableEntry<String, Integer> hostToPort = hostToPortExtractor.apply(object);
+            Entry<String, Integer> hostToPort = hostToPortExtractor.apply(object);
             return getPreferredClientAlias(hostToPort.getKey(), hostToPort.getValue());
         }
 
@@ -50,7 +50,7 @@ interface RoutableX509ExtendedKeyManager extends CombinableX509ExtendedKeyManage
                 .filter(entry -> entry.getValue().stream().anyMatch(uri -> uri.getHost().contains(peerHost)))
                 .filter(entry -> entry.getValue().stream().anyMatch(uri -> uri.getPort() == peerPort))
                 .findFirst()
-                .map(Map.Entry::getKey)
+                .map(Entry::getKey)
                 .orElse(null);
     }
 
@@ -86,7 +86,7 @@ interface RoutableX509ExtendedKeyManager extends CombinableX509ExtendedKeyManage
         return getIdentityRoute().entrySet().stream()
                 .filter(entry -> entry.getValue().stream().anyMatch(uri -> hostnames.stream().anyMatch(hostname -> uri.getHost().contains(hostname))))
                 .findFirst()
-                .map(Map.Entry::getKey)
+                .map(Entry::getKey)
                 .orElse(null);
     }
 
