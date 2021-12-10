@@ -1,6 +1,7 @@
 package nl.altindag.ssl.keymanager;
 
 import javax.net.ssl.X509ExtendedKeyManager;
+import javax.net.ssl.X509KeyManager;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -11,7 +12,7 @@ import java.util.stream.Collectors;
 /**
  * @author Hakan Altindag
  */
-interface CombinableX509ExtendedKeyManager {
+interface CombinableX509ExtendedKeyManager extends X509KeyManager {
 
     List<X509ExtendedKeyManager> getKeyManagers();
 

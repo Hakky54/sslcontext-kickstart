@@ -4,6 +4,7 @@ import javax.net.ssl.ExtendedSSLSession;
 import javax.net.ssl.SNIServerName;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.X509ExtendedKeyManager;
+import javax.net.ssl.X509KeyManager;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +19,7 @@ import java.util.Set;
 /**
  * @author Hakan Altindag
  */
-interface RoutableX509ExtendedKeyManager extends CombinableX509ExtendedKeyManager {
+interface RoutableX509ExtendedKeyManager extends CombinableX509ExtendedKeyManager, X509KeyManager {
 
     Predicate<String> NON_NULL = Objects::nonNull;
 
