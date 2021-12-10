@@ -1290,7 +1290,7 @@ class SSLFactoryShould {
                 .containsKey("some-client-alias")
                 .containsValue(Arrays.asList("https://localhost:8443", "https://localhost:8444"));
 
-        assertThat(((CompositeX509ExtendedKeyManager)sslFactory.getKeyManager().get()).getPreferredClientAliasToHosts())
+        assertThat(((CompositeX509ExtendedKeyManager)sslFactory.getKeyManager().get()).getIdentityRoute())
                 .containsKey("some-client-alias")
                 .containsValue(Arrays.asList(URI.create("https://localhost:8443"), URI.create("https://localhost:8444")));
     }
@@ -1308,7 +1308,7 @@ class SSLFactoryShould {
                 .containsKey("some-client-alias")
                 .containsValue(Arrays.asList("https://localhost:8443", "https://localhost:8444"));
 
-        assertThat(((CompositeX509ExtendedKeyManager)sslFactory.getKeyManager().get()).getPreferredClientAliasToHosts())
+        assertThat(((CompositeX509ExtendedKeyManager)sslFactory.getKeyManager().get()).getIdentityRoute())
                 .containsKey("some-client-alias")
                 .containsValue(Arrays.asList(URI.create("https://localhost:8443"), URI.create("https://localhost:8444")));
     }

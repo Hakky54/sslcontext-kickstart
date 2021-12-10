@@ -16,10 +16,7 @@
 
 package nl.altindag.ssl.keymanager;
 
-import javax.net.ssl.ExtendedSSLSession;
-import javax.net.ssl.SNIServerName;
 import javax.net.ssl.SSLEngine;
-import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.X509ExtendedKeyManager;
 import java.net.InetSocketAddress;
@@ -29,17 +26,11 @@ import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.AbstractMap.SimpleImmutableEntry;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 /**
  * Represents an ordered list of {@link X509ExtendedKeyManager} with most-preferred managers first.
@@ -72,9 +63,7 @@ import java.util.stream.Collectors;
  * @author Cody Ray
  * @author Hakan Altindag
  */
-public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManager {
-
-    private static final Predicate<String> NON_NULL = Objects::nonNull;
+public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManager implements CombinableX509ExtendedKeyManager, RoutableX509ExtendedKeyManager {
 
     private final List<X509ExtendedKeyManager> keyManagers;
     private final Map<String, List<URI>> preferredAliasToHost;
@@ -131,40 +120,6 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
         );
     }
 
-    private <T> String chooseClientAlias(T object,
-                                         Predicate<T> predicate,
-                                         Function<T, SimpleImmutableEntry<String, Integer>> hostToPortExtractor,
-                                         Function<X509ExtendedKeyManager, String> aliasExtractor) {
-
-        Optional<String> preferredClientAlias = getPreferredClientAlias(object, predicate, hostToPortExtractor);
-        if (preferredClientAlias.isPresent()) {
-            return extractInnerField(aliasExtractor, NON_NULL.and(alias -> preferredClientAlias.get().equals(alias)));
-        } else {
-            return extractInnerField(aliasExtractor, NON_NULL);
-        }
-    }
-
-    private <T> Optional<String> getPreferredClientAlias(T object, Predicate<T> predicate, Function<T, SimpleImmutableEntry<String, Integer>> hostToPortExtractor) {
-        if (preferredAliasToHost.isEmpty()) {
-            return Optional.empty();
-        }
-
-        if (predicate.test(object)) {
-            SimpleImmutableEntry<String, Integer> hostToPort = hostToPortExtractor.apply(object);
-            return getPreferredClientAlias(hostToPort.getKey(), hostToPort.getValue());
-        }
-
-        return Optional.empty();
-    }
-
-    private Optional<String> getPreferredClientAlias(String peerHost, int peerPort) {
-        return preferredAliasToHost.entrySet().stream()
-                .filter(entry -> entry.getValue().stream().anyMatch(uri -> uri.getHost().contains(peerHost)))
-                .filter(entry -> entry.getValue().stream().anyMatch(uri -> uri.getPort() == peerPort))
-                .findFirst()
-                .map(Map.Entry::getKey);
-    }
-
     /**
      * Chooses the first non-null server alias returned from the delegate
      * {@link X509ExtendedKeyManager}, or {@code null} if there are no matches.
@@ -193,43 +148,6 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
         );
     }
 
-    private <T> String chooseServerAlias(T object,
-                                         Predicate<T> predicate,
-                                         Function<T, SSLSession> sslSessionExtractor,
-                                         Function<X509ExtendedKeyManager, String> aliasExtractor) {
-
-        return getPreferredServerAlias(object, predicate, sslSessionExtractor)
-                .map(preferredAlias -> extractInnerField(aliasExtractor, NON_NULL.and(preferredAlias::equals)))
-                .orElseGet(() -> extractInnerField(aliasExtractor, NON_NULL));
-    }
-
-    private <T> Optional<String> getPreferredServerAlias(T object, Predicate<T> predicate, Function<T, SSLSession> sslSessionExtractor) {
-        if (preferredAliasToHost.isEmpty()) {
-            return Optional.empty();
-        }
-
-        if (predicate.test(object)) {
-            SSLSession sslSession = sslSessionExtractor.apply(object);
-            if (sslSession instanceof ExtendedSSLSession) {
-                List<SNIServerName> requestedServerNames = ((ExtendedSSLSession) sslSession).getRequestedServerNames();
-                Set<String> hostnames = requestedServerNames.stream()
-                        .map(sniServerName -> new String(sniServerName.getEncoded()))
-                        .collect(Collectors.toSet());
-
-                return getPreferredServerAlias(hostnames);
-            }
-        }
-
-        return Optional.empty();
-    }
-
-    private Optional<String> getPreferredServerAlias(Set<String> hostnames) {
-        return preferredAliasToHost.entrySet().stream()
-                .filter(entry -> entry.getValue().stream().anyMatch(uri -> hostnames.stream().anyMatch(hostname -> uri.getHost().contains(hostname))))
-                .findFirst()
-                .map(Map.Entry::getKey);
-    }
-
     /**
      * Returns the first non-null private key associated with the
      * given alias, or {@code null} if the alias can't be found.
@@ -254,14 +172,6 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
         );
     }
 
-    private <T> T extractInnerField(Function<X509ExtendedKeyManager, T> keyManagerMapper, Predicate<T> predicate) {
-        return keyManagers.stream()
-                .map(keyManagerMapper)
-                .filter(predicate)
-                .findFirst()
-                .orElse(null);
-    }
-
     /**
      * Get all matching aliases for authenticating the client side of a
      * secure socket, or {@code null} if there are no matches.
@@ -280,32 +190,13 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
         return getAliases(keyManager -> keyManager.getServerAliases(keyType, issuers));
     }
 
-    private String[] getAliases(Function<X509ExtendedKeyManager, String[]> aliasExtractor) {
-        return keyManagers.stream()
-                .map(aliasExtractor)
-                .filter(Objects::nonNull)
-                .flatMap(Arrays::stream)
-                .collect(Collectors.collectingAndThen(Collectors.toList(), this::emptyToNull));
-    }
-
-    private String[] emptyToNull(List<String> list) {
-        return list.isEmpty() ? null : list.toArray(new String[]{});
-    }
-
-    public int size() {
-        return keyManagers.size();
-    }
-
+    @Override
     public List<X509ExtendedKeyManager> getKeyManagers() {
         return keyManagers;
     }
 
-    @Deprecated
-    public Map<String, List<URI>> getPreferredClientAliasToHosts() {
-        return preferredAliasToHost;
-    }
-
-    public Map<String, List<URI>> getPreferredAliasToHosts() {
+    @Override
+    public Map<String, List<URI>> getIdentityRoute() {
         return preferredAliasToHost;
     }
 

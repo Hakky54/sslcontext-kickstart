@@ -231,7 +231,7 @@ public final class KeyManagerUtils {
 
         if (keyManager instanceof CompositeX509ExtendedKeyManager) {
             CompositeX509ExtendedKeyManager compositeX509ExtendedKeyManager = (CompositeX509ExtendedKeyManager) keyManager;
-            Map<String, List<URI>> aliasToHosts = compositeX509ExtendedKeyManager.getPreferredAliasToHosts();
+            Map<String, List<URI>> aliasToHosts = compositeX509ExtendedKeyManager.getIdentityRoute();
 
             List<URI> uris = new ArrayList<>();
             for (String host : hosts) {
@@ -269,7 +269,7 @@ public final class KeyManagerUtils {
 
         if (keyManager instanceof CompositeX509ExtendedKeyManager) {
             return ((CompositeX509ExtendedKeyManager) keyManager)
-                    .getPreferredAliasToHosts()
+                    .getIdentityRoute()
                     .entrySet().stream()
                     .collect(Collectors.collectingAndThen(
                             Collectors.toMap(
