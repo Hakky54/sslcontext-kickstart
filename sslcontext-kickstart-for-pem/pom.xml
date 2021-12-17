@@ -38,7 +38,7 @@
 
     <properties>
         <version.sslcontext-kickstart>7.1.1-SNAPSHOT</version.sslcontext-kickstart>
-        <version.bouncy-castle>1.69</version.bouncy-castle>
+        <version.bouncy-castle>1.70</version.bouncy-castle>
     </properties>
 
     <dependencies>
