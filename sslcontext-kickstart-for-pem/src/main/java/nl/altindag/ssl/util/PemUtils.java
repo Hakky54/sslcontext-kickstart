@@ -28,6 +28,7 @@ import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMEncryptedKeyPair;
+import org.bouncycastle.openssl.PEMException;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.X509TrustedCertificateBlock;
@@ -70,7 +71,7 @@ import java.util.stream.Collectors;
  * - load trusted certificates and map it into a list of {@link X509Certificate}
  * - load identity material and map it into a {@link PrivateKey}
  * </pre>
- *
+ * <p>
  * The PemUtils serves mainly as a helper class to easily supply the PEM formatted SSL material
  * for the {@link SSLFactory}, but can also be used for other purposes.
  *
@@ -416,7 +417,10 @@ public final class PemUtils {
             pemParser.close();
             stringReader.close();
 
-            return KEY_CONVERTER.getPrivateKey(privateKeyInfo.orElseThrow(() -> new PrivateKeyParseException("Received an unsupported private key type")));
+            return privateKeyInfo
+                    .map(PemUtils::extractPrivateKey)
+                    .orElseThrow(() -> new PrivateKeyParseException("Received an unsupported private key type"));
+
         } catch (OperatorCreationException | PKCSException | IOException e) {
             throw new PrivateKeyParseException(e);
         }
@@ -441,6 +445,14 @@ public final class PemUtils {
         }
 
         return Optional.ofNullable(privateKeyInfo);
+    }
+
+    private static PrivateKey extractPrivateKey(PrivateKeyInfo privateKeyInfo) {
+        try {
+            return KEY_CONVERTER.getPrivateKey(privateKeyInfo);
+        } catch (PEMException exception) {
+            throw new PrivateKeyParseException(exception);
+        }
     }
 
     private static X509ExtendedKeyManager parseIdentityMaterial(Certificate[] certificatesChain, PrivateKey privateKey) {
