@@ -19,13 +19,11 @@ package nl.altindag.ssl.keymanager;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.X509ExtendedKeyManager;
-import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
 import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
-import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -97,11 +95,8 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
     public String chooseClientAlias(String[] keyType, Principal[] issuers, Socket socket) {
         return chooseClientAlias(
                 socket,
-                aSocket -> aSocket != null && aSocket.getRemoteSocketAddress() instanceof InetSocketAddress,
-                aSocket -> {
-                    InetSocketAddress address = (InetSocketAddress) aSocket.getRemoteSocketAddress();
-                    return new SimpleImmutableEntry<>(address.getHostName(), address.getPort());
-                },
+                this::containsInetSocketAddress,
+                this::extractHostAndPort,
                 keyManager -> keyManager.chooseClientAlias(keyType, issuers, socket)
         );
     }
@@ -115,7 +110,7 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
         return chooseClientAlias(
                 sslEngine,
                 Objects::nonNull,
-                aSslEngine -> new SimpleImmutableEntry<>(aSslEngine.getPeerHost(), aSslEngine.getPeerPort()),
+                this::extractHostAndPort,
                 keyManager -> keyManager.chooseEngineClientAlias(keyTypes, issuers, sslEngine)
         );
     }

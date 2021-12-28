@@ -2,10 +2,14 @@ package nl.altindag.ssl.keymanager;
 
 import javax.net.ssl.ExtendedSSLSession;
 import javax.net.ssl.SNIServerName;
+import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509KeyManager;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.net.URI;
+import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -102,6 +106,19 @@ interface RoutableX509ExtendedKeyManager extends CombinableX509ExtendedKeyManage
         } else {
             return extractInnerField(aliasExtractor, NON_NULL);
         }
+    }
+
+    default boolean containsInetSocketAddress(Socket socket) {
+        return socket != null && socket.getRemoteSocketAddress() instanceof InetSocketAddress;
+    }
+
+    default Entry<String, Integer> extractHostAndPort(Socket socket) {
+        InetSocketAddress address = (InetSocketAddress) socket.getRemoteSocketAddress();
+        return new AbstractMap.SimpleImmutableEntry<>(address.getHostName(), address.getPort());
+    }
+
+    default Entry<String, Integer> extractHostAndPort(SSLEngine sslEngine) {
+        return new AbstractMap.SimpleImmutableEntry<>(sslEngine.getPeerHost(), sslEngine.getPeerPort());
     }
 
 }
