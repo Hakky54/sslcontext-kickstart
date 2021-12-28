@@ -27,6 +27,12 @@ import java.security.KeyStore;
 import static nl.altindag.ssl.util.ValidationUtils.GENERIC_EXCEPTION_MESSAGE;
 import static nl.altindag.ssl.util.ValidationUtils.requireNotNull;
 
+/**
+ * <strong>NOTE:</strong>
+ * Please don't use this class directly as it is part of the internal API. Class name and methods can be changed any time.
+ *
+ * @author Hakan Altindag
+ */
 class TrustManagerFactorySpiWrapper extends TrustManagerFactorySpi {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TrustManagerFactorySpiWrapper.class);
