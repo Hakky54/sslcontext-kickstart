@@ -25,6 +25,9 @@ import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 
 /**
+ * <strong>NOTE:</strong>
+ * Please don't use this class directly as it is part of the internal API. Class name and methods can be changed any time.
+ *
  * @author Hakan Altindag
  */
 abstract class DelegatingX509ExtendedKeyManager<T extends X509KeyManager> extends X509ExtendedKeyManager {
