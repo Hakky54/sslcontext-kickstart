@@ -16,14 +16,11 @@
 
 package nl.altindag.ssl.trustmanager;
 
+import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedTrustManager;
-import javax.net.ssl.X509TrustManager;
+import java.net.Socket;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
-
-import static nl.altindag.ssl.util.ValidationUtils.GENERIC_EXCEPTION_MESSAGE;
-import static nl.altindag.ssl.util.ValidationUtils.requireNotNull;
 
 /**
  * <strong>NOTE:</strong>
@@ -31,28 +28,30 @@ import static nl.altindag.ssl.util.ValidationUtils.requireNotNull;
  *
  * @author Hakan Altindag
  */
-abstract class DelegatingX509ExtendedTrustManager<T extends X509TrustManager> extends X509ExtendedTrustManager {
+class DelegatingX509ExtendedTrustManager extends DelegatingTrustManager<X509ExtendedTrustManager> {
 
-    T trustManager;
-
-    DelegatingX509ExtendedTrustManager(T trustManager) {
-        this.trustManager = requireNotNull(trustManager, GENERIC_EXCEPTION_MESSAGE.apply("TrustManager"));
+    DelegatingX509ExtendedTrustManager(X509ExtendedTrustManager trustManager) {
+        super(trustManager);
     }
 
     @Override
-    public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-        trustManager.checkClientTrusted(chain, authType);
+    public void checkClientTrusted(X509Certificate[] chain, String authType, Socket socket) throws CertificateException {
+        trustManager.checkClientTrusted(chain, authType, socket);
     }
 
     @Override
-    public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-        trustManager.checkServerTrusted(chain, authType);
+    public void checkClientTrusted(X509Certificate[] chain, String authType, SSLEngine sslEngine) throws CertificateException {
+        trustManager.checkClientTrusted(chain, authType, sslEngine);
     }
 
     @Override
-    public X509Certificate[] getAcceptedIssuers() {
-        X509Certificate[] acceptedIssuers = trustManager.getAcceptedIssuers();
-        return Arrays.copyOf(acceptedIssuers, acceptedIssuers.length);
+    public void checkServerTrusted(X509Certificate[] chain, String authType, Socket socket) throws CertificateException {
+        trustManager.checkServerTrusted(chain, authType, socket);
+    }
+
+    @Override
+    public void checkServerTrusted(X509Certificate[] chain, String authType, SSLEngine sslEngine) throws CertificateException {
+        trustManager.checkServerTrusted(chain, authType, sslEngine);
     }
 
 }

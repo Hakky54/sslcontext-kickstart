@@ -18,7 +18,6 @@ package nl.altindag.ssl.keymanager;
 
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509KeyManager;
-import java.net.Socket;
 import java.security.Principal;
 
 /**
@@ -29,25 +28,15 @@ import java.security.Principal;
  *
  * @author Hakan Altindag
  */
-public class X509KeyManagerWrapper extends DelegatingX509ExtendedKeyManager<X509KeyManager> {
+public class X509KeyManagerWrapper extends DelegatingKeyManager<X509KeyManager> {
 
     public X509KeyManagerWrapper(X509KeyManager keyManager) {
         super(keyManager);
     }
 
     @Override
-    public String chooseClientAlias(String[] keyType, Principal[] issuers, Socket socket) {
-        return keyManager.chooseClientAlias(keyType, issuers, socket);
-    }
-
-    @Override
     public String chooseEngineClientAlias(String[] keyTypes, Principal[] issuers, SSLEngine sslEngine) {
         return keyManager.chooseClientAlias(keyTypes, issuers, null);
-    }
-
-    @Override
-    public String chooseServerAlias(String keyType, Principal[] issuers, Socket socket) {
-        return keyManager.chooseServerAlias(keyType, issuers, socket);
     }
 
     @Override

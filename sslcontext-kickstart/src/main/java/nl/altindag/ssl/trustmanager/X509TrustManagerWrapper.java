@@ -30,7 +30,7 @@ import java.security.cert.X509Certificate;
  *
  * @author Hakan Altindag
  */
-public class X509TrustManagerWrapper extends DelegatingX509ExtendedTrustManager<X509TrustManager> {
+public class X509TrustManagerWrapper extends DelegatingTrustManager<X509TrustManager> {
 
     public X509TrustManagerWrapper(X509TrustManager trustManager) {
         super(trustManager);

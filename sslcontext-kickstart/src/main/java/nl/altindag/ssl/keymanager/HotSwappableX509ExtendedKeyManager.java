@@ -16,10 +16,7 @@
 
 package nl.altindag.ssl.keymanager;
 
-import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedKeyManager;
-import java.net.Socket;
-import java.security.Principal;
 
 import static nl.altindag.ssl.util.ValidationUtils.GENERIC_EXCEPTION_MESSAGE;
 import static nl.altindag.ssl.util.ValidationUtils.requireNotNull;
@@ -32,30 +29,10 @@ import static nl.altindag.ssl.util.ValidationUtils.requireNotNull;
  *
  * @author Hakan Altindag
  */
-public final class HotSwappableX509ExtendedKeyManager extends DelegatingX509ExtendedKeyManager<X509ExtendedKeyManager> {
+public final class HotSwappableX509ExtendedKeyManager extends DelegatingX509ExtendedKeyManager {
 
     public HotSwappableX509ExtendedKeyManager(X509ExtendedKeyManager keyManager) {
         super(keyManager);
-    }
-
-    @Override
-    public String chooseClientAlias(String[] keyType, Principal[] issuers, Socket socket) {
-        return keyManager.chooseClientAlias(keyType, issuers, socket);
-    }
-
-    @Override
-    public String chooseEngineClientAlias(String[] keyTypes, Principal[] issuers, SSLEngine sslEngine) {
-        return keyManager.chooseEngineClientAlias(keyTypes, issuers, sslEngine);
-    }
-
-    @Override
-    public String chooseServerAlias(String keyType, Principal[] issuers, Socket socket) {
-        return keyManager.chooseServerAlias(keyType, issuers, socket);
-    }
-
-    @Override
-    public String chooseEngineServerAlias(String keyType, Principal[] issuers, SSLEngine sslEngine) {
-        return keyManager.chooseEngineServerAlias(keyType, issuers, sslEngine);
     }
 
     public void setKeyManager(X509ExtendedKeyManager keyManager) {

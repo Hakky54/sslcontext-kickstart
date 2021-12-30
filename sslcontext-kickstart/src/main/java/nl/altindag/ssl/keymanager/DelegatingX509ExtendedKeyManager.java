@@ -16,13 +16,9 @@
 
 package nl.altindag.ssl.keymanager;
 
-import nl.altindag.ssl.util.ValidationUtils;
-
+import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedKeyManager;
-import javax.net.ssl.X509KeyManager;
 import java.security.Principal;
-import java.security.PrivateKey;
-import java.security.cert.X509Certificate;
 
 /**
  * <strong>NOTE:</strong>
@@ -30,34 +26,20 @@ import java.security.cert.X509Certificate;
  *
  * @author Hakan Altindag
  */
-abstract class DelegatingX509ExtendedKeyManager<T extends X509KeyManager> extends X509ExtendedKeyManager {
+class DelegatingX509ExtendedKeyManager extends DelegatingKeyManager<X509ExtendedKeyManager> {
 
-    private static final String NO_KEY_MANAGER_EXCEPTION_MESSAGE = "No valid KeyManager has been provided. KeyManager must be present, but was absent.";
-
-    T keyManager;
-
-    DelegatingX509ExtendedKeyManager(T keyManager) {
-        this.keyManager = ValidationUtils.requireNotNull(keyManager, NO_KEY_MANAGER_EXCEPTION_MESSAGE);
+    public DelegatingX509ExtendedKeyManager(X509ExtendedKeyManager keyManager) {
+        super(keyManager);
     }
 
     @Override
-    public PrivateKey getPrivateKey(String alias) {
-        return keyManager.getPrivateKey(alias);
+    public String chooseEngineClientAlias(String[] keyTypes, Principal[] issuers, SSLEngine sslEngine) {
+        return keyManager.chooseEngineClientAlias(keyTypes, issuers, sslEngine);
     }
 
     @Override
-    public X509Certificate[] getCertificateChain(String alias) {
-        return keyManager.getCertificateChain(alias);
-    }
-
-    @Override
-    public String[] getClientAliases(String keyType, Principal[] issuers) {
-        return keyManager.getClientAliases(keyType, issuers);
-    }
-
-    @Override
-    public String[] getServerAliases(String keyType, Principal[] issuers) {
-        return keyManager.getServerAliases(keyType, issuers);
+    public String chooseEngineServerAlias(String keyType, Principal[] issuers, SSLEngine sslEngine) {
+        return keyManager.chooseEngineServerAlias(keyType, issuers, sslEngine);
     }
 
 }
