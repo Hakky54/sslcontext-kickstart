@@ -28,15 +28,13 @@ interface CombinableX509ExtendedKeyManager extends X509KeyManager {
     }
 
     default String[] getAliases(Function<X509ExtendedKeyManager, String[]> aliasExtractor) {
-        return getKeyManagers().stream()
+        List<String> aliases = getKeyManagers().stream()
                 .map(aliasExtractor)
                 .filter(Objects::nonNull)
                 .flatMap(Arrays::stream)
-                .collect(Collectors.collectingAndThen(Collectors.toList(), this::emptyToNull));
-    }
+                .collect(Collectors.toList());
 
-    default String[] emptyToNull(List<String> list) {
-        return list.isEmpty() ? null : list.toArray(new String[]{});
+        return aliases.isEmpty() ? null : aliases.toArray(new String[]{});
     }
 
 }
