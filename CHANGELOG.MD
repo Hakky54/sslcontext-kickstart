@@ -3,6 +3,10 @@
 This list is not intended to be all-encompassing - it will document major and breaking API 
 changes with their rationale when appropriate:
 
+### v7.2.0
+- Code improvements (removed code duplications)
+- Removed deprecated methods
+- Updated dependencies
 ### v7.1.0
 - Added option to route server identities
 ### v7.0.3
