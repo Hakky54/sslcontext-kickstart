@@ -22,7 +22,6 @@ import nl.altindag.ssl.exception.PrivateKeyParseException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.net.ssl.X509ExtendedKeyManager;
@@ -486,7 +485,7 @@ class PemUtilsShould {
         InputStream identityStream = spy(getResource(PEM_LOCATION + "encrypted-identity.pem"));
         String identityContent = getResourceContent(PEM_LOCATION + "encrypted-identity.pem");
 
-        try (MockedStatic<IOUtils> ioUtilsMockedStatic = mockStatic(IOUtils.class, InvocationOnMock::getMock)) {
+        try (MockedStatic<IOUtils> ioUtilsMockedStatic = mockStatic(IOUtils.class)) {
             ioUtilsMockedStatic.when(() -> IOUtils.getContent(identityStream)).thenReturn(identityContent);
 
             doThrow(new IOException("KABOOM!!!"))
@@ -504,7 +503,7 @@ class PemUtilsShould {
         InputStream identityStream = spy(getResource(PEM_LOCATION + "encrypted-identity.pem"));
         String identityContent = getResourceContent(PEM_LOCATION + "encrypted-identity.pem");
 
-        try (MockedStatic<IOUtils> ioUtilsMockedStatic = mockStatic(IOUtils.class, InvocationOnMock::getMock)) {
+        try (MockedStatic<IOUtils> ioUtilsMockedStatic = mockStatic(IOUtils.class)) {
             ioUtilsMockedStatic.when(() -> IOUtils.getContent(identityStream)).thenReturn(identityContent);
 
             doThrow(new IOException("KABOOM!!!"))
@@ -524,7 +523,7 @@ class PemUtilsShould {
         String certificateChainContent = getResourceContent(PEM_LOCATION + "splitted-unencrypted-identity-containing-certificate.pem");
         String privateKeyContent = getResourceContent(PEM_LOCATION + "splitted-unencrypted-identity-containing-private-key.pem");
 
-        try (MockedStatic<IOUtils> ioUtilsMockedStatic = mockStatic(IOUtils.class, InvocationOnMock::getMock)) {
+        try (MockedStatic<IOUtils> ioUtilsMockedStatic = mockStatic(IOUtils.class)) {
             ioUtilsMockedStatic.when(() -> IOUtils.getContent(certificateChainStream)).thenReturn(certificateChainContent);
             ioUtilsMockedStatic.when(() -> IOUtils.getContent(privateKeyStream)).thenReturn(privateKeyContent);
 
@@ -625,14 +624,11 @@ class PemUtilsShould {
         try (MockedStatic<KeyStoreUtils> keyStoreUtilsMock = mockStatic(KeyStoreUtils.class, invocation -> {
             Method method = invocation.getMethod();
             if ("createKeyStore".equals(method.getName()) && method.getParameterCount() == 0) {
-                return invocation.getMock();
+                return keyStore;
             } else {
                 return invocation.callRealMethod();
             }
         })) {
-
-            keyStoreUtilsMock.when(KeyStoreUtils::createKeyStore).thenReturn(keyStore);
-
             assertThatThrownBy(() -> PemUtils.loadIdentityMaterial(PEM_LOCATION + "unencrypted-identity.pem"))
                     .hasMessageContaining("lazy");
         }

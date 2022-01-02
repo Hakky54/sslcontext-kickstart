@@ -124,18 +124,19 @@ class KeyStoreUtilsShould {
             Method method = invocation.getMethod();
             if ("loadSystemKeyStores".equals(method.getName()) && method.getParameterCount() == 0) {
                 return invocation.callRealMethod();
+            } else if ("createKeyStore".equals(method.getName()) && method.getParameterCount() == 2 && "Windows-ROOT".equals(invocation.getArgument(0))) {
+                return windowsRootKeyStore;
+            } else if ("createKeyStore".equals(method.getName()) && method.getParameterCount() == 2 && "Windows-MY".equals(invocation.getArgument(0))) {
+                return windowsMyKeyStore;
             } else {
                 return invocation.getMock();
             }
         })) {
-            keyStoreUtilsMock.when(() -> KeyStoreUtils.createKeyStore("Windows-ROOT", null)).thenReturn(windowsRootKeyStore);
-            keyStoreUtilsMock.when(() -> KeyStoreUtils.createKeyStore("Windows-MY", null)).thenReturn(windowsMyKeyStore);
-
             List<KeyStore> keyStores = KeyStoreUtils.loadSystemKeyStores();
             assertThat(keyStores).containsExactlyInAnyOrder(windowsRootKeyStore, windowsMyKeyStore);
+        } finally {
+            resetOsName();
         }
-
-        resetOsName();
     }
 
     @Test
@@ -147,12 +148,12 @@ class KeyStoreUtilsShould {
             Method method = invocation.getMethod();
             if ("loadSystemKeyStores".equals(method.getName()) && method.getParameterCount() == 0) {
                 return invocation.callRealMethod();
+            } else if ("createKeyStore".equals(method.getName()) && method.getParameterCount() == 2 && "KeychainStore".equals(invocation.getArgument(0))) {
+                return macKeyStore;
             } else {
                 return invocation.getMock();
             }
         })) {
-            keyStoreUtilsMock.when(() -> KeyStoreUtils.createKeyStore("KeychainStore", null)).thenReturn(macKeyStore);
-
             List<KeyStore> keyStores = KeyStoreUtils.loadSystemKeyStores();
             assertThat(keyStores).containsExactly(macKeyStore);
         }
@@ -357,13 +358,11 @@ class KeyStoreUtilsShould {
         try (MockedStatic<KeyStoreUtils> keyStoreUtilsMock = mockStatic(KeyStoreUtils.class, invocation -> {
             Method method = invocation.getMethod();
             if ("createKeyStore".equals(method.getName()) && method.getParameterCount() == 0) {
-                return invocation.getMock();
+                return keyStore;
             } else {
                 return invocation.callRealMethod();
             }
         })) {
-            keyStoreUtilsMock.when(KeyStoreUtils::createKeyStore).thenReturn(keyStore);
-
             assertThatThrownBy(() -> KeyStoreUtils.createTrustStore(trustedCertificates))
                     .isInstanceOf(GenericKeyStoreException.class)
                     .hasMessageContaining("lazy");

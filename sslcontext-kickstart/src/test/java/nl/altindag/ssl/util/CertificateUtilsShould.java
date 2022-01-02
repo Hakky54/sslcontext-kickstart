@@ -21,7 +21,6 @@ import nl.altindag.ssl.exception.GenericIOException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.net.ssl.X509ExtendedTrustManager;
@@ -165,8 +164,7 @@ class CertificateUtilsShould {
     @Test
     void getSystemTrustedCertificatesDoesNotReturnCertificateIfNotACertificateEntry() throws KeyStoreException {
         KeyStore keyStore = mock(KeyStore.class);
-        try (MockedStatic<KeyStoreUtils> keyStoreUtilsMockedStatic = mockStatic(KeyStoreUtils.class, InvocationOnMock::getMock)) {
-
+        try (MockedStatic<KeyStoreUtils> keyStoreUtilsMockedStatic = mockStatic(KeyStoreUtils.class)) {
             keyStoreUtilsMockedStatic.when(KeyStoreUtils::loadSystemKeyStores).thenReturn(Collections.singletonList(keyStore));
             when(keyStore.aliases()).thenReturn(Collections.enumeration(Collections.singletonList("client")));
             when(keyStore.isCertificateEntry("client")).thenReturn(false);
@@ -212,14 +210,11 @@ class CertificateUtilsShould {
         try (MockedStatic<CertificateUtils> certificateUtilsMockedStatic = mockStatic(CertificateUtils.class, invocation -> {
             Method method = invocation.getMethod();
             if ("getRootCaFromAuthorityInfoAccessExtensionIfPresent".equals(method.getName())) {
-                return invocation.getMock();
+                return Collections.emptyList();
             } else {
                 return invocation.callRealMethod();
             }
         })) {
-            certificateUtilsMockedStatic.when(() -> CertificateUtils.getRootCaFromAuthorityInfoAccessExtensionIfPresent(any(X509Certificate.class)))
-                    .thenReturn(Collections.emptyList());
-
             X509Certificate certificate = (X509Certificate) certificates.get(certificates.size() - 1);
             List<X509Certificate> rootCaCertificate = CertificateUtils.getRootCaIfPossible(certificate);
             assertThat(rootCaCertificate).isNotEmpty();
@@ -236,14 +231,11 @@ class CertificateUtilsShould {
         try (MockedStatic<CertificateUtils> certificateUtilsMockedStatic = mockStatic(CertificateUtils.class, invocation -> {
             Method method = invocation.getMethod();
             if ("getRootCaFromAuthorityInfoAccessExtensionIfPresent".equals(method.getName()) || "getRootCaFromJdkTrustedCertificates".equals(method.getName())) {
-                return invocation.getMock();
+                return Collections.emptyList();
             } else {
                 return invocation.callRealMethod();
             }
         })) {
-            certificateUtilsMockedStatic.when(() -> CertificateUtils.getRootCaFromAuthorityInfoAccessExtensionIfPresent(any(X509Certificate.class)))
-                    .thenReturn(Collections.emptyList());
-
             certificateUtilsMockedStatic.when(() -> CertificateUtils.getRootCaFromJdkTrustedCertificates(any(X509Certificate.class)))
                     .thenReturn(Collections.emptyList());
 
@@ -279,15 +271,11 @@ class CertificateUtilsShould {
         try (MockedStatic<CertificateFactory> certificateFactoryMockedStatic = mockStatic(CertificateFactory.class, invocation -> {
             Method method = invocation.getMethod();
             if ("getInstance".equals(method.getName())) {
-                return invocation.getMock();
+                throw new CertificateException();
             } else {
                 return invocation.callRealMethod();
             }
         })) {
-
-            certificateFactoryMockedStatic.when(() -> CertificateFactory.getInstance("X.509"))
-                    .thenThrow(CertificateException.class);
-
             URI uri = URI.create("https://www.reddit.com/");
             assertThatThrownBy(() -> CertificateUtils.getCertificatesFromRemoteFile(uri, null))
                     .isInstanceOf(GenericCertificateException.class);
