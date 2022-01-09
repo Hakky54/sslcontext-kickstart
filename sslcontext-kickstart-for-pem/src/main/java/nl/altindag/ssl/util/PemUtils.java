@@ -163,8 +163,8 @@ public final class PemUtils {
         return certificates;
     }
 
-    private static List<Object> parsePemContent(String PemContent) {
-        try(Reader stringReader = new StringReader(PemContent);
+    private static List<Object> parsePemContent(String pemContent) {
+        try(Reader stringReader = new StringReader(pemContent);
             PEMParser pemParser = new PEMParser(stringReader)) {
 
             List<Object> objects = new ArrayList<>();
