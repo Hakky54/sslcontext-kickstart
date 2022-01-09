@@ -19,7 +19,7 @@ package nl.altindag.ssl.exception;
 /**
  * @author Hakan Altindag
  */
-public final class CertificateParseException extends GenericSecurityException {
+public final class CertificateParseException extends PemParseException {
 
     public CertificateParseException(Throwable cause) {
         super(cause);

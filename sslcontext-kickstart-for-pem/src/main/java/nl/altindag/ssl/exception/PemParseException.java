@@ -19,9 +19,13 @@ package nl.altindag.ssl.exception;
 /**
  * @author Hakan Altindag
  */
-public final class PublicKeyParseException extends PemParseException {
+public class PemParseException extends GenericSecurityException {
 
-    public PublicKeyParseException(String message) {
+    public PemParseException(Throwable cause) {
+        super(cause);
+    }
+
+    public PemParseException(String message) {
         super(message);
     }
 

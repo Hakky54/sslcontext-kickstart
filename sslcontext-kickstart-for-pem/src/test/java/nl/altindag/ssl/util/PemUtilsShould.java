@@ -18,6 +18,7 @@ package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.exception.CertificateParseException;
 import nl.altindag.ssl.exception.GenericIOException;
+import nl.altindag.ssl.exception.PemParseException;
 import nl.altindag.ssl.exception.PrivateKeyParseException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -600,12 +601,12 @@ class PemUtilsShould {
                 "-----END ENCRYPTED PRIVATE KEY-----";
 
         assertThatThrownBy(() -> PemUtils.parseIdentityMaterial(invalidPrivateKey, null))
-                .isInstanceOf(PrivateKeyParseException.class)
+                .isInstanceOf(PemParseException.class)
                 .hasMessageContaining("problem parsing ENCRYPTED PRIVATE KEY");
     }
 
     @Test
-    void throwCertificateParseExceptionWhenInvalidCertificateContentIsSupplied() {
+    void throwPemParseExceptionWhenInvalidCertificateContentIsSupplied() {
         String invalidCertificate = "" +
                 "-----BEGIN CERTIFICATE-----\n" +
                 "MwdGrM6kt0lfJy/gvGVsgIKZocHdedPeECqAtq7FAJYanOsjNN9RbBOGhbwq0/FP\n" +
@@ -613,7 +614,7 @@ class PemUtilsShould {
                 "-----END CERTIFICATE-----";
 
         assertThatThrownBy(() -> PemUtils.parseTrustMaterial(invalidCertificate))
-                .isInstanceOf(CertificateParseException.class);
+                .isInstanceOf(PemParseException.class);
     }
 
     @Test
