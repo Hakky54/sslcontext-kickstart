@@ -168,11 +168,8 @@ public final class PemUtils {
             PEMParser pemParser = new PEMParser(stringReader)) {
 
             List<Object> objects = new ArrayList<>();
-
-            Object object = pemParser.readObject();
-            while (object != null) {
+            for (Object object = pemParser.readObject(); object != null; object = pemParser.readObject()) {
                 objects.add(object);
-                object = pemParser.readObject();
             }
 
             return objects;
