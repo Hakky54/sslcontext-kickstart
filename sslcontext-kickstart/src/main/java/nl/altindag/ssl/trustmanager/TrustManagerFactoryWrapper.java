@@ -28,7 +28,7 @@ import java.security.Provider;
  *
  * @author Hakan Altindag
  */
-public class TrustManagerFactoryWrapper extends TrustManagerFactory {
+public final class TrustManagerFactoryWrapper extends TrustManagerFactory {
 
     private static final String TRUST_MANAGER_FACTORY_ALGORITHM = "no-algorithm";
     private static final Provider PROVIDER = new Provider("", 1.0, "") {};

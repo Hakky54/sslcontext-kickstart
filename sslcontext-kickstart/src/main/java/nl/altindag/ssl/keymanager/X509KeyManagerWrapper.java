@@ -28,7 +28,7 @@ import java.security.Principal;
  *
  * @author Hakan Altindag
  */
-public class X509KeyManagerWrapper extends DelegatingKeyManager<X509KeyManager> {
+public final class X509KeyManagerWrapper extends DelegatingKeyManager<X509KeyManager> {
 
     public X509KeyManagerWrapper(X509KeyManager keyManager) {
         super(keyManager);

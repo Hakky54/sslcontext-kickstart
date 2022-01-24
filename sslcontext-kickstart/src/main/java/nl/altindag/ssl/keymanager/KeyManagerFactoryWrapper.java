@@ -28,7 +28,7 @@ import java.security.Provider;
  *
  * @author Hakan Altindag
  */
-public class KeyManagerFactoryWrapper extends KeyManagerFactory {
+public final class KeyManagerFactoryWrapper extends KeyManagerFactory {
 
     private static final String KEY_MANAGER_FACTORY_ALGORITHM = "no-algorithm";
     private static final Provider PROVIDER = new Provider("", 1.0, "") {};

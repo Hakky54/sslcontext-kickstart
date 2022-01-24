@@ -28,7 +28,7 @@ import javax.net.ssl.SSLSession;
  *
  * @author Hakan Altindag
  */
-public class UnsafeHostNameVerifier implements HostnameVerifier {
+public final class UnsafeHostNameVerifier implements HostnameVerifier {
 
     private static final HostnameVerifier INSTANCE = new UnsafeHostNameVerifier();
 

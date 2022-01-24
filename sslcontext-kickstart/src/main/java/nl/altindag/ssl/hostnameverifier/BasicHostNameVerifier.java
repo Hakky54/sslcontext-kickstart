@@ -28,7 +28,7 @@ import javax.net.ssl.SSLSession;
  *
  * @author Hakan Altindag
  */
-public class BasicHostNameVerifier implements HostnameVerifier {
+public final class BasicHostNameVerifier implements HostnameVerifier {
 
     private static final HostnameVerifier INSTANCE = new BasicHostNameVerifier();
 
