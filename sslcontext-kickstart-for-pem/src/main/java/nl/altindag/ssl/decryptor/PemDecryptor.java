@@ -1,6 +1,5 @@
 package nl.altindag.ssl.decryptor;
 
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMDecryptorProvider;
 import org.bouncycastle.openssl.jcajce.JcePEMDecryptorProviderBuilder;
 
@@ -17,8 +16,7 @@ import static nl.altindag.ssl.util.ValidationUtils.requireNotNull;
 public final class PemDecryptor implements BouncyFunction<char[], PEMDecryptorProvider> {
 
     private static final PemDecryptor INSTANCE = new PemDecryptor();
-    private static final JcePEMDecryptorProviderBuilder PEM_DECRYPTOR_PROVIDER_BUILDER = new JcePEMDecryptorProviderBuilder()
-            .setProvider(BouncyCastleProvider.PROVIDER_NAME);
+    private static final JcePEMDecryptorProviderBuilder PEM_DECRYPTOR_PROVIDER_BUILDER = new JcePEMDecryptorProviderBuilder();
 
     private PemDecryptor() {}
 

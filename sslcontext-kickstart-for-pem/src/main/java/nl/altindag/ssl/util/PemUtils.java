@@ -87,8 +87,8 @@ public final class PemUtils {
     private static final char[] DUMMY_PASSWORD = KeyStoreUtils.DUMMY_PASSWORD.toCharArray();
     private static final char[] NO_PASSWORD = null;
 
-    private static final JcaPEMKeyConverter KEY_CONVERTER = new JcaPEMKeyConverter().setProvider(BouncyCastleProvider.PROVIDER_NAME);
-    private static final JcaX509CertificateConverter CERTIFICATE_CONVERTER = new JcaX509CertificateConverter().setProvider(BouncyCastleProvider.PROVIDER_NAME);
+    private static final JcaPEMKeyConverter KEY_CONVERTER = new JcaPEMKeyConverter();
+    private static final JcaX509CertificateConverter CERTIFICATE_CONVERTER = new JcaX509CertificateConverter();
 
     private PemUtils() {}
 
