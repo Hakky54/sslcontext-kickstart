@@ -3,6 +3,9 @@
 This list is not intended to be all-encompassing - it will document major and breaking API 
 changes with their rationale when appropriate:
 
+### v7.2.1
+- Fix parsing PEM on Android v28 and above
+- Bumped SLF4J dependency
 ### v7.2.0
 - Code improvements (removed code duplications)
 - Removed deprecated methods
