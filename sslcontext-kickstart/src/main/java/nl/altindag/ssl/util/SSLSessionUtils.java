@@ -27,6 +27,7 @@ import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -34,6 +35,8 @@ import java.util.stream.Collectors;
  * @author Hakan Altindag
  */
 public final class SSLSessionUtils {
+
+    private static final Function<Long, ZonedDateTime> EPOCH_TIME_MAPPER = epochTime -> ZonedDateTime.ofInstant(Instant.ofEpochMilli(epochTime), ZoneOffset.UTC);
 
     private SSLSessionUtils() {}
 
@@ -111,10 +114,7 @@ public final class SSLSessionUtils {
 
     private static void invalidateCachesWithTimeStamp(SSLSessionContext sslSessionContext, Predicate<ZonedDateTime> timeStampPredicate) {
         SSLSessionUtils.getSslSessions(sslSessionContext).stream()
-                .filter(sslSession -> {
-                    ZonedDateTime sslSessionCreationTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(sslSession.getCreationTime()), ZoneOffset.UTC);
-                    return timeStampPredicate.test(sslSessionCreationTime);
-                })
+                .filter(sslSession -> timeStampPredicate.test(EPOCH_TIME_MAPPER.apply(sslSession.getCreationTime())))
                 .forEach(SSLSession::invalidate);
     }
 
