@@ -270,7 +270,7 @@ If a custom validator is specified and if the condition evaluates to true, then 
 ```text
 SSLFactory.builder()
           .withDefaultTrustMaterial()
-          .withTrustValidator((X509Certificate[] certificateChain, String authType) ->
+          .withTrustEnhancer((X509Certificate[] certificateChain, String authType) ->
                   certificateChain[0].getIssuerX500Principal().getName().equals("Foo")
                       && certificateChain[0].getSubjectX500Principal().getName().equals("Bar"))
           .build();
@@ -286,7 +286,7 @@ ChainAndAuthTypeValidator validator = ((ChainAndAuthTypeValidator)
 
 SSLFactory sslFactory = SSLFactory.builder()
         .withDefaultTrustMaterial()
-        .withTrustValidator(validator)
+        .withTrustEnhancer(validator)
         .build();
 ```
 
@@ -294,9 +294,9 @@ The method has overloaded methods, and it is recommended to apply similar valida
 ```text
 SSLFactory sslFactory = SSLFactory.builder()
         .withDefaultTrustMaterial()
-        .withTrustValidator(((X509Certificate[] certificateChain, String authType) -> myConditionWhichReturnsBoolean))
-        .withTrustValidator(((X509Certificate[] certificateChain, String authType, Socket socket) -> myConditionWhichReturnsBoolean))
-        .withTrustValidator(((X509Certificate[] certificateChain, String authType, SSLEngine sslEngine) -> myConditionWhichReturnsBoolean))
+        .withTrustEnhancer(((X509Certificate[] certificateChain, String authType) -> myConditionWhichReturnsBoolean))
+        .withTrustEnhancer(((X509Certificate[] certificateChain, String authType, Socket socket) -> myConditionWhichReturnsBoolean))
+        .withTrustEnhancer(((X509Certificate[] certificateChain, String authType, SSLEngine sslEngine) -> myConditionWhichReturnsBoolean))
         .build();
 ```
 
