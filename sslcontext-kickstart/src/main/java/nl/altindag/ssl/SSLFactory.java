@@ -20,6 +20,9 @@ import nl.altindag.ssl.exception.GenericKeyStoreException;
 import nl.altindag.ssl.exception.GenericSecurityException;
 import nl.altindag.ssl.model.KeyStoreHolder;
 import nl.altindag.ssl.model.SSLMaterial;
+import nl.altindag.ssl.trustmanager.ChainAndAuthTypeValidator;
+import nl.altindag.ssl.trustmanager.ChainAndAuthTypeWithSSLEngineValidator;
+import nl.altindag.ssl.trustmanager.ChainAndAuthTypeWithSocketValidator;
 import nl.altindag.ssl.trustmanager.TrustAnchorTrustOptions;
 import nl.altindag.ssl.trustmanager.TrustStoreTrustOptions;
 import nl.altindag.ssl.util.HostnameVerifierUtils;
@@ -183,6 +186,10 @@ public final class SSLFactory {
 
         private int sessionTimeoutInSeconds = -1;
         private int sessionCacheSizeInBytes = -1;
+
+        private ChainAndAuthTypeValidator chainAndAuthTypeValidator;
+        private ChainAndAuthTypeWithSocketValidator chainAndAuthTypeWithSocketValidator;
+        private ChainAndAuthTypeWithSSLEngineValidator chainAndAuthTypeWithSSLEngineValidator;
 
         private Builder() {}
 
@@ -619,6 +626,21 @@ public final class SSLFactory {
             return this;
         }
 
+        public Builder withTrustEnhancer(ChainAndAuthTypeValidator validator) {
+            this.chainAndAuthTypeValidator = validator;
+            return this;
+        }
+
+        public Builder withTrustEnhancer(ChainAndAuthTypeWithSocketValidator validator) {
+            this.chainAndAuthTypeWithSocketValidator = validator;
+            return this;
+        }
+
+        public Builder withTrustEnhancer(ChainAndAuthTypeWithSSLEngineValidator validator) {
+            this.chainAndAuthTypeWithSSLEngineValidator = validator;
+            return this;
+        }
+
         public SSLFactory build() {
             if (!isIdentityMaterialPresent() && !isTrustMaterialPresent()) {
                 throw new GenericSecurityException(IDENTITY_AND_TRUST_MATERIAL_VALIDATION_EXCEPTION_MESSAGE);
@@ -682,6 +704,9 @@ public final class SSLFactory {
                     .withTrustManagers(trustManagers)
                     .withTrustStores(trustStores)
                     .withSwappableTrustManager(swappableTrustManagerEnabled)
+                    .withTrustEnhancer(chainAndAuthTypeValidator)
+                    .withTrustEnhancer(chainAndAuthTypeWithSocketValidator)
+                    .withTrustEnhancer(chainAndAuthTypeWithSSLEngineValidator)
                     .build();
         }
 

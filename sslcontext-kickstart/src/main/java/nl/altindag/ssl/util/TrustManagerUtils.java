@@ -17,7 +17,11 @@
 package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.exception.GenericTrustManagerException;
+import nl.altindag.ssl.trustmanager.ChainAndAuthTypeValidator;
+import nl.altindag.ssl.trustmanager.ChainAndAuthTypeWithSSLEngineValidator;
+import nl.altindag.ssl.trustmanager.ChainAndAuthTypeWithSocketValidator;
 import nl.altindag.ssl.trustmanager.CompositeX509ExtendedTrustManager;
+import nl.altindag.ssl.trustmanager.EnhanceableX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.HotSwappableX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.TrustManagerFactoryWrapper;
 import nl.altindag.ssl.trustmanager.UnsafeX509ExtendedTrustManager;
@@ -230,6 +234,20 @@ public final class TrustManagerUtils {
         }
     }
 
+    public static X509ExtendedTrustManager createEnhanceableTrustManager(
+            X509ExtendedTrustManager trustManager,
+            ChainAndAuthTypeValidator chainAndAuthTypeValidator,
+            ChainAndAuthTypeWithSocketValidator chainAndAuthTypeWithSocketValidator,
+            ChainAndAuthTypeWithSSLEngineValidator chainAndAuthTypeWithSSLEngineValidator) {
+
+        return new EnhanceableX509ExtendedTrustManager(
+                trustManager,
+                chainAndAuthTypeValidator,
+                chainAndAuthTypeWithSocketValidator,
+                chainAndAuthTypeWithSSLEngineValidator
+        );
+    }
+
     private static List<X509ExtendedTrustManager> unwrapIfPossible(X509ExtendedTrustManager trustManager) {
         List<X509ExtendedTrustManager> trustManagers = new ArrayList<>();
         if (trustManager instanceof CompositeX509ExtendedTrustManager) {
@@ -256,6 +274,10 @@ public final class TrustManagerUtils {
 
         private final List<X509ExtendedTrustManager> trustManagers = new ArrayList<>();
         private boolean swappableTrustManagerEnabled = false;
+
+        private ChainAndAuthTypeValidator chainAndAuthTypeValidator;
+        private ChainAndAuthTypeWithSocketValidator chainAndAuthTypeWithSocketValidator;
+        private ChainAndAuthTypeWithSSLEngineValidator chainAndAuthTypeWithSSLEngineValidator;
 
         public <T extends X509TrustManager> TrustManagerBuilder withTrustManagers(T... trustManagers) {
             for (T trustManager : trustManagers) {
@@ -302,6 +324,21 @@ public final class TrustManagerUtils {
             return this;
         }
 
+        public TrustManagerBuilder withTrustEnhancer(ChainAndAuthTypeValidator validator) {
+            this.chainAndAuthTypeValidator = validator;
+            return this;
+        }
+
+        public TrustManagerBuilder withTrustEnhancer(ChainAndAuthTypeWithSocketValidator validator) {
+            this.chainAndAuthTypeWithSocketValidator = validator;
+            return this;
+        }
+
+        public TrustManagerBuilder withTrustEnhancer(ChainAndAuthTypeWithSSLEngineValidator validator) {
+            this.chainAndAuthTypeWithSSLEngineValidator = validator;
+            return this;
+        }
+
         public X509ExtendedTrustManager build() {
             if (trustManagers.isEmpty()) {
                 throw new GenericTrustManagerException(EMPTY_TRUST_MANAGER_EXCEPTION);
@@ -315,6 +352,17 @@ public final class TrustManagerUtils {
                         .map(TrustManagerUtils::unwrapIfPossible)
                         .flatMap(Collection::stream)
                         .collect(Collectors.collectingAndThen(Collectors.toList(), CompositeX509ExtendedTrustManager::new));
+            }
+
+            if (chainAndAuthTypeValidator != null
+                    || chainAndAuthTypeWithSocketValidator != null
+                    || chainAndAuthTypeWithSSLEngineValidator != null) {
+                trustManager = TrustManagerUtils.createEnhanceableTrustManager(
+                        trustManager,
+                        chainAndAuthTypeValidator,
+                        chainAndAuthTypeWithSocketValidator,
+                        chainAndAuthTypeWithSSLEngineValidator
+                );
             }
 
             if (swappableTrustManagerEnabled) {
