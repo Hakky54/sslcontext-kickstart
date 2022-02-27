@@ -59,8 +59,15 @@ class ChainAndAuthTypeWithSSLEngineValidatorShould {
 
         ChainAndAuthTypeWithSSLEngineValidator validator = ((ChainAndAuthTypeWithSSLEngineValidator) (X509Certificate[] certificateChain, String authType, SSLEngine sslEngine) -> certificateChain[0].getSubjectX500Principal().getName().contains("Google"))
                 .and((X509Certificate[] certificateChain, String authType, SSLEngine sslEngine) -> certificateChain[0].getSubjectX500Principal().getName().contains("Mountain View"));
-
         assertThat(validator.test(acceptedIssuers, "RSA", mock(SSLEngine.class))).isTrue();
+
+        validator = ((ChainAndAuthTypeWithSSLEngineValidator) (X509Certificate[] certificateChain, String authType, SSLEngine sslEngine) -> certificateChain[0].getSubjectX500Principal().getName().contains("Google"))
+                .and((X509Certificate[] certificateChain, String authType, SSLEngine sslEngine) -> certificateChain[0].getSubjectX500Principal().getName().contains("Mountain Blue View"));
+        assertThat(validator.test(acceptedIssuers, "RSA", mock(SSLEngine.class))).isFalse();
+
+        validator = ((ChainAndAuthTypeWithSSLEngineValidator) (X509Certificate[] certificateChain, String authType, SSLEngine sslEngine) -> certificateChain[0].getSubjectX500Principal().getName().contains("Amazon"))
+                .and((X509Certificate[] certificateChain, String authType, SSLEngine sslEngine) -> certificateChain[0].getSubjectX500Principal().getName().contains("Mountain Blue View"));
+        assertThat(validator.test(acceptedIssuers, "RSA", mock(SSLEngine.class))).isFalse();
     }
 
     @Test
@@ -71,8 +78,15 @@ class ChainAndAuthTypeWithSSLEngineValidatorShould {
 
         ChainAndAuthTypeWithSSLEngineValidator validator = ((ChainAndAuthTypeWithSSLEngineValidator) (X509Certificate[] certificateChain, String authType, SSLEngine sslEngine) -> certificateChain[0].getSubjectX500Principal().getName().contains("Google"))
                 .or((X509Certificate[] certificateChain, String authType, SSLEngine sslEngine) -> certificateChain[0].getSubjectX500Principal().getName().contains("Donald"));
-
         assertThat(validator.test(acceptedIssuers, "RSA", mock(SSLEngine.class))).isTrue();
+
+        validator = ((ChainAndAuthTypeWithSSLEngineValidator) (X509Certificate[] certificateChain, String authType, SSLEngine sslEngine) -> certificateChain[0].getSubjectX500Principal().getName().contains("Donald"))
+                .or((X509Certificate[] certificateChain, String authType, SSLEngine sslEngine) -> certificateChain[0].getSubjectX500Principal().getName().contains("Google"));
+        assertThat(validator.test(acceptedIssuers, "RSA", mock(SSLEngine.class))).isTrue();
+
+        validator = ((ChainAndAuthTypeWithSSLEngineValidator) (X509Certificate[] certificateChain, String authType, SSLEngine sslEngine) -> certificateChain[0].getSubjectX500Principal().getName().contains("Donald"))
+                .or((X509Certificate[] certificateChain, String authType, SSLEngine sslEngine) -> certificateChain[0].getSubjectX500Principal().getName().contains("Quack"));
+        assertThat(validator.test(acceptedIssuers, "RSA", mock(SSLEngine.class))).isFalse();
     }
 
 }

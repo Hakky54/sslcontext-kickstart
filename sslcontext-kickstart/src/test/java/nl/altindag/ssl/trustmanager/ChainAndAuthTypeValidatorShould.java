@@ -42,7 +42,6 @@ class ChainAndAuthTypeValidatorShould {
         X509Certificate[] acceptedIssuers = trustManager.getAcceptedIssuers();
 
         ChainAndAuthTypeValidator validator = (certificateChain, authType) -> certificateChain[0].getSubjectX500Principal().getName().contains("Google");
-        validator.test(acceptedIssuers, "RSA");
 
         assertThat(validator.test(acceptedIssuers, "RSA")).isTrue();
     }
@@ -55,9 +54,15 @@ class ChainAndAuthTypeValidatorShould {
 
         ChainAndAuthTypeValidator validator = ((ChainAndAuthTypeValidator) (certificateChain, authType) -> certificateChain[0].getSubjectX500Principal().getName().contains("Google"))
                 .and((certificateChain, authType) -> certificateChain[0].getSubjectX500Principal().getName().contains("Mountain View"));
-        validator.test(acceptedIssuers, "RSA");
-
         assertThat(validator.test(acceptedIssuers, "RSA")).isTrue();
+
+        validator = ((ChainAndAuthTypeValidator) (certificateChain, authType) -> certificateChain[0].getSubjectX500Principal().getName().contains("Google"))
+                .and((certificateChain, authType) -> certificateChain[0].getSubjectX500Principal().getName().contains("Mountain Blue View"));
+        assertThat(validator.test(acceptedIssuers, "RSA")).isFalse();
+
+        validator = ((ChainAndAuthTypeValidator) (certificateChain, authType) -> certificateChain[0].getSubjectX500Principal().getName().contains("Amazon"))
+                .and((certificateChain, authType) -> certificateChain[0].getSubjectX500Principal().getName().contains("Mountain Blue View"));
+        assertThat(validator.test(acceptedIssuers, "RSA")).isFalse();
     }
 
     @Test
@@ -68,9 +73,15 @@ class ChainAndAuthTypeValidatorShould {
 
         ChainAndAuthTypeValidator validator = ((ChainAndAuthTypeValidator) (certificateChain, authType) -> certificateChain[0].getSubjectX500Principal().getName().contains("Google"))
                 .or((certificateChain, authType) -> certificateChain[0].getSubjectX500Principal().getName().contains("Donald"));
-        validator.test(acceptedIssuers, "RSA");
-
         assertThat(validator.test(acceptedIssuers, "RSA")).isTrue();
+
+        validator = ((ChainAndAuthTypeValidator) (certificateChain, authType) -> certificateChain[0].getSubjectX500Principal().getName().contains("Donald"))
+                .or((certificateChain, authType) -> certificateChain[0].getSubjectX500Principal().getName().contains("Google"));
+        assertThat(validator.test(acceptedIssuers, "RSA")).isTrue();
+
+        validator = ((ChainAndAuthTypeValidator) (certificateChain, authType) -> certificateChain[0].getSubjectX500Principal().getName().contains("Donald"))
+                .or((certificateChain, authType) -> certificateChain[0].getSubjectX500Principal().getName().contains("Quack"));
+        assertThat(validator.test(acceptedIssuers, "RSA")).isFalse();
     }
 
 }

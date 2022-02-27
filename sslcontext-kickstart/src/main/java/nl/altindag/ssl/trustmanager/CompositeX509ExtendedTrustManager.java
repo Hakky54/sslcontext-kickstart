@@ -123,7 +123,7 @@ public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustMa
 
     private static void logCertificate(String messageTemplate, X509Certificate[] chain) {
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(messageTemplate, chain[0].getSubjectDN());
+            LOGGER.debug(messageTemplate, chain[0].getSubjectX500Principal());
         }
     }
 

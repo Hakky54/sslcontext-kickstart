@@ -55,8 +55,15 @@ class ChainAndAuthTypeWithSocketValidatorShould {
 
         ChainAndAuthTypeWithSocketValidator validator = ((ChainAndAuthTypeWithSocketValidator) (X509Certificate[] certificateChain, String authType, Socket socket) -> certificateChain[0].getSubjectX500Principal().getName().contains("Google"))
                 .and((X509Certificate[] certificateChain, String authType, Socket socket) -> certificateChain[0].getSubjectX500Principal().getName().contains("Mountain View"));
-
         assertThat(validator.test(acceptedIssuers, "RSA", new Socket())).isTrue();
+
+        validator = ((ChainAndAuthTypeWithSocketValidator) (X509Certificate[] certificateChain, String authType, Socket socket) -> certificateChain[0].getSubjectX500Principal().getName().contains("Google"))
+                .and((X509Certificate[] certificateChain, String authType, Socket socket) -> certificateChain[0].getSubjectX500Principal().getName().contains("Mountain Blue View"));
+        assertThat(validator.test(acceptedIssuers, "RSA", new Socket())).isFalse();
+
+        validator = ((ChainAndAuthTypeWithSocketValidator) (X509Certificate[] certificateChain, String authType, Socket socket) -> certificateChain[0].getSubjectX500Principal().getName().contains("Amazon"))
+                .and((X509Certificate[] certificateChain, String authType, Socket socket) -> certificateChain[0].getSubjectX500Principal().getName().contains("Mountain Blue View"));
+        assertThat(validator.test(acceptedIssuers, "RSA", new Socket())).isFalse();
     }
 
     @Test
@@ -67,8 +74,15 @@ class ChainAndAuthTypeWithSocketValidatorShould {
 
         ChainAndAuthTypeWithSocketValidator validator = ((ChainAndAuthTypeWithSocketValidator) (X509Certificate[] certificateChain, String authType, Socket socket) -> certificateChain[0].getSubjectX500Principal().getName().contains("Google"))
                 .or((X509Certificate[] certificateChain, String authType, Socket socket) -> certificateChain[0].getSubjectX500Principal().getName().contains("Donald"));
-
         assertThat(validator.test(acceptedIssuers, "RSA", new Socket())).isTrue();
+
+        validator = ((ChainAndAuthTypeWithSocketValidator) (X509Certificate[] certificateChain, String authType, Socket socket) -> certificateChain[0].getSubjectX500Principal().getName().contains("Donald"))
+                .or((X509Certificate[] certificateChain, String authType, Socket socket) -> certificateChain[0].getSubjectX500Principal().getName().contains("Google"));
+        assertThat(validator.test(acceptedIssuers, "RSA", new Socket())).isTrue();
+
+        validator = ((ChainAndAuthTypeWithSocketValidator) (X509Certificate[] certificateChain, String authType, Socket socket) -> certificateChain[0].getSubjectX500Principal().getName().contains("Donald"))
+                .or((X509Certificate[] certificateChain, String authType, Socket socket) -> certificateChain[0].getSubjectX500Principal().getName().contains("Quack"));
+        assertThat(validator.test(acceptedIssuers, "RSA", new Socket())).isFalse();
     }
 
 }
