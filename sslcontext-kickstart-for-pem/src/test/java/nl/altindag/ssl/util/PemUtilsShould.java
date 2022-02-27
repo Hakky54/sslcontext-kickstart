@@ -618,6 +618,15 @@ class PemUtilsShould {
     }
 
     @Test
+    void throwPrivateKeyParseExceptionWhenInvalidPasswordForEncryptedPrivateKeyContentIsSuppliedA() {
+        String invalidPrivateKey = getResourceContent(PEM_LOCATION + "encrypted-rsa-identity.pem");
+
+        assertThatThrownBy(() -> PemUtils.parsePrivateKey(invalidPrivateKey, "test".toCharArray()))
+                .isInstanceOf(PemParseException.class)
+                .hasMessageContaining("exception using cipher - please check password and data");
+    }
+
+    @Test
     void throwGenericKeyStoreWhenSetKeyEntryThrowsKeyStoreException() throws KeyStoreException {
         KeyStore keyStore = mock(KeyStore.class);
         doThrow(new KeyStoreException("lazy")).when(keyStore).setKeyEntry(anyString(), any(Key.class), any(), any());
