@@ -68,7 +68,8 @@ class CompositeX509ExtendedTrustManagerShould {
         assertThat(trustManager).isNotNull();
         assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
         assertThat(trustedCerts).hasSize(1);
-        assertThat(compositeX509ExtendedTrustManager.getTrustManagers().size()).isEqualTo(1);
+        int amountOfTrustManagers = compositeX509ExtendedTrustManager.getTrustManagers().size();
+        assertThat(amountOfTrustManagers).isEqualTo(1);
 
         assertThatCode(() -> compositeX509ExtendedTrustManager.checkClientTrusted(trustedCerts, "RSA"))
                 .doesNotThrowAnyException();

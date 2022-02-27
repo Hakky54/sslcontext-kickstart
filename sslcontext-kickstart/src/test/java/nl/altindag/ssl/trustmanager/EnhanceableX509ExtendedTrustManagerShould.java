@@ -34,7 +34,7 @@ import static org.mockito.Mockito.verify;
  * @author Hakan Altindag
  */
 @ExtendWith(MockitoExtension.class)
-public class EnhanceableX509ExtendedTrustManagerShould {
+class EnhanceableX509ExtendedTrustManagerShould {
 
     @Test
     void callChainAndAuthTypeValidatorWhenPresentAndNotTheBaseTrustManagerWhenCallingCheckClientTrusted() throws CertificateException {
