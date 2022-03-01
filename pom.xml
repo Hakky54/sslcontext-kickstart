@@ -76,7 +76,7 @@
         <version.maven-gpg-plugin>3.0.1</version.maven-gpg-plugin>
         <version.maven-release-plugin>2.5.3</version.maven-release-plugin>
         <version.maven-scm-publish-plugin>3.0.0</version.maven-scm-publish-plugin>
-        <version.nexus-staging-maven-plugin>1.6.8</version.nexus-staging-maven-plugin>
+        <version.nexus-staging-maven-plugin>1.6.12</version.nexus-staging-maven-plugin>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
