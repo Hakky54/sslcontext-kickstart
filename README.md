@@ -103,7 +103,7 @@ It is designed to be as lightweight as possible by having minimized the external
 
 ### History
 As a Java developer I worked for different kinds of clients. Most of the time the application required to call other microservices within the organization or some other http servers. 
-These requests needed to be secured and therefore it was required to load the ssl materials into the http client. Each client may require different input value to enable https requests and therefore I couldn't just copy-paste my earlier configuration into the new project. 
+These requests needed to be secured, and therefore it was required to load the ssl materials into the http client. Each http client may require different input value to enable https requests, and therefore I couldn't just copy-paste my earlier configuration into the new project. 
 The resulting configuration was in my opinion always verbose, not reusable, hard to test and hard to maintain. 
 
 As a developer you also need to know how to properly load your file into your application and consume it as a KeyStore instance. Therefore, you also need to understand how to properly create for example a KeyManager and a TrustManager for you SSLContext. 
@@ -134,12 +134,13 @@ The original content can be found here:
 ### Advantages:
 * No need for low-level SSLContext configuration anymore
 * No knowledge needed about SSLContext, TrustManager, TrustManagerFactory, KeyManager, KeyManagerFactory and how to create it.
-* Above classes will all be created with just providing an identity and a trustStore
+* Above classes will all be created with just providing an identity and a trust material
 * Load multiple identities/trustStores/keyManagers/trustManagers
+* Hot reload ssl material without need of restarting/recreating Http Client or Server
 
 ### Definitions
-* Identity: A KeyStore which holds the key pair also known as private and public key
-* TrustStore: A KeyStore containing one or more certificates also known as public key. This KeyStore contains a list of trusted certificates
+* Identity material: A KeyStore or KeyManager which holds the key pair also known as private and public key
+* Trust material: A KeyStore or TrustManager containing one or more certificates also known as public key. This KeyStore contains a list of trusted certificates
 * One way authentication (also known as one way tls, one way ssl): Https connection where the client validates the certificate of the counter party
 * Two way authentication (also known as two way tls, two way ssl, mutual authentication): Https connection where the client as well as the counter party validates the certificate, also known as mutual authentication
 
@@ -920,6 +921,10 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
   <tr>
     <td align="center"><a href="https://github.com/patpatpat123"><img src="https://avatars.githubusercontent.com/u/43899031?v=4?s=100" width="100px;" alt=""/><br /><sub><b>patpatpat123</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Apatpatpat123" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Apatpatpat123" title="Bug reports">🐛</a></td>
     <td align="center"><a href="http://codyaray.com"><img src="https://avatars.githubusercontent.com/u/44062?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Cody A. Ray</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/search?q=Cody%20Ray" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/chibenwa"><img src="https://avatars.githubusercontent.com/u/6928740?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Benoit Tellier</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Achibenwa" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/sal0max"><img src="https://avatars.githubusercontent.com/u/423373?v=4?s=100" width="100px;" alt=""/><br /><sub><b>sal0max</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Asal0max" title="Bug reports">🐛</a></td>
+    <td align="center"><a href="https://github.com/lhstack"><img src="https://avatars.githubusercontent.com/u/42345796?v=4?s=100" width="100px;" alt=""/><br /><sub><b>lhstack</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Alhstack" title="Bug reports">🐛</a></td>
+    <td align="center"><a href="https://github.com/dasteg"><img src="https://avatars.githubusercontent.com/u/3967403?v=4?s=100" width="100px;" alt=""/><br /><sub><b>dasteg</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Adasteg" title="Ideas, Planning, & Feedback">🤔</a></td>
   </tr>
 </table>
 
