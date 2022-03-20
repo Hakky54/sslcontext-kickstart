@@ -620,8 +620,9 @@ class PemUtilsShould {
     @Test
     void throwPrivateKeyParseExceptionWhenInvalidPasswordForEncryptedPrivateKeyContentIsSuppliedA() {
         String invalidPrivateKey = getResourceContent(PEM_LOCATION + "encrypted-rsa-identity.pem");
+        char[] keyPassword = "test".toCharArray();
 
-        assertThatThrownBy(() -> PemUtils.parsePrivateKey(invalidPrivateKey, "test".toCharArray()))
+        assertThatThrownBy(() -> PemUtils.parsePrivateKey(invalidPrivateKey, keyPassword))
                 .isInstanceOf(PemParseException.class)
                 .hasMessageContaining("exception using cipher - please check password and data");
     }
