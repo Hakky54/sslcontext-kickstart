@@ -187,9 +187,9 @@ public final class SSLFactory {
         private int sessionTimeoutInSeconds = -1;
         private int sessionCacheSizeInBytes = -1;
 
-        private ChainAndAuthTypeValidator chainAndAuthTypeValidator;
-        private ChainAndAuthTypeWithSocketValidator chainAndAuthTypeWithSocketValidator;
-        private ChainAndAuthTypeWithSSLEngineValidator chainAndAuthTypeWithSSLEngineValidator;
+        private ChainAndAuthTypeValidator chainAndAuthTypeValidator = null;
+        private ChainAndAuthTypeWithSocketValidator chainAndAuthTypeWithSocketValidator = null;
+        private ChainAndAuthTypeWithSSLEngineValidator chainAndAuthTypeWithSSLEngineValidator = null;
 
         private Builder() {}
 
