@@ -98,7 +98,7 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "7.3.0"
 ## Introduction
 Hey, hello there 👋 Welcome, you are ![visitors](https://visitor-badge.glitch.me/badge?page_id=https://github.com/Hakky54/sslcontext-kickstart) I hope you will like this library ❤️
 
-SSLContext Kickstart is a library which provides a High-Level SSLFactory class for configuring a http client to communicate over SSL/TLS for one way authentication or two-way authentication.
+SSLContext Kickstart is a library which provides a High-Level SSLFactory class for configuring a http client or a server to communicate over SSL/TLS for one way authentication or two-way authentication.
 It is designed to be as lightweight as possible by having minimized the external dependencies. The core library only depends on the SLF4J logging API.
 
 ### History
