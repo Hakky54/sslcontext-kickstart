@@ -57,7 +57,7 @@ import java.util.List;
  * @author Cody Ray
  * @author Hakan Altindag
  */
-public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustManager implements CombinableX509ExtendedTrustManager {
+public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustManager implements CombinableX509TrustManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CompositeX509ExtendedTrustManager.class);
     private static final String CLIENT_CERTIFICATE_LOG_MESSAGE = "Received the following client certificate: [{}]";
