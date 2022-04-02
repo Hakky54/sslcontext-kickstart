@@ -5,7 +5,6 @@
 [![Language grade: Java](https://img.shields.io/lgtm/grade/java/g/Hakky54/sslcontext-kickstart.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/Hakky54/sslcontext-kickstart/context:java)
 [![JDK compatibility: 8+](https://img.shields.io/badge/JDK_compatibility-8+-blue.svg)](#)
 [![Apache2 license](https://img.shields.io/badge/license-Aache2.0-blue.svg)](https://github.com/Hakky54/sslcontext-kickstart/blob/master/LICENSE)
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FHakky54%2Fsslcontext-kickstart.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FHakky54%2Fsslcontext-kickstart?ref=badge_shield)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.hakky54/sslcontext-kickstart/badge.svg)](https://mvnrepository.com/artifact/io.github.hakky54/sslcontext-kickstart)
 [![javadoc](https://javadoc.io/badge2/io.github.hakky54/sslcontext-kickstart/javadoc.svg)](https://javadoc.io/doc/io.github.hakky54/sslcontext-kickstart)
 [![Dependencies: none](https://img.shields.io/badge/dependencies-1-blue.svg)](#)
