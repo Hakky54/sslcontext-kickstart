@@ -602,10 +602,20 @@ Below is an example of the classic configuration for enabling ssl for your appli
 
 SSLFactory can be used with these properties together with the existing properties with the following snippet:
 ```
+Path keystore = Paths.get(System.getProperty("javax.net.ssl.keyStore"));
+char[] keystorePassword = System.getProperty("javax.net.ssl.keyStorePassword").toCharArray();
+String keystoreType = System.getProperty("javax.net.ssl.keyStoreType");
+
+Path truststore = Paths.get(System.getProperty("javax.net.ssl.trustStore"));
+char[] truststorePassword = System.getProperty("javax.net.ssl.trustStorePassword").toCharArray();
+String truststoreType = System.getProperty("javax.net.ssl.trustStoreType");
+
+String protocol = System.getProperty("jdk.tls.client.protocols")
+
 SSLFactory sslFactory = SSLFactory.builder()
-        .withIdentityMaterial(Paths.get(System.getProperty("javax.net.ssl.keyStore")), System.getProperty("javax.net.ssl.keyStorePassword").toCharArray(), System.getProperty("javax.net.ssl.keyStoreType"))
-        .withTrustMaterial(Paths.get(System.getProperty("javax.net.ssl.trustStore")), System.getProperty("javax.net.ssl.trustStorePassword").toCharArray(), System.getProperty("javax.net.ssl.trustStoreType"))
-        .withProtocols(System.getProperty("jdk.tls.client.protocols"))
+        .withIdentityMaterial(keystore, keystorePassword, keystoreType)
+        .withTrustMaterial(truststore, truststorePassword, truststoreType)
+        .withProtocols(protocol)
         .build();
 
 SSLContext.setDefault(sslFactory.getSslContext());
@@ -614,8 +624,8 @@ SSLContext.setDefault(sslFactory.getSslContext());
 Or it can be refactored to the configuration below:
 ```
 SSLFactory sslFactory = SSLFactory.builder()
-        .withIdentityMaterial(Paths.get("/path/to/keystore.jks"), "changeit".toCharArray(), "jks")
-        .withTrustMaterial(Paths.get("/path/to/truststore.jks"), "changeit".toCharArray(), "jks")
+        .withIdentityMaterial(Paths.get("/path/to/keystore.jks"), "changeit".toCharArray())
+        .withTrustMaterial(Paths.get("/path/to/truststore.jks"), "changeit".toCharArray())
         .withProtocols("TLSv1.3")
         .build();
 ```
