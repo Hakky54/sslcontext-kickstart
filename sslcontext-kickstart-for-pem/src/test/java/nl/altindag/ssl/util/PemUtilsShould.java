@@ -20,6 +20,11 @@ import nl.altindag.ssl.exception.CertificateParseException;
 import nl.altindag.ssl.exception.GenericIOException;
 import nl.altindag.ssl.exception.PemParseException;
 import nl.altindag.ssl.exception.PrivateKeyParseException;
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.openssl.PEMException;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
@@ -37,7 +42,11 @@ import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.*;
+import java.security.Key;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.PrivateKey;
+import java.security.cert.CertificateException;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -589,6 +598,56 @@ class PemUtilsShould {
             assertThatThrownBy(() -> PemUtils.loadIdentityMaterial(certificatePath, privateKeyPath))
                     .isInstanceOf(GenericIOException.class)
                     .hasRootCauseMessage("Could not close the stream");
+        }
+    }
+
+    @Test
+    void throwCertificateParseExceptionWhenCertificateExceptionIsThrown() throws CertificateException {
+        String certificateContent = getResourceContent(PEM_LOCATION + "github-certificate.pem");
+
+        JcaX509CertificateConverter certificateConverter = mock(JcaX509CertificateConverter.class);
+        PemUtils pemUtils = new PemUtils(mock(JcaPEMKeyConverter.class), certificateConverter);
+
+        try(MockedStatic<PemUtils> pemUtilsMockedStatic = mockStatic(PemUtils.class, invocation -> {
+            Method method = invocation.getMethod();
+            if ("getInstance".equals(method.getName()) && method.getParameterCount() == 0) {
+                return pemUtils;
+            } else {
+                return invocation.callRealMethod();
+            }
+        })) {
+            doThrow(new CertificateException("KABOOOM!!!"))
+                    .when(certificateConverter)
+                    .getCertificate(any(X509CertificateHolder.class));
+
+            assertThatThrownBy(() -> PemUtils.parseCertificate(certificateContent))
+                    .isInstanceOf(CertificateParseException.class)
+                    .hasMessageContaining("KABOOOM!!!");
+        }
+    }
+
+    @Test
+    void throwPrivateKeyParseExceptionWhenPEMExceptionIsThrown() throws PEMException {
+        String identityContent = getResourceContent(PEM_LOCATION + "unencrypted-identity.pem");
+
+        JcaPEMKeyConverter keyConverter = mock(JcaPEMKeyConverter.class);
+        PemUtils pemUtils = new PemUtils(keyConverter, mock(JcaX509CertificateConverter.class));
+
+        try(MockedStatic<PemUtils> pemUtilsMockedStatic = mockStatic(PemUtils.class, invocation -> {
+            Method method = invocation.getMethod();
+            if ("getInstance".equals(method.getName()) && method.getParameterCount() == 0) {
+                return pemUtils;
+            } else {
+                return invocation.callRealMethod();
+            }
+        })) {
+            doThrow(new PEMException("KABOOOM!!!"))
+                    .when(keyConverter)
+                    .getPrivateKey(any(PrivateKeyInfo.class));
+
+            assertThatThrownBy(() -> PemUtils.parsePrivateKey(identityContent))
+                    .isInstanceOf(PrivateKeyParseException.class)
+                    .hasMessageContaining("KABOOOM!!!");
         }
     }
 

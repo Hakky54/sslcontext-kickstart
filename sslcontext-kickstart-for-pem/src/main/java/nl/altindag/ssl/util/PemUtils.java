@@ -86,11 +86,20 @@ public final class PemUtils {
 
     private static final char[] DUMMY_PASSWORD = KeyStoreUtils.DUMMY_PASSWORD.toCharArray();
     private static final char[] NO_PASSWORD = null;
+    private static final PemUtils INSTANCE = new PemUtils(
+            new JcaPEMKeyConverter(),
+            new JcaX509CertificateConverter()
+    );
 
-    private static final JcaPEMKeyConverter KEY_CONVERTER = new JcaPEMKeyConverter();
-    private static final JcaX509CertificateConverter CERTIFICATE_CONVERTER = new JcaX509CertificateConverter();
+    private final JcaPEMKeyConverter keyConverter;
+    private final JcaX509CertificateConverter certificateConverter;
 
-    private PemUtils() {}
+    PemUtils(JcaPEMKeyConverter keyConverter,
+             JcaX509CertificateConverter certificateConverter) {
+
+        this.keyConverter = keyConverter;
+        this.certificateConverter = certificateConverter;
+    }
 
     /**
      * Loads certificates from the classpath and maps it to an instance of {@link X509ExtendedTrustManager}
@@ -149,7 +158,7 @@ public final class PemUtils {
                 .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
     }
 
-    private static List<X509Certificate> parseCertificate(String certContent) {
+    public static List<X509Certificate> parseCertificate(String certContent) {
         List<X509Certificate> certificates = parsePemContent(certContent).stream()
                 .map(PemUtils::extractCertificate)
                 .filter(Optional::isPresent)
@@ -183,10 +192,10 @@ public final class PemUtils {
 
             X509Certificate certificate = null;
             if (object instanceof X509CertificateHolder) {
-                certificate = CERTIFICATE_CONVERTER.getCertificate((X509CertificateHolder) object);
+                certificate = PemUtils.getInstance().getCertificateConverter().getCertificate((X509CertificateHolder) object);
             } else if (object instanceof X509TrustedCertificateBlock) {
                 X509CertificateHolder certificateHolder = ((X509TrustedCertificateBlock) object).getCertificateHolder();
-                certificate = CERTIFICATE_CONVERTER.getCertificate(certificateHolder);
+                certificate = PemUtils.getInstance().getCertificateConverter().getCertificate(certificateHolder);
             }
 
             return Optional.ofNullable(certificate);
@@ -450,7 +459,7 @@ public final class PemUtils {
 
     private static PrivateKey extractPrivateKey(PrivateKeyInfo privateKeyInfo) {
         try {
-            return KEY_CONVERTER.getPrivateKey(privateKeyInfo);
+            return PemUtils.getInstance().getKeyConverter().getPrivateKey(privateKeyInfo);
         } catch (PEMException exception) {
             throw new PrivateKeyParseException(exception);
         }
@@ -466,4 +475,15 @@ public final class PemUtils {
         }
     }
 
+    static PemUtils getInstance() {
+        return INSTANCE;
+    }
+
+    private JcaPEMKeyConverter getKeyConverter() {
+        return keyConverter;
+    }
+
+    private JcaX509CertificateConverter getCertificateConverter() {
+        return certificateConverter;
+    }
 }
