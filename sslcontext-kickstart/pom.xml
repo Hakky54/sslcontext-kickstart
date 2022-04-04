@@ -46,7 +46,7 @@
     <properties>
         <version.maven-site-plugin>3.11.0</version.maven-site-plugin>
         <version.maven-project-info-reports-plugin>3.2.2</version.maven-project-info-reports-plugin>
-        <version.maven-surefire-report-plugin>3.0.0-M5</version.maven-surefire-report-plugin>
+        <version.maven-surefire-report-plugin>3.0.0-M6</version.maven-surefire-report-plugin>
         <version.maven-jxr-plugin>3.2.0</version.maven-jxr-plugin>
     </properties>
 
