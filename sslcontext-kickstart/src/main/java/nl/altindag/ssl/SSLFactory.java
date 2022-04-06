@@ -604,7 +604,8 @@ public final class SSLFactory {
         }
 
         public Builder withPlaceHolderProtocols() {
-            Stream.of(System.getProperty("https.protocols"), System.getProperty("jdk.tls.client.protocols"), System.getProperty("jdk.tls.server.protocols"))
+            Stream.of("https.protocols", "jdk.tls.client.protocols", "jdk.tls.server.protocols")
+                    .map(System::getProperty)
                     .filter(Objects::nonNull)
                     .map(protocolGroup -> protocolGroup.split(","))
                     .map(Arrays::asList)
