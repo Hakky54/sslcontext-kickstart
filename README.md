@@ -591,29 +591,27 @@ Below is an example of the classic configuration for enabling ssl for your appli
 -Djavax.net.ssl.trustStore=/path/to/truststore.jks
 -Djavax.net.ssl.trustStoreType=jks
 -Djavax.net.ssl.trustStorePassword=changeit
+
 -Djavax.net.ssl.keyStore=/path/to/keystore.jks
 -Djavax.net.ssl.keyStoreType=jks
 -Djavax.net.ssl.keyStorePassword=changeit
+
 -Djdk.tls.client.protocols=TLSv1.3
+-Djdk.tls.server.protocols=TLSv1.3
 -Dhttps.protocols=TLSv1.3
+
+-Dhttps.cipherSuites=TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+-Djdk.tls.client.cipherSuites=TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+-Djdk.tls.server.cipherSuites=TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
 ```
 
 SSLFactory can be used with these properties together with the existing properties with the following snippet:
 ```
-Path keystore = Paths.get(System.getProperty("javax.net.ssl.keyStore"));
-char[] keystorePassword = System.getProperty("javax.net.ssl.keyStorePassword").toCharArray();
-String keystoreType = System.getProperty("javax.net.ssl.keyStoreType");
-
-Path truststore = Paths.get(System.getProperty("javax.net.ssl.trustStore"));
-char[] truststorePassword = System.getProperty("javax.net.ssl.trustStorePassword").toCharArray();
-String truststoreType = System.getProperty("javax.net.ssl.trustStoreType");
-
-String protocol = System.getProperty("jdk.tls.client.protocols")
-
 SSLFactory sslFactory = SSLFactory.builder()
-        .withIdentityMaterial(keystore, keystorePassword, keystoreType)
-        .withTrustMaterial(truststore, truststorePassword, truststoreType)
-        .withProtocols(protocol)
+        .withPlaceHolderIdentityMaterial()
+        .withPlaceHolderTrustMaterial()
+        .withPlaceHolderProtocols()
+        .withPlaceHolderCiphers()
         .build();
 
 SSLContext.setDefault(sslFactory.getSslContext());

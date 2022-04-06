@@ -185,6 +185,7 @@ public final class SSLFactory {
         private final SSLParameters sslParameters = new SSLParameters();
         private final Map<String, List<URI>> preferredAliasToHost = new HashMap<>();
         private final List<String> protocols = new ArrayList<>();
+        private final List<String> ciphers = new ArrayList<>();
 
         private boolean swappableKeyManagerEnabled = false;
         private boolean swappableTrustManagerEnabled = false;
@@ -594,7 +595,13 @@ public final class SSLFactory {
         }
 
         public Builder withCiphers(String... ciphers) {
-            sslParameters.setCipherSuites(ciphers);
+            this.ciphers.addAll(Arrays.asList(ciphers));
+            return this;
+        }
+
+        public Builder withPlaceHolderCiphers() {
+            extractPropertyValues("https.cipherSuites", "jdk.tls.client.cipherSuites", "jdk.tls.server.cipherSuites")
+                    .forEach(ciphers::add);
             return this;
         }
 
@@ -604,16 +611,20 @@ public final class SSLFactory {
         }
 
         public Builder withPlaceHolderProtocols() {
-            Stream.of("https.protocols", "jdk.tls.client.protocols", "jdk.tls.server.protocols")
+            extractPropertyValues("https.protocols", "jdk.tls.client.protocols", "jdk.tls.server.protocols")
+                    .forEach(protocols::add);
+            return this;
+        }
+
+        private static Stream<String> extractPropertyValues(String... systemProperties) {
+            return Stream.of(systemProperties)
                     .map(System::getProperty)
                     .filter(Objects::nonNull)
                     .map(protocolGroup -> protocolGroup.split(","))
                     .map(Arrays::asList)
                     .flatMap(Collection::stream)
                     .map(String::trim)
-                    .distinct()
-                    .forEach(protocols::add);
-            return this;
+                    .distinct();
         }
 
         public Builder withNeedClientAuthentication() {
@@ -709,7 +720,8 @@ public final class SSLFactory {
                 SSLSessionUtils.updateSessionCacheSize(sslContext, sessionCacheSizeInBytes);
             }
 
-            sslParameters.setProtocols(this.protocols.isEmpty() ? null : this.protocols.stream().distinct().toArray(String[]::new));
+            sslParameters.setCipherSuites(ciphers.isEmpty() ? null : ciphers.stream().distinct().toArray(String[]::new));
+            sslParameters.setProtocols(protocols.isEmpty() ? null : protocols.stream().distinct().toArray(String[]::new));
             SSLParameters baseSslParameters = SSLParametersUtils.merge(sslParameters, sslContext.getDefaultSSLParameters());
 
             SSLMaterial sslMaterial = new SSLMaterial.Builder()
