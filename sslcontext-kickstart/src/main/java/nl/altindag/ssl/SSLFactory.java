@@ -74,6 +74,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -210,16 +211,12 @@ public final class SSLFactory {
         }
 
         public Builder withPlaceHolderTrustMaterial() {
-            Path truststore = Optional.ofNullable(System.getProperty("javax.net.ssl.trustStore"))
-                    .map(Paths::get)
-                    .orElse(null);
-            char[] truststorePassword = Optional.ofNullable(System.getProperty("javax.net.ssl.trustStorePassword"))
-                    .map(String::toCharArray)
-                    .orElse(null);
-            String truststoreType = Optional.ofNullable(System.getProperty("javax.net.ssl.trustStoreType"))
-                    .orElseGet(KeyStore::getDefaultType);
-
-            return withTrustMaterial(truststore, truststorePassword, truststoreType);
+            return withPlaceHolderMaterial(
+                    "javax.net.ssl.trustStore",
+                    "javax.net.ssl.trustStorePassword",
+                    "javax.net.ssl.trustStoreType",
+                    this::withTrustMaterial
+            );
         }
 
         /**
@@ -416,16 +413,28 @@ public final class SSLFactory {
         }
 
         public Builder withPlaceHolderIdentityMaterial() {
-            Path keystore = Optional.ofNullable(System.getProperty("javax.net.ssl.keyStore"))
+            return withPlaceHolderMaterial(
+                    "javax.net.ssl.keyStore",
+                    "javax.net.ssl.keyStorePassword",
+                    "javax.net.ssl.keyStoreType",
+                    this::withIdentityMaterial
+            );
+        }
+
+        private Builder withPlaceHolderMaterial(String keyStorePathSystemProperty, String keyStorePasswordProperty, String keyStoreTypeProperty, TriConsumer<Path, char[], String> keyStorePropertyConsumer) {
+            Path keystore = Optional.ofNullable(System.getProperty(keyStorePathSystemProperty))
                     .map(Paths::get)
                     .orElse(null);
-            char[] keystorePassword = Optional.ofNullable(System.getProperty("javax.net.ssl.keyStorePassword"))
+
+            char[] keystorePassword = Optional.ofNullable(System.getProperty(keyStorePasswordProperty))
                     .map(String::toCharArray)
                     .orElse(null);
-            String keystoreType = Optional.ofNullable(System.getProperty("javax.net.ssl.keyStoreType"))
+
+            String keystoreType = Optional.ofNullable(System.getProperty(keyStoreTypeProperty))
                     .orElseGet(KeyStore::getDefaultType);
 
-            return withIdentityMaterial(keystore, keystorePassword, keystoreType);
+            keyStorePropertyConsumer.accept(keystore, keystorePassword, keystoreType);
+            return this;
         }
 
         public Builder withIdentityMaterial(String identityStorePath, char[] identityStorePassword) {
@@ -765,6 +774,10 @@ public final class SSLFactory {
                     .withTrustEnhancer(chainAndAuthTypeWithSocketValidator)
                     .withTrustEnhancer(chainAndAuthTypeWithSSLEngineValidator)
                     .build();
+        }
+
+        interface TriConsumer<T, U, V> {
+            void accept(T t, U u, V v);
         }
 
     }
