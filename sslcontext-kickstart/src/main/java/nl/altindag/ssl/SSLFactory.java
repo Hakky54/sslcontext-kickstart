@@ -199,7 +199,9 @@ public final class SSLFactory {
         }
 
         public Builder withPlaceHolderTrustMaterial() {
-            Path truststore = Paths.get(System.getProperty("javax.net.ssl.trustStore"));
+            Path truststore = Optional.ofNullable(System.getProperty("javax.net.ssl.trustStore"))
+                    .map(Paths::get)
+                    .orElse(null);
             char[] truststorePassword = Optional.ofNullable(System.getProperty("javax.net.ssl.trustStorePassword"))
                     .map(String::toCharArray)
                     .orElse(null);
@@ -403,7 +405,9 @@ public final class SSLFactory {
         }
 
         public Builder withPlaceHolderIdentityMaterial() {
-            Path keystore = Paths.get(System.getProperty("javax.net.ssl.keyStore"));
+            Path keystore = Optional.ofNullable(System.getProperty("javax.net.ssl.keyStore"))
+                    .map(Paths::get)
+                    .orElse(null);
             char[] keystorePassword = Optional.ofNullable(System.getProperty("javax.net.ssl.keyStorePassword"))
                     .map(String::toCharArray)
                     .orElse(null);
