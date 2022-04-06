@@ -55,6 +55,7 @@ import javax.net.ssl.X509TrustManager;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.Key;
 import java.security.KeyStore;
 import java.security.Provider;
@@ -62,16 +63,9 @@ import java.security.SecureRandom;
 import java.security.cert.Certificate;
 import java.security.cert.TrustAnchor;
 import java.security.cert.X509Certificate;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
@@ -180,6 +174,7 @@ public final class SSLFactory {
         private final List<X509ExtendedTrustManager> trustManagers = new ArrayList<>();
         private final SSLParameters sslParameters = new SSLParameters();
         private final Map<String, List<URI>> preferredAliasToHost = new HashMap<>();
+        private final List<String> protocols = new ArrayList<>();
 
         private boolean swappableKeyManagerEnabled = false;
         private boolean swappableTrustManagerEnabled = false;
@@ -201,6 +196,17 @@ public final class SSLFactory {
         public Builder withDefaultTrustMaterial() {
             trustManagers.add(TrustManagerUtils.createTrustManagerWithJdkTrustedCertificates());
             return this;
+        }
+
+        public Builder withPlaceHolderTrustMaterial() {
+            Path truststore = Paths.get(System.getProperty("javax.net.ssl.trustStore"));
+            char[] truststorePassword = Optional.ofNullable(System.getProperty("javax.net.ssl.trustStorePassword"))
+                    .map(String::toCharArray)
+                    .orElse(null);
+            String truststoreType = Optional.ofNullable(System.getProperty("javax.net.ssl.trustStoreType"))
+                    .orElseGet(KeyStore::getDefaultType);
+
+            return withTrustMaterial(truststore, truststorePassword, truststoreType);
         }
 
         /**
@@ -396,6 +402,17 @@ public final class SSLFactory {
             return withTrustMaterial(trustStore, trustOptions);
         }
 
+        public Builder withPlaceHolderIdentityMaterial() {
+            Path keystore = Paths.get(System.getProperty("javax.net.ssl.keyStore"));
+            char[] keystorePassword = Optional.ofNullable(System.getProperty("javax.net.ssl.keyStorePassword"))
+                    .map(String::toCharArray)
+                    .orElse(null);
+            String keystoreType = Optional.ofNullable(System.getProperty("javax.net.ssl.keyStoreType"))
+                    .orElseGet(KeyStore::getDefaultType);
+
+            return withIdentityMaterial(keystore, keystorePassword, keystoreType);
+        }
+
         public Builder withIdentityMaterial(String identityStorePath, char[] identityStorePassword) {
             return withIdentityMaterial(identityStorePath, identityStorePassword, identityStorePassword, KeyStore.getDefaultType());
         }
@@ -568,7 +585,19 @@ public final class SSLFactory {
         }
 
         public Builder withProtocols(String... protocols) {
-            sslParameters.setProtocols(protocols);
+            this.protocols.addAll(Arrays.asList(protocols));
+            return this;
+        }
+
+        public Builder withPlaceHolderProtocols() {
+            Stream.of(System.getProperty("https.protocols"), System.getProperty("jdk.tls.client.protocols"), System.getProperty("jdk.tls.server.protocols"))
+                    .filter(Objects::nonNull)
+                    .map(protocols -> protocols.split(","))
+                    .map(Arrays::asList)
+                    .flatMap(Collection::stream)
+                    .map(String::trim)
+                    .distinct()
+                    .forEach(protocols::add);
             return this;
         }
 
@@ -665,6 +694,8 @@ public final class SSLFactory {
                 SSLSessionUtils.updateSessionCacheSize(sslContext, sessionCacheSizeInBytes);
             }
 
+            String[] protocols = this.protocols.isEmpty() ? null : this.protocols.stream().distinct().toArray(String[]::new);
+            sslParameters.setProtocols(protocols);
             SSLParameters baseSslParameters = SSLParametersUtils.merge(sslParameters, sslContext.getDefaultSSLParameters());
 
             SSLMaterial sslMaterial = new SSLMaterial.Builder()
