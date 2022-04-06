@@ -592,7 +592,7 @@ public final class SSLFactory {
         public Builder withPlaceHolderProtocols() {
             Stream.of(System.getProperty("https.protocols"), System.getProperty("jdk.tls.client.protocols"), System.getProperty("jdk.tls.server.protocols"))
                     .filter(Objects::nonNull)
-                    .map(protocols -> protocols.split(","))
+                    .map(protocolGroup -> protocolGroup.split(","))
                     .map(Arrays::asList)
                     .flatMap(Collection::stream)
                     .map(String::trim)
@@ -694,8 +694,7 @@ public final class SSLFactory {
                 SSLSessionUtils.updateSessionCacheSize(sslContext, sessionCacheSizeInBytes);
             }
 
-            String[] protocols = this.protocols.isEmpty() ? null : this.protocols.stream().distinct().toArray(String[]::new);
-            sslParameters.setProtocols(protocols);
+            sslParameters.setProtocols(this.protocols.isEmpty() ? null : this.protocols.stream().distinct().toArray(String[]::new));
             SSLParameters baseSslParameters = SSLParametersUtils.merge(sslParameters, sslContext.getDefaultSSLParameters());
 
             SSLMaterial sslMaterial = new SSLMaterial.Builder()
