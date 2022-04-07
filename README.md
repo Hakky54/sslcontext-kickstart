@@ -608,23 +608,15 @@ Below is an example of the classic configuration for enabling ssl for your appli
 SSLFactory can be used with these properties together with the existing properties with the following snippet:
 ```
 SSLFactory sslFactory = SSLFactory.builder()
-        .withPlaceHolderIdentityMaterial()
-        .withPlaceHolderTrustMaterial()
-        .withPlaceHolderProtocols()
-        .withPlaceHolderCiphers()
+        .withSystemPropertyDerivedIdentityMaterial()
+        .withSystemPropertyDerivedTrustMaterial()
+        .withSystemPropertyDerivedProtocols()
+        .withSystemPropertyDerivedCiphers()
         .build();
 
 SSLContext.setDefault(sslFactory.getSslContext());
 ```
 
-Or it can be refactored to the configuration below:
-```
-SSLFactory sslFactory = SSLFactory.builder()
-        .withIdentityMaterial(Paths.get("/path/to/keystore.jks"), "changeit".toCharArray())
-        .withTrustMaterial(Paths.get("/path/to/truststore.jks"), "changeit".toCharArray())
-        .withProtocols("TLSv1.3")
-        .build();
-```
 The SSLFactory returnable values can be supplied to the http client as shown [here](#tested-http-clients)
 
 ### Returnable values from the SSLFactory

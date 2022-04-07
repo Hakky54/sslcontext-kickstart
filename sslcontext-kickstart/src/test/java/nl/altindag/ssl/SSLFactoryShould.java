@@ -71,7 +71,9 @@ import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -1104,6 +1106,186 @@ class SSLFactoryShould {
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
         assertThat(sslFactory.getKeyManager()).isNotPresent();
         assertThat(sslFactory.getKeyManagerFactory()).isNotPresent();
+    }
+
+    @Test
+    void buildSSLFactoryWithSystemPropertyDerivedIdentityAndTrustMaterial() throws IOException {
+        Path identityPath = IOTestUtils.copyFileToHomeDirectory(KEYSTORE_LOCATION, IDENTITY_FILE_NAME);
+        Path trustStorePath = IOTestUtils.copyFileToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
+
+        Map<String, String> properties = new HashMap<>();
+        properties.put("javax.net.ssl.keyStore", identityPath.toString());
+        properties.put("javax.net.ssl.keyStorePassword", new String(IDENTITY_PASSWORD));
+        properties.put("javax.net.ssl.keyStoreType", "PKCS12");
+        properties.put("javax.net.ssl.trustStore", trustStorePath.toString());
+        properties.put("javax.net.ssl.trustStorePassword", new String(TRUSTSTORE_PASSWORD));
+        properties.put("javax.net.ssl.trustStoreType", "PKCS12");
+        properties.forEach(System::setProperty);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withSystemPropertyDerivedIdentityMaterial()
+                .withSystemPropertyDerivedTrustMaterial()
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+
+        assertThat(sslFactory.getKeyManager()).isPresent();
+        assertThat(sslFactory.getKeyManagerFactory()).isPresent();
+
+        assertThat(sslFactory.getTrustManager()).isPresent();
+        assertThat(sslFactory.getTrustManagerFactory()).isPresent();
+        assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
+
+        properties.forEach((propertyName, propertyValue) -> System.clearProperty(propertyName));
+
+        Files.delete(identityPath);
+        Files.delete(trustStorePath);
+    }
+
+    @Test
+    void buildSSLFactoryWithSystemPropertyDerivedIdentityAndTrustMaterialWithSecurityProvider() throws IOException {
+        Path identityPath = IOTestUtils.copyFileToHomeDirectory(KEYSTORE_LOCATION, IDENTITY_FILE_NAME);
+        Path trustStorePath = IOTestUtils.copyFileToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
+
+        Map<String, String> properties = new HashMap<>();
+        properties.put("javax.net.ssl.keyStore", identityPath.toString());
+        properties.put("javax.net.ssl.keyStorePassword", new String(IDENTITY_PASSWORD));
+        properties.put("javax.net.ssl.keyStoreType", "PKCS12");
+        properties.put("javax.net.ssl.keyStoreProvider", "SunJSSE");
+        properties.put("javax.net.ssl.trustStore", trustStorePath.toString());
+        properties.put("javax.net.ssl.trustStorePassword", new String(TRUSTSTORE_PASSWORD));
+        properties.put("javax.net.ssl.trustStoreType", "PKCS12");
+        properties.put("javax.net.ssl.trustStoreProvider", "SunJSSE");
+        properties.forEach(System::setProperty);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withSystemPropertyDerivedIdentityMaterial()
+                .withSystemPropertyDerivedTrustMaterial()
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+
+        assertThat(sslFactory.getKeyManager()).isPresent();
+        assertThat(sslFactory.getKeyManagerFactory()).isPresent();
+
+        assertThat(sslFactory.getTrustManager()).isPresent();
+        assertThat(sslFactory.getTrustManagerFactory()).isPresent();
+        assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
+
+        properties.forEach((propertyName, propertyValue) -> System.clearProperty(propertyName));
+
+        Files.delete(identityPath);
+        Files.delete(trustStorePath);
+    }
+
+    @Test
+    void buildSSLFactoryWithSystemPropertyDerivedProtocol() {
+        for (String propertyName : Arrays.asList("https.protocols", "jdk.tls.client.protocols", "jdk.tls.server.protocols")) {
+            System.setProperty(propertyName, "TLSv1.2,   ,TLSv1.1");
+
+            SSLFactory sslFactory = SSLFactory.builder()
+                    .withDefaultTrustMaterial()
+                    .withSystemPropertyDerivedProtocols()
+                    .build();
+
+            assertThat(sslFactory.getProtocols()).containsExactly("TLSv1.2", "TLSv1.1");
+            System.clearProperty(propertyName);
+        }
+    }
+
+    @Test
+    void buildSSLFactoryWithSystemPropertyDerivedCiphers() {
+        for (String propertyName : Arrays.asList("https.cipherSuites", "jdk.tls.client.cipherSuites", "jdk.tls.server.cipherSuites")) {
+            System.setProperty(propertyName, "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384,   ,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256");
+
+            SSLFactory sslFactory = SSLFactory.builder()
+                    .withDefaultTrustMaterial()
+                    .withSystemPropertyDerivedCiphers()
+                    .build();
+
+            assertThat(sslFactory.getCiphers()).containsExactly("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384", "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256");
+            System.clearProperty(propertyName);
+        }
+    }
+
+    @Test
+    void buildSSLFactoryWithSystemPropertyDerivedProtocolWhichArePartlyEmpty() {
+        Map<String, String> properties = new HashMap<>();
+        properties.put("https.protocols", "   ");
+        properties.put("jdk.tls.client.protocols", "TLSv1.2");
+        properties.forEach(System::setProperty);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withDefaultTrustMaterial()
+                .withSystemPropertyDerivedProtocols()
+                .build();
+
+        assertThat(sslFactory.getProtocols()).containsExactly("TLSv1.2");
+
+        properties.forEach((propertyName, propertyValue) -> System.clearProperty(propertyName));
+    }
+
+    @Test
+    void buildSSLFactoryWithSystemPropertyDerivedCiphersWhichArePartlyEmpty() {
+        Map<String, String> properties = new HashMap<>();
+        properties.put("https.cipherSuites", "   ");
+        properties.put("jdk.tls.client.cipherSuites", "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384");
+        properties.forEach(System::setProperty);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withDefaultTrustMaterial()
+                .withSystemPropertyDerivedCiphers()
+                .build();
+
+        assertThat(sslFactory.getCiphers()).containsExactly("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384");
+
+        properties.forEach((propertyName, propertyValue) -> System.clearProperty(propertyName));
+    }
+
+    @Test
+    void throwExceptionWhenIdentityStorePathIsAbsentFromSystemProperty() throws IOException {
+        Map<String, String> properties = new HashMap<>();
+        properties.put("javax.net.ssl.keyStorePassword", new String(IDENTITY_PASSWORD));
+        properties.put("javax.net.ssl.keyStoreType", "PKCS12");
+        properties.forEach(System::setProperty);
+
+        SSLFactory.Builder sslFactoryBuilder = SSLFactory.builder();
+        assertThatThrownBy(sslFactoryBuilder::withSystemPropertyDerivedIdentityMaterial)
+                .isInstanceOf(GenericKeyStoreException.class)
+                .hasMessageContaining("Identity details are empty, which are required to be present when SSL/TLS is enabled");
+
+        properties.forEach((propertyName, propertyValue) -> System.clearProperty(propertyName));
+    }
+
+    @Test
+    void throwExceptionWhenIdentityStorePathIsEmptyFromSystemProperty() {
+        Map<String, String> properties = new HashMap<>();
+        properties.put("javax.net.ssl.keyStore", "   ");
+        properties.put("javax.net.ssl.keyStorePassword", new String(IDENTITY_PASSWORD));
+        properties.put("javax.net.ssl.keyStoreType", "PKCS12");
+        properties.forEach(System::setProperty);
+
+        SSLFactory.Builder sslFactoryBuilder = SSLFactory.builder();
+        assertThatThrownBy(sslFactoryBuilder::withSystemPropertyDerivedIdentityMaterial)
+                .isInstanceOf(GenericKeyStoreException.class)
+                .hasMessageContaining("Identity details are empty, which are required to be present when SSL/TLS is enabled");
+
+        properties.forEach((propertyName, propertyValue) -> System.clearProperty(propertyName));
+    }
+
+    @Test
+    void throwExceptionWhenTrustStorePathIsAbsentFromSystemProperty() {
+        Map<String, String> properties = new HashMap<>();
+        properties.put("javax.net.ssl.trustStorePassword", new String(TRUSTSTORE_PASSWORD));
+        properties.put("javax.net.ssl.trustStoreType", "PKCS12");
+        properties.forEach(System::setProperty);
+
+        SSLFactory.Builder sslFactoryBuilder = SSLFactory.builder();
+        assertThatThrownBy(sslFactoryBuilder::withSystemPropertyDerivedTrustMaterial)
+                .isInstanceOf(GenericKeyStoreException.class)
+                .hasMessageContaining("TrustStore details are empty, which are required to be present when SSL/TLS is enabled");
+
+        properties.forEach((propertyName, propertyValue) -> System.clearProperty(propertyName));
     }
 
     @Test
