@@ -591,10 +591,12 @@ Below is an example of the classic configuration for enabling ssl for your appli
 -Djavax.net.ssl.trustStore=/path/to/truststore.jks
 -Djavax.net.ssl.trustStoreType=jks
 -Djavax.net.ssl.trustStorePassword=changeit
+-Djavax.net.ssl.trustStoreProvider=SunJSSE
 
 -Djavax.net.ssl.keyStore=/path/to/keystore.jks
 -Djavax.net.ssl.keyStoreType=jks
 -Djavax.net.ssl.keyStorePassword=changeit
+-Djavax.net.ssl.keyStoreProvider=SunJSSE
 
 -Dhttps.protocols=TLSv1.3
 -Djdk.tls.client.protocols=TLSv1.3
