@@ -37,7 +37,7 @@ public final class StringUtils {
         return true;
     }
 
-    public static boolean isNotBlack(CharSequence charSequence) {
+    public static boolean isNotBlank(CharSequence charSequence) {
         return !isBlank(charSequence);
     }
 

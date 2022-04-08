@@ -645,12 +645,12 @@ public final class SSLFactory {
             return Stream.of(systemProperties)
                     .map(System::getProperty)
                     .filter(Objects::nonNull)
-                    .filter(StringUtils::isNotBlack)
+                    .filter(StringUtils::isNotBlank)
                     .map(protocolGroup -> protocolGroup.split(","))
                     .map(Arrays::asList)
                     .flatMap(Collection::stream)
                     .map(String::trim)
-                    .filter(StringUtils::isNotBlack)
+                    .filter(StringUtils::isNotBlank)
                     .distinct();
         }
 
@@ -731,24 +731,24 @@ public final class SSLFactory {
 
             Path keystore = Optional.ofNullable(System.getProperty(keyStorePathProperty))
                     .map(String::trim)
-                    .filter(StringUtils::isNotBlack)
+                    .filter(StringUtils::isNotBlank)
                     .map(Paths::get)
                     .orElse(null);
 
             char[] keystorePassword = Optional.ofNullable(System.getProperty(keyStorePasswordProperty))
                     .map(String::trim)
-                    .filter(StringUtils::isNotBlack)
+                    .filter(StringUtils::isNotBlank)
                     .map(String::toCharArray)
                     .orElse(null);
 
             String keystoreType = Optional.ofNullable(System.getProperty(keyStoreTypeProperty))
                     .map(String::trim)
-                    .filter(StringUtils::isNotBlack)
+                    .filter(StringUtils::isNotBlank)
                     .orElseGet(KeyStore::getDefaultType);
 
             String securityProvideName = Optional.ofNullable(System.getProperty(securityProviderNameProperty))
                     .map(String::trim)
-                    .filter(StringUtils::isNotBlack)
+                    .filter(StringUtils::isNotBlank)
                     .orElse(null);
 
             keyStorePropertyConsumer.accept(keystore, keystorePassword, keystoreType, securityProvideName);
