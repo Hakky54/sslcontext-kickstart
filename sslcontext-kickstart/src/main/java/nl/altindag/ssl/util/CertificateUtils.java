@@ -51,6 +51,7 @@ import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
@@ -87,9 +88,10 @@ public final class CertificateUtils {
         if (certificate instanceof X509Certificate) {
             return ((X509Certificate) certificate)
                     .getSubjectX500Principal()
-                    .getName();
+                    .getName()
+                    .toLowerCase(Locale.ENGLISH);
         } else {
-            return UUID.randomUUID().toString();
+            return UUID.randomUUID().toString().toLowerCase(Locale.ENGLISH);
         }
     }
 
