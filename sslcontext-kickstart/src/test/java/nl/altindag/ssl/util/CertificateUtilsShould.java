@@ -177,22 +177,10 @@ class CertificateUtilsShould {
 
     @Test
     void getCertificatesReturnsEmptyWhenNonHttpsUrlIsProvided() {
-        Map<String, List<Certificate>> certificates = CertificateUtils.getCertificate("http://www.google.com/");
+        Map<String, List<X509Certificate>> certificates = CertificateUtils.getCertificate("http://www.google.com/");
 
         assertThat(certificates).containsKey("http://www.google.com/");
         assertThat(certificates.get("http://www.google.com/")).isEmpty();
-    }
-
-    @Test
-    void notAddSubjectAndIssuerAsHeaderWhenCertificateTypeIsNotX509Certificate() throws CertificateEncodingException {
-        Certificate certificate = mock(Certificate.class);
-
-        when(certificate.getEncoded()).thenReturn(CertificateUtils.loadCertificate(PEM_LOCATION + "stackexchange.pem").get(0).getEncoded());
-
-        String pem = CertificateUtils.convertToPem(certificate);
-        assertThat(pem)
-                .doesNotContain("subject", "issuer")
-                .contains("-----BEGIN CERTIFICATE-----", "-----END CERTIFICATE-----");
     }
 
     @Test
@@ -204,7 +192,7 @@ class CertificateUtilsShould {
 
     @Test
     void getRootCaIfPossibleReturnsJdkTrustedCaCertificateWhenNoAuthorityInfoAccessExtensionIsPresent() {
-        List<Certificate> certificates = CertificateUtils.getCertificate("https://www.reddit.com/")
+        List<X509Certificate> certificates = CertificateUtils.getCertificate("https://www.reddit.com/")
                 .get("https://www.reddit.com/");
 
         try (MockedStatic<CertificateUtils> certificateUtilsMockedStatic = mockStatic(CertificateUtils.class, invocation -> {
@@ -225,7 +213,7 @@ class CertificateUtilsShould {
 
     @Test
     void getRootCaIfPossibleReturnsEmptyListWhenNoAuthorityInfoAccessExtensionIsPresentAndNoMatching() {
-        List<Certificate> certificates = CertificateUtils.getCertificate("https://www.reddit.com/")
+        List<X509Certificate> certificates = CertificateUtils.getCertificate("https://www.reddit.com/")
                 .get("https://www.reddit.com/");
 
         try (MockedStatic<CertificateUtils> certificateUtilsMockedStatic = mockStatic(CertificateUtils.class, invocation -> {
@@ -239,7 +227,7 @@ class CertificateUtilsShould {
             certificateUtilsMockedStatic.when(() -> CertificateUtils.getRootCaFromJdkTrustedCertificates(any(X509Certificate.class)))
                     .thenReturn(Collections.emptyList());
 
-            X509Certificate certificate = (X509Certificate) certificates.get(certificates.size() - 1);
+            X509Certificate certificate = certificates.get(certificates.size() - 1);
             List<X509Certificate> rootCaCertificate = CertificateUtils.getRootCaIfPossible(certificate);
             assertThat(rootCaCertificate).isEmpty();
 
@@ -251,12 +239,6 @@ class CertificateUtilsShould {
     @Test
     void getRootCaFromChainIfPossibleReturnsEmptyListWhenNoCertificatesHaveBeenProvided() {
         List<X509Certificate> rootCa = CertificateUtils.getRootCaFromChainIfPossible(Collections.emptyList());
-        assertThat(rootCa).isEmpty();
-    }
-
-    @Test
-    void getRootCaFromChainIfPossibleReturnsEmptyListWhenProvidedCertificateIsNotAnInstanceOfX509Certificate() {
-        List<X509Certificate> rootCa = CertificateUtils.getRootCaFromChainIfPossible(Collections.singletonList(mock(Certificate.class)));
         assertThat(rootCa).isEmpty();
     }
 
@@ -284,7 +266,7 @@ class CertificateUtilsShould {
 
     @Test
     void throwsGenericCertificateExceptionWhenGettingCertificateEncodingException() throws CertificateEncodingException {
-        Certificate certificate = mock(Certificate.class);
+        X509Certificate certificate = mock(X509Certificate.class);
 
         doThrow(new CertificateEncodingException("KABOOM!")).when(certificate).getEncoded();
 

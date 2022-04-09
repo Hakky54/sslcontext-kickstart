@@ -16,6 +16,7 @@
 
 package nl.altindag.ssl.util;
 
+import nl.altindag.ssl.SSLFactory;
 import nl.altindag.ssl.exception.GenericCertificateException;
 import nl.altindag.ssl.exception.GenericIOException;
 
@@ -74,7 +75,11 @@ public final class CertificateUtils {
     private static final String EMPTY = "";
     private static final Pattern CA_ISSUERS_AUTHORITY_INFO_ACCESS = Pattern.compile("(?s)^AuthorityInfoAccess\\h+\\[\\R\\s*\\[\\R.*?accessMethod:\\h+caIssuers\\R\\h*accessLocation: URIName:\\h+(https?://\\S+)", Pattern.MULTILINE);
 
+    private static boolean certificateCollectorInitialized = false;
+    private static SSLFactory sslFactory = null;
     private static SSLSocketFactory unsafeSslSocketFactory = null;
+    private static SSLSocketFactory certificateCapturingSslSocketFactory = null;
+    private static List<X509Certificate> certificatesCollector = null;
 
     private CertificateUtils() {}
 
@@ -238,30 +243,29 @@ public final class CertificateUtils {
         return Collections.unmodifiableMap(certificates);
     }
 
-    public static Map<String, List<Certificate>> getCertificate(String... urls) {
+    public static Map<String, List<X509Certificate>> getCertificate(String... urls) {
         return CertificateUtils.getCertificate(Arrays.asList(urls));
     }
 
-    public static Map<String, List<Certificate>> getCertificate(List<String> urls) {
+    public static Map<String, List<X509Certificate>> getCertificate(List<String> urls) {
         return urls.stream()
                 .map(url -> new AbstractMap.SimpleEntry<>(url, CertificateUtils.getCertificateFromExternalSource(url)))
                 .collect(Collectors.collectingAndThen(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue), Collections::unmodifiableMap));
     }
 
-    private static List<Certificate> getCertificateFromExternalSource(String url) {
+    private static List<X509Certificate> getCertificateFromExternalSource(String url) {
         try {
             URL parsedUrl = new URL(url);
             if ("https".equalsIgnoreCase(parsedUrl.getProtocol())) {
+                configureCertificateCollector();
+
                 HttpsURLConnection connection = (HttpsURLConnection) parsedUrl.openConnection();
-                SSLSocketFactory unsafeSslSocketFactory = CertificateUtils.getUnsafeSslSocketFactory();
-                connection.setSSLSocketFactory(unsafeSslSocketFactory);
+                connection.setSSLSocketFactory(certificateCapturingSslSocketFactory);
                 connection.connect();
-
-                List<Certificate> serverCertificates = Arrays.asList(connection.getServerCertificates());
-                List<X509Certificate> rootCa = CertificateUtils.getRootCaFromChainIfPossible(serverCertificates);
-
                 connection.disconnect();
-                return Stream.of(serverCertificates, rootCa)
+
+                List<X509Certificate> rootCa = CertificateUtils.getRootCaFromChainIfPossible(certificatesCollector);
+                return Stream.of(certificatesCollector, rootCa)
                         .flatMap(Collection::stream)
                         .distinct()
                         .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
@@ -273,16 +277,24 @@ public final class CertificateUtils {
         }
     }
 
-    private static SSLSocketFactory getUnsafeSslSocketFactory() {
-        if (unsafeSslSocketFactory == null) {
+    private static void configureCertificateCollector() {
+        if (certificateCollectorInitialized) {
+            certificatesCollector.clear();
+            SSLSessionUtils.invalidateCaches(sslFactory);
+        } else {
+            certificatesCollector = new ArrayList<>();
             unsafeSslSocketFactory = SSLSocketUtils.createUnsafeSslSocketFactory();
+            sslFactory = SSLFactory.builder()
+                    .withTrustMaterial(TrustManagerUtils.createCertificateCapturingTrustManager(TrustManagerUtils.createUnsafeTrustManager(), certificatesCollector))
+                    .build();
+            certificateCapturingSslSocketFactory = sslFactory.getSslSocketFactory();
+            certificateCollectorInitialized = true;
         }
-        return unsafeSslSocketFactory;
     }
 
-    static List<X509Certificate> getRootCaFromChainIfPossible(List<Certificate> certificates) {
-        if (!certificates.isEmpty() && certificates.get(certificates.size() - 1) instanceof X509Certificate) {
-            X509Certificate certificate = (X509Certificate) certificates.get(certificates.size() - 1);
+    static List<X509Certificate> getRootCaFromChainIfPossible(List<X509Certificate> certificates) {
+        if (!certificates.isEmpty()) {
+            X509Certificate certificate = certificates.get(certificates.size() - 1);
             String issuer = certificate.getIssuerX500Principal().getName();
             String subject = certificate.getSubjectX500Principal().getName();
 
@@ -324,7 +336,7 @@ public final class CertificateUtils {
             URL url = uri.toURL();
             URLConnection connection = url.openConnection();
             if (connection instanceof HttpsURLConnection) {
-                ((HttpsURLConnection) connection).setSSLSocketFactory(CertificateUtils.getUnsafeSslSocketFactory());
+                ((HttpsURLConnection) connection).setSSLSocketFactory(unsafeSslSocketFactory);
             }
 
             InputStream inputStream = connection.getInputStream();
@@ -359,7 +371,7 @@ public final class CertificateUtils {
         }
     }
 
-    public static List<String> convertToPem(List<Certificate> certificates) {
+    public static List<String> convertToPem(List<X509Certificate> certificates) {
         return certificates.stream()
                 .map(CertificateUtils::convertToPem)
                 .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));

@@ -17,6 +17,7 @@
 package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.exception.GenericTrustManagerException;
+import nl.altindag.ssl.trustmanager.CertificateCapturingX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.ChainAndAuthTypeValidator;
 import nl.altindag.ssl.trustmanager.ChainAndAuthTypeWithSSLEngineValidator;
 import nl.altindag.ssl.trustmanager.ChainAndAuthTypeWithSocketValidator;
@@ -38,6 +39,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.Provider;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -174,6 +176,10 @@ public final class TrustManagerUtils {
 
     public static X509ExtendedTrustManager createUnsafeTrustManager() {
         return UnsafeX509ExtendedTrustManager.getInstance();
+    }
+
+    public static X509ExtendedTrustManager createCertificateCapturingTrustManager(X509TrustManager baseTrustManager, List<X509Certificate> certificatesCollector) {
+        return new CertificateCapturingX509ExtendedTrustManager(wrapIfNeeded(baseTrustManager), certificatesCollector);
     }
 
     public static X509ExtendedTrustManager wrapIfNeeded(X509TrustManager trustManager) {

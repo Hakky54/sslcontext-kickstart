@@ -23,7 +23,7 @@ import nl.altindag.ssl.exception.GenericCertificateException;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -39,7 +39,7 @@ class CertificateUtilsIT {
 
     @Test
     void getRemoteCertificates() {
-        Supplier<Map<String, List<Certificate>>> certificateSupplier = () -> CertificateUtils.getCertificate(
+        Supplier<Map<String, List<X509Certificate>>> certificateSupplier = () -> CertificateUtils.getCertificate(
                 "https://stackoverflow.com/",
                 "https://github.com/",
                 "https://www.linkedin.com/"
@@ -48,7 +48,7 @@ class CertificateUtilsIT {
         int amountOfRetries = 0;
         int maxAmountOfRetries = 10;
 
-        Map<String, List<Certificate>> certificatesFromRemote = null;
+        Map<String, List<X509Certificate>> certificatesFromRemote = null;
 
         while (certificatesFromRemote == null && amountOfRetries < maxAmountOfRetries) {
             try {
@@ -103,7 +103,7 @@ class CertificateUtilsIT {
         HttpsServer server = ServerUtils.createServer(8443, sslFactoryForServerOne, executorService, "");
         server.start();
 
-        Map<String, List<Certificate>> certificatesFromRemote = CertificateUtils.getCertificate("https://localhost:8443");
+        Map<String, List<X509Certificate>> certificatesFromRemote = CertificateUtils.getCertificate("https://localhost:8443");
 
         server.stop(0);
         executorService.shutdownNow();
@@ -126,7 +126,7 @@ class CertificateUtilsIT {
         HttpsServer server = ServerUtils.createServer(8443, sslFactoryForServerOne, executorService, "");
         server.start();
 
-        Map<String, List<Certificate>> certificatesFromRemote = CertificateUtils.getCertificate("https://localhost:8443");
+        Map<String, List<X509Certificate>> certificatesFromRemote = CertificateUtils.getCertificate("https://localhost:8443");
 
         server.stop(0);
         executorService.shutdownNow();
