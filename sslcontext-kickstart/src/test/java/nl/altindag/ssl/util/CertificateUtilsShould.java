@@ -41,6 +41,7 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
@@ -75,7 +76,7 @@ class CertificateUtilsShould {
         X509Certificate certificate = trustManager.getAcceptedIssuers()[0];
 
         String alias = CertificateUtils.generateAlias(certificate);
-        assertThat(alias).isEqualTo("CN=*.google.com,O=Google LLC,L=Mountain View,ST=California,C=US");
+        assertThat(alias).isEqualTo("CN=*.google.com,O=Google LLC,L=Mountain View,ST=California,C=US".toLowerCase(Locale.ENGLISH));
     }
 
     @Test
