@@ -3,6 +3,10 @@
 This list is not intended to be all-encompassing - it will document major and breaking API 
 changes with their rationale when appropriate:
 
+### v7.4.1
+- Improved extracting server certificates
+- Bug-fix issue 167 - Resolve initialization issue of trusted certificate by having lowercase aliases
+- Added input validation for loading keystores and certificates from the classpath or as input stream
 ### v7.4.0
 - Added system property based ssl configuration
 - Exposed additional method from PemUtils
