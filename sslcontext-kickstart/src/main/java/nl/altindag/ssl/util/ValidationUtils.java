@@ -16,6 +16,7 @@
 
 package nl.altindag.ssl.util;
 
+import java.util.List;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
@@ -39,4 +40,16 @@ public final class ValidationUtils {
         }
         return maybeNull;
     }
+
+    public static <T> List<T> requireNotEmpty(List<T> maybeNull, String message) {
+        return requireNotEmpty(maybeNull, () -> new IllegalArgumentException(message));
+    }
+
+    public static <T> List<T> requireNotEmpty(List<T> maybeNull, Supplier<RuntimeException> exceptionSupplier) {
+        if (maybeNull == null || maybeNull.isEmpty()) {
+            throw exceptionSupplier.get();
+        }
+        return maybeNull;
+    }
+
 }

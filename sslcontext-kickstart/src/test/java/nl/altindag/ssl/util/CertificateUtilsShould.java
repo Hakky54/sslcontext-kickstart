@@ -32,8 +32,12 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.InvalidKeyException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.SignatureException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
@@ -52,6 +56,7 @@ import static nl.altindag.ssl.TestConstants.TRUSTSTORE_PASSWORD;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -250,7 +255,33 @@ class CertificateUtilsShould {
     }
 
     @Test
-    void ThrowsGenericCertificateExceptionWhenGetCertificatesFromRemoteFileFails() {
+    void notAddSubjectAndIssuerAsHeaderWhenCertificateTypeIsNotX509Certificate() throws CertificateEncodingException {
+        Certificate certificate = mock(Certificate.class);
+
+        when(certificate.getEncoded()).thenReturn(CertificateUtils.loadCertificate(PEM_LOCATION + "stackexchange.pem").get(0).getEncoded());
+
+        String pem = CertificateUtils.convertToPem(certificate);
+        assertThat(pem)
+                .doesNotContain("subject", "issuer")
+                .contains("-----BEGIN CERTIFICATE-----", "-----END CERTIFICATE-----");
+    }
+
+    @Test
+    void throwsGenericCertificateExceptionWhenCertificateIsNotFoundOnTheClasspath() {
+        assertThatThrownBy(() -> CertificateUtils.loadCertificate("some-directory/some-certificate.pem"))
+                .isInstanceOf(GenericIOException.class)
+                .hasMessageContaining("Failed to load the certificate from the classpath for the given path: [some-directory/some-certificate.pem]");
+    }
+
+    @Test
+    void throwsGenericCertificateExceptionWhenCertificateIsInputStreamIsNull() {
+        assertThatThrownBy(() -> CertificateUtils.loadCertificate((InputStream) null))
+                .isInstanceOf(GenericIOException.class)
+                .hasMessageContaining("Failed to load the certificate from the provided InputStream because it is null");
+    }
+
+    @Test
+    void throwsGenericCertificateExceptionWhenGetCertificatesFromRemoteFileFails() {
         try (MockedStatic<CertificateFactory> certificateFactoryMockedStatic = mockStatic(CertificateFactory.class, invocation -> {
             Method method = invocation.getMethod();
             if ("getInstance".equals(method.getName())) {
@@ -263,6 +294,16 @@ class CertificateUtilsShould {
             assertThatThrownBy(() -> CertificateUtils.getCertificatesFromRemoteFile(uri, null))
                     .isInstanceOf(GenericCertificateException.class);
         }
+    }
+
+    @Test
+    void reUseExistingUnsafeSslSocketFactory() throws CertificateException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, NoSuchProviderException {
+        URI uri = URI.create("https://cacerts.digicert.com/DigiCertGlobalRootCA.crt");
+        X509Certificate intermediateCertificate = mock(X509Certificate.class);
+        doNothing().when(intermediateCertificate).verify(any());
+
+        List<X509Certificate> certificatesFromRemoteFile = CertificateUtils.getCertificatesFromRemoteFile(uri, intermediateCertificate);
+        assertThat(certificatesFromRemoteFile).isNotEmpty();
     }
 
     @Test

@@ -491,6 +491,62 @@ class PemUtilsShould {
     }
 
     @Test
+    void throwsIllegalArgumentExceptionWhenCertificateCannotBeFoundFromTheClasspath() {
+        assertThatThrownBy(() -> PemUtils.loadCertificate("non-existing-directory/non-existing-certificate.pem"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Failed to load the certificate from the classpath for the given path: [non-existing-directory/non-existing-certificate.pem]");
+    }
+
+    @Test
+    void throwsIllegalArgumentExceptionWhenInputStreamIsNullWhileLoadingCertificate() {
+        assertThatThrownBy(() -> PemUtils.loadCertificate((InputStream) null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Failed to load the certificate from the provided InputStream because it is null");
+    }
+
+    @Test
+    void throwsIllegalArgumentExceptionWhenIdentityCannotBeFoundFromTheClasspath() {
+        assertThatThrownBy(() -> PemUtils.loadIdentityMaterial("non-existing-directory/non-existing-certificate.pem", "non-existing-directory/non-existing-certificate.pem", DEFAULT_PASSWORD))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Failed to load the certificate from the classpath for the given path: [non-existing-directory/non-existing-certificate.pem]");
+    }
+
+    @Test
+    void throwsIllegalArgumentExceptionWhenInputStreamIsNullWhileLoadingIdentity() {
+        assertThatThrownBy(() -> PemUtils.loadIdentityMaterial(null, (InputStream) null, DEFAULT_PASSWORD))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Failed to load the certificate from the provided InputStream because it is null");
+    }
+
+    @Test
+    void throwsIllegalArgumentExceptionWhenIdentityCannotBeFoundFromTheClasspathWhileUsingPrivateKeyAndChainCombined() {
+        assertThatThrownBy(() -> PemUtils.loadIdentityMaterial("non-existing-directory/non-existing-certificate.pem", DEFAULT_PASSWORD))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Failed to load the certificate from the classpath for the given path: [non-existing-directory/non-existing-certificate.pem]");
+    }
+
+    @Test
+    void throwsIllegalArgumentExceptionWhenInputStreamIsNullWhileLoadingIdentityWhileUsingPrivateKeyAndChainCombined() {
+        assertThatThrownBy(() -> PemUtils.loadIdentityMaterial((InputStream) null, DEFAULT_PASSWORD))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Failed to load the certificate from the provided InputStream because it is null");
+    }
+
+    @Test
+    void throwsIllegalArgumentExceptionWhenIdentityCannotBeFoundFromTheClasspathWhileLoadingThePrivateKey() {
+        assertThatThrownBy(() -> PemUtils.loadPrivateKey("non-existing-directory/non-existing-certificate.pem", DEFAULT_PASSWORD))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Failed to load the certificate from the classpath for the given path: [non-existing-directory/non-existing-certificate.pem]");
+    }
+
+    @Test
+    void throwsIllegalArgumentExceptionWhenInputStreamIsNullWhileLoadingIdentityWhileLoadingThePrivateKey() {
+        assertThatThrownBy(() -> PemUtils.loadPrivateKey((InputStream) null, DEFAULT_PASSWORD))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Failed to load the certificate from the provided InputStream because it is null");
+    }
+
+    @Test
     void throwGenericIOExceptionWhenInputStreamCanNotBeClosedWhenLoadingIdentity() throws IOException {
         InputStream identityStream = spy(getResource(PEM_LOCATION + "encrypted-identity.pem"));
         String identityContent = getResourceContent(PEM_LOCATION + "encrypted-identity.pem");

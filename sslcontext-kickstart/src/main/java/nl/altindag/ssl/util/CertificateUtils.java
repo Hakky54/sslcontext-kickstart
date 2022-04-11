@@ -101,7 +101,12 @@ public final class CertificateUtils {
      * Supported input format: PEM, P7B and DER
      */
     public static List<Certificate> loadCertificate(String... certificatePaths) {
-        return loadCertificate(certificatePath -> CertificateUtils.class.getClassLoader().getResourceAsStream(certificatePath), certificatePaths);
+        return loadCertificate(certificatePath ->
+                ValidationUtils.requireNotNull(
+                        CertificateUtils.class.getClassLoader().getResourceAsStream(certificatePath),
+                        String.format("Failed to load the certificate from the classpath for the given path: [%s]", certificatePath)),
+                certificatePaths
+        );
     }
 
     /**
@@ -125,7 +130,10 @@ public final class CertificateUtils {
      * Supported input format: PEM, P7B and DER
      */
     public static List<Certificate> loadCertificate(InputStream... certificateStreams) {
-        return loadCertificate(Function.identity(), certificateStreams);
+        return loadCertificate(certificateStream ->
+                ValidationUtils.requireNotNull(certificateStream, "Failed to load the certificate from the provided InputStream because it is null"),
+                certificateStreams
+        );
     }
 
     private static <T> List<Certificate> loadCertificate(Function<T, InputStream> resourceMapper, T[] resources) {
@@ -285,7 +293,6 @@ public final class CertificateUtils {
             SSLSessionUtils.invalidateCaches(sslFactory);
         } else {
             certificatesCollector = new ArrayList<>();
-            unsafeSslSocketFactory = SSLSocketUtils.createUnsafeSslSocketFactory();
             sslFactory = SSLFactory.builder()
                     .withTrustMaterial(TrustManagerUtils.createCertificateCapturingTrustManager(TrustManagerUtils.createUnsafeTrustManager(), certificatesCollector))
                     .build();
@@ -338,7 +345,7 @@ public final class CertificateUtils {
             URL url = uri.toURL();
             URLConnection connection = url.openConnection();
             if (connection instanceof HttpsURLConnection) {
-                ((HttpsURLConnection) connection).setSSLSocketFactory(unsafeSslSocketFactory);
+                ((HttpsURLConnection) connection).setSSLSocketFactory(getUnsafeSslSocketFactory());
             }
 
             InputStream inputStream = connection.getInputStream();
@@ -354,6 +361,13 @@ public final class CertificateUtils {
         } catch (IOException e) {
             throw new GenericCertificateException(e);
         }
+    }
+
+    private static SSLSocketFactory getUnsafeSslSocketFactory() {
+        if (unsafeSslSocketFactory == null) {
+            unsafeSslSocketFactory = SSLSocketUtils.createUnsafeSslSocketFactory();
+        }
+        return unsafeSslSocketFactory;
     }
 
     static List<X509Certificate> getRootCaFromJdkTrustedCertificates(X509Certificate intermediateCertificate) {

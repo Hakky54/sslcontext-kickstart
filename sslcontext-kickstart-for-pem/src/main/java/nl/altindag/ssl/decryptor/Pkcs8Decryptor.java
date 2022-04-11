@@ -23,7 +23,7 @@ public final class Pkcs8Decryptor implements BouncyFunction<char[], InputDecrypt
 
     @Override
     public InputDecryptorProvider apply(char[] password) throws OperatorCreationException {
-        requireNotNull(password, () -> new IllegalArgumentException("A password is mandatory with an encrypted key"));
+        requireNotNull(password, "A password is mandatory with an encrypted key");
         return PKCS8_DECRYPTOR_PROVIDER_BUILDER.build(password);
     }
 

@@ -73,6 +73,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -1243,7 +1244,7 @@ class SSLFactoryShould {
     }
 
     @Test
-    void throwExceptionWhenIdentityStorePathIsAbsentFromSystemProperty() throws IOException {
+    void throwExceptionWhenIdentityStorePathIsAbsentFromSystemProperty() {
         Map<String, String> properties = new HashMap<>();
         properties.put("javax.net.ssl.keyStorePassword", new String(IDENTITY_PASSWORD));
         properties.put("javax.net.ssl.keyStoreType", "PKCS12");
@@ -1590,6 +1591,26 @@ class SSLFactoryShould {
 
         assertThat(clientSessionCacheSize).isEqualTo(1024);
         assertThat(serverSessionCacheSize).isEqualTo(1024);
+    }
+
+    @Test
+    void throwIllegalArgumentExceptionWhenCertificateIsAbsent() {
+        List<Certificate> certificates = Collections.emptyList();
+        SSLFactory.Builder sslFactoryBuilder = SSLFactory.builder();
+
+        assertThatThrownBy(() -> sslFactoryBuilder.withTrustMaterial(certificates))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Failed to load the certificate(s). No certificate has been provided.");
+    }
+
+    @Test
+    void throwIllegalArgumentExceptionWhenCertificateIsAbsentWhileAlsoUsingTrustOptions() {
+        List<Certificate> certificates = Collections.emptyList();
+        SSLFactory.Builder sslFactoryBuilder = SSLFactory.builder();
+
+        assertThatThrownBy(() -> sslFactoryBuilder.withTrustMaterial(certificates, null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Failed to load the certificate(s). No certificate has been provided.");
     }
 
     @Test

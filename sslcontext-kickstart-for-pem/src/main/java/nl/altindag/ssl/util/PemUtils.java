@@ -59,7 +59,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
+
+import static nl.altindag.ssl.util.ValidationUtils.requireNotNull;
 
 /**
  * Reads PEM formatted private keys and certificates
@@ -84,6 +87,8 @@ public final class PemUtils {
         Security.addProvider(new BouncyCastleProvider());
     }
 
+    private static final String EMPTY_INPUT_STREAM_EXCEPTION_MESSAGE = "Failed to load the certificate from the provided InputStream because it is null";
+    private static final UnaryOperator<String> CERTIFICATE_NOT_FOUND_EXCEPTION_MESSAGE = certificatePath -> String.format("Failed to load the certificate from the classpath for the given path: [%s]", certificatePath);
     private static final char[] DUMMY_PASSWORD = KeyStoreUtils.DUMMY_PASSWORD.toCharArray();
     private static final char[] NO_PASSWORD = null;
     private static final PemUtils INSTANCE = new PemUtils(
@@ -132,7 +137,13 @@ public final class PemUtils {
      * Loads certificates from the classpath and maps it to a list of {@link X509Certificate}
      */
     public static List<X509Certificate> loadCertificate(String... certificatePaths) {
-        return loadCertificate(certificatePaths, IOUtils::getResourceAsStream);
+        return loadCertificate(
+                certificatePaths,
+                certificatePath -> requireNotNull(
+                        IOUtils.getResourceAsStream(certificatePath),
+                        CERTIFICATE_NOT_FOUND_EXCEPTION_MESSAGE.apply(certificatePath)
+                )
+        );
     }
 
     /**
@@ -146,7 +157,10 @@ public final class PemUtils {
      * Loads certificates from multiple InputStreams and maps it to a list of {@link X509Certificate}
      */
     public static List<X509Certificate> loadCertificate(InputStream... certificateStreams) {
-        return loadCertificate(certificateStreams, Function.identity());
+        return loadCertificate(
+                certificateStreams,
+                certificateStream -> requireNotNull(certificateStream, EMPTY_INPUT_STREAM_EXCEPTION_MESSAGE)
+        );
     }
 
     private static <T> List<X509Certificate> loadCertificate(T[] resources, Function<T, InputStream> resourceMapper) {
@@ -233,7 +247,15 @@ public final class PemUtils {
      * the classpath and maps it to an instance of {@link X509ExtendedKeyManager}
      */
     public static X509ExtendedKeyManager loadIdentityMaterial(String certificateChainPath, String privateKeyPath, char[] keyPassword) {
-        return loadIdentityMaterial(certificateChainPath, privateKeyPath, keyPassword, IOUtils::getResourceAsStream);
+        return loadIdentityMaterial(
+                certificateChainPath,
+                privateKeyPath,
+                keyPassword,
+                certificatePath -> requireNotNull(
+                        IOUtils.getResourceAsStream(certificatePath),
+                        CERTIFICATE_NOT_FOUND_EXCEPTION_MESSAGE.apply(certificatePath)
+                )
+        );
     }
 
     /**
@@ -249,7 +271,12 @@ public final class PemUtils {
      * as an InputStream and maps it to an instance of {@link X509ExtendedKeyManager}
      */
     public static X509ExtendedKeyManager loadIdentityMaterial(InputStream certificateChainStream, InputStream privateKeyStream, char[] keyPassword) {
-        return loadIdentityMaterial(certificateChainStream, privateKeyStream, keyPassword, Function.identity());
+        return loadIdentityMaterial(
+                certificateChainStream,
+                privateKeyStream,
+                keyPassword,
+                inputStream -> requireNotNull(inputStream, EMPTY_INPUT_STREAM_EXCEPTION_MESSAGE)
+        );
     }
 
     /**
@@ -281,7 +308,14 @@ public final class PemUtils {
      * from the classpath and maps it to an instance of {@link X509ExtendedKeyManager}
      */
     public static X509ExtendedKeyManager loadIdentityMaterial(String identityPath, char[] keyPassword) {
-        return loadIdentityMaterial(identityPath, keyPassword, IOUtils::getResourceAsStream);
+        return loadIdentityMaterial(
+                identityPath,
+                keyPassword,
+                certificatePath -> requireNotNull(
+                        IOUtils.getResourceAsStream(certificatePath),
+                        CERTIFICATE_NOT_FOUND_EXCEPTION_MESSAGE.apply(certificatePath)
+                )
+        );
     }
 
     /**
@@ -313,7 +347,11 @@ public final class PemUtils {
      * from an InputStream and maps it to an instance of {@link X509ExtendedKeyManager}
      */
     public static X509ExtendedKeyManager loadIdentityMaterial(InputStream identityStream, char[] keyPassword) {
-        return loadIdentityMaterial(identityStream, keyPassword, Function.identity());
+        return loadIdentityMaterial(
+                identityStream,
+                keyPassword,
+                inputStream -> requireNotNull(inputStream, EMPTY_INPUT_STREAM_EXCEPTION_MESSAGE)
+        );
     }
 
     private static <T> X509ExtendedKeyManager loadIdentityMaterial(T certificateChain, T privateKey, char[] keyPassword, Function<T, InputStream> resourceMapper) {
@@ -369,7 +407,14 @@ public final class PemUtils {
      * Loads the private key from the classpath and maps it to an instance of {@link PrivateKey}
      */
     public static PrivateKey loadPrivateKey(String identityPath, char[] keyPassword) {
-        return loadPrivateKey(identityPath, keyPassword, IOUtils::getResourceAsStream);
+        return loadPrivateKey(
+                identityPath,
+                keyPassword,
+                certificatePath -> requireNotNull(
+                        IOUtils.getResourceAsStream(certificatePath),
+                        CERTIFICATE_NOT_FOUND_EXCEPTION_MESSAGE.apply(certificatePath)
+                )
+        );
     }
 
     /**
@@ -397,7 +442,11 @@ public final class PemUtils {
      * Loads the private key from an InputStream and maps it to an instance of {@link PrivateKey}
      */
     public static PrivateKey loadPrivateKey(InputStream identityStream, char[] keyPassword) {
-        return loadPrivateKey(identityStream, keyPassword, Function.identity());
+        return loadPrivateKey(
+                identityStream,
+                keyPassword,
+                inputStream -> requireNotNull(inputStream, EMPTY_INPUT_STREAM_EXCEPTION_MESSAGE)
+        );
     }
 
     private static <T> PrivateKey loadPrivateKey(T privateKey, char[] keyPassword, Function<T, InputStream> resourceMapper) {

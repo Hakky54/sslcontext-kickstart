@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import javax.net.ssl.X509TrustManager;
 
 import static java.util.Objects.isNull;
+import static nl.altindag.ssl.util.ValidationUtils.requireNotEmpty;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -145,7 +146,10 @@ public final class KeyStoreUtils {
         for (T trustManager : trustManagers) {
             certificates.addAll(Arrays.asList(trustManager.getAcceptedIssuers()));
         }
-        return createTrustStore(certificates);
+
+        return createTrustStore(
+                requireNotEmpty(certificates, "Could not create TrustStore because the provided TrustManager does not contain any trusted certificates")
+        );
     }
 
     @SafeVarargs
@@ -156,7 +160,7 @@ public final class KeyStoreUtils {
     public static <T extends Certificate> KeyStore createTrustStore(List<T> certificates) {
         try {
             KeyStore trustStore = createKeyStore();
-            for (T certificate : certificates) {
+            for (T certificate : requireNotEmpty(certificates, "Could not create TrustStore because certificate is absent")) {
                 trustStore.setCertificateEntry(CertificateUtils.generateAlias(certificate), certificate);
             }
             return trustStore;

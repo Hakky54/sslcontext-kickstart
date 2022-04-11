@@ -79,6 +79,7 @@ import java.util.stream.Stream;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
+import static nl.altindag.ssl.util.ValidationUtils.requireNotEmpty;
 
 /**
  * @author Hakan Altindag
@@ -171,6 +172,7 @@ public final class SSLFactory {
         private static final String IDENTITY_VALIDATION_EXCEPTION_MESSAGE = "Identity details are empty, which are required to be present when SSL/TLS is enabled";
         private static final String IDENTITY_AND_TRUST_MATERIAL_VALIDATION_EXCEPTION_MESSAGE = "Could not create instance of SSLFactory because Identity " +
                 "and Trust material are not present. Please provide at least a Trust material.";
+        private static final String CERTIFICATE_VALIDATION_EXCEPTION_MESSAGE = "Failed to load the certificate(s). No certificate has been provided.";
 
         private String sslContextAlgorithm = "TLS";
         private Provider securityProvider = null;
@@ -416,15 +418,14 @@ public final class SSLFactory {
         }
 
         public <T extends Certificate> Builder withTrustMaterial(List<T> certificates) {
-            KeyStore trustStore = KeyStoreUtils.createTrustStore(certificates);
+            KeyStore trustStore = KeyStoreUtils.createTrustStore(requireNotEmpty(certificates, CERTIFICATE_VALIDATION_EXCEPTION_MESSAGE));
             trustStores.add(trustStore);
             return this;
         }
 
         public <T extends Certificate> Builder withTrustMaterial(List<T> certificates,
                                                                  TrustStoreTrustOptions<? extends CertPathTrustManagerParameters> trustOptions) {
-
-            KeyStore trustStore = KeyStoreUtils.createTrustStore(certificates);
+            KeyStore trustStore = KeyStoreUtils.createTrustStore(requireNotEmpty(certificates, CERTIFICATE_VALIDATION_EXCEPTION_MESSAGE));
             return withTrustMaterial(trustStore, trustOptions);
         }
 

@@ -40,6 +40,7 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static nl.altindag.ssl.TestConstants.IDENTITY_FILE_NAME;
@@ -300,6 +301,29 @@ class KeyStoreUtilsShould {
         assertThat(identityStore).isNotNull();
         assertThat(identityStore.size()).isEqualTo(1);
         assertThat(identityStore.isKeyEntry("cn=prof oak,ou=oak pokémon research lab,o=oak pokémon research lab,c=pallet town")).isTrue();
+    }
+
+    @Test
+    void throwsIllegalArgumentExceptionWhenTrustStoreIsCreatedWithEmptyListOfCertificates() {
+        List<Certificate> certificates = Collections.emptyList();
+        assertThatThrownBy(() -> KeyStoreUtils.createTrustStore(certificates))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Could not create TrustStore because certificate is absent");
+    }
+
+    @Test
+    void throwsIllegalArgumentExceptionWhenTrustStoreIsCreatedWithNullAsCertificates() {
+        assertThatThrownBy(() -> KeyStoreUtils.createTrustStore((List<? extends Certificate>) null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Could not create TrustStore because certificate is absent");
+    }
+
+    @Test
+    void throwsIllegalArgumentExceptionWhenTrustStoreIsCreatedTrustManagerWhichDoesNotContainAnyTrustedCertificates() {
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.createUnsafeTrustManager();
+        assertThatThrownBy(() -> KeyStoreUtils.createTrustStore(trustManager))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Could not create TrustStore because the provided TrustManager does not contain any trusted certificates");
     }
 
     @Test

@@ -22,7 +22,7 @@ public final class PemDecryptor implements BouncyFunction<char[], PEMDecryptorPr
 
     @Override
     public PEMDecryptorProvider apply(char[] password) {
-        requireNotNull(password, () -> new IllegalArgumentException("A password is mandatory with an encrypted key"));
+        requireNotNull(password, "A password is mandatory with an encrypted key");
         return PEM_DECRYPTOR_PROVIDER_BUILDER.build(password);
     }
 
