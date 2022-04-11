@@ -18,6 +18,7 @@ package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.exception.GenericCertificateException;
 import nl.altindag.ssl.exception.GenericIOException;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
@@ -280,6 +281,7 @@ class CertificateUtilsShould {
                 .hasMessageContaining("Failed to load the certificate from the provided InputStream because it is null");
     }
 
+    @Disabled
     @Test
     void throwsGenericCertificateExceptionWhenGetCertificatesFromRemoteFileFails() {
         try (MockedStatic<CertificateFactory> certificateFactoryMockedStatic = mockStatic(CertificateFactory.class, invocation -> {
@@ -296,6 +298,7 @@ class CertificateUtilsShould {
         }
     }
 
+    @Disabled
     @Test
     void reUseExistingUnsafeSslSocketFactory() throws CertificateException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, NoSuchProviderException {
         URI uri = URI.create("https://cacerts.digicert.com/DigiCertGlobalRootCA.crt");
