@@ -62,6 +62,7 @@ import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
+import static nl.altindag.ssl.util.ValidationUtils.requireNotEmpty;
 import static nl.altindag.ssl.util.ValidationUtils.requireNotNull;
 
 /**
@@ -179,11 +180,7 @@ public final class PemUtils {
                 .map(Optional::get)
                 .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
 
-        if (certificates.isEmpty()) {
-            throw new CertificateParseException("Received an unsupported certificate type");
-        }
-
-        return certificates;
+        return requireNotEmpty(certificates, () -> new CertificateParseException("Received an unsupported certificate type"));
     }
 
     private static List<Object> parsePemContent(String pemContent) {
