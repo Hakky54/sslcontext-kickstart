@@ -9,7 +9,6 @@
     </parent>
 
     <artifactId>sslcontext-kickstart-for-pem</artifactId>
-    <version>7.4.2-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>${project.artifactId}</name>
@@ -37,7 +36,6 @@
     </developers>
 
     <properties>
-        <version.sslcontext-kickstart>7.4.2-SNAPSHOT</version.sslcontext-kickstart>
         <version.bouncy-castle>1.70</version.bouncy-castle>
     </properties>
 
@@ -45,7 +43,6 @@
         <dependency>
             <groupId>io.github.hakky54</groupId>
             <artifactId>sslcontext-kickstart</artifactId>
-            <version>${version.sslcontext-kickstart}</version>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>

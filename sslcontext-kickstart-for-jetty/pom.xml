@@ -9,7 +9,6 @@
     </parent>
 
     <artifactId>sslcontext-kickstart-for-jetty</artifactId>
-    <version>7.4.2-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>${project.artifactId}</name>
@@ -37,7 +36,6 @@
     </developers>
 
     <properties>
-        <version.sslcontext-kickstart>7.4.2-SNAPSHOT</version.sslcontext-kickstart>
         <version.jetty-reactive-httpclient>1.1.11</version.jetty-reactive-httpclient>
     </properties>
 
@@ -45,7 +43,6 @@
         <dependency>
             <groupId>io.github.hakky54</groupId>
             <artifactId>sslcontext-kickstart</artifactId>
-            <version>${version.sslcontext-kickstart}</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
