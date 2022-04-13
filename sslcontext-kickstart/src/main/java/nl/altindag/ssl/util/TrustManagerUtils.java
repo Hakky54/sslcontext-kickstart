@@ -47,6 +47,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static nl.altindag.ssl.util.ValidationUtils.requireNotEmpty;
+
 /**
  * @author Hakan Altindag
  */
@@ -346,9 +348,7 @@ public final class TrustManagerUtils {
         }
 
         public X509ExtendedTrustManager build() {
-            if (trustManagers.isEmpty()) {
-                throw new GenericTrustManagerException(EMPTY_TRUST_MANAGER_EXCEPTION);
-            }
+            requireNotEmpty(trustManagers, () -> new GenericTrustManagerException(EMPTY_TRUST_MANAGER_EXCEPTION));
 
             X509ExtendedTrustManager trustManager;
             if (trustManagers.size() == 1) {

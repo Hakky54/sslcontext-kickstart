@@ -47,6 +47,7 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import static nl.altindag.ssl.util.ValidationUtils.GENERIC_EXCEPTION_MESSAGE;
+import static nl.altindag.ssl.util.ValidationUtils.requireNotEmpty;
 import static nl.altindag.ssl.util.ValidationUtils.requireNotNull;
 
 /**
@@ -137,10 +138,7 @@ public final class KeyManagerUtils {
             }
         }
 
-        if (keyManagers.isEmpty()) {
-            throw new GenericKeyManagerException("Could not create any KeyManager from the given KeyStore, Alias and Password");
-        }
-
+        requireNotEmpty(keyManagers, () -> new GenericKeyManagerException("Could not create any KeyManager from the given KeyStore, Alias and Password"));
         return KeyManagerUtils.combine(keyManagers);
     }
 
@@ -345,9 +343,7 @@ public final class KeyManagerUtils {
         }
 
         public X509ExtendedKeyManager build() {
-            if (keyManagers.isEmpty()) {
-                throw new GenericKeyManagerException(EMPTY_KEY_MANAGER_EXCEPTION);
-            }
+            requireNotEmpty(keyManagers, () -> new GenericKeyManagerException(EMPTY_KEY_MANAGER_EXCEPTION));
 
             X509ExtendedKeyManager keyManager;
             if (keyManagers.size() == 1) {

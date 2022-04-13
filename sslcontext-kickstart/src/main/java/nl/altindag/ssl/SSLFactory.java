@@ -594,9 +594,7 @@ public final class SSLFactory {
                 throw new IllegalArgumentException("alias should be present");
             }
 
-            if (hosts.isEmpty()) {
-                throw new IllegalArgumentException(String.format("At least one host should be present. No host(s) found for the given alias: [%s]", alias));
-            }
+            requireNotEmpty(hosts, String.format("At least one host should be present. No host(s) found for the given alias: [%s]", alias));
 
             for (URI host : hosts) {
                 UriUtils.validate(host);
