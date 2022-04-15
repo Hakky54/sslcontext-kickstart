@@ -1181,66 +1181,82 @@ class SSLFactoryShould {
 
     @Test
     void buildSSLFactoryWithSystemPropertyDerivedProtocol() {
-        for (String propertyName : Arrays.asList("https.protocols", "jdk.tls.client.protocols", "jdk.tls.server.protocols")) {
-            System.setProperty(propertyName, "TLSv1.2,   ,TLSv1.1");
-
-            SSLFactory sslFactory = SSLFactory.builder()
-                    .withDefaultTrustMaterial()
-                    .withSystemPropertyDerivedProtocols()
-                    .build();
-
-            assertThat(sslFactory.getProtocols()).containsExactly("TLSv1.2", "TLSv1.1");
-            System.clearProperty(propertyName);
-        }
-    }
-
-    @Test
-    void buildSSLFactoryWithSystemPropertyDerivedCiphers() {
-        for (String propertyName : Arrays.asList("https.cipherSuites", "jdk.tls.client.cipherSuites", "jdk.tls.server.cipherSuites")) {
-            System.setProperty(propertyName, "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384,   ,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256");
-
-            SSLFactory sslFactory = SSLFactory.builder()
-                    .withDefaultTrustMaterial()
-                    .withSystemPropertyDerivedCiphers()
-                    .build();
-
-            assertThat(sslFactory.getCiphers()).containsExactly("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384", "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256");
-            System.clearProperty(propertyName);
-        }
-    }
-
-    @Test
-    void buildSSLFactoryWithSystemPropertyDerivedProtocolWhichArePartlyEmpty() {
-        Map<String, String> properties = new HashMap<>();
-        properties.put("https.protocols", "   ");
-        properties.put("jdk.tls.client.protocols", "TLSv1.2");
-        properties.forEach(System::setProperty);
+        String propertyName = "https.protocols";
+        System.setProperty(propertyName, "TLSv1.2,   ,TLSv1.1");
 
         SSLFactory sslFactory = SSLFactory.builder()
                 .withDefaultTrustMaterial()
                 .withSystemPropertyDerivedProtocols()
                 .build();
 
-        assertThat(sslFactory.getProtocols()).containsExactly("TLSv1.2");
-
-        properties.forEach((propertyName, propertyValue) -> System.clearProperty(propertyName));
+        assertThat(sslFactory.getProtocols()).containsExactly("TLSv1.2", "TLSv1.1");
+        System.clearProperty(propertyName);
     }
 
     @Test
-    void buildSSLFactoryWithSystemPropertyDerivedCiphersWhichArePartlyEmpty() {
-        Map<String, String> properties = new HashMap<>();
-        properties.put("https.cipherSuites", "   ");
-        properties.put("jdk.tls.client.cipherSuites", "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384");
-        properties.forEach(System::setProperty);
+    void buildSSLFactoryWithSystemPropertyDerivedCiphers() {
+        String propertyName = "https.cipherSuites";
+        System.setProperty(propertyName, "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384,   ,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256");
 
         SSLFactory sslFactory = SSLFactory.builder()
                 .withDefaultTrustMaterial()
                 .withSystemPropertyDerivedCiphers()
                 .build();
 
-        assertThat(sslFactory.getCiphers()).containsExactly("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384");
+        assertThat(sslFactory.getCiphers()).containsExactly("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384", "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256");
+        System.clearProperty(propertyName);
+    }
 
-        properties.forEach((propertyName, propertyValue) -> System.clearProperty(propertyName));
+    @Test
+    void throwExceptionWhenSystemPropertyDerivedProtocolsIsEmpty() {
+        String propertyName = "https.protocols";
+        System.setProperty(propertyName, "");
+
+        SSLFactory.Builder sslFactoryBuilder = SSLFactory.builder();
+
+        assertThatThrownBy(sslFactoryBuilder::withSystemPropertyDerivedProtocols)
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Failed to load the System property for [https.protocols] because it does not contain any value");
+        System.clearProperty(propertyName);
+    }
+
+    @Test
+    void throwExceptionWhenSystemPropertyDerivedProtocolsContainsInvalidValues() {
+        String propertyName = "https.protocols";
+        System.setProperty(propertyName, ",,");
+
+        SSLFactory.Builder sslFactoryBuilder = SSLFactory.builder();
+
+        assertThatThrownBy(sslFactoryBuilder::withSystemPropertyDerivedProtocols)
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Failed to load the System property for [https.protocols] because it does not contain any value");
+        System.clearProperty(propertyName);
+    }
+
+    @Test
+    void throwExceptionWhenSystemPropertyDerivedCiphersIsEmpty() {
+        String propertyName = "https.cipherSuites";
+        System.setProperty(propertyName, "");
+
+        SSLFactory.Builder sslFactoryBuilder = SSLFactory.builder();
+
+        assertThatThrownBy(sslFactoryBuilder::withSystemPropertyDerivedCiphers)
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Failed to load the System property for [https.cipherSuites] because it does not contain any value");
+        System.clearProperty(propertyName);
+    }
+
+    @Test
+    void throwExceptionWhenSystemPropertyDerivedCiphersContainsInvalidValues() {
+        String propertyName = "https.cipherSuites";
+        System.setProperty(propertyName, ",,");
+
+        SSLFactory.Builder sslFactoryBuilder = SSLFactory.builder();
+
+        assertThatThrownBy(sslFactoryBuilder::withSystemPropertyDerivedCiphers)
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Failed to load the System property for [https.cipherSuites] because it does not contain any value");
+        System.clearProperty(propertyName);
     }
 
     @Test

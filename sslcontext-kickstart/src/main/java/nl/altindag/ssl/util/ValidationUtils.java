@@ -52,4 +52,15 @@ public final class ValidationUtils {
         return maybeNull;
     }
 
+    public static String requireNotBlank(String maybeNull, String message) {
+        return requireNotBlank(maybeNull, () -> new IllegalArgumentException(message));
+    }
+
+    public static String requireNotBlank(String maybeNull, Supplier<RuntimeException> exceptionSupplier) {
+        if (StringUtils.isBlank(maybeNull)) {
+            throw exceptionSupplier.get();
+        }
+        return maybeNull;
+    }
+
 }

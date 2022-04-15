@@ -66,19 +66,17 @@ import java.security.cert.X509Certificate;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
+import static nl.altindag.ssl.util.ValidationUtils.requireNotBlank;
 import static nl.altindag.ssl.util.ValidationUtils.requireNotEmpty;
 
 /**
@@ -173,6 +171,7 @@ public final class SSLFactory {
         private static final String IDENTITY_AND_TRUST_MATERIAL_VALIDATION_EXCEPTION_MESSAGE = "Could not create instance of SSLFactory because Identity " +
                 "and Trust material are not present. Please provide at least a Trust material.";
         private static final String CERTIFICATE_VALIDATION_EXCEPTION_MESSAGE = "Failed to load the certificate(s). No certificate has been provided.";
+        private static final String SYSTEM_PROPERTY_VALIDATION_EXCEPTION_MESSAGE = "Failed to load the System property for [%s] because it does not contain any value";
 
         private String sslContextAlgorithm = "TLS";
         private Provider securityProvider = null;
@@ -624,8 +623,7 @@ public final class SSLFactory {
         }
 
         public Builder withSystemPropertyDerivedCiphers() {
-            extractPropertyValues("https.cipherSuites", "jdk.tls.client.cipherSuites", "jdk.tls.server.cipherSuites")
-                    .forEach(ciphers::add);
+            ciphers.addAll(extractPropertyValues("https.cipherSuites"));
             return this;
         }
 
@@ -635,22 +633,19 @@ public final class SSLFactory {
         }
 
         public Builder withSystemPropertyDerivedProtocols() {
-            extractPropertyValues("https.protocols", "jdk.tls.client.protocols", "jdk.tls.server.protocols")
-                    .forEach(protocols::add);
+            protocols.addAll(extractPropertyValues("https.protocols"));
             return this;
         }
 
-        private Stream<String> extractPropertyValues(String... systemProperties) {
-            return Stream.of(systemProperties)
-                    .map(System::getProperty)
-                    .filter(Objects::nonNull)
-                    .filter(StringUtils::isNotBlank)
-                    .map(protocolGroup -> protocolGroup.split(","))
-                    .map(Arrays::asList)
-                    .flatMap(Collection::stream)
+        private List<String> extractPropertyValues(String systemProperty) {
+            String propertyValue = requireNotBlank(System.getProperty(systemProperty), String.format(SYSTEM_PROPERTY_VALIDATION_EXCEPTION_MESSAGE, systemProperty));
+
+            List<String> propertyValues = Arrays.stream(propertyValue.split(","))
                     .map(String::trim)
                     .filter(StringUtils::isNotBlank)
-                    .distinct();
+                    .distinct().collect(Collectors.toList());
+
+            return requireNotEmpty(propertyValues, String.format(SYSTEM_PROPERTY_VALIDATION_EXCEPTION_MESSAGE, systemProperty));
         }
 
         public Builder withNeedClientAuthentication() {

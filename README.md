@@ -599,12 +599,7 @@ Below is an example of the classic configuration for enabling ssl for your appli
 -Djavax.net.ssl.keyStoreProvider=SunJSSE
 
 -Dhttps.protocols=TLSv1.3
--Djdk.tls.client.protocols=TLSv1.3
--Djdk.tls.server.protocols=TLSv1.3
-
 -Dhttps.cipherSuites=TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
--Djdk.tls.client.cipherSuites=TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
--Djdk.tls.server.cipherSuites=TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
 ```
 
 SSLFactory can be used with these properties together with the existing properties with the following snippet:
