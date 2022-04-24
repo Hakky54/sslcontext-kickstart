@@ -77,7 +77,9 @@
         <version.maven-release-plugin>2.5.3</version.maven-release-plugin>
         <version.maven-scm-publish-plugin>3.0.0</version.maven-scm-publish-plugin>
         <version.nexus-staging-maven-plugin>1.6.12</version.nexus-staging-maven-plugin>
+        <version.license-maven-plugin>4.2.rc2</version.license-maven-plugin>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <license.git.copyrightYears>2019-2022</license.git.copyrightYears>
     </properties>
 
     <dependencyManagement>
@@ -297,6 +299,54 @@
                     <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
                     <autoReleaseAfterClose>true</autoReleaseAfterClose>
                 </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>${version.license-maven-plugin}</version>
+                <configuration>
+                    <inlineHeader>
+<![CDATA[
+Copyright ${license.git.copyrightYears} the original author or authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     https://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+]]>
+                    </inlineHeader>
+                    <excludes>
+                        <exclude>.gitignore</exclude>
+                        <exclude>.all-contributorsrc</exclude>
+                        <exclude>release.sh</exclude>
+                        <exclude>**/.idea/**</exclude>
+                        <exclude>**/target/**</exclude>
+                        <exclude>**/resources/**</exclude>
+                        <exclude>LICENSE</exclude>
+                        <exclude>**/*.md</exclude>
+                        <exclude>**/*.xml</exclude>
+                    </excludes>
+                    <strictCheck>true</strictCheck>
+                    <mapping>
+                        <java>SLASHSTAR_STYLE</java>
+                    </mapping>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
