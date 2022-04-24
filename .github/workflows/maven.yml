@@ -9,7 +9,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest, windows-latest, macos-latest ]
-        java: [ '8', '11', '17' ]
+        java: [ '8.0.322', '11.0.14', '17.0.2' ]
     steps:
       - uses: actions/checkout@v2.3.4
 
