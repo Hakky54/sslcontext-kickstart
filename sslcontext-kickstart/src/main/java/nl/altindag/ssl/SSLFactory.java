@@ -229,6 +229,11 @@ public final class SSLFactory {
             return withTrustingAllCertificatesWithoutValidation();
         }
 
+        public Builder withDummyTrustMaterial() {
+            trustManagers.add(TrustManagerUtils.createDummyTrustManager());
+            return this;
+        }
+
         /**
          * Enables the possibility to swap the underlying TrustManager at runtime.
          * After this option has been enabled the TrustManager can be swapped
@@ -546,6 +551,11 @@ public final class SSLFactory {
         public <T extends KeyManagerFactory> Builder withIdentityMaterial(T keyManagerFactory) {
             X509ExtendedKeyManager keyManager = KeyManagerUtils.getKeyManager(keyManagerFactory);
             this.identityManagers.add(keyManager);
+            return this;
+        }
+
+        public Builder withDummyIdentityMaterial() {
+            this.identityManagers.add(KeyManagerUtils.createDummyKeyManager());
             return this;
         }
 

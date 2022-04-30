@@ -17,6 +17,7 @@ package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.exception.GenericKeyManagerException;
 import nl.altindag.ssl.keymanager.CompositeX509ExtendedKeyManager;
+import nl.altindag.ssl.keymanager.DummyX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.HotSwappableX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.KeyManagerFactoryWrapper;
 import nl.altindag.ssl.keymanager.X509KeyManagerWrapper;
@@ -159,6 +160,10 @@ public final class KeyManagerUtils {
                 .map(X509KeyManager.class::cast)
                 .map(KeyManagerUtils::wrapIfNeeded)
                 .collect(Collectors.collectingAndThen(Collectors.toList(), KeyManagerUtils::combine));
+    }
+
+    public static X509ExtendedKeyManager createDummyKeyManager() {
+        return DummyX509ExtendedKeyManager.getInstance();
     }
 
     /**

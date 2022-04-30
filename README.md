@@ -65,6 +65,7 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "7.4.1"
      - [Using multiple identity materials and trust materials](#support-for-using-multiple-identity-materials-and-trust-materials)
      - [Using custom KeyManager and TrustManager](#support-for-using-x509extendedkeymanager-and-x509extendedtrustmanager)
      - [Hot swap KeyManager and TrustManager at runtime](#support-for-swapping-keymanager-and-trustmanager-at-runtime)
+     - [Using dummy identity and trust material](#using-dummy-identity-and-trust-material)
      - [Using KeyStore with multiple keys having different passwords](#support-for-using-a-single-keystore-which-contains-multiple-keys-with-different-passwords)
      - [Using custom PrivateKey and Certificates](#support-for-using-privatekey-and-certificates)
      - [Routing client identity to specific host](#routing-identity-material-to-specific-host) 
@@ -364,11 +365,11 @@ SSLFactory.builder()
 It is possible to swap a KeyManager and TrustManager from a SSLContext, SSLSocketFactory and SSLServerSocketFactory while already using it within your client or server at runtime. This option will enable to refresh the identity and trust material of a server or client without the need of restarting your application or recreating it with SSLFactory. The identity and trust material may expire at some point in time and needs to be replaced to be still functional.
 Restart of the application with a traditional setup is unavoidable and can result into a downtime for x amount of time. A restart is not needed when using the setup below.
 ```text
-SSLFactory sslFactory = SSLFactory.builder()
-          .withSwappableIdentityMaterial()
+SSLFactory baseSslFactory = SSLFactory.builder()
           .withIdentityMaterial("identity.jks", "password".toCharArray())
-          .withSwappableTrustMaterial()
           .withTrustMaterial("truststore.jks", "password".toCharArray())
+          .withSwappableIdentityMaterial()
+          .withSwappableTrustMaterial()
           .build();
           
 HttpClient httpClient = HttpClient.newBuilder()
@@ -379,17 +380,59 @@ HttpClient httpClient = HttpClient.newBuilder()
 // execute https request
 HttpResponse<String> response = httpClient.send(aRequest, HttpResponse.BodyHandlers.ofString());
 
+SSLFactory updatedSslFactory = SSLFactory.builder()
+          .withIdentityMaterial("identity.jks", "password".toCharArray())
+          .withTrustMaterial("truststore.jks", "password".toCharArray())
+          .build();
+          
 // swap identity and trust materials and reuse existing http client
-KeyManagerUtils.swapKeyManager(sslFactory.getKeyManager().get(), anotherKeyManager);
-TrustManagerUtils.swapTrustManager(sslFactory.getTrustManager().get(), anotherTrustManager);
+KeyManagerUtils.swapKeyManager(baseSslFactory.getKeyManager().get(), updatedSslFactory.getKeyManager().get());
+TrustManagerUtils.swapTrustManager(baseSslFactory.getTrustManager().get(), updatedSslFactory.getTrustManager().get());
 
 // Cleanup old ssl sessions by invalidating them all. Forces to use new ssl sessions which will be created by the swapped KeyManager/TrustManager
-SSLSessionUtils.invalidateCaches(sslFactory.getSslContext());
+SSLSessionUtils.invalidateCaches(baseSslFactory.getSslContext());
 
 HttpResponse<String> response = httpClient.send(aRequest, HttpResponse.BodyHandlers.ofString());
 ```
 See here for a basic reference implementation for a server: [GitHub - Instant SSL Reloading](https://github.com/Hakky54/java-tutorials/tree/main/instant-server-ssl-reloading)
 
+##### Using dummy identity and trust material
+In some use cases it may be useful to use a dummy identity or trust material. An example use case would be to create a base SSLFactory with the dummies which can be swapped afterwords. See below for a refactored version of [Support for swapping KeyManager and TrustManager at runtime](#support-for-swapping-keymanager-and-trustmanager-at-runtime).
+```text
+SSLFactory baseSslFactory = SSLFactory.builder()
+          .withDummyIdentityMaterial()
+          .withDummyTrustMaterial()
+          .withSwappableIdentityMaterial()
+          .withSwappableTrustMaterial()
+          .build();
+          
+HttpClient httpClient = HttpClient.newBuilder()
+          .sslParameters(sslFactory.getSslParameters())
+          .sslContext(sslFactory.getSslContext())
+          .build()
+          
+Runnable sslUpdater = () -> {
+    SSLFactory updatedSslFactory = SSLFactory.builder()
+          .withIdentityMaterial("identity.jks", "password".toCharArray())
+          .withTrustMaterial("truststore.jks", "password".toCharArray())
+          .build();
+    
+   // swap identity and trust materials and reuse existing http client
+   KeyManagerUtils.swapKeyManager(baseSslFactory.getKeyManager().get(), updatedSslFactory.getKeyManager().get());
+   TrustManagerUtils.swapTrustManager(baseSslFactory.getTrustManager().get(), updatedSslFactory.getTrustManager().get());
+
+   // Cleanup old ssl sessions by invalidating them all. Forces to use new ssl sessions which will be created by the swapped KeyManager/TrustManager
+   SSLSessionUtils.invalidateCaches(baseSslFactory.getSslContext()); 
+};
+
+// initial update of ssl material to replace the dummies
+Executors.newSingleThreadExecutor().submit(sslUpdater);
+   
+// update ssl material every hour    
+Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(sslUpdater, 1, 1, TimeUnit.HOURS);
+
+HttpResponse<String> response = httpClient.send(aRequest, HttpResponse.BodyHandlers.ofString());
+```
 ##### Support for using a single KeyStore which contains multiple keys with different passwords
 ```text
 KeyStore keyStore = ...

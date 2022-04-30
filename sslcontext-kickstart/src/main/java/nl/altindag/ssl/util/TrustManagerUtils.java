@@ -21,6 +21,7 @@ import nl.altindag.ssl.trustmanager.ChainAndAuthTypeValidator;
 import nl.altindag.ssl.trustmanager.ChainAndAuthTypeWithSSLEngineValidator;
 import nl.altindag.ssl.trustmanager.ChainAndAuthTypeWithSocketValidator;
 import nl.altindag.ssl.trustmanager.CompositeX509ExtendedTrustManager;
+import nl.altindag.ssl.trustmanager.DummyX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.EnhanceableX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.HotSwappableX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.TrustManagerFactoryWrapper;
@@ -177,6 +178,10 @@ public final class TrustManagerUtils {
 
     public static X509ExtendedTrustManager createUnsafeTrustManager() {
         return UnsafeX509ExtendedTrustManager.getInstance();
+    }
+
+    public static X509ExtendedTrustManager createDummyTrustManager() {
+        return DummyX509ExtendedTrustManager.getInstance();
     }
 
     public static X509ExtendedTrustManager createCertificateCapturingTrustManager(X509TrustManager baseTrustManager, List<X509Certificate> certificatesCollector) {

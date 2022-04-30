@@ -21,7 +21,9 @@ import nl.altindag.ssl.exception.GenericKeyStoreException;
 import nl.altindag.ssl.exception.GenericSecurityException;
 import nl.altindag.ssl.exception.GenericTrustManagerException;
 import nl.altindag.ssl.keymanager.CompositeX509ExtendedKeyManager;
+import nl.altindag.ssl.keymanager.DummyX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.HotSwappableX509ExtendedKeyManager;
+import nl.altindag.ssl.trustmanager.DummyX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.EnhanceableX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.HotSwappableX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.TrustAnchorTrustOptions;
@@ -1606,6 +1608,26 @@ class SSLFactoryShould {
 
         assertThat(clientSessionCacheSize).isEqualTo(1024);
         assertThat(serverSessionCacheSize).isEqualTo(1024);
+    }
+
+    @Test
+    void createSSLFactoryWithDummyIdentityMaterial() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withDummyIdentityMaterial()
+                .build();
+
+        assertThat(sslFactory.getKeyManager()).isPresent();
+        assertThat(sslFactory.getKeyManager().get()).isInstanceOf(DummyX509ExtendedKeyManager.class);
+    }
+
+    @Test
+    void createSSLFactoryWithDummyTrustMaterial() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withDummyTrustMaterial()
+                .build();
+
+        assertThat(sslFactory.getTrustManager()).isPresent();
+        assertThat(sslFactory.getTrustManager().get()).isInstanceOf(DummyX509ExtendedTrustManager.class);
     }
 
     @Test
