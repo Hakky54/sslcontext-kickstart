@@ -15,29 +15,19 @@
  */
 package nl.altindag.ssl.util;
 
-import nl.altindag.ssl.SSLFactory;
 import nl.altindag.ssl.exception.GenericCertificateException;
 import nl.altindag.ssl.exception.GenericIOException;
 
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.X509TrustManager;
 import javax.security.auth.x500.X500Principal;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.URL;
-import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.SignatureException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
@@ -47,7 +37,6 @@ import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -73,13 +62,6 @@ public final class CertificateUtils {
     private static final Pattern P7B_PATTERN = Pattern.compile(P7B_HEADER + "(.*?)" + P7B_FOOTER, Pattern.DOTALL);
 
     private static final String EMPTY = "";
-    private static final Pattern CA_ISSUERS_AUTHORITY_INFO_ACCESS = Pattern.compile("(?s)^AuthorityInfoAccess\\h+\\[\\R\\s*\\[\\R.*?accessMethod:\\h+caIssuers\\R\\h*accessLocation: URIName:\\h+(https?://\\S+)", Pattern.MULTILINE);
-
-    private static boolean certificateCollectorInitialized = false;
-    private static SSLFactory sslFactory = null;
-    private static SSLSocketFactory unsafeSslSocketFactory = null;
-    private static SSLSocketFactory certificateCapturingSslSocketFactory = null;
-    private static List<X509Certificate> certificatesCollector = null;
 
     private CertificateUtils() {}
 
@@ -258,132 +240,8 @@ public final class CertificateUtils {
 
     public static Map<String, List<X509Certificate>> getCertificate(List<String> urls) {
         return urls.stream()
-                .map(url -> new AbstractMap.SimpleEntry<>(url, CertificateUtils.getCertificateFromExternalSource(url)))
+                .map(url -> new AbstractMap.SimpleEntry<>(url, CertificateExtractorUtils.getInstance().getCertificateFromExternalSource(url)))
                 .collect(Collectors.collectingAndThen(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue), Collections::unmodifiableMap));
-    }
-
-    private static List<X509Certificate> getCertificateFromExternalSource(String url) {
-        try {
-            URL parsedUrl = new URL(url);
-            if ("https".equalsIgnoreCase(parsedUrl.getProtocol())) {
-                configureCertificateCollector();
-
-                HttpsURLConnection connection = (HttpsURLConnection) parsedUrl.openConnection();
-                connection.setSSLSocketFactory(certificateCapturingSslSocketFactory);
-                connection.connect();
-                connection.disconnect();
-
-                List<X509Certificate> rootCa = CertificateUtils.getRootCaFromChainIfPossible(certificatesCollector);
-                return Stream.of(certificatesCollector, rootCa)
-                        .flatMap(Collection::stream)
-                        .distinct()
-                        .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
-            } else {
-                return Collections.emptyList();
-            }
-        } catch (IOException e) {
-            throw new GenericIOException(String.format("Failed getting certificate from: [%s]", url), e);
-        }
-    }
-
-    private static void configureCertificateCollector() {
-        if (certificateCollectorInitialized) {
-            certificatesCollector.clear();
-            SSLSessionUtils.invalidateCaches(sslFactory);
-        } else {
-            certificatesCollector = new ArrayList<>();
-            sslFactory = SSLFactory.builder()
-                    .withTrustMaterial(TrustManagerUtils.createCertificateCapturingTrustManager(TrustManagerUtils.createUnsafeTrustManager(), certificatesCollector))
-                    .build();
-            certificateCapturingSslSocketFactory = sslFactory.getSslSocketFactory();
-            certificateCollectorInitialized = true;
-        }
-    }
-
-    static List<X509Certificate> getRootCaFromChainIfPossible(List<X509Certificate> certificates) {
-        if (!certificates.isEmpty()) {
-            X509Certificate certificate = certificates.get(certificates.size() - 1);
-            String issuer = certificate.getIssuerX500Principal().getName();
-            String subject = certificate.getSubjectX500Principal().getName();
-
-            boolean isSelfSignedCertificate = issuer.equals(subject);
-            if (!isSelfSignedCertificate) {
-                return CertificateUtils.getRootCaIfPossible(certificate);
-            }
-        }
-        return Collections.emptyList();
-    }
-
-    static List<X509Certificate> getRootCaIfPossible(X509Certificate x509Certificate) {
-        List<X509Certificate> rootCaFromAuthorityInfoAccessExtension = CertificateUtils.getRootCaFromAuthorityInfoAccessExtensionIfPresent(x509Certificate);
-        if (!rootCaFromAuthorityInfoAccessExtension.isEmpty()) {
-            return rootCaFromAuthorityInfoAccessExtension;
-        }
-
-        List<X509Certificate> rootCaFromJdkTrustedCertificates = CertificateUtils.getRootCaFromJdkTrustedCertificates(x509Certificate);
-        if (!rootCaFromJdkTrustedCertificates.isEmpty()) {
-            return rootCaFromJdkTrustedCertificates;
-        }
-
-        return Collections.emptyList();
-    }
-
-    static List<X509Certificate> getRootCaFromAuthorityInfoAccessExtensionIfPresent(X509Certificate certificate) {
-        String certificateContent = certificate.toString();
-        Matcher caIssuersMatcher = CA_ISSUERS_AUTHORITY_INFO_ACCESS.matcher(certificateContent);
-        if (caIssuersMatcher.find()) {
-            String issuerLocation = caIssuersMatcher.group(1);
-            return CertificateUtils.getCertificatesFromRemoteFile(URI.create(issuerLocation), certificate);
-        }
-
-        return Collections.emptyList();
-    }
-
-    static List<X509Certificate> getCertificatesFromRemoteFile(URI uri, X509Certificate intermediateCertificate) {
-        try {
-            URL url = uri.toURL();
-            URLConnection connection = url.openConnection();
-            if (connection instanceof HttpsURLConnection) {
-                ((HttpsURLConnection) connection).setSSLSocketFactory(getUnsafeSslSocketFactory());
-            }
-
-            InputStream inputStream = connection.getInputStream();
-            List<X509Certificate> certificates = CertificateUtils.parseDerCertificate(inputStream).stream()
-                    .filter(X509Certificate.class::isInstance)
-                    .map(X509Certificate.class::cast)
-                    .filter(issuer -> CertificateUtils.isIssuerOfIntermediateCertificate(intermediateCertificate, issuer))
-                    .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
-
-            inputStream.close();
-
-            return certificates;
-        } catch (IOException e) {
-            throw new GenericCertificateException(e);
-        }
-    }
-
-    private static SSLSocketFactory getUnsafeSslSocketFactory() {
-        if (unsafeSslSocketFactory == null) {
-            unsafeSslSocketFactory = SSLSocketUtils.createUnsafeSslSocketFactory();
-        }
-        return unsafeSslSocketFactory;
-    }
-
-    static List<X509Certificate> getRootCaFromJdkTrustedCertificates(X509Certificate intermediateCertificate) {
-        List<X509Certificate> jdkTrustedCertificates = CertificateUtils.getJdkTrustedCertificates();
-
-        return jdkTrustedCertificates.stream()
-                .filter(issuer -> isIssuerOfIntermediateCertificate(intermediateCertificate, issuer))
-                .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
-    }
-
-    static boolean isIssuerOfIntermediateCertificate(X509Certificate intermediateCertificate, X509Certificate issuer) {
-        try {
-            intermediateCertificate.verify(issuer.getPublicKey());
-            return true;
-        } catch (CertificateException | NoSuchAlgorithmException | InvalidKeyException | NoSuchProviderException | SignatureException e) {
-            return false;
-        }
     }
 
     public static List<String> convertToPem(List<X509Certificate> certificates) {
