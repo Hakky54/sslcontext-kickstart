@@ -758,7 +758,7 @@ public final class SSLFactory {
             return this;
         }
 
-        interface QuadConsumer<T, U, V, W> {
+        private interface QuadConsumer<T, U, V, W> {
             void accept(T t, U u, V v, W w);
         }
 
