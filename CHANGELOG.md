@@ -3,6 +3,14 @@
 This list is not intended to be all-encompassing - it will document major and breaking API 
 changes with their rationale when appropriate:
 
+### v7.4.2
+- Moved server certificate extraction into separate utility class
+- Added Dummy KeyManager and TrustManager
+- Reformatted license header
+- Added missing license header
+- Bumped dependencies
+- Removed support for system properties jdk.tls.client.cipherSuites jdk.tls.server.cipherSuites jdk.tls.client.protocols jdk.tls.server.protocols
+- Improved input validation for emptiness and improved exception messages
 ### v7.4.1
 - Improved extracting server certificates
 - Bug-fix issue 167 - Resolve initialization issue of trusted certificate by having lowercase aliases
