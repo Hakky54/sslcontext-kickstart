@@ -343,6 +343,7 @@ class TrustManagerUtilsShould {
 
         assertThat(trustManager).isNotNull();
     }
+
     @Test
     void createTrustManagerFromManagerParametersWithSecurityProvider() throws NoSuchAlgorithmException, KeyStoreException, InvalidAlgorithmParameterException {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
