@@ -58,10 +58,41 @@ class SSLFactoryIT {
     void executeHttpsRequestWithMutualAuthentication() throws IOException {
         LogCaptor logCaptor = LogCaptor.forName("nl.altindag.ssl");
 
+        X509ExtendedTrustManager emptyTrustManager = TrustManagerUtils.createTrustManager(Collections.emptyList());
+
         SSLFactory sslFactory = SSLFactory.builder()
                 .withIdentityMaterial(KEYSTORE_LOCATION + "badssl-identity.p12", "badssl.com".toCharArray())
                 .withTrustMaterial(KEYSTORE_LOCATION + "badssl-truststore.p12", "badssl.com".toCharArray())
+                .withTrustMaterial(emptyTrustManager) // Adding additional trust material forces usage of CompositeX509ExtendedTrustManager and verbose logging
+                .build();
+
+        HttpsURLConnection connection = (HttpsURLConnection) new URL("https://client.badssl.com/").openConnection();
+        connection.setSSLSocketFactory(sslFactory.getSslSocketFactory());
+        connection.setHostnameVerifier(sslFactory.getHostnameVerifier());
+        connection.setRequestMethod("GET");
+
+        int statusCode = connection.getResponseCode();
+        logCaptor.close();
+
+        if (statusCode == 400) {
+            fail("Certificate may have expired and needs to be updated");
+        } else {
+            assertThat(statusCode).isEqualTo(200);
+            assertThat(logCaptor.getLogs()).containsExactly("Received the following server certificate: [CN=*.badssl.com, O=Lucas Garron Torres, L=Walnut Creek, ST=California, C=US]");
+        }
+    }
+
+    @Test
+    @Tag("it-with-badssl.com")
+    void executeHttpsRequestWithMutualAuthenticationWhileHavingTrustMaterialSpecifiedInDifferentOrderWhileUsingAnEmptyTrustManagerShouldStillPassAs() throws IOException {
+        LogCaptor logCaptor = LogCaptor.forName("nl.altindag.ssl");
+
+        X509ExtendedTrustManager emptyTrustManager = TrustManagerUtils.createTrustManager(Collections.emptyList());
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(KEYSTORE_LOCATION + "badssl-identity.p12", "badssl.com".toCharArray())
                 .withTrustMaterial(KeyStoreUtils.createKeyStore()) // Adding additional trust material forces usage of CompositeX509ExtendedTrustManager and verbose logging
+                .withTrustMaterial(KEYSTORE_LOCATION + "badssl-truststore.p12", "badssl.com".toCharArray())
                 .build();
 
         HttpsURLConnection connection = (HttpsURLConnection) new URL("https://client.badssl.com/").openConnection();

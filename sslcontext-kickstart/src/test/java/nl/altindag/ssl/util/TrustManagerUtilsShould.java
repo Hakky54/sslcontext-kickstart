@@ -39,6 +39,7 @@ import java.security.cert.CertPathBuilder;
 import java.security.cert.PKIXBuilderParameters;
 import java.security.cert.PKIXRevocationChecker;
 import java.security.cert.X509CertSelector;
+import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -343,6 +344,7 @@ class TrustManagerUtilsShould {
 
         assertThat(trustManager).isNotNull();
     }
+
     @Test
     void createTrustManagerFromManagerParametersWithSecurityProvider() throws NoSuchAlgorithmException, KeyStoreException, InvalidAlgorithmParameterException {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
@@ -352,6 +354,18 @@ class TrustManagerUtilsShould {
 
         assertThat(trustManager).isNotNull();
     }
+
+    @Test
+    void createTrustManagerFromCertificates() {
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
+        X509Certificate[] trustedCertificates = trustManager.getAcceptedIssuers();
+
+        X509ExtendedTrustManager trustManagerBasedOnCertificates = TrustManagerUtils.createTrustManager(trustedCertificates);
+
+        assertThat(trustManagerBasedOnCertificates.getAcceptedIssuers().length).isEqualTo(trustedCertificates.length);
+    }
+
 
     private CertPathTrustManagerParameters createTrustManagerParameters(KeyStore trustStore) throws NoSuchAlgorithmException, KeyStoreException, InvalidAlgorithmParameterException {
         CertPathBuilder certPathBuilder = CertPathBuilder.getInstance("PKIX");
