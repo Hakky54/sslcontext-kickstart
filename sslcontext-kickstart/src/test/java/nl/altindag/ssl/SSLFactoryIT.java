@@ -58,12 +58,10 @@ class SSLFactoryIT {
     void executeHttpsRequestWithMutualAuthentication() throws IOException {
         LogCaptor logCaptor = LogCaptor.forName("nl.altindag.ssl");
 
-        X509ExtendedTrustManager emptyTrustManager = TrustManagerUtils.createTrustManager(Collections.emptyList());
-
         SSLFactory sslFactory = SSLFactory.builder()
                 .withIdentityMaterial(KEYSTORE_LOCATION + "badssl-identity.p12", "badssl.com".toCharArray())
                 .withTrustMaterial(KEYSTORE_LOCATION + "badssl-truststore.p12", "badssl.com".toCharArray())
-                .withTrustMaterial(emptyTrustManager) // Adding additional trust material forces usage of CompositeX509ExtendedTrustManager and verbose logging
+                .withTrustMaterial(KeyStoreUtils.createKeyStore()) // Adding additional trust material forces usage of CompositeX509ExtendedTrustManager and verbose logging
                 .build();
 
         HttpsURLConnection connection = (HttpsURLConnection) new URL("https://client.badssl.com/").openConnection();
@@ -86,8 +84,6 @@ class SSLFactoryIT {
     @Tag("it-with-badssl.com")
     void executeHttpsRequestWithMutualAuthenticationWhileHavingTrustMaterialSpecifiedInDifferentOrderWhileUsingAnEmptyTrustManagerShouldStillPassAs() throws IOException {
         LogCaptor logCaptor = LogCaptor.forName("nl.altindag.ssl");
-
-        X509ExtendedTrustManager emptyTrustManager = TrustManagerUtils.createTrustManager(Collections.emptyList());
 
         SSLFactory sslFactory = SSLFactory.builder()
                 .withIdentityMaterial(KEYSTORE_LOCATION + "badssl-identity.p12", "badssl.com".toCharArray())

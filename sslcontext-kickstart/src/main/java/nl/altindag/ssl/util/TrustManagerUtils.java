@@ -39,7 +39,6 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.Provider;
-import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -175,15 +174,6 @@ public final class TrustManagerUtils {
         } catch (InvalidAlgorithmParameterException e) {
             throw new GenericTrustManagerException(e);
         }
-    }
-
-    public static X509ExtendedTrustManager createTrustManager(Certificate... certificates) {
-        return createTrustManager(Arrays.asList(certificates));
-    }
-
-    public static X509ExtendedTrustManager createTrustManager(List<Certificate> certificates) {
-        KeyStore trustStore = KeyStoreUtils.createTrustStore(certificates);
-        return createTrustManager(trustStore);
     }
 
     public static X509ExtendedTrustManager createUnsafeTrustManager() {
