@@ -3,6 +3,8 @@
 This list is not intended to be all-encompassing - it will document major and breaking API 
 changes with their rationale when appropriate:
 
+### v7.4.3
+- Bug-fix issue 181 - Continue validation counter-party while having empty trust managers
 ### v7.4.2
 - Moved server certificate extraction into separate utility class
 - Added Dummy KeyManager and TrustManager
