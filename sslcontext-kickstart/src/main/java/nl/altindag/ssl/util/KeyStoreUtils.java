@@ -160,7 +160,19 @@ public final class KeyStoreUtils {
         try {
             KeyStore trustStore = createKeyStore();
             for (T certificate : requireNotEmpty(certificates, "Could not create TrustStore because certificate is absent")) {
-                trustStore.setCertificateEntry(CertificateUtils.generateAlias(certificate), certificate);
+                String alias = CertificateUtils.generateAlias(certificate);
+
+                if (trustStore.containsAlias(alias)) {
+                    for (int number = 0; number < 1000; number++) {
+                        String mayBeUniqueAlias = alias + "-" + number;
+                        if (!trustStore.containsAlias(mayBeUniqueAlias)) {
+                            alias = mayBeUniqueAlias;
+                            break;
+                        }
+                    }
+                }
+
+                trustStore.setCertificateEntry(alias, certificate);
             }
             return trustStore;
         } catch (KeyStoreException e) {
