@@ -34,6 +34,7 @@ import nl.altindag.ssl.util.KeyStoreUtils;
 import nl.altindag.ssl.util.TrustManagerUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +52,7 @@ import javax.net.ssl.X509ExtendedTrustManager;
 import javax.security.auth.x500.X500Principal;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Method;
 import java.net.Socket;
 import java.net.URI;
 import java.nio.file.Files;
@@ -93,6 +95,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
@@ -530,18 +533,29 @@ class SSLFactoryShould {
     void buildSSLFactoryWithTrustMaterialFromOnlySystemTrustedCertificates() {
         String operatingSystem = System.getProperty("os.name").toLowerCase();
         if (operatingSystem.contains("mac") || operatingSystem.contains("windows")) {
-            SSLFactory sslFactory = SSLFactory.builder()
-                    .withSystemTrustMaterial()
-                    .build();
+            try (MockedStatic<KeyStoreUtils> mockedStatic = mockStatic(KeyStoreUtils.class, invocation -> {
+                Method method = invocation.getMethod();
+                if ("createKeyStore".equals(method.getName())
+                        && method.getParameterCount() == 2
+                        && operatingSystem.contains("mac")) {
+                    return KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+                } else {
+                    return invocation.callRealMethod();
+                }
+            })) {
+                SSLFactory sslFactory = SSLFactory.builder()
+                        .withSystemTrustMaterial()
+                        .build();
 
-            assertThat(sslFactory.getSslContext()).isNotNull();
+                assertThat(sslFactory.getSslContext()).isNotNull();
 
-            assertThat(sslFactory.getTrustManager()).isPresent();
-            assertThat(sslFactory.getTrustManagerFactory()).isPresent();
+                assertThat(sslFactory.getTrustManager()).isPresent();
+                assertThat(sslFactory.getTrustManagerFactory()).isPresent();
 
-            assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
-            assertThat(sslFactory.getKeyManager()).isNotPresent();
-            assertThat(sslFactory.getKeyManagerFactory()).isNotPresent();
+                assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
+                assertThat(sslFactory.getKeyManager()).isNotPresent();
+                assertThat(sslFactory.getKeyManagerFactory()).isNotPresent();
+            }
         }
 
         if (operatingSystem.contains("linux")) {

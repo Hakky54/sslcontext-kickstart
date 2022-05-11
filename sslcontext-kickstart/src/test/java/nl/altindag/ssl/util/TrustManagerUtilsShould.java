@@ -22,6 +22,7 @@ import nl.altindag.ssl.trustmanager.UnsafeX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.X509TrustManagerWrapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.net.ssl.CertPathTrustManagerParameters;
@@ -29,6 +30,7 @@ import javax.net.ssl.ManagerFactoryParameters;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509ExtendedTrustManager;
 import javax.net.ssl.X509TrustManager;
+import java.lang.reflect.Method;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -50,6 +52,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 
 /**
  * @author Hakan Altindag
@@ -175,14 +178,25 @@ class TrustManagerUtilsShould {
     @Test
     void createTrustManagerWithSystemTrustedCertificate() {
         String operatingSystem = System.getProperty("os.name").toLowerCase();
-        Optional<X509ExtendedTrustManager> trustManager = TrustManagerUtils.createTrustManagerWithSystemTrustedCertificates();
-        if (operatingSystem.contains("mac") || operatingSystem.contains("windows")) {
-            assertThat(trustManager).isPresent();
-            assertThat((trustManager).get().getAcceptedIssuers()).hasSizeGreaterThan(0);
-        }
+        try (MockedStatic<KeyStoreUtils> mockedStatic = mockStatic(KeyStoreUtils.class, invocation -> {
+            Method method = invocation.getMethod();
+            if ("createKeyStore".equals(method.getName())
+                    && method.getParameterCount() == 2
+                    && operatingSystem.contains("mac")) {
+                return KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+            } else {
+                return invocation.callRealMethod();
+            }
+        })) {
+            Optional<X509ExtendedTrustManager> trustManager = TrustManagerUtils.createTrustManagerWithSystemTrustedCertificates();
+            if (operatingSystem.contains("mac") || operatingSystem.contains("windows")) {
+                assertThat(trustManager).isPresent();
+                assertThat((trustManager).get().getAcceptedIssuers()).hasSizeGreaterThan(0);
+            }
 
-        if (operatingSystem.contains("linux")) {
-            assertThat(trustManager).isNotPresent();
+            if (operatingSystem.contains("linux")) {
+                assertThat(trustManager).isNotPresent();
+            }
         }
     }
 

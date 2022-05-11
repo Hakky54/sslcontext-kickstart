@@ -17,6 +17,7 @@ package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.exception.GenericCertificateException;
 import nl.altindag.ssl.exception.GenericIOException;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
@@ -26,6 +27,7 @@ import javax.net.ssl.X509ExtendedTrustManager;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -34,11 +36,7 @@ import java.security.KeyStoreException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static nl.altindag.ssl.TestConstants.KEYSTORE_LOCATION;
@@ -145,14 +143,27 @@ class CertificateUtilsShould {
     @Test
     void getSystemTrustedCertificates() {
         String operatingSystem = System.getProperty("os.name").toLowerCase();
-        List<X509Certificate> certificates = CertificateUtils.getSystemTrustedCertificates();
-        if (operatingSystem.contains("mac") || operatingSystem.contains("windows")) {
-            assertThat(certificates).isNotEmpty();
+
+        try (MockedStatic<KeyStoreUtils> mockedStatic = mockStatic(KeyStoreUtils.class, invocation -> {
+            Method method = invocation.getMethod();
+            if ("createKeyStore".equals(method.getName())
+                    && method.getParameterCount() == 2
+                    && operatingSystem.contains("mac")) {
+                return KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+            } else {
+                return invocation.callRealMethod();
+            }
+        })) {
+            List<X509Certificate> certificates = CertificateUtils.getSystemTrustedCertificates();
+            if (operatingSystem.contains("mac") || operatingSystem.contains("windows")) {
+                assertThat(certificates).isNotEmpty();
+            }
+
+            if (operatingSystem.contains("linux")) {
+                assertThat(certificates).isEmpty();
+            }
         }
 
-        if (operatingSystem.contains("linux")) {
-            assertThat(certificates).isEmpty();
-        }
     }
 
     @Test
