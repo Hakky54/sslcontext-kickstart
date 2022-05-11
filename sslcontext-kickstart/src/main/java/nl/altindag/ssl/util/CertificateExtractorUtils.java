@@ -47,8 +47,9 @@ import java.util.stream.Stream;
  */
 class CertificateExtractorUtils {
 
-    private static CertificateExtractorUtils INSTANCE;
     private static final Pattern CA_ISSUERS_AUTHORITY_INFO_ACCESS = Pattern.compile("(?s)^AuthorityInfoAccess\\h+\\[\\R\\s*\\[\\R.*?accessMethod:\\h+caIssuers\\R\\h*accessLocation: URIName:\\h+(https?://\\S+)", Pattern.MULTILINE);
+
+    private static CertificateExtractorUtils instance;
 
     private final SSLFactory sslFactory;
     private final SSLSocketFactory unsafeSslSocketFactory;
@@ -72,13 +73,13 @@ class CertificateExtractorUtils {
     }
 
     static CertificateExtractorUtils getInstance() {
-        if (INSTANCE == null) {
-            INSTANCE = new CertificateExtractorUtils();
+        if (instance == null) {
+            instance = new CertificateExtractorUtils();
         } else {
-            INSTANCE.certificatesCollector.clear();
-            SSLSessionUtils.invalidateCaches(INSTANCE.sslFactory);
+            instance.certificatesCollector.clear();
+            SSLSessionUtils.invalidateCaches(instance.sslFactory);
         }
-        return INSTANCE;
+        return instance;
     }
 
     List<X509Certificate> getCertificateFromExternalSource(String url) {
