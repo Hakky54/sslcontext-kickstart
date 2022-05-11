@@ -36,7 +36,7 @@ interface CombinableX509TrustManager extends X509TrustManager {
     default void checkTrusted(TrustManagerConsumer callBackConsumer) throws CertificateException {
         List<CertificateException> certificateExceptions = new ArrayList<>();
         for (X509ExtendedTrustManager trustManager : getTrustManagers()) {
-            if (trustManager.getAcceptedIssuers().length != 0) {
+            if (trustManager.getAcceptedIssuers().length > 0) {
                 try {
                     callBackConsumer.checkTrusted(trustManager);
                     return;
