@@ -41,6 +41,8 @@ import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static nl.altindag.ssl.TestConstants.IDENTITY_FILE_NAME;
 import static nl.altindag.ssl.TestConstants.IDENTITY_PASSWORD;
@@ -300,6 +302,21 @@ class KeyStoreUtilsShould {
         assertThat(identityStore).isNotNull();
         assertThat(identityStore.size()).isEqualTo(1);
         assertThat(identityStore.isKeyEntry("cn=prof oak,ou=oak pokémon research lab,o=oak pokémon research lab,c=pallet town")).isTrue();
+    }
+
+    @Test
+    void createTrustStoreHavingUniqueAliasesForCertificatesWhileHavingSameDistinguishName() throws KeyStoreException {
+        List<X509Certificate> trustedCertificates = SSLFactory.builder()
+                .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
+                .withDefaultTrustMaterial()
+                .build()
+                .getTrustedCertificates();
+
+        KeyStore trustStore = KeyStoreUtils.createTrustStore(
+                Stream.concat(trustedCertificates.stream(), trustedCertificates.stream()).collect(Collectors.toList())
+        );
+
+        assertThat(trustStore.size()).isEqualTo(trustedCertificates.size() * 2);
     }
 
     @Test
