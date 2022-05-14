@@ -59,10 +59,7 @@ class CertificateExtractorUtils {
     private CertificateExtractorUtils() {
         certificatesCollector = new ArrayList<>();
 
-        X509ExtendedTrustManager certificateCapturingTrustManager = TrustManagerUtils.createCertificateCapturingTrustManager(
-                TrustManagerUtils.createUnsafeTrustManager(),
-                certificatesCollector
-        );
+        X509ExtendedTrustManager certificateCapturingTrustManager = TrustManagerUtils.createCertificateCapturingTrustManager(certificatesCollector);
 
         sslFactory = SSLFactory.builder()
                 .withTrustMaterial(certificateCapturingTrustManager)

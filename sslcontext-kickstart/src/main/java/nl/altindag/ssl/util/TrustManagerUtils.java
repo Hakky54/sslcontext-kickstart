@@ -184,6 +184,10 @@ public final class TrustManagerUtils {
         return DummyX509ExtendedTrustManager.getInstance();
     }
 
+    public static X509ExtendedTrustManager createCertificateCapturingTrustManager(List<X509Certificate> certificatesCollector) {
+        return createCertificateCapturingTrustManager(TrustManagerUtils.createUnsafeTrustManager(), certificatesCollector);
+    }
+
     public static X509ExtendedTrustManager createCertificateCapturingTrustManager(X509TrustManager baseTrustManager, List<X509Certificate> certificatesCollector) {
         return new CertificateCapturingX509ExtendedTrustManager(wrapIfNeeded(baseTrustManager), certificatesCollector);
     }
