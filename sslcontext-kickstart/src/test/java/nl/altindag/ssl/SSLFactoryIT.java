@@ -17,18 +17,14 @@ package nl.altindag.ssl;
 
 import com.sun.net.httpserver.HttpsServer;
 import nl.altindag.log.LogCaptor;
-import nl.altindag.ssl.util.KeyManagerUtils;
 import nl.altindag.ssl.util.KeyStoreUtils;
-import nl.altindag.ssl.util.SSLSessionUtils;
-import nl.altindag.ssl.util.TrustManagerUtils;
+import nl.altindag.ssl.util.SSLFactoryUtils;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.X509ExtendedKeyManager;
-import javax.net.ssl.X509ExtendedTrustManager;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -234,7 +230,6 @@ class SSLFactoryIT {
     }
 
     @Test
-    @SuppressWarnings("OptionalGetWithoutIsPresent")
     void executeRequestToTwoServersWithMutualAuthenticationWithSwappingClientIdentityAndTrustMaterial() throws IOException {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
 
@@ -276,21 +271,12 @@ class SSLFactoryIT {
         assertThatThrownBy(() -> executeRequest("https://localhost:8444/api/hello", sslSocketFactory))
                 .isInstanceOfAny(SocketException.class, SSLException.class);
 
-        X509ExtendedKeyManager swappableKeyManager = sslFactoryForClient.getKeyManager().get();
-        X509ExtendedKeyManager toBeSwappedKeyManager = KeyManagerUtils.createKeyManager(
-                KeyStoreUtils.loadKeyStore("keystore/client-server/client-two/identity.jks", keyStorePassword), "secret".toCharArray()
-        );
+        SSLFactory updatedSslFactoryForClient = SSLFactory.builder()
+                .withIdentityMaterial("keystore/client-server/client-two/identity.jks", keyStorePassword)
+                .withTrustMaterial("keystore/client-server/client-two/truststore.jks", keyStorePassword)
+                .build();
 
-        KeyManagerUtils.swapKeyManager(swappableKeyManager, toBeSwappedKeyManager);
-
-        X509ExtendedTrustManager swappableTrustManager = sslFactoryForClient.getTrustManager().get();
-        X509ExtendedTrustManager toBeSwappedTrustManager = TrustManagerUtils.createTrustManager(
-                KeyStoreUtils.loadKeyStore("keystore/client-server/client-two/truststore.jks", keyStorePassword)
-        );
-
-        TrustManagerUtils.swapTrustManager(swappableTrustManager, toBeSwappedTrustManager);
-
-        SSLSessionUtils.invalidateCaches(sslFactoryForClient);
+        SSLFactoryUtils.reload(sslFactoryForClient, updatedSslFactoryForClient);
 
         assertThatThrownBy(() -> executeRequest("https://localhost:8443/api/hello", sslSocketFactory))
                 .isInstanceOfAny(SocketException.class, SSLException.class);
