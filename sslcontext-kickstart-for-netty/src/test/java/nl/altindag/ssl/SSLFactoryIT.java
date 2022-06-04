@@ -62,7 +62,7 @@ class SSLFactoryIT {
             fail("Certificate may have expired and needs to be updated");
         } else {
             assertThat(statusCode).isEqualTo(200);
-            assertThat(logCaptor.getLogs()).contains("Received the following server certificate: [CN=*.badssl.com, O=Lucas Garron Torres, L=Walnut Creek, ST=California, C=US]");
+            assertThat(logCaptor.getLogs()).contains("Received the following server certificate: [CN=*.badssl.com]");
         }
     }
 
