@@ -67,7 +67,7 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "7.4.3"
      - [Using dummy identity and trust material](#using-dummy-identity-and-trust-material)
      - [Using KeyStore with multiple keys having different passwords](#support-for-using-a-single-keystore-which-contains-multiple-keys-with-different-passwords)
      - [Using custom PrivateKey and Certificates](#support-for-using-privatekey-and-certificates)
-     - [Reload SSL at runtime](#support-for-reloading-ssl-at-runtime)
+     - [Reloading SSL at runtime](#support-for-reloading-ssl-at-runtime)
      - [Hot swap KeyManager and TrustManager at runtime](#support-for-swapping-keymanager-and-trustmanager-at-runtime)
      - [Routing client identity to specific host](#routing-identity-material-to-specific-host) 
      - [Updating client identity routes at runtime](#updating-identity-routes-at-runtime) 
@@ -387,7 +387,7 @@ Runnable sslUpdater = () -> {
 };
 
 // initial update of ssl material to replace the dummies
-Executors.newSingleThreadExecutor().submit(sslUpdater);
+sslUpdater.run();
    
 // update ssl material every hour    
 Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(sslUpdater, 1, 1, TimeUnit.HOURS);
@@ -447,7 +447,7 @@ Runnable sslUpdater = () -> {
 };
 
 // initial update of ssl material to replace the dummies
-Executors.newSingleThreadExecutor().submit(sslUpdater);
+sslUpdater.run();
    
 // update ssl material every hour    
 Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(sslUpdater, 1, 1, TimeUnit.HOURS);
