@@ -69,7 +69,7 @@
         <version.maven-surefire-plugin>3.0.0-M6</version.maven-surefire-plugin>
         <version.maven-fail-safe>3.0.0-M6</version.maven-fail-safe>
         <version.maven-compiler-plugin>3.10.1</version.maven-compiler-plugin>
-        <version.maven-enforcer-plugin>3.0.0</version.maven-enforcer-plugin>
+        <version.maven-enforcer-plugin>3.1.0</version.maven-enforcer-plugin>
         <version.maven-jar-plugin>3.2.2</version.maven-jar-plugin>
         <version.maven-javadoc-plugin>3.4.0</version.maven-javadoc-plugin>
         <version.maven-source-plugin>3.2.1</version.maven-source-plugin>
