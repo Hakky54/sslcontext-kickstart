@@ -118,6 +118,7 @@ The library also provides other utilities such as:
 - [TrustManagerUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/TrustManagerUtils.java)
 - [PemUtils](sslcontext-kickstart-for-pem/src/main/java/nl/altindag/ssl/util/PemUtils.java)
 - [SSLContextUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/SSLContextUtils.java)
+- [SSLFactoryUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/SSLFactoryUtils.java)
 - [SSLSessionUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/SSLSessionUtils.java)
 - [SSLSocketUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/SSLSocketUtils.java)
 
