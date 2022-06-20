@@ -16,21 +16,15 @@
 package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.SSLFactory;
-import nl.altindag.ssl.exception.GenericSecurityException;
 
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import static nl.altindag.ssl.util.ValidationUtils.GENERIC_EXCEPTION_MESSAGE;
-
 /**
  * @author Hakan Altindag
  */
 public final class SSLFactoryUtils {
-
-    private static final String KEY_MANAGER_ABSENT_MESSAGE = GENERIC_EXCEPTION_MESSAGE.apply("KeyManager");
-    private static final String TRUST_MANAGER_ABSENT_MESSAGE = GENERIC_EXCEPTION_MESSAGE.apply("TrustManager");
 
     private SSLFactoryUtils() {}
 
@@ -39,22 +33,20 @@ public final class SSLFactoryUtils {
      * Other properties such as ciphers, protocols, secure-random, {@link javax.net.ssl.HostnameVerifier} and {@link javax.net.ssl.SSLParameters} will not be reloaded.
      */
     public static void reload(SSLFactory baseSslFactory, SSLFactory updatedSslFactory) {
-        reload(baseSslFactory, updatedSslFactory, SSLFactory::getKeyManager, KeyManagerUtils::swapKeyManager, KEY_MANAGER_ABSENT_MESSAGE);
-        reload(baseSslFactory, updatedSslFactory, SSLFactory::getTrustManager, TrustManagerUtils::swapTrustManager, TRUST_MANAGER_ABSENT_MESSAGE);
+        reload(baseSslFactory, updatedSslFactory, SSLFactory::getKeyManager, KeyManagerUtils::swapKeyManager);
+        reload(baseSslFactory, updatedSslFactory, SSLFactory::getTrustManager, TrustManagerUtils::swapTrustManager);
         SSLSessionUtils.invalidateCaches(baseSslFactory);
     }
 
     private static <T> void reload(SSLFactory baseSslFactory,
                                    SSLFactory updatedSslFactory,
-                                   Function<SSLFactory, Optional<T>> mapper, BiConsumer<T, T> consumer,
-                                   String exceptionMessage) {
+                                   Function<SSLFactory, Optional<T>> mapper, BiConsumer<T, T> consumer) {
 
         Optional<T> baseManager = mapper.apply(baseSslFactory);
         Optional<T> updatedManager = mapper.apply(updatedSslFactory);
         if (baseManager.isPresent() && updatedManager.isPresent()) {
             consumer.accept(baseManager.get(), updatedManager.get());
-        } else {
-            throw new GenericSecurityException(exceptionMessage);
         }
     }
+
 }
