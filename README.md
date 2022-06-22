@@ -21,24 +21,24 @@
 <dependency>
     <groupId>io.github.hakky54</groupId>
     <artifactId>sslcontext-kickstart</artifactId>
-    <version>7.4.3</version>
+    <version>7.4.4</version>
 </dependency>
 ```
 ### Install with Gradle
 ```groovy
-implementation 'io.github.hakky54:sslcontext-kickstart:7.4.3'
+implementation 'io.github.hakky54:sslcontext-kickstart:7.4.4'
 ```
 ### Install with Gradle Kotlin DSL
 ```kotlin
-implementation("io.github.hakky54:sslcontext-kickstart:7.4.3")
+implementation("io.github.hakky54:sslcontext-kickstart:7.4.4")
 ```
 ### Install with Scala SBT
 ```
-libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "7.4.3"
+libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "7.4.4"
 ```
 ### Install with Apache Ivy
 ```xml
-<dependency org="io.github.hakky54" name="sslcontext-kickstart" rev="7.4.3" />
+<dependency org="io.github.hakky54" name="sslcontext-kickstart" rev="7.4.4" />
 ```
 
 ## Table of contents
@@ -380,8 +380,8 @@ HttpClient httpClient = HttpClient.newBuilder()
           
 Runnable sslUpdater = () -> {
     SSLFactory updatedSslFactory = SSLFactory.builder()
-          .withIdentityMaterial("identity.jks", "password".toCharArray())
-          .withTrustMaterial("truststore.jks", "password".toCharArray())
+          .withIdentityMaterial(Paths.get("/path/to/your/identity.jks"), "password".toCharArray())
+          .withTrustMaterial(Paths.get("/path/to/your/truststore.jks"), "password".toCharArray())
           .build();
     
     SSLFactoryUtils.reload(baseSslFactory, updatedSslFactory);
@@ -440,8 +440,8 @@ HttpClient httpClient = HttpClient.newBuilder()
           
 Runnable sslUpdater = () -> {
     SSLFactory updatedSslFactory = SSLFactory.builder()
-          .withIdentityMaterial("identity.jks", "password".toCharArray())
-          .withTrustMaterial("truststore.jks", "password".toCharArray())
+          .withIdentityMaterial(Paths.get("/path/to/your/identity.jks"), "password".toCharArray())
+          .withTrustMaterial(Paths.get("/path/to/your/truststore.jks"), "password".toCharArray())
           .build();
     
     SSLFactoryUtils.reload(baseSslFactory, updatedSslFactory);
@@ -461,8 +461,8 @@ It is possible to swap a KeyManager and TrustManager from a SSLContext, SSLSocke
 Restart of the application with a traditional setup is unavoidable and can result into a downtime for x amount of time. A restart is not needed when using the setup below.
 ```text
 SSLFactory baseSslFactory = SSLFactory.builder()
-          .withIdentityMaterial("identity.jks", "password".toCharArray())
-          .withTrustMaterial("truststore.jks", "password".toCharArray())
+          .withIdentityMaterial(Paths.get("/path/to/your/identity.jks"), "password".toCharArray())
+          .withTrustMaterial(Paths.get("/path/to/your/truststore.jks"), "password".toCharArray())
           .withSwappableIdentityMaterial()
           .withSwappableTrustMaterial()
           .build();
@@ -476,8 +476,8 @@ HttpClient httpClient = HttpClient.newBuilder()
 HttpResponse<String> response = httpClient.send(aRequest, HttpResponse.BodyHandlers.ofString());
 
 SSLFactory updatedSslFactory = SSLFactory.builder()
-          .withIdentityMaterial("identity.jks", "password".toCharArray())
-          .withTrustMaterial("truststore.jks", "password".toCharArray())
+          .withIdentityMaterial(Paths.get("/path/to/your/identity.jks"), "password".toCharArray())
+          .withTrustMaterial(Paths.get("/path/to/your/truststore.jks"), "password".toCharArray())
           .build();
           
 // swap identity and trust materials and reuse existing http client
@@ -607,7 +607,7 @@ Add the dependency below to use this feature, it also includes the core features
 <dependency>
     <groupId>io.github.hakky54</groupId>
     <artifactId>sslcontext-kickstart-for-pem</artifactId>
-    <version>7.4.3</version>
+    <version>7.4.4</version>
 </dependency>
 ```
 ##### Loading pem files from the classpath
@@ -744,7 +744,7 @@ Some know http clients which relay on netty libraries are: [Spring WebFlux WebCl
 <dependency>
     <groupId>io.github.hakky54</groupId>
     <artifactId>sslcontext-kickstart-for-netty</artifactId>
-    <version>7.4.3</version>
+    <version>7.4.4</version>
 </dependency>
 ```
 Example setup for Spring WebClient with Netty:
@@ -782,7 +782,7 @@ public class App {
 <dependency>
     <groupId>io.github.hakky54</groupId>
     <artifactId>sslcontext-kickstart-for-jetty</artifactId>
-    <version>7.4.3</version>
+    <version>7.4.4</version>
 </dependency>
 ```
 Example setup for [Spring WebFlux WebClient Jetty](https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html):
@@ -820,7 +820,7 @@ However it is still possible to configure the http client with their custom conf
 <dependency>
     <groupId>io.github.hakky54</groupId>
     <artifactId>sslcontext-kickstart-for-apache4</artifactId>
-    <version>7.4.3</version>
+    <version>7.4.4</version>
 </dependency>
 ```
 ```java
@@ -851,7 +851,7 @@ public class App {
 <dependency>
     <groupId>io.github.hakky54</groupId>
     <artifactId>sslcontext-kickstart-for-apache5</artifactId>
-    <version>7.4.3</version>
+    <version>7.4.4</version>
 </dependency>
 ```
 ```java
