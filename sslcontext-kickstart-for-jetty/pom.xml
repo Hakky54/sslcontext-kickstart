@@ -36,7 +36,7 @@
     </developers>
 
     <properties>
-        <version.jetty-reactive-httpclient>1.1.11</version.jetty-reactive-httpclient>
+        <version.jetty-reactive-httpclient>1.1.12</version.jetty-reactive-httpclient>
     </properties>
 
     <dependencies>
