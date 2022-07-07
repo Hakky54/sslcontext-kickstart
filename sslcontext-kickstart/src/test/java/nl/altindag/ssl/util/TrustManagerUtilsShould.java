@@ -368,6 +368,32 @@ class TrustManagerUtilsShould {
         assertThat(trustManager).isNotNull();
     }
 
+    @Test
+    void createOnlyUnsafeTrustManagerWhileProvidingMultipleTrustManagers() {
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.combine(
+                TrustManagerUtils.createTrustManager(trustStore),
+                TrustManagerUtils.createUnsafeTrustManager()
+        );
+
+        assertThat(trustManager).isInstanceOf(UnsafeX509ExtendedTrustManager.class);
+    }
+
+    @Test
+    void notIncludeTrustManagerWhichDoesNotContainTrustedCertificates() {
+        KeyStore trustStoreOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+        KeyStore trustStoreTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD);
+        KeyStore emptyTrustStore = KeyStoreUtils.createKeyStore();
+
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(trustStoreOne, trustStoreOne, emptyTrustStore);
+
+        assertThat(trustManager).isInstanceOf(CompositeX509ExtendedTrustManager.class);
+
+        CompositeX509ExtendedTrustManager compositeX509ExtendedTrustManager = (CompositeX509ExtendedTrustManager) trustManager;
+        assertThat(compositeX509ExtendedTrustManager.getTrustManagers()).hasSize(2);
+    }
+
     private CertPathTrustManagerParameters createTrustManagerParameters(KeyStore trustStore) throws NoSuchAlgorithmException, KeyStoreException, InvalidAlgorithmParameterException {
         CertPathBuilder certPathBuilder = CertPathBuilder.getInstance("PKIX");
         PKIXRevocationChecker revocationChecker = (PKIXRevocationChecker) certPathBuilder.getRevocationChecker();
