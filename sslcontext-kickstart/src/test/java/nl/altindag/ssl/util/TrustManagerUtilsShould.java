@@ -391,7 +391,7 @@ class TrustManagerUtilsShould {
         assertThat(trustManager).isInstanceOf(CompositeX509ExtendedTrustManager.class);
 
         CompositeX509ExtendedTrustManager compositeX509ExtendedTrustManager = (CompositeX509ExtendedTrustManager) trustManager;
-        assertThat(compositeX509ExtendedTrustManager.getTrustManagers().size()).isEqualTo(2);
+        assertThat(compositeX509ExtendedTrustManager.getTrustManagers()).hasSize(2);
     }
 
     private CertPathTrustManagerParameters createTrustManagerParameters(KeyStore trustStore) throws NoSuchAlgorithmException, KeyStoreException, InvalidAlgorithmParameterException {
