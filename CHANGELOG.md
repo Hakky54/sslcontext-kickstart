@@ -3,6 +3,10 @@
 This list is not intended to be all-encompassing - it will document major and breaking API 
 changes with their rationale when appropriate:
 
+### v7.4.5
+ - Bug-fix issue 196 - Use UnsafeTrustManager as base TrustManager if enabled
+ - Improve issue 181 - Filtered out empty TrustManagers within TrustManagerUtils
+ - Bumped dependencies
 ### v7.4.4
  - Added SSLFactoryUtils
  - Bumped dependencies
