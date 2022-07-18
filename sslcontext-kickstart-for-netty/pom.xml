@@ -36,7 +36,7 @@
     </developers>
 
     <properties>
-        <version.netty-handler>4.1.78.Final</version.netty-handler>
+        <version.netty-handler>4.1.79.Final</version.netty-handler>
         <version.reactor-netty>1.0.20</version.reactor-netty>
     </properties>
 
