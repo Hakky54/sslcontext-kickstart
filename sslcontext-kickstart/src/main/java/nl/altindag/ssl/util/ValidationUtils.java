@@ -51,6 +51,17 @@ public final class ValidationUtils {
         return maybeNull;
     }
 
+    public static <T> T[] requireNotEmpty(T[] maybeNull, String message) {
+        return requireNotEmpty(maybeNull, () -> new IllegalArgumentException(message));
+    }
+
+    public static <T> T[] requireNotEmpty(T[] maybeNull, Supplier<RuntimeException> exceptionSupplier) {
+        if (maybeNull == null || maybeNull.length == 0) {
+            throw exceptionSupplier.get();
+        }
+        return maybeNull;
+    }
+
     public static String requireNotBlank(String maybeNull, String message) {
         return requireNotBlank(maybeNull, () -> new IllegalArgumentException(message));
     }

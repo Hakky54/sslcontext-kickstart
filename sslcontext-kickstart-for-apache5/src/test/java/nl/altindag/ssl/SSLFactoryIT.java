@@ -17,7 +17,6 @@ package nl.altindag.ssl;
 
 import nl.altindag.log.LogCaptor;
 import nl.altindag.ssl.util.Apache5SslUtils;
-import nl.altindag.ssl.util.KeyStoreUtils;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleResponseConsumer;
 import org.apache.hc.client5.http.classic.HttpClient;
@@ -59,7 +58,7 @@ class SSLFactoryIT {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withIdentityMaterial("keystore/badssl-identity.p12", "badssl.com".toCharArray())
                 .withTrustMaterial("keystore/badssl-truststore.p12", "badssl.com".toCharArray())
-                .withTrustMaterial(KeyStoreUtils.createKeyStore()) // Adding additional trust material forces usage of CompositeX509ExtendedTrustManager and verbose logging
+                .withDefaultTrustMaterial() // Adding additional trust material forces usage of CompositeX509ExtendedTrustManager and verbose logging
                 .build();
 
         LayeredConnectionSocketFactory socketFactory = Apache5SslUtils.toSocketFactory(sslFactory);
@@ -87,13 +86,13 @@ class SSLFactoryIT {
 
     @Test
     @Tag("it-with-badssl.com")
-    void executeHttpsRequestWithMutualAuthenticationForAsyncClient() throws IOException, URISyntaxException, InterruptedException, ExecutionException, TimeoutException {
+    void executeHttpsRequestWithMutualAuthenticationForAsyncClient() throws URISyntaxException, InterruptedException, ExecutionException, TimeoutException {
         LogCaptor logCaptor = LogCaptor.forName("nl.altindag.ssl");
 
         SSLFactory sslFactory = SSLFactory.builder()
                 .withIdentityMaterial("keystore/badssl-identity.p12", "badssl.com".toCharArray())
                 .withTrustMaterial("keystore/badssl-truststore.p12", "badssl.com".toCharArray())
-                .withTrustMaterial(KeyStoreUtils.createKeyStore()) // Adding additional trust material forces usage of CompositeX509ExtendedTrustManager and verbose logging
+                .withDefaultTrustMaterial() // Adding additional trust material forces usage of CompositeX509ExtendedTrustManager and verbose logging
                 .build();
 
         PoolingAsyncClientConnectionManager connectionManager = PoolingAsyncClientConnectionManagerBuilder.create()

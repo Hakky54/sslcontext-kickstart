@@ -17,7 +17,6 @@ package nl.altindag.ssl;
 
 import nl.altindag.log.LogCaptor;
 import nl.altindag.ssl.util.Apache4SslUtils;
-import nl.altindag.ssl.util.KeyStoreUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -44,7 +43,7 @@ class SSLFactoryIT {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withIdentityMaterial("keystore/badssl-identity.p12", "badssl.com".toCharArray())
                 .withTrustMaterial("keystore/badssl-truststore.p12", "badssl.com".toCharArray())
-                .withTrustMaterial(KeyStoreUtils.createKeyStore()) // Adding additional trust material forces usage of CompositeX509ExtendedTrustManager and verbose logging
+                .withDefaultTrustMaterial() // Adding additional trust material forces usage of CompositeX509ExtendedTrustManager and verbose logging
                 .build();
 
         LayeredConnectionSocketFactory socketFactory = Apache4SslUtils.toSocketFactory(sslFactory);

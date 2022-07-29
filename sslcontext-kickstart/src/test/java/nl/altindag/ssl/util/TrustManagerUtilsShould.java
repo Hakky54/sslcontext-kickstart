@@ -15,9 +15,11 @@
  */
 package nl.altindag.ssl.util;
 
+import nl.altindag.log.LogCaptor;
 import nl.altindag.ssl.exception.GenericSecurityException;
 import nl.altindag.ssl.exception.GenericTrustManagerException;
 import nl.altindag.ssl.trustmanager.CompositeX509ExtendedTrustManager;
+import nl.altindag.ssl.trustmanager.DummyX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.UnsafeX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.X509TrustManagerWrapper;
 import org.junit.jupiter.api.Test;
@@ -370,6 +372,8 @@ class TrustManagerUtilsShould {
 
     @Test
     void createOnlyUnsafeTrustManagerWhileProvidingMultipleTrustManagers() {
+        LogCaptor logCaptor = LogCaptor.forRoot();
+
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 
         X509ExtendedTrustManager trustManager = TrustManagerUtils.combine(
@@ -378,6 +382,21 @@ class TrustManagerUtilsShould {
         );
 
         assertThat(trustManager).isInstanceOf(UnsafeX509ExtendedTrustManager.class);
+
+        assertThat(logCaptor.getDebugLogs()).contains("Unsafe TrustManager is being used therefore other trust managers will not be included for constructing the base trust manager");
+    }
+
+    @Test
+    void doNotLogAnythingWhenUnsafeTrustManagerIsBeingUsedWithoutAdditionalTrustManagers() {
+        LogCaptor logCaptor = LogCaptor.forRoot();
+
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.combine(
+                TrustManagerUtils.createUnsafeTrustManager()
+        );
+
+        assertThat(trustManager).isInstanceOf(UnsafeX509ExtendedTrustManager.class);
+
+        assertThat(logCaptor.getLogs()).isEmpty();
     }
 
     @Test
@@ -386,12 +405,52 @@ class TrustManagerUtilsShould {
         KeyStore trustStoreTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD);
         KeyStore emptyTrustStore = KeyStoreUtils.createKeyStore();
 
-        X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(trustStoreOne, trustStoreOne, emptyTrustStore);
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(trustStoreOne, trustStoreTwo, emptyTrustStore);
 
         assertThat(trustManager).isInstanceOf(CompositeX509ExtendedTrustManager.class);
 
         CompositeX509ExtendedTrustManager compositeX509ExtendedTrustManager = (CompositeX509ExtendedTrustManager) trustManager;
         assertThat(compositeX509ExtendedTrustManager.getTrustManagers()).hasSize(2);
+    }
+
+    @Test
+    void ignoreOtherTrustMaterialIfDummyTrustManagerIsPresent() {
+        LogCaptor logCaptor = LogCaptor.forRoot();
+
+        KeyStore trustStoreOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+        KeyStore trustStoreTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD);
+
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.trustManagerBuilder()
+                .withTrustStore(trustStoreOne)
+                .withTrustStore(trustStoreTwo)
+                .withTrustManager(TrustManagerUtils.createDummyTrustManager())
+                .build();
+
+        assertThat(trustManager).isInstanceOf(DummyX509ExtendedTrustManager.class);
+        assertThat(logCaptor.getDebugLogs()).contains("Dummy TrustManager is being used therefore other trust managers will not be included for constructing the base trust manager");
+    }
+
+    @Test
+    void doNotLogAnythingWhenDummyTrustManagerIsBeingUsedWithoutAdditionalTrustManagers() {
+        LogCaptor logCaptor = LogCaptor.forRoot();
+
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.combine(
+                TrustManagerUtils.createDummyTrustManager()
+        );
+
+        assertThat(trustManager).isInstanceOf(DummyX509ExtendedTrustManager.class);
+
+        assertThat(logCaptor.getLogs()).isEmpty();
+    }
+
+    @Test
+    void notCombineIfOnlyOneTrustManagerContainsTrustedCertificates() {
+        X509ExtendedTrustManager emptyTrustManager = TrustManagerUtils.createTrustManager(KeyStoreUtils.createKeyStore());
+        X509ExtendedTrustManager filledTrustManager = TrustManagerUtils.createTrustManager(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD));
+
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.combine(emptyTrustManager, filledTrustManager);
+
+        assertThat(trustManager).isNotInstanceOf(CompositeX509ExtendedTrustManager.class);
     }
 
     private CertPathTrustManagerParameters createTrustManagerParameters(KeyStore trustStore) throws NoSuchAlgorithmException, KeyStoreException, InvalidAlgorithmParameterException {
@@ -400,8 +459,16 @@ class TrustManagerUtilsShould {
         revocationChecker.setOptions(EnumSet.of(PKIXRevocationChecker.Option.NO_FALLBACK));
         PKIXBuilderParameters pkixParams = new PKIXBuilderParameters(trustStore, new X509CertSelector());
         pkixParams.addCertPathChecker(revocationChecker);
-        CertPathTrustManagerParameters certPathTrustManagerParameters = new CertPathTrustManagerParameters(pkixParams);
-        return certPathTrustManagerParameters;
+        return new CertPathTrustManagerParameters(pkixParams);
+    }
+
+    @Test
+    void throwExceptionWhenMultipleTrustManagersCombinedDontHaveTrustedCertificates() {
+        X509ExtendedTrustManager trustManagerOne = TrustManagerUtils.createTrustManager(KeyStoreUtils.createKeyStore());
+        X509ExtendedTrustManager trustManagerTwo = TrustManagerUtils.createTrustManager(KeyStoreUtils.createKeyStore());
+
+        assertThatThrownBy(() -> TrustManagerUtils.combine(trustManagerOne, trustManagerTwo))
+                .hasMessageContaining("The provided trust material does not contain any trusted certificate.");
     }
 
     @Test
