@@ -45,6 +45,7 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -267,17 +268,16 @@ public final class TrustManagerUtils {
     }
 
     private static List<X509ExtendedTrustManager> unwrapIfPossible(X509ExtendedTrustManager trustManager) {
-        List<X509ExtendedTrustManager> trustManagers = new ArrayList<>();
         if (trustManager instanceof CompositeX509ExtendedTrustManager) {
+            List<X509ExtendedTrustManager> trustManagers = new ArrayList<>();
             for (X509ExtendedTrustManager innerTrustManager : ((CompositeX509ExtendedTrustManager) trustManager).getTrustManagers()) {
                 List<X509ExtendedTrustManager> unwrappedTrustManagers = TrustManagerUtils.unwrapIfPossible(innerTrustManager);
                 trustManagers.addAll(unwrappedTrustManagers);
             }
+            return trustManagers;
         } else {
-            trustManagers.add(trustManager);
+            return Collections.singletonList(trustManager);
         }
-
-        return trustManagers;
     }
 
     public static TrustManagerBuilder trustManagerBuilder() {
