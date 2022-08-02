@@ -42,6 +42,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static nl.altindag.ssl.TestConstants.IDENTITY_FILE_NAME;
@@ -418,6 +419,26 @@ class KeyStoreUtilsShould {
         );
 
         assertThat(trustStore.size()).isEqualTo(trustedCertificates.size() * 2);
+    }
+
+    @Test
+    void limitTheAmountOfDuplicateAliasesTo1002WhenHavingExactMatchingAliases() throws KeyStoreException {
+        X509Certificate trustedCertificate = SSLFactory.builder()
+                .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
+                .withDefaultTrustMaterial()
+                .build()
+                .getTrustedCertificates()
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("At least one certificate should be present"));
+
+        List<X509Certificate> trustedCertificates = IntStream.range(0, 1100)
+                .mapToObj(index -> trustedCertificate)
+                .collect(Collectors.toList());
+
+        KeyStore trustStore = KeyStoreUtils.createTrustStore(trustedCertificates);
+
+        assertThat(trustStore.size()).isEqualTo(1002);
     }
 
     @Test
