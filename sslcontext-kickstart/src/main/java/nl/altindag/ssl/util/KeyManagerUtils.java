@@ -321,8 +321,7 @@ public final class KeyManagerUtils {
             return this;
         }
 
-        @SafeVarargs
-        public final <T extends KeyStoreHolder> KeyManagerBuilder withIdentities(T... identities) {
+        public KeyManagerBuilder withIdentities(KeyStoreHolder... identities) {
             return withIdentities(Arrays.asList(identities));
         }
 
