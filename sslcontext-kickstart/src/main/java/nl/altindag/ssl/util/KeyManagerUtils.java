@@ -301,7 +301,8 @@ public final class KeyManagerUtils {
 
         private KeyManagerBuilder() {}
 
-        public <T extends X509KeyManager> KeyManagerBuilder withKeyManagers(T... keyManagers) {
+        @SafeVarargs
+        public final <T extends X509KeyManager> KeyManagerBuilder withKeyManagers(T... keyManagers) {
             for (X509KeyManager keyManager : keyManagers) {
                 withKeyManager(keyManager);
             }
@@ -320,7 +321,8 @@ public final class KeyManagerUtils {
             return this;
         }
 
-        public <T extends KeyStoreHolder> KeyManagerBuilder withIdentities(T... identities) {
+        @SafeVarargs
+        public final <T extends KeyStoreHolder> KeyManagerBuilder withIdentities(T... identities) {
             return withIdentities(Arrays.asList(identities));
         }
 
