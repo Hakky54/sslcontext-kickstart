@@ -196,8 +196,23 @@ public final class KeyStoreUtils {
             keyStores.add(macKeyStore);
         }
 
+        if (operatingSystem.contains("linux")) {
+            String javaVendor = System.getProperty("java.vendor", "").toLowerCase();
+            String javaVmVendor = System.getProperty("java.vm.vendor", "").toLowerCase();
+            String javaRuntimeName = System.getProperty("java.runtime.name", "").toLowerCase();
+
+            if (javaVendor.equals("the android project")
+                    || javaVmVendor.equals("the android project")
+                    || javaRuntimeName.equals("android runtime")) {
+
+                KeyStore androidCAStore = createKeyStore("AndroidCAStore", null);
+                keyStores.add(androidCAStore);
+            }
+        }
+
         if (keyStores.isEmpty()) {
             LOGGER.warn("No system KeyStores available for [{}]", operatingSystem);
+            return Collections.emptyList();
         }
 
         return Collections.unmodifiableList(keyStores);

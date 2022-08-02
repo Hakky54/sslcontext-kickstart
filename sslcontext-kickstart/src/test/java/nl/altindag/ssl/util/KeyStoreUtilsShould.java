@@ -142,6 +142,107 @@ class KeyStoreUtilsShould {
     }
 
     @Test
+    void loadAndroidSystemKeyStoreWithOsNameAndJavaVendorProperty() {
+        System.setProperty("os.name", "Linux");
+        System.setProperty("java.vendor", "The Android Project");
+
+        KeyStore androidCAStore = mock(KeyStore.class);
+
+        try (MockedStatic<KeyStoreUtils> keyStoreUtilsMock = mockStatic(KeyStoreUtils.class, invocation -> {
+            Method method = invocation.getMethod();
+            if ("loadSystemKeyStores".equals(method.getName()) && method.getParameterCount() == 0) {
+                return invocation.callRealMethod();
+            } else if ("createKeyStore".equals(method.getName()) && method.getParameterCount() == 2 && "AndroidCAStore".equals(invocation.getArgument(0))) {
+                return androidCAStore;
+            } else {
+                return invocation.getMock();
+            }
+        })) {
+            List<KeyStore> keyStores = KeyStoreUtils.loadSystemKeyStores();
+            assertThat(keyStores).containsExactly(androidCAStore);
+        } finally {
+            resetOsName();
+            System.clearProperty("java.vendor");
+        }
+    }
+
+    @Test
+    void loadAndroidSystemKeyStoreWithOsNameAndJavaVmVendorProperty() {
+        System.setProperty("os.name", "Linux");
+        System.setProperty("java.vm.vendor", "The Android Project");
+
+        KeyStore androidCAStore = mock(KeyStore.class);
+
+        try (MockedStatic<KeyStoreUtils> keyStoreUtilsMock = mockStatic(KeyStoreUtils.class, invocation -> {
+            Method method = invocation.getMethod();
+            if ("loadSystemKeyStores".equals(method.getName()) && method.getParameterCount() == 0) {
+                return invocation.callRealMethod();
+            } else if ("createKeyStore".equals(method.getName()) && method.getParameterCount() == 2 && "AndroidCAStore".equals(invocation.getArgument(0))) {
+                return androidCAStore;
+            } else {
+                return invocation.getMock();
+            }
+        })) {
+            List<KeyStore> keyStores = KeyStoreUtils.loadSystemKeyStores();
+            assertThat(keyStores).containsExactly(androidCAStore);
+        } finally {
+            resetOsName();
+            System.clearProperty("java.vm.vendor");
+        }
+    }
+
+    @Test
+    void loadAndroidSystemKeyStoreWithOsNameAndJavaRuntimeNameProperty() {
+        System.setProperty("os.name", "Linux");
+        System.setProperty("java.runtime.name", "Android Runtime");
+
+        KeyStore androidCAStore = mock(KeyStore.class);
+
+        try (MockedStatic<KeyStoreUtils> keyStoreUtilsMock = mockStatic(KeyStoreUtils.class, invocation -> {
+            Method method = invocation.getMethod();
+            if ("loadSystemKeyStores".equals(method.getName()) && method.getParameterCount() == 0) {
+                return invocation.callRealMethod();
+            } else if ("createKeyStore".equals(method.getName()) && method.getParameterCount() == 2 && "AndroidCAStore".equals(invocation.getArgument(0))) {
+                return androidCAStore;
+            } else {
+                return invocation.getMock();
+            }
+        })) {
+            List<KeyStore> keyStores = KeyStoreUtils.loadSystemKeyStores();
+            assertThat(keyStores).containsExactly(androidCAStore);
+        } finally {
+            resetOsName();
+            System.clearProperty("java.runtime.name");
+        }
+    }
+
+    @Test
+    void notLoadAndroidSystemKeyStoreWhenAdditionalAndroidPropertiesAreMissing() {
+        System.setProperty("os.name", "Linux");
+        System.clearProperty("java.vendor");
+        System.clearProperty("java.vm.vendor");
+        System.clearProperty("java.runtime.name");
+
+        KeyStore androidCAStore = mock(KeyStore.class);
+
+        try (MockedStatic<KeyStoreUtils> keyStoreUtilsMock = mockStatic(KeyStoreUtils.class, invocation -> {
+            Method method = invocation.getMethod();
+            if ("loadSystemKeyStores".equals(method.getName()) && method.getParameterCount() == 0) {
+                return invocation.callRealMethod();
+            } else if ("createKeyStore".equals(method.getName()) && method.getParameterCount() == 2 && "AndroidCAStore".equals(invocation.getArgument(0))) {
+                return androidCAStore;
+            } else {
+                return invocation.getMock();
+            }
+        })) {
+            List<KeyStore> keyStores = KeyStoreUtils.loadSystemKeyStores();
+            assertThat(keyStores).isEmpty();
+        } finally {
+            resetOsName();
+        }
+    }
+
+    @Test
     void loadMacSystemKeyStore() {
         System.setProperty("os.name", "mac");
         KeyStore macKeyStore = mock(KeyStore.class);
