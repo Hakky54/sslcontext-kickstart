@@ -285,6 +285,7 @@ public final class TrustManagerUtils {
     public static final class TrustManagerBuilder {
 
         private static final String EMPTY_TRUST_MANAGER_EXCEPTION = "Input does not contain TrustManager";
+        private static final String TRUST_MANAGER_HAS_NO_ACCEPTED_ISSUERS_EXCEPTION = "TrustManager has no accepted issuers";
 
         private TrustManagerBuilder() {}
 
@@ -369,12 +370,19 @@ public final class TrustManagerUtils {
             } else {
                 if (trustManagers.size() == 1) {
                     baseTrustManager = trustManagers.get(0);
+                    requireNotEmpty(
+                            baseTrustManager.getAcceptedIssuers(), () -> new GenericTrustManagerException(TRUST_MANAGER_HAS_NO_ACCEPTED_ISSUERS_EXCEPTION));
                 } else {
-                    baseTrustManager = trustManagers.stream()
+                    List<X509ExtendedTrustManager> filtered = trustManagers.stream()
                             .map(TrustManagerUtils::unwrapIfPossible)
                             .flatMap(Collection::stream)
                             .filter(trustManager -> trustManager.getAcceptedIssuers().length > 0)
-                            .collect(Collectors.collectingAndThen(Collectors.toList(), CompositeX509ExtendedTrustManager::new));
+                            .collect(Collectors.toList());
+                    
+                    // ensure we have at least one trust manager
+                    requireNotEmpty(filtered, () -> new GenericTrustManagerException(TRUST_MANAGER_HAS_NO_ACCEPTED_ISSUERS_EXCEPTION));
+                    // use composite trust manager if more than one has been selected
+                    baseTrustManager = (filtered.size() == 1) ? filtered.get(0) : new CompositeX509ExtendedTrustManager(filtered);
                 }
 
                 if (chainAndAuthTypeValidator != null

@@ -40,6 +40,13 @@ public final class ValidationUtils {
         return maybeNull;
     }
 
+    public static <T> T[] requireNotEmpty(T[] maybeNull, Supplier<RuntimeException> exceptionSupplier) {
+        if (maybeNull == null || maybeNull.length == 0) {
+            throw exceptionSupplier.get();
+        }
+        return maybeNull;
+    }
+    
     public static <T> List<T> requireNotEmpty(List<T> maybeNull, String message) {
         return requireNotEmpty(maybeNull, () -> new IllegalArgumentException(message));
     }
