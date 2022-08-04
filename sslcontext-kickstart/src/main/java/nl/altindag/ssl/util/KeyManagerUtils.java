@@ -255,17 +255,18 @@ public final class KeyManagerUtils {
         requireNotNull(keyManager, GENERIC_EXCEPTION_MESSAGE.apply("KeyManager"));
 
         if (keyManager instanceof CompositeX509ExtendedKeyManager) {
-            return ((CompositeX509ExtendedKeyManager) keyManager)
+            Map<String, List<String>> m = ((CompositeX509ExtendedKeyManager) keyManager)
                     .getIdentityRoute()
                     .entrySet().stream()
-                    .collect(Collectors.collectingAndThen(
+                    .collect(
                             Collectors.toMap(
                                     Entry::getKey,
                                     hosts -> hosts.getValue().stream()
                                             .map(URI::toString)
-                                            .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList))),
-                            Collections::unmodifiableMap)
+                                            .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList)))
+                            
                     );
+            return Collections.unmodifiableMap(m);
         } else {
             throw new GenericKeyManagerException(String.format(
                     "KeyManager should be an instance of: [%s], but received: [%s]",
