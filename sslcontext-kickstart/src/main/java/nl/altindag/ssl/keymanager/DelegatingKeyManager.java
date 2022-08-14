@@ -15,8 +15,6 @@
  */
 package nl.altindag.ssl.keymanager;
 
-import nl.altindag.ssl.util.ValidationUtils;
-
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509KeyManager;
@@ -24,6 +22,8 @@ import java.net.Socket;
 import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
+
+import static nl.altindag.ssl.util.ValidationUtils.requireNotNull;
 
 /**
  * <strong>NOTE:</strong>
@@ -38,7 +38,7 @@ abstract class DelegatingKeyManager<T extends X509KeyManager> extends X509Extend
     T keyManager;
 
     DelegatingKeyManager(T keyManager) {
-        this.keyManager = ValidationUtils.requireNotNull(keyManager, NO_KEY_MANAGER_EXCEPTION_MESSAGE);
+        this.keyManager = requireNotNull(keyManager, NO_KEY_MANAGER_EXCEPTION_MESSAGE);
     }
 
     @Override

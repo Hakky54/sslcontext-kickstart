@@ -444,7 +444,7 @@ class KeyStoreUtilsShould {
     void throwExceptionWhenLoadingNonExistingKeystore() {
         assertThatThrownBy(() -> KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + NON_EXISTING_KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD))
                   .isInstanceOf(GenericKeyStoreException.class)
-                  .hasMessageContaining("KeyStore is not present for the giving input");
+                  .hasMessageContaining("Failed to load the keystore from the classpath for the given path: [keystore/black-hole.jks]");
     }
 
     @Test

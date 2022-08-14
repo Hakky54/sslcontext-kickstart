@@ -21,8 +21,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.X509TrustManager;
 
-import static java.util.Objects.isNull;
 import static nl.altindag.ssl.util.ValidationUtils.requireNotEmpty;
+import static nl.altindag.ssl.util.ValidationUtils.requireNotNull;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,6 +41,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.function.UnaryOperator;
 
 /**
  * @author Hakan Altindag
@@ -51,6 +52,10 @@ public final class KeyStoreUtils {
 
     public static final String DUMMY_PASSWORD = "dummy-password";
     private static final String KEYSTORE_TYPE = "PKCS12";
+    private static final String EMPTY_INPUT_STREAM_EXCEPTION_MESSAGE = "Failed to load the keystore from the provided InputStream because it is null";
+    private static final UnaryOperator<String> KEYSTORE_NOT_FOUND_EXCEPTION_MESSAGE = certificatePath -> String.format("Failed to load the keystore from the classpath for the given path: [%s]", certificatePath);
+    private static final String EMPTY_TRUST_MANAGER_FOR_TRUSTSTORE_EXCEPTION = "Could not create TrustStore because the provided TrustManager does not contain any trusted certificates";
+    private static final String EMPTY_CERTIFICATES_EXCEPTION = "Could not create TrustStore because certificate is absent";
 
     private KeyStoreUtils() {}
 
@@ -60,7 +65,11 @@ public final class KeyStoreUtils {
 
     public static KeyStore loadKeyStore(String keystorePath, char[] keystorePassword, String keystoreType) {
         try (InputStream keystoreInputStream = KeyStoreUtils.class.getClassLoader().getResourceAsStream(keystorePath)) {
-            return loadKeyStore(keystoreInputStream, keystorePassword, keystoreType);
+            return loadKeyStore(
+                    requireNotNull(keystoreInputStream, KEYSTORE_NOT_FOUND_EXCEPTION_MESSAGE.apply(keystorePath)),
+                    keystorePassword,
+                    keystoreType
+            );
         } catch (Exception e) {
             throw new GenericKeyStoreException(e);
         }
@@ -79,17 +88,17 @@ public final class KeyStoreUtils {
     }
 
     public static KeyStore loadKeyStore(InputStream keystoreInputStream, char[] keystorePassword) {
-        return loadKeyStore(keystoreInputStream, keystorePassword, KeyStore.getDefaultType());
+        return loadKeyStore(
+                requireNotNull(keystoreInputStream, EMPTY_INPUT_STREAM_EXCEPTION_MESSAGE),
+                keystorePassword,
+                KeyStore.getDefaultType()
+        );
     }
 
     public static KeyStore loadKeyStore(InputStream keystoreInputStream, char[] keystorePassword, String keystoreType) {
-        if (isNull(keystoreInputStream)) {
-            throw new GenericKeyStoreException("KeyStore is not present for the giving input");
-        }
-
         try {
             KeyStore keystore = KeyStore.getInstance(keystoreType);
-            keystore.load(keystoreInputStream, keystorePassword);
+            keystore.load(requireNotNull(keystoreInputStream, EMPTY_INPUT_STREAM_EXCEPTION_MESSAGE), keystorePassword);
             return keystore;
         } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
             throw new GenericKeyStoreException(e);
@@ -147,7 +156,7 @@ public final class KeyStoreUtils {
         }
 
         return createTrustStore(
-                requireNotEmpty(certificates, "Could not create TrustStore because the provided TrustManager does not contain any trusted certificates")
+                requireNotEmpty(certificates, EMPTY_TRUST_MANAGER_FOR_TRUSTSTORE_EXCEPTION)
         );
     }
 
@@ -159,7 +168,7 @@ public final class KeyStoreUtils {
     public static <T extends Certificate> KeyStore createTrustStore(List<T> certificates) {
         try {
             KeyStore trustStore = createKeyStore();
-            for (T certificate : requireNotEmpty(certificates, "Could not create TrustStore because certificate is absent")) {
+            for (T certificate : requireNotEmpty(certificates, EMPTY_CERTIFICATES_EXCEPTION)) {
                 String alias = CertificateUtils.generateAlias(certificate);
                 boolean shouldAddCertificate = true;
 

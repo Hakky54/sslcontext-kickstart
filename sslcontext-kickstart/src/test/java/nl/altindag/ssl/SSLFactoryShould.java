@@ -1746,7 +1746,7 @@ class SSLFactoryShould {
 
         assertThatThrownBy(() -> factoryBuilder.withTrustMaterial(KEYSTORE_LOCATION + "not-existing-truststore.jks", TRUSTSTORE_PASSWORD))
                 .isInstanceOf(GenericKeyStoreException.class)
-                .hasMessageContaining("KeyStore is not present for the giving input");
+                .hasMessageContaining("Failed to load the keystore from the classpath for the given path: [keystore/not-existing-truststore.jks]");
     }
 
     @Test

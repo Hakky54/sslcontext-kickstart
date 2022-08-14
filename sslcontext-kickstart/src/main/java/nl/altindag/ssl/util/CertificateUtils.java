@@ -43,10 +43,13 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static nl.altindag.ssl.util.ValidationUtils.requireNotNull;
 
 /**
  * @author Hakan Altindag
@@ -60,6 +63,8 @@ public final class CertificateUtils {
     private static final String PEM_FOOTER = "-----END CERTIFICATE-----";
     private static final Pattern PEM_PATTERN = Pattern.compile(PEM_HEADER + "(.*?)" + PEM_FOOTER, Pattern.DOTALL);
     private static final Pattern P7B_PATTERN = Pattern.compile(P7B_HEADER + "(.*?)" + P7B_FOOTER, Pattern.DOTALL);
+    private static final String EMPTY_INPUT_STREAM_EXCEPTION_MESSAGE = "Failed to load the certificate from the provided InputStream because it is null";
+    private static final UnaryOperator<String> CERTIFICATE_NOT_FOUND_EXCEPTION_MESSAGE = certificatePath -> String.format("Failed to load the certificate from the classpath for the given path: [%s]", certificatePath);
 
     private static final String EMPTY = "";
 
@@ -83,9 +88,9 @@ public final class CertificateUtils {
      */
     public static List<Certificate> loadCertificate(String... certificatePaths) {
         return loadCertificate(certificatePath ->
-                ValidationUtils.requireNotNull(
+                requireNotNull(
                         CertificateUtils.class.getClassLoader().getResourceAsStream(certificatePath),
-                        String.format("Failed to load the certificate from the classpath for the given path: [%s]", certificatePath)),
+                        CERTIFICATE_NOT_FOUND_EXCEPTION_MESSAGE.apply(certificatePath)),
                 certificatePaths
         );
     }
@@ -112,7 +117,7 @@ public final class CertificateUtils {
      */
     public static List<Certificate> loadCertificate(InputStream... certificateStreams) {
         return loadCertificate(certificateStream ->
-                ValidationUtils.requireNotNull(certificateStream, "Failed to load the certificate from the provided InputStream because it is null"),
+                requireNotNull(certificateStream, EMPTY_INPUT_STREAM_EXCEPTION_MESSAGE),
                 certificateStreams
         );
     }
