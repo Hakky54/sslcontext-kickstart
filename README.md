@@ -54,7 +54,8 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "7.4.5"
      - [Loading keystore from the file system](#loading-keystore-and-trust-store-from-anywhere-on-the-filesystem)
      - [Loading keystore from InputStream](#loading-keystore-and-trust-store-from-inputstream)
      - [Loading trust material with OCSP options](#loading-trust-material-with-ocsp-options)
-         - [TrustStore](#loading-trust-material-with-truststore-and-ocsp-options)
+         - [TrustStore from the classpath](#loading-trust-material-with-truststore-and-ocsp-options-from-the-classpath)
+         - [TrustStore from the file system](#loading-trust-material-with-truststore-and-ocsp-options-from-the-file-system)
          - [TrustManager](#loading-trust-material-with-trustmanager-and-ocsp-options)
          - [Certificates](#loading-trust-material-with-certificates-and-ocsp-options)
      - [Enhanceable trust validations](#enhanceable-trust-validations)
@@ -216,7 +217,7 @@ SSLFactory.builder()
 ```
 
 ##### Loading trust material with OCSP options
-##### Loading trust material with TrustStore and OCSP options
+##### Loading trust material with TrustStore and OCSP options from the classpath
 ```text
 CertPathBuilder certPathBuilder = CertPathBuilder.getInstance("PKIX");
 PKIXRevocationChecker revocationChecker = (PKIXRevocationChecker) certPathBuilder.getRevocationChecker();
@@ -224,6 +225,20 @@ revocationChecker.setOptions(EnumSet.of(PKIXRevocationChecker.Option.NO_FALLBACK
 
 SSLFactory sslFactory = SSLFactory.builder()
         .withTrustMaterial("truststore.jks", "password".toCharArray(), trustStore -> {
+            PKIXBuilderParameters pkixBuilderParameters = new PKIXBuilderParameters(trustStore, new X509CertSelector());
+            pkixBuilderParameters.addCertPathChecker(revocationChecker);
+            return new CertPathTrustManagerParameters(pkixBuilderParameters);
+        })
+        .build();
+```
+##### Loading trust material with TrustStore and OCSP options from the file system
+```text
+CertPathBuilder certPathBuilder = CertPathBuilder.getInstance("PKIX");
+PKIXRevocationChecker revocationChecker = (PKIXRevocationChecker) certPathBuilder.getRevocationChecker();
+revocationChecker.setOptions(EnumSet.of(PKIXRevocationChecker.Option.NO_FALLBACK));
+
+SSLFactory sslFactory = SSLFactory.builder()
+        .withTrustMaterial(Paths.get("/path/to/your/truststore.jks"), "password".toCharArray(), trustStore -> {
             PKIXBuilderParameters pkixBuilderParameters = new PKIXBuilderParameters(trustStore, new X509CertSelector());
             pkixBuilderParameters.addCertPathChecker(revocationChecker);
             return new CertPathTrustManagerParameters(pkixBuilderParameters);
