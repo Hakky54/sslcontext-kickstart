@@ -15,6 +15,7 @@
  */
 package nl.altindag.ssl.hostnameverifier;
 
+import nl.altindag.ssl.exception.GenericHostnameVerifierException;
 import nl.altindag.ssl.util.StringUtils;
 
 import javax.net.ssl.HostnameVerifier;
@@ -152,7 +153,7 @@ public final class BasicHostNameVerifier implements HostnameVerifier {
                 InetAddress inetAddress = InetAddress.getByName(result);
                 return inetAddress.getHostAddress();
             } catch (UnknownHostException e) {
-                throw new RuntimeException(e);
+                throw new GenericHostnameVerifierException(e);
             }
         }
 
@@ -327,7 +328,7 @@ public final class BasicHostNameVerifier implements HostnameVerifier {
      *    sub.test.example.com.
      * 3. Wildcard patterns for single-label domain names are not permitted.
      */
-    @SuppressWarnings("RedundantIfStatement")
+//    @SuppressWarnings("RedundantIfStatement")
     private boolean verifyWildcardPattern(String hostname, String domainNamePattern) {
         if (!domainNamePattern.startsWith("*.") || domainNamePattern.indexOf("*", 1) != -1) {
             // Asterisk (*) is only permitted in the left-most domain name label and must be the only
