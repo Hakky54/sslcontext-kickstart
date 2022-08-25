@@ -176,7 +176,7 @@ public final class SSLFactory {
         private Provider securityProvider = null;
         private String securityProviderName = null;
         private SecureRandom secureRandom = null;
-        private HostnameVerifier hostnameVerifier = HostnameVerifierUtils.createBasic();
+        private HostnameVerifier hostnameVerifier = HostnameVerifierUtils.createFenix();
 
         private final List<KeyStoreHolder> identities = new ArrayList<>();
         private final List<KeyStore> trustStores = new ArrayList<>();

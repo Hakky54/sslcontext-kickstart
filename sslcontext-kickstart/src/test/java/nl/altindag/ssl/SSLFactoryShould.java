@@ -20,7 +20,7 @@ import nl.altindag.ssl.exception.GenericKeyManagerException;
 import nl.altindag.ssl.exception.GenericKeyStoreException;
 import nl.altindag.ssl.exception.GenericSecurityException;
 import nl.altindag.ssl.exception.GenericTrustManagerException;
-import nl.altindag.ssl.hostnameverifier.BasicHostNameVerifier;
+import nl.altindag.ssl.hostnameverifier.FenixHostnameVerifier;
 import nl.altindag.ssl.keymanager.CompositeX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.DummyX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.HotSwappableX509ExtendedKeyManager;
@@ -1020,7 +1020,7 @@ class SSLFactoryShould {
                 .build();
 
         HostnameVerifier hostnameVerifier = sslFactory.getHostnameVerifier();
-        assertThat(hostnameVerifier).isInstanceOf(BasicHostNameVerifier.class);
+        assertThat(hostnameVerifier).isInstanceOf(FenixHostnameVerifier.class);
     }
 
     @Test
