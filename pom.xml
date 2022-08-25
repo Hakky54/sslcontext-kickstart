@@ -79,7 +79,7 @@
         <version.nexus-staging-maven-plugin>1.6.13</version.nexus-staging-maven-plugin>
         <version.license-maven-plugin>4.2.rc3</version.license-maven-plugin>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <license.git.copyrightYears>2019-2022</license.git.copyrightYears>
+        <license.git.copyrightYears>2019</license.git.copyrightYears>
     </properties>
 
     <dependencyManagement>
@@ -308,7 +308,7 @@
                 <configuration>
                     <inlineHeader>
 <![CDATA[
-Copyright ${license.git.copyrightYears} the original author or authors.
+Copyright ${license.git.copyrightYears} Thunderberry.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
