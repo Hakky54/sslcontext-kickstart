@@ -46,7 +46,6 @@ import static nl.altindag.ssl.hostnameverifier.Hostnames.toCanonicalHost;
  *
  * This HostnameVerifier is copied from OkHttp library, see here for the original content:
  * - https://github.com/square/okhttp/blob/69ae7f3e10dae0554f3181edaa52bcd77ee448ab/okhttp/src/jvmMain/kotlin/okhttp3/internal/tls/OkHostnameVerifier.kt#L1
- * - https://github.com/square/okhttp/blob/69ae7f3e10dae0554f3181edaa52bcd77ee448ab/okhttp/src/jvmMain/kotlin/okhttp3/internal/-HostnamesJvm.kt#L1
  */
 public final class FenixHostnameVerifier implements HostnameVerifier {
 
