@@ -333,6 +333,10 @@ limitations under the License.
                         <exclude>LICENSE</exclude>
                         <exclude>**/*.md</exclude>
                         <exclude>**/*.xml</exclude>
+                        <exclude>**/FenixHostnameVerifier.java</exclude>
+                        <exclude>**/HostnameCommon.java</exclude>
+                        <exclude>**/Hostnames.java</exclude>
+                        <exclude>**/FenixHostnameVerifierShould.java</exclude>
                     </excludes>
                     <strictCheck>true</strictCheck>
                     <mapping>

@@ -20,6 +20,7 @@ import nl.altindag.ssl.exception.GenericKeyManagerException;
 import nl.altindag.ssl.exception.GenericKeyStoreException;
 import nl.altindag.ssl.exception.GenericSecurityException;
 import nl.altindag.ssl.exception.GenericTrustManagerException;
+import nl.altindag.ssl.hostnameverifier.FenixHostnameVerifier;
 import nl.altindag.ssl.keymanager.CompositeX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.DummyX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.HotSwappableX509ExtendedKeyManager;
@@ -44,7 +45,6 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLEngine;
-import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509ExtendedKeyManager;
@@ -1019,11 +1019,8 @@ class SSLFactoryShould {
                 .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
                 .build();
 
-        SSLSession sslSession = mock(SSLSession.class);
-        when(sslSession.getPeerHost()).thenReturn("localhost");
-
         HostnameVerifier hostnameVerifier = sslFactory.getHostnameVerifier();
-        assertThat(hostnameVerifier.verify("localhost", sslSession)).isTrue();
+        assertThat(hostnameVerifier).isInstanceOf(FenixHostnameVerifier.class);
     }
 
     @Test

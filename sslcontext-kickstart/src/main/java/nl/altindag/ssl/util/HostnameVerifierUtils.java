@@ -16,6 +16,7 @@
 package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.hostnameverifier.BasicHostNameVerifier;
+import nl.altindag.ssl.hostnameverifier.FenixHostnameVerifier;
 import nl.altindag.ssl.hostnameverifier.UnsafeHostNameVerifier;
 
 import javax.net.ssl.HostnameVerifier;
@@ -27,12 +28,27 @@ public final class HostnameVerifierUtils {
 
     private HostnameVerifierUtils() {}
 
+    /**
+     * Creates a basic hostname verifier which validates the hostname against the peer host from the ssl session.
+     * This basic hostname verifier provides minimal security. It is recommended to use {@link HostnameVerifierUtils#createFenix()}
+     */
     public static HostnameVerifier createBasic() {
         return BasicHostNameVerifier.getInstance();
     }
 
+    /**
+     * Creates an unsafe hostname verifier which does not validate the hostname at all.
+     * This hostname verifier is unsafe and should be avoided
+     */
     public static HostnameVerifier createUnsafe() {
         return UnsafeHostNameVerifier.getInstance();
+    }
+
+    /**
+     * Creates a fenix hostname verifier which validates the hostname against the SAN field of the peer certificate.
+     */
+    public static HostnameVerifier createFenix() {
+        return FenixHostnameVerifier.getInstance();
     }
 
 }
