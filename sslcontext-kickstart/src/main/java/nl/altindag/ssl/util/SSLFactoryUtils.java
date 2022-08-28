@@ -40,7 +40,8 @@ public final class SSLFactoryUtils {
 
     private static <T> void reload(SSLFactory baseSslFactory,
                                    SSLFactory updatedSslFactory,
-                                   Function<SSLFactory, Optional<T>> mapper, BiConsumer<T, T> consumer) {
+                                   Function<SSLFactory, Optional<T>> mapper,
+                                   BiConsumer<T, T> consumer) {
 
         Optional<T> baseManager = mapper.apply(baseSslFactory);
         Optional<T> updatedManager = mapper.apply(updatedSslFactory);
