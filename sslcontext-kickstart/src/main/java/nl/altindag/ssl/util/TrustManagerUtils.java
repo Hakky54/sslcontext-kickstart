@@ -27,6 +27,8 @@ import nl.altindag.ssl.trustmanager.HotSwappableX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.TrustManagerFactoryWrapper;
 import nl.altindag.ssl.trustmanager.UnsafeX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.X509TrustManagerWrapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.ManagerFactoryParameters;
 import javax.net.ssl.TrustManager;
@@ -43,6 +45,7 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -265,17 +268,16 @@ public final class TrustManagerUtils {
     }
 
     private static List<X509ExtendedTrustManager> unwrapIfPossible(X509ExtendedTrustManager trustManager) {
-        List<X509ExtendedTrustManager> trustManagers = new ArrayList<>();
         if (trustManager instanceof CompositeX509ExtendedTrustManager) {
+            List<X509ExtendedTrustManager> trustManagers = new ArrayList<>();
             for (X509ExtendedTrustManager innerTrustManager : ((CompositeX509ExtendedTrustManager) trustManager).getTrustManagers()) {
                 List<X509ExtendedTrustManager> unwrappedTrustManagers = TrustManagerUtils.unwrapIfPossible(innerTrustManager);
                 trustManagers.addAll(unwrappedTrustManagers);
             }
+            return trustManagers;
         } else {
-            trustManagers.add(trustManager);
+            return Collections.singletonList(trustManager);
         }
-
-        return trustManagers;
     }
 
     public static TrustManagerBuilder trustManagerBuilder() {
@@ -284,7 +286,9 @@ public final class TrustManagerUtils {
 
     public static final class TrustManagerBuilder {
 
+        private static final Logger LOGGER = LoggerFactory.getLogger(TrustManagerBuilder.class);
         private static final String EMPTY_TRUST_MANAGER_EXCEPTION = "Input does not contain TrustManager";
+        private static final String NO_TRUSTED_CERTIFICATES_EXCEPTION = "The provided trust material does not contain any trusted certificate.";
 
         private TrustManagerBuilder() {}
 
@@ -360,21 +364,42 @@ public final class TrustManagerUtils {
 
             X509ExtendedTrustManager baseTrustManager;
 
-            Optional<X509ExtendedTrustManager> unsafeTrustManager = trustManagers.stream()
+            Optional<X509ExtendedTrustManager> maybeUnsafeTrustManager = trustManagers.stream()
                     .filter(UnsafeX509ExtendedTrustManager.class::isInstance)
                     .findAny();
 
-            if (unsafeTrustManager.isPresent()) {
-                baseTrustManager = unsafeTrustManager.get();
+            Optional<X509ExtendedTrustManager> maybeDummyTrustManager = trustManagers.stream()
+                    .filter(DummyX509ExtendedTrustManager.class::isInstance)
+                    .findAny();
+
+            if (maybeUnsafeTrustManager.isPresent()) {
+                if (trustManagers.size() > 1) {
+                    LOGGER.debug("Unsafe TrustManager is being used therefore other trust managers will not be included for constructing the base trust manager");
+                }
+
+                baseTrustManager = maybeUnsafeTrustManager.get();
+            } else if (maybeDummyTrustManager.isPresent()) {
+                if (trustManagers.size() > 1) {
+                    LOGGER.debug("Dummy TrustManager is being used therefore other trust managers will not be included for constructing the base trust manager");
+                }
+
+                baseTrustManager = maybeDummyTrustManager.get();
             } else {
                 if (trustManagers.size() == 1) {
                     baseTrustManager = trustManagers.get(0);
                 } else {
-                    baseTrustManager = trustManagers.stream()
+                    List<X509ExtendedTrustManager> trustManagersContainingTrustedCertificates = trustManagers.stream()
                             .map(TrustManagerUtils::unwrapIfPossible)
                             .flatMap(Collection::stream)
                             .filter(trustManager -> trustManager.getAcceptedIssuers().length > 0)
-                            .collect(Collectors.collectingAndThen(Collectors.toList(), CompositeX509ExtendedTrustManager::new));
+                            .collect(Collectors.toList());
+
+                    ValidationUtils.requireNotEmpty(trustManagersContainingTrustedCertificates, NO_TRUSTED_CERTIFICATES_EXCEPTION);
+                    if (trustManagersContainingTrustedCertificates.size() == 1) {
+                        baseTrustManager = trustManagersContainingTrustedCertificates.get(0);
+                    } else {
+                        baseTrustManager = new CompositeX509ExtendedTrustManager(trustManagersContainingTrustedCertificates);
+                    }
                 }
 
                 if (chainAndAuthTypeValidator != null

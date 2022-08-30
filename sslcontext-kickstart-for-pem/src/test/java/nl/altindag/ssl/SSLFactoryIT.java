@@ -16,7 +16,6 @@
 package nl.altindag.ssl;
 
 import nl.altindag.log.LogCaptor;
-import nl.altindag.ssl.util.KeyStoreUtils;
 import nl.altindag.ssl.util.PemUtils;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -49,7 +48,7 @@ class SSLFactoryIT {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withIdentityMaterial(keyManager)
                 .withTrustMaterial(trustManager)
-                .withTrustMaterial(KeyStoreUtils.createKeyStore()) // Adding additional trust material forces usage of CompositeX509ExtendedTrustManager and verbose logging
+                .withDefaultTrustMaterial() // Adding additional trust material forces usage of CompositeX509ExtendedTrustManager and verbose logging
                 .build();
 
         HttpsURLConnection connection = (HttpsURLConnection) new URL(BADSSL_URL).openConnection();
@@ -79,7 +78,7 @@ class SSLFactoryIT {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withIdentityMaterial(keyManager)
                 .withTrustMaterial(trustManager)
-                .withTrustMaterial(KeyStoreUtils.createKeyStore()) // Adding additional trust material forces usage of CompositeX509ExtendedTrustManager and verbose logging
+                .withDefaultTrustMaterial() // Adding additional trust material forces usage of CompositeX509ExtendedTrustManager and verbose logging
                 .build();
 
         HttpsURLConnection connection = (HttpsURLConnection) new URL(BADSSL_URL).openConnection();
@@ -322,7 +321,7 @@ class SSLFactoryIT {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withIdentityMaterial(keyManager)
                 .withTrustMaterial(trustManager)
-                .withTrustMaterial(KeyStoreUtils.createKeyStore()) // Adding additional trust material forces usage of CompositeX509ExtendedTrustManager and verbose logging
+                .withDefaultTrustMaterial() // Adding additional trust material forces usage of CompositeX509ExtendedTrustManager and verbose logging
                 .build();
 
         HttpsURLConnection connection = (HttpsURLConnection) new URL(BADSSL_URL).openConnection();
