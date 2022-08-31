@@ -3,6 +3,13 @@
 This list is not intended to be all-encompassing - it will document major and breaking API 
 changes with their rationale when appropriate:
 
+### v7.4.6
+ - Updated copyright owner to Thunderberry. The license type, Apache 2.0 license, has not changed
+ - Added more secure hostname verifier a.k.a. FenixHostnameVerifier
+ - Switched to FenixHostnameVerifier as default hostname verifier in the SSLFactory
+ - Improved creating truststore having duplicate certificates
+ - Improved creating base trust manager when having either unsafe trust manager, dummy trust manager, multiple trust managers and trust managers which does not have trusted certificates
+ - Bumped dependencies
 ### v7.4.5
  - Bug-fix issue 196 - Use UnsafeTrustManager as base TrustManager if enabled
  - Improve issue 181 - Filtered out empty TrustManagers within TrustManagerUtils
