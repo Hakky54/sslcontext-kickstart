@@ -28,7 +28,7 @@ class UnsafeHostnameVerifierShould {
 
     @Test
     void verifyReturnsAlwaysTrue() {
-        HostnameVerifier hostnameVerifier = UnsafeHostNameVerifier.getInstance();
+        HostnameVerifier hostnameVerifier = UnsafeHostnameVerifier.getInstance();
 
         boolean verify = hostnameVerifier.verify("some-host", null);
         assertThat(verify).isTrue();

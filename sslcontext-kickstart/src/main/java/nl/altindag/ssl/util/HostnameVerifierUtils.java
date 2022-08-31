@@ -15,9 +15,9 @@
  */
 package nl.altindag.ssl.util;
 
-import nl.altindag.ssl.hostnameverifier.BasicHostNameVerifier;
+import nl.altindag.ssl.hostnameverifier.BasicHostnameVerifier;
 import nl.altindag.ssl.hostnameverifier.FenixHostnameVerifier;
-import nl.altindag.ssl.hostnameverifier.UnsafeHostNameVerifier;
+import nl.altindag.ssl.hostnameverifier.UnsafeHostnameVerifier;
 
 import javax.net.ssl.HostnameVerifier;
 
@@ -33,7 +33,7 @@ public final class HostnameVerifierUtils {
      * This basic hostname verifier provides minimal security. It is recommended to use {@link HostnameVerifierUtils#createFenix()}
      */
     public static HostnameVerifier createBasic() {
-        return BasicHostNameVerifier.getInstance();
+        return BasicHostnameVerifier.getInstance();
     }
 
     /**
@@ -41,7 +41,7 @@ public final class HostnameVerifierUtils {
      * This hostname verifier is unsafe and should be avoided
      */
     public static HostnameVerifier createUnsafe() {
-        return UnsafeHostNameVerifier.getInstance();
+        return UnsafeHostnameVerifier.getInstance();
     }
 
     /**

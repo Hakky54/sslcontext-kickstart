@@ -37,7 +37,7 @@ class BasicHostnameVerifierShould {
         SSLSession sslSession = mock(SSLSession.class);
         when(sslSession.getPeerHost()).thenReturn("some-host");
 
-        HostnameVerifier hostnameVerifier = BasicHostNameVerifier.getInstance();
+        HostnameVerifier hostnameVerifier = BasicHostnameVerifier.getInstance();
 
         boolean verify = hostnameVerifier.verify("some-host", sslSession);
         assertThat(verify).isTrue();
@@ -48,7 +48,7 @@ class BasicHostnameVerifierShould {
         SSLSession sslSession = mock(SSLSession.class);
         when(sslSession.getPeerHost()).thenReturn("some-host");
 
-        HostnameVerifier hostnameVerifier = BasicHostNameVerifier.getInstance();
+        HostnameVerifier hostnameVerifier = BasicHostnameVerifier.getInstance();
 
         boolean verify = hostnameVerifier.verify("sOmE-hOsT", sslSession);
         assertThat(verify).isTrue();
@@ -59,7 +59,7 @@ class BasicHostnameVerifierShould {
         SSLSession sslSession = mock(SSLSession.class);
         when(sslSession.getPeerHost()).thenReturn("some-host");
 
-        HostnameVerifier hostnameVerifier = BasicHostNameVerifier.getInstance();
+        HostnameVerifier hostnameVerifier = BasicHostnameVerifier.getInstance();
 
         boolean verify = hostnameVerifier.verify("another-host", sslSession);
         assertThat(verify).isFalse();

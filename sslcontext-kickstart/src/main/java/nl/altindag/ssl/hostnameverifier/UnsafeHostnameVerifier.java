@@ -27,11 +27,11 @@ import javax.net.ssl.SSLSession;
  *
  * @author Hakan Altindag
  */
-public final class UnsafeHostNameVerifier implements HostnameVerifier {
+public final class UnsafeHostnameVerifier implements HostnameVerifier {
 
-    private static final HostnameVerifier INSTANCE = new UnsafeHostNameVerifier();
+    private static final HostnameVerifier INSTANCE = new UnsafeHostnameVerifier();
 
-    private UnsafeHostNameVerifier() {}
+    private UnsafeHostnameVerifier() {}
 
     @Override
     public boolean verify(String host, SSLSession sslSession) {

@@ -15,8 +15,8 @@
  */
 package nl.altindag.ssl.util;
 
-import nl.altindag.ssl.hostnameverifier.BasicHostNameVerifier;
-import nl.altindag.ssl.hostnameverifier.UnsafeHostNameVerifier;
+import nl.altindag.ssl.hostnameverifier.BasicHostnameVerifier;
+import nl.altindag.ssl.hostnameverifier.UnsafeHostnameVerifier;
 import org.junit.jupiter.api.Test;
 
 import javax.net.ssl.HostnameVerifier;
@@ -34,7 +34,7 @@ class HostnameVerifierUtilsShould {
 
         assertThat(hostnameVerifier)
                 .isNotNull()
-                .isInstanceOf(BasicHostNameVerifier.class);
+                .isInstanceOf(BasicHostnameVerifier.class);
     }
 
     @Test
@@ -43,7 +43,7 @@ class HostnameVerifierUtilsShould {
 
         assertThat(hostnameVerifier)
                 .isNotNull()
-                .isInstanceOf(UnsafeHostNameVerifier.class);
+                .isInstanceOf(UnsafeHostnameVerifier.class);
     }
 
 }
