@@ -9,6 +9,7 @@ changes with their rationale when appropriate:
  - Switched to FenixHostnameVerifier as default hostname verifier in the SSLFactory
  - Improved creating truststore having duplicate certificates
  - Improved creating base trust manager when having either unsafe trust manager, dummy trust manager, multiple trust managers and trust managers which does not have trusted certificates
+ - Added Android trusted CA as system trust material option
  - Bumped dependencies
 ### v7.4.5
  - Bug-fix issue 196 - Use UnsafeTrustManager as base TrustManager if enabled
