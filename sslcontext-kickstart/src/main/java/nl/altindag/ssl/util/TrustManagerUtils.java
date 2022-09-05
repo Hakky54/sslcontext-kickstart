@@ -363,55 +363,13 @@ public final class TrustManagerUtils {
             requireNotEmpty(trustManagers, () -> new GenericTrustManagerException(EMPTY_TRUST_MANAGER_EXCEPTION));
 
             X509ExtendedTrustManager baseTrustManager;
-
-            Optional<X509ExtendedTrustManager> maybeUnsafeTrustManager = trustManagers.stream()
-                    .filter(UnsafeX509ExtendedTrustManager.class::isInstance)
-                    .findAny();
-
-            Optional<X509ExtendedTrustManager> maybeDummyTrustManager = trustManagers.stream()
-                    .filter(DummyX509ExtendedTrustManager.class::isInstance)
-                    .findAny();
-
-            if (maybeUnsafeTrustManager.isPresent()) {
-                if (trustManagers.size() > 1) {
-                    LOGGER.debug("Unsafe TrustManager is being used therefore other trust managers will not be included for constructing the base trust manager");
-                }
-
-                baseTrustManager = maybeUnsafeTrustManager.get();
-            } else if (maybeDummyTrustManager.isPresent()) {
-                if (trustManagers.size() > 1) {
-                    LOGGER.debug("Dummy TrustManager is being used therefore other trust managers will not be included for constructing the base trust manager");
-                }
-
-                baseTrustManager = maybeDummyTrustManager.get();
+            Optional<X509ExtendedTrustManager> unsafeOrDummyTrustManager = getUnsafeOrDummyTrustManagerIfConfigured(trustManagers);
+            if (unsafeOrDummyTrustManager.isPresent()) {
+                baseTrustManager = unsafeOrDummyTrustManager.get();
             } else {
-                if (trustManagers.size() == 1) {
-                    baseTrustManager = trustManagers.get(0);
-                } else {
-                    List<X509ExtendedTrustManager> trustManagersContainingTrustedCertificates = trustManagers.stream()
-                            .map(TrustManagerUtils::unwrapIfPossible)
-                            .flatMap(Collection::stream)
-                            .filter(trustManager -> trustManager.getAcceptedIssuers().length > 0)
-                            .collect(Collectors.toList());
-
-                    ValidationUtils.requireNotEmpty(trustManagersContainingTrustedCertificates, NO_TRUSTED_CERTIFICATES_EXCEPTION);
-                    if (trustManagersContainingTrustedCertificates.size() == 1) {
-                        baseTrustManager = trustManagersContainingTrustedCertificates.get(0);
-                    } else {
-                        baseTrustManager = new CompositeX509ExtendedTrustManager(trustManagersContainingTrustedCertificates);
-                    }
-                }
-
-                if (chainAndAuthTypeValidator != null
-                        || chainAndAuthTypeWithSocketValidator != null
-                        || chainAndAuthTypeWithSSLEngineValidator != null) {
-                    baseTrustManager = TrustManagerUtils.createEnhanceableTrustManager(
-                            baseTrustManager,
-                            chainAndAuthTypeValidator,
-                            chainAndAuthTypeWithSocketValidator,
-                            chainAndAuthTypeWithSSLEngineValidator
-                    );
-                }
+                baseTrustManager = combine(trustManagers);
+                baseTrustManager = createEnhanceableTrustManagerIfEnabled(baseTrustManager)
+                        .orElse(baseTrustManager);
             }
 
             if (swappableTrustManagerEnabled) {
@@ -420,6 +378,71 @@ public final class TrustManagerUtils {
 
             return baseTrustManager;
         }
+
+        private Optional<X509ExtendedTrustManager> getUnsafeOrDummyTrustManagerIfConfigured(List<X509ExtendedTrustManager> trustManagers) {
+            Optional<X509ExtendedTrustManager> maybeUnsafeTrustManager = trustManagers.stream()
+                    .filter(UnsafeX509ExtendedTrustManager.class::isInstance)
+                    .findAny();
+
+            if (maybeUnsafeTrustManager.isPresent()) {
+                if (trustManagers.size() > 1) {
+                    LOGGER.debug("Unsafe TrustManager is being used therefore other trust managers will not be included for constructing the base trust manager");
+                }
+
+                return maybeUnsafeTrustManager;
+            }
+
+            Optional<X509ExtendedTrustManager> maybeDummyTrustManager = trustManagers.stream()
+                    .filter(DummyX509ExtendedTrustManager.class::isInstance)
+                    .findAny();
+
+            if (maybeDummyTrustManager.isPresent()) {
+                if (trustManagers.size() > 1) {
+                    LOGGER.debug("Dummy TrustManager is being used therefore other trust managers will not be included for constructing the base trust manager");
+                }
+
+                return maybeDummyTrustManager;
+            }
+
+            return Optional.empty();
+        }
+
+        private X509ExtendedTrustManager combine(List<X509ExtendedTrustManager> trustManagers) {
+            if (trustManagers.size() == 1) {
+                return trustManagers.get(0);
+            }
+
+            List<X509ExtendedTrustManager> trustManagersContainingTrustedCertificates = trustManagers.stream()
+                    .map(TrustManagerUtils::unwrapIfPossible)
+                    .flatMap(Collection::stream)
+                    .filter(trustManager -> trustManager.getAcceptedIssuers().length > 0)
+                    .collect(Collectors.toList());
+
+            ValidationUtils.requireNotEmpty(trustManagersContainingTrustedCertificates, NO_TRUSTED_CERTIFICATES_EXCEPTION);
+            if (trustManagersContainingTrustedCertificates.size() == 1) {
+                return trustManagersContainingTrustedCertificates.get(0);
+            } else {
+                return new CompositeX509ExtendedTrustManager(trustManagersContainingTrustedCertificates);
+            }
+        }
+
+        private Optional<X509ExtendedTrustManager> createEnhanceableTrustManagerIfEnabled(X509ExtendedTrustManager baseTrustManager) {
+            if (chainAndAuthTypeValidator == null
+                    && chainAndAuthTypeWithSocketValidator == null
+                    && chainAndAuthTypeWithSSLEngineValidator == null) {
+                return Optional.empty();
+            }
+
+            X509ExtendedTrustManager enhanceableTrustManager = TrustManagerUtils.createEnhanceableTrustManager(
+                    baseTrustManager,
+                    chainAndAuthTypeValidator,
+                    chainAndAuthTypeWithSocketValidator,
+                    chainAndAuthTypeWithSSLEngineValidator
+            );
+
+            return Optional.of(enhanceableTrustManager);
+        }
+
     }
 
 }
