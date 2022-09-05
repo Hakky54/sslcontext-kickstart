@@ -51,7 +51,8 @@ class CertificateExtractorUtils {
 
     private static CertificateExtractorUtils instance;
 
-    private final SSLFactory sslFactory;
+    private final SSLFactory sslFactoryForCertificateCapturing;
+    private final SSLFactory unsafeSslFactory;
     private final SSLSocketFactory unsafeSslSocketFactory;
     private final SSLSocketFactory certificateCapturingSslSocketFactory;
     private final List<X509Certificate> certificatesCollector;
@@ -61,12 +62,16 @@ class CertificateExtractorUtils {
 
         X509ExtendedTrustManager certificateCapturingTrustManager = TrustManagerUtils.createCertificateCapturingTrustManager(certificatesCollector);
 
-        sslFactory = SSLFactory.builder()
+        sslFactoryForCertificateCapturing = SSLFactory.builder()
                 .withTrustMaterial(certificateCapturingTrustManager)
                 .build();
 
-        certificateCapturingSslSocketFactory = sslFactory.getSslSocketFactory();
-        unsafeSslSocketFactory = SSLSocketUtils.createUnsafeSslSocketFactory();
+        unsafeSslFactory = SSLFactory.builder()
+                .withUnsafeTrustMaterial()
+                .build();
+
+        certificateCapturingSslSocketFactory = sslFactoryForCertificateCapturing.getSslSocketFactory();
+        unsafeSslSocketFactory = unsafeSslFactory.getSslSocketFactory();
     }
 
     static CertificateExtractorUtils getInstance() {
@@ -74,7 +79,7 @@ class CertificateExtractorUtils {
             instance = new CertificateExtractorUtils();
         } else {
             instance.certificatesCollector.clear();
-            SSLSessionUtils.invalidateCaches(instance.sslFactory);
+            SSLSessionUtils.invalidateCaches(instance.sslFactoryForCertificateCapturing);
         }
         return instance;
     }
@@ -98,6 +103,8 @@ class CertificateExtractorUtils {
             }
         } catch (IOException e) {
             throw new GenericIOException(String.format("Failed getting certificate from: [%s]", url), e);
+        } finally {
+            SSLSessionUtils.invalidateCaches(sslFactoryForCertificateCapturing);
         }
     }
 
@@ -160,6 +167,8 @@ class CertificateExtractorUtils {
             return certificates;
         } catch (IOException e) {
             throw new GenericCertificateException(e);
+        } finally {
+            SSLSessionUtils.invalidateCaches(unsafeSslFactory);
         }
     }
 
