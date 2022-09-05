@@ -39,4 +39,26 @@ class ValidationUtilsShould {
             .isInstanceOf(MyException.class)
             .hasMessage("Custom message");
     }
+
+    @Test
+    void requireNotEmptyNoopsWhenNotNull() {
+        assertThat(ValidationUtils.requireNotEmpty(new String[] {"Hello"}, () -> new IllegalArgumentException("Custom message")))
+                .hasSize(1)
+                .contains("Hello");
+    }
+
+    @Test
+    void requireNotEmptyThrowsSuppliedExceptionWhenEmpty() {
+        assertThatThrownBy(() -> ValidationUtils.requireNotEmpty(new String[] {}, () -> new MyException("Custom message")))
+                .isInstanceOf(MyException.class)
+                .hasMessage("Custom message");
+    }
+
+    @Test
+    void requireNotEmptyThrowsSuppliedExceptionWhenNull() {
+        assertThatThrownBy(() -> ValidationUtils.requireNotEmpty((String []) null, () -> new MyException("Custom message")))
+                .isInstanceOf(MyException.class)
+                .hasMessage("Custom message");
+    }
+
 }
