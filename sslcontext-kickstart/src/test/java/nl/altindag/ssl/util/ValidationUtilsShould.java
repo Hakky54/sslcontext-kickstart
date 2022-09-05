@@ -61,4 +61,11 @@ class ValidationUtilsShould {
                 .hasMessage("Custom message");
     }
 
+    @Test
+    void requireNotEmptyThrowsIllegalArgumentExceptionWhenNoCustomExceptionIsProvided() {
+        assertThatThrownBy(() -> ValidationUtils.requireNotEmpty((String []) null, "Custom message"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Custom message");
+    }
+
 }
