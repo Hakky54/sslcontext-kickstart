@@ -129,6 +129,7 @@ class FenixHostnameVerifierShould {
         assertThat(hostnameVerifier.verify("foo.com", sslSession)).isFalse();
         assertThat(hostnameVerifier.verify("a.foo.com", sslSession)).isFalse();
         assertThat(hostnameVerifier.verify("github.com", sslSession)).isTrue();
+        assertThat(hostnameVerifier.verify("github.com.", sslSession)).isTrue(); // issue#230
         assertThat(hostnameVerifier.verify("a.github.com", sslSession)).isFalse();
     }
 

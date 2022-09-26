@@ -43,6 +43,10 @@ import static nl.altindag.ssl.hostnameverifier.Hostnames.toCanonicalHost;
  * Instead use the {@link nl.altindag.ssl.util.HostnameVerifierUtils HostnameVerifierUtils} which provides the same functionality
  * while it has a stable API because it is part of the public API.
  * </p>
+ * This verifier does not accept addresses in the subjectDN:commonName attribute
+ * and it will not verify names or wildcards against the TPL. Therefore use of wildcards
+ * is not limited to subdomains.
+ * </p>
  *
  * This HostnameVerifier is copied from OkHttp library, see here for the original content:
  * - https://github.com/square/okhttp/blob/69ae7f3e10dae0554f3181edaa52bcd77ee448ab/okhttp/src/jvmMain/kotlin/okhttp3/internal/tls/OkHostnameVerifier.kt#L1
@@ -121,7 +125,6 @@ public final class FenixHostnameVerifier implements HostnameVerifier {
 
             return subjectAlternativeNames.stream()
                     .filter(Objects::nonNull)
-                    .filter(subjectAlternativeName -> !subjectAlternativeName.isEmpty())
                     .filter(subjectAlternativeName -> subjectAlternativeName.size() == 2)
                     .filter(subjectAlternativeName -> subjectAlternativeName.get(0) instanceof Integer && ((Integer) subjectAlternativeName.get(0)) == type)
                     .map(subjectAlternativeName -> subjectAlternativeName.get(1))
@@ -185,7 +188,7 @@ public final class FenixHostnameVerifier implements HostnameVerifier {
      */
     private String toAbsolute(String hostname) {
         String absoluteHostname = hostname;
-        if (!absoluteHostname.startsWith(".")) {
+        if (!absoluteHostname.endsWith(".")) {
             absoluteHostname += ".";
         }
         return absoluteHostname;
