@@ -3,6 +3,9 @@
 This list is not intended to be all-encompassing - it will document major and breaking API 
 changes with their rationale when appropriate:
 
+### v7.4.7
+ - Bug-fix issue 230 - Corrected validation with usage of absolute hostname
+ - Bumped dependencies
 ### v7.4.6
  - Updated copyright owner to Thunderberry. The license type, Apache 2.0 license, has not changed
  - Added more secure hostname verifier a.k.a. FenixHostnameVerifier
