@@ -27,6 +27,7 @@ import javax.net.ssl.SSLSession;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.cert.Certificate;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -118,6 +119,7 @@ class FenixHostnameVerifierShould {
         assertThat(hostnameVerifier.verify("\u82b1\u5b50.co.jp", sslSession)).isFalse();
         assertThat(hostnameVerifier.verify("a.\u82b1\u5b50.co.jp", sslSession)).isFalse();
     }
+
     @Test
     void verifySubjectAlt() throws IOException {
         SSLSession sslSession;
@@ -129,8 +131,15 @@ class FenixHostnameVerifierShould {
         assertThat(hostnameVerifier.verify("foo.com", sslSession)).isFalse();
         assertThat(hostnameVerifier.verify("a.foo.com", sslSession)).isFalse();
         assertThat(hostnameVerifier.verify("github.com", sslSession)).isTrue();
-        assertThat(hostnameVerifier.verify("github.com.", sslSession)).isTrue(); // issue#230
         assertThat(hostnameVerifier.verify("a.github.com", sslSession)).isFalse();
+    }
+
+    @Test
+    void toAbsolute() {
+        for (String hostname : Arrays.asList("github.com", "github.com.")) {
+            String absoluteHostname = hostnameVerifier.toAbsolute(hostname);
+            assertThat(absoluteHostname).isEqualTo("github.com.");
+        }
     }
 
     @Test

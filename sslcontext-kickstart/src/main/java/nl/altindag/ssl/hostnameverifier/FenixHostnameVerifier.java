@@ -186,7 +186,7 @@ public final class FenixHostnameVerifier implements HostnameVerifier {
      *   www.android.com. matches www.android.com.
      *   www.android.com. matches www.android.com
      */
-    private String toAbsolute(String hostname) {
+    String toAbsolute(String hostname) {
         String absoluteHostname = hostname;
         if (!absoluteHostname.endsWith(".")) {
             absoluteHostname += ".";
