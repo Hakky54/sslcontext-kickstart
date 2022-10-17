@@ -37,7 +37,7 @@
 
     <properties>
         <version.netty-handler>4.1.82.Final</version.netty-handler>
-        <version.reactor-netty>1.0.23</version.reactor-netty>
+        <version.reactor-netty>1.0.24</version.reactor-netty>
     </properties>
 
     <dependencies>
