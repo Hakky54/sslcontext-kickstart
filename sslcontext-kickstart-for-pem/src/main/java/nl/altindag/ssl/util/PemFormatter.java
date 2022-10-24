@@ -29,7 +29,13 @@ final class PemFormatter {
 
     private static final Pattern PEM_PATTERN = Pattern.compile("(-----BEGIN.*?-----)(.*?)(-----END.*?-----)");
     private static final String INNER_ENCRYPTED_HEADER = "Proc-Type: 4,ENCRYPTED";
+    private static final Map<String, Integer> ENCRYPTION_ALGORITHMS_AND_SALT_TO_FIELD_LENGTH = new HashMap<>();
     private static final String EMPTY = "";
+
+    static {
+        ENCRYPTION_ALGORITHMS_AND_SALT_TO_FIELD_LENGTH.put("AES-256-CBC", 54);
+        ENCRYPTION_ALGORITHMS_AND_SALT_TO_FIELD_LENGTH.put("DES-EDE3-CBC", 39);
+    }
 
     private PemFormatter() {}
 
@@ -83,11 +89,7 @@ final class PemFormatter {
             return Collections.emptyList();
         }
 
-        Map<String, Integer> encryptionAlgorithmsAndSaltToFieldLength = new HashMap<>();
-        encryptionAlgorithmsAndSaltToFieldLength.put("AES-256-CBC", 54);
-        encryptionAlgorithmsAndSaltToFieldLength.put("DES-EDE3-CBC", 39);
-
-        for (Map.Entry<String, Integer> encryptionAlgorithmAndSaltToFieldLength : encryptionAlgorithmsAndSaltToFieldLength.entrySet()) {
+        for (Map.Entry<String, Integer> encryptionAlgorithmAndSaltToFieldLength : ENCRYPTION_ALGORITHMS_AND_SALT_TO_FIELD_LENGTH.entrySet()) {
             if (value.contains(encryptionAlgorithmAndSaltToFieldLength.getKey())) {
                 String encryptionAlgorithmValue = value.substring(INNER_ENCRYPTED_HEADER.length(), INNER_ENCRYPTED_HEADER.length() + encryptionAlgorithmAndSaltToFieldLength.getValue());
                 List<String> innerHeader = new ArrayList<>();
