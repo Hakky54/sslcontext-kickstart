@@ -80,17 +80,17 @@ final class PemFormatter {
      * </pre>
      */
     private static List<String> extractInnerEncryptionHeaderIfPossible(String value) {
-        Map<String, Integer> encryptionAlgorithmAndSaltToFieldLength = new HashMap<>();
-        encryptionAlgorithmAndSaltToFieldLength.put("AES-256-CBC", 54);
-        encryptionAlgorithmAndSaltToFieldLength.put("DES-EDE3-CBC", 39);
+        Map<String, Integer> encryptionAlgorithmsAndSaltToFieldLength = new HashMap<>();
+        encryptionAlgorithmsAndSaltToFieldLength.put("AES-256-CBC", 54);
+        encryptionAlgorithmsAndSaltToFieldLength.put("DES-EDE3-CBC", 39);
 
         if (!value.contains(INNER_ENCRYPTED_HEADER)) {
             return Collections.emptyList();
         }
 
-        for (String encryptionAlgorithm : encryptionAlgorithmAndSaltToFieldLength.keySet()) {
-            if (value.contains(encryptionAlgorithm)) {
-                String encryptionAlgorithmValue = value.substring(INNER_ENCRYPTED_HEADER.length(), INNER_ENCRYPTED_HEADER.length() + encryptionAlgorithmAndSaltToFieldLength.get(encryptionAlgorithm));
+        for (Map.Entry<String, Integer> encryptionAlgorithmAndSaltToFieldLength : encryptionAlgorithmsAndSaltToFieldLength.entrySet()) {
+            if (value.contains(encryptionAlgorithmAndSaltToFieldLength.getKey())) {
+                String encryptionAlgorithmValue = value.substring(INNER_ENCRYPTED_HEADER.length(), INNER_ENCRYPTED_HEADER.length() + encryptionAlgorithmAndSaltToFieldLength.getValue());
                 List<String> innerHeader = new ArrayList<>();
                 innerHeader.add(INNER_ENCRYPTED_HEADER);
                 innerHeader.add(encryptionAlgorithmValue);
