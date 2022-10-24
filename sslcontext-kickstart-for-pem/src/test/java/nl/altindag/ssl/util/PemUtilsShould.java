@@ -490,6 +490,91 @@ class PemUtilsShould {
     }
 
     @Test
+    void parseSingleTrustMaterialFromContentAsAsOneLiner() {
+        String certificateContent = getResourceContent(PEM_LOCATION + "one-liner-stackexchange.pem");
+
+        X509ExtendedTrustManager trustManager = PemUtils.parseTrustMaterial(certificateContent);
+        assertThat(trustManager).isNotNull();
+        assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
+    }
+
+    @Test
+    void parseMultipleTrustMaterialsFromContentAsSingleStringAndAsOneLiner() {
+        String certificateContent = getResourceContent(PEM_LOCATION + "one-liner-multiple-certificates.pem");
+
+        X509ExtendedTrustManager trustManager = PemUtils.parseTrustMaterial(certificateContent);
+        assertThat(trustManager).isNotNull();
+        assertThat(trustManager.getAcceptedIssuers()).hasSize(3);
+    }
+
+    @Test
+    void parseMultipleTrustMaterialsFromContentAsOneLiner() {
+        String certificateContentOne = getResourceContent(PEM_LOCATION + "one-liner-github-certificate.pem");
+        String certificateContentTwo = getResourceContent(PEM_LOCATION + "one-liner-stackexchange.pem");
+
+        X509ExtendedTrustManager trustManager = PemUtils.parseTrustMaterial(certificateContentOne, certificateContentTwo);
+        assertThat(trustManager).isNotNull();
+        assertThat(trustManager.getAcceptedIssuers()).hasSize(2);
+    }
+
+    @Test
+    void parseSingleTrustMaterialAsOpenSslTrustedCertificateFormatFromContentAsOneLiner() {
+        String certificateContent = getResourceContent(PEM_LOCATION + "one-liner-alternative-certificate-type.pem");
+        X509ExtendedTrustManager trustManager = PemUtils.parseTrustMaterial(certificateContent);
+
+        assertThat(trustManager).isNotNull();
+        assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
+    }
+
+    @Test
+    void loadEcEncryptedIdentityMaterialFromContentAsOneLiner() {
+        String identityContent = getResourceContent(PEM_LOCATION + "one-liner-encrypted-ec-identity.pem");
+        X509ExtendedKeyManager keyManager = PemUtils.parseIdentityMaterial(identityContent, DEFAULT_PASSWORD);
+
+        assertThat(keyManager).isNotNull();
+    }
+
+    @Test
+    void loadEncryptedIdentityMaterialFromContentAsOneLiner() {
+        String identityContent = getResourceContent(PEM_LOCATION + "one-liner-encrypted-identity.pem");
+        X509ExtendedKeyManager keyManager = PemUtils.parseIdentityMaterial(identityContent, DEFAULT_PASSWORD);
+
+        assertThat(keyManager).isNotNull();
+    }
+
+    @Test
+    void loadRsaEncryptedIdentityMaterialFromContentAsOneLiner() {
+        String identityContent = getResourceContent(PEM_LOCATION + "one-liner-encrypted-rsa-identity.pem");
+        X509ExtendedKeyManager keyManager = PemUtils.parseIdentityMaterial(identityContent, DEFAULT_PASSWORD);
+
+        assertThat(keyManager).isNotNull();
+    }
+
+    @Test
+    void loadUnEncryptedRsaIdentityMaterialFromContentAsOneLiner() {
+        String identityContent = getResourceContent(PEM_LOCATION + "one-liner-unencrypted-rsa-identity.pem");
+        X509ExtendedKeyManager keyManager = PemUtils.parseIdentityMaterial(identityContent, null);
+
+        assertThat(keyManager).isNotNull();
+    }
+
+    @Test
+    void loadUnEncryptedEcIdentityMaterialFromContentAsOneLiner() {
+        String identityContent = getResourceContent(PEM_LOCATION + "one-liner-unencrypted-ec-identity.pem");
+        X509ExtendedKeyManager keyManager = PemUtils.parseIdentityMaterial(identityContent, null);
+
+        assertThat(keyManager).isNotNull();
+    }
+
+    @Test
+    void loadUnEncryptedIdentityMaterialFromContentAsOneLiner() {
+        String identityContent = getResourceContent(PEM_LOCATION + "one-liner-unencrypted-identity.pem");
+        X509ExtendedKeyManager keyManager = PemUtils.parseIdentityMaterial(identityContent, null);
+
+        assertThat(keyManager).isNotNull();
+    }
+
+    @Test
     void throwsIllegalArgumentExceptionWhenCertificateCannotBeFoundFromTheClasspath() {
         assertThatThrownBy(() -> PemUtils.loadCertificate("non-existing-directory/non-existing-certificate.pem"))
                 .isInstanceOf(IllegalArgumentException.class)
