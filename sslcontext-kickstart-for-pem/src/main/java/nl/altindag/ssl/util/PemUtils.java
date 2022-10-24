@@ -183,7 +183,8 @@ public final class PemUtils {
     }
 
     private static List<Object> parsePemContent(String pemContent) {
-        try(Reader stringReader = new StringReader(pemContent);
+        String formattedPemContent = PemFormatter.reformatIfNeeded(pemContent);
+        try(Reader stringReader = new StringReader(formattedPemContent);
             PEMParser pemParser = new PEMParser(stringReader)) {
 
             List<Object> objects = new ArrayList<>();
