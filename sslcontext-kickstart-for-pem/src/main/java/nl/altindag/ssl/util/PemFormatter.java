@@ -27,7 +27,7 @@ import java.util.stream.Stream;
 
 final class PemFormatter {
 
-    private static final Pattern PEM_PATTERN = Pattern.compile("(-----.*?-----)(.*?)(-----.*?-----)");
+    private static final Pattern PEM_PATTERN = Pattern.compile("(-----BEGIN.*?-----)(.*?)(-----END.*?-----)");
     private static final String INNER_ENCRYPTED_HEADER = "Proc-Type: 4,ENCRYPTED";
     private static final String EMPTY = "";
 
