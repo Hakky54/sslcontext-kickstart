@@ -543,11 +543,19 @@ class PemUtilsShould {
     }
 
     @Test
-    void loadRsaEncryptedIdentityMaterialFromContentAsOneLiner() {
-        String identityContent = getResourceContent(PEM_LOCATION + "one-liner-encrypted-rsa-identity.pem");
+    void loadRsaDesEde3CbcEncryptedIdentityMaterialFromContentAsOneLiner() {
+        String identityContent = getResourceContent(PEM_LOCATION + "one-liner-encrypted-rsa-des-ede3-cbc-identity.pem");
         X509ExtendedKeyManager keyManager = PemUtils.parseIdentityMaterial(identityContent, DEFAULT_PASSWORD);
 
         assertThat(keyManager).isNotNull();
+    }
+
+    @Test
+    void loadRsaAes256CbcEncryptedIdentityMaterialFromContentAsOneLiner() {
+        String identityContent = getResourceContent(PEM_LOCATION + "one-liner-encrypted-rsa-aes-256-cbc-identity.pem");
+        PrivateKey privateKey = PemUtils.parsePrivateKey(identityContent, DEFAULT_PASSWORD);
+
+        assertThat(privateKey).isNotNull();
     }
 
     @Test
