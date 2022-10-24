@@ -16,7 +16,6 @@
 package nl.altindag.ssl.util;
 
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -48,7 +47,7 @@ final class PemFormatter {
             String footer = certificateMatcher.group(3);
 
             List<String> innerEncryptionHeader = extractInnerEncryptionHeaderIfPossible(body);
-            String certificateContent = extractBase64EncodedString(body, 0, String.join(EMPTY, innerEncryptionHeader));
+            String certificateContent = body.substring(String.join(EMPTY, innerEncryptionHeader).length());
 
             List<String> certificateContainer = Stream.of(certificateContent.split("(?<=\\G.{64})"))
                     .collect(Collectors.toCollection(ArrayList::new));
@@ -80,13 +79,13 @@ final class PemFormatter {
      * </pre>
      */
     private static List<String> extractInnerEncryptionHeaderIfPossible(String value) {
-        Map<String, Integer> encryptionAlgorithmsAndSaltToFieldLength = new HashMap<>();
-        encryptionAlgorithmsAndSaltToFieldLength.put("AES-256-CBC", 54);
-        encryptionAlgorithmsAndSaltToFieldLength.put("DES-EDE3-CBC", 39);
-
         if (!value.contains(INNER_ENCRYPTED_HEADER)) {
             return Collections.emptyList();
         }
+
+        Map<String, Integer> encryptionAlgorithmsAndSaltToFieldLength = new HashMap<>();
+        encryptionAlgorithmsAndSaltToFieldLength.put("AES-256-CBC", 54);
+        encryptionAlgorithmsAndSaltToFieldLength.put("DES-EDE3-CBC", 39);
 
         for (Map.Entry<String, Integer> encryptionAlgorithmAndSaltToFieldLength : encryptionAlgorithmsAndSaltToFieldLength.entrySet()) {
             if (value.contains(encryptionAlgorithmAndSaltToFieldLength.getKey())) {
@@ -100,16 +99,6 @@ final class PemFormatter {
         }
 
         return Collections.emptyList();
-    }
-
-    private static String extractBase64EncodedString(String value, int startIndex, String innerEncryptionHeader) {
-        try {
-            String substring = value.substring(innerEncryptionHeader.length() + startIndex);
-            Base64.getDecoder().decode(substring);
-            return substring;
-        } catch (IllegalArgumentException exception) {
-            return extractBase64EncodedString(value, ++startIndex, innerEncryptionHeader);
-        }
     }
 
 }
