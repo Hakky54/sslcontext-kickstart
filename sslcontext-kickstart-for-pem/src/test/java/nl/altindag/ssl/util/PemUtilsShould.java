@@ -551,7 +551,7 @@ class PemUtilsShould {
     }
 
     @Test
-    void loadRsaAes256CbcEncryptedIdentityMaterialFromContentAsOneLiner() {
+    void loadRsaAes256CbcEncryptedPrivateKeyFromContentAsOneLiner() {
         String identityContent = getResourceContent(PEM_LOCATION + "one-liner-encrypted-rsa-aes-256-cbc-identity.pem");
         PrivateKey privateKey = PemUtils.parsePrivateKey(identityContent, DEFAULT_PASSWORD);
 
