@@ -3,6 +3,9 @@
 This list is not intended to be all-encompassing - it will document major and breaking API 
 changes with their rationale when appropriate:
 
+### v7.4.8
+ - Feature request issue 241 - Added support for using one-liner pem formatted certificates
+ - Bumped dependencies
 ### v7.4.7
  - Bug-fix issue 230 - Corrected validation with usage of absolute hostname
  - Bumped dependencies
