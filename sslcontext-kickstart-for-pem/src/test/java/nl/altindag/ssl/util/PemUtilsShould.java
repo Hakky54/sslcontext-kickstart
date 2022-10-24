@@ -559,6 +559,14 @@ class PemUtilsShould {
     }
 
     @Test
+    void throwsIllegalArgumentExceptionWhenUnsupportedEncryptedRsaPrivateKeyIsProvidedAsOneLiner() {
+        String identityContent = getResourceContent(PEM_LOCATION + "one-liner-encrypted-rsa-faulty-private-key.pem");
+        assertThatThrownBy(() -> PemUtils.parsePrivateKey(identityContent, DEFAULT_PASSWORD))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("The provided encrypted private key is not supported. Supported formats are: [AES-256-CBC,DES-EDE3-CBC]");
+    }
+
+    @Test
     void loadUnEncryptedRsaIdentityMaterialFromContentAsOneLiner() {
         String identityContent = getResourceContent(PEM_LOCATION + "one-liner-unencrypted-rsa-identity.pem");
         X509ExtendedKeyManager keyManager = PemUtils.parseIdentityMaterial(identityContent, null);

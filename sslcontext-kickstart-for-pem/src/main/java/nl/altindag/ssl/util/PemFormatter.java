@@ -100,7 +100,10 @@ final class PemFormatter {
             }
         }
 
-        return Collections.emptyList();
+        throw new IllegalArgumentException(String.format(
+                "The provided encrypted private key is not supported. Supported formats are: [%s]",
+                String.join(",", ENCRYPTION_ALGORITHMS_AND_SALT_TO_FIELD_LENGTH.keySet())
+        ));
     }
 
 }
