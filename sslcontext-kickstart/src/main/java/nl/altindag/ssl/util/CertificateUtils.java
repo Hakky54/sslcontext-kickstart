@@ -65,6 +65,7 @@ public final class CertificateUtils {
     private static final Pattern P7B_PATTERN = Pattern.compile(P7B_HEADER + "(.*?)" + P7B_FOOTER, Pattern.DOTALL);
     private static final String EMPTY_INPUT_STREAM_EXCEPTION_MESSAGE = "Failed to load the certificate from the provided InputStream because it is null";
     private static final UnaryOperator<String> CERTIFICATE_NOT_FOUND_EXCEPTION_MESSAGE = certificatePath -> String.format("Failed to load the certificate from the classpath for the given path: [%s]", certificatePath);
+    private static final String MAX_64_CHARACTER_LINE_SPLITTER = "(?<=\\G.{64})";
 
     private static final String EMPTY = "";
 
@@ -261,7 +262,7 @@ public final class CertificateUtils {
             byte[] base64EncodedCertificate = Base64.getEncoder().encode(encodedCertificate);
             String parsedCertificate = new String(base64EncodedCertificate);
 
-            List<String> certificateContainer = Stream.of(parsedCertificate.split("(?<=\\G.{64})"))
+            List<String> certificateContainer = Stream.of(parsedCertificate.split(MAX_64_CHARACTER_LINE_SPLITTER))
                     .collect(Collectors.toCollection(ArrayList::new));
             certificateContainer.add(0, PEM_HEADER);
             certificateContainer.add(PEM_FOOTER);

@@ -30,6 +30,7 @@ final class PemFormatter {
     private static final Pattern PEM_PATTERN = Pattern.compile("(-----BEGIN.*?-----)(.*?)(-----END.*?-----)");
     private static final String INNER_ENCRYPTED_HEADER = "Proc-Type: 4,ENCRYPTED";
     private static final Map<String, Integer> ENCRYPTION_ALGORITHMS_AND_SALT_TO_FIELD_LENGTH = new HashMap<>();
+    private static final String MAX_64_CHARACTER_LINE_SPLITTER = "(?<=\\G.{64})";
     private static final String EMPTY = "";
 
     static {
@@ -55,7 +56,7 @@ final class PemFormatter {
             List<String> innerEncryptionHeader = extractInnerEncryptionHeaderIfPossible(body);
             String certificateContent = body.substring(String.join(EMPTY, innerEncryptionHeader).length());
 
-            List<String> certificateContainer = Stream.of(certificateContent.split("(?<=\\G.{64})"))
+            List<String> certificateContainer = Stream.of(certificateContent.split(MAX_64_CHARACTER_LINE_SPLITTER))
                     .collect(Collectors.toCollection(ArrayList::new));
             certificateContainer.add(0, header);
             certificateContainer.addAll(1, innerEncryptionHeader);
