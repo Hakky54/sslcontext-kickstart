@@ -58,9 +58,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
+import static nl.altindag.ssl.util.PemType.CERTIFICATE;
+import static nl.altindag.ssl.util.PemType.KEY;
 import static nl.altindag.ssl.util.ValidationUtils.requireNotEmpty;
 import static nl.altindag.ssl.util.ValidationUtils.requireNotNull;
 
@@ -173,7 +176,7 @@ public final class PemUtils {
     }
 
     public static List<X509Certificate> parseCertificate(String certContent) {
-        List<X509Certificate> certificates = parsePemContent(certContent).stream()
+        List<X509Certificate> certificates = parsePemContent(certContent, CERTIFICATE::equals).stream()
                 .map(PemUtils::extractCertificate)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
@@ -182,14 +185,17 @@ public final class PemUtils {
         return requireNotEmpty(certificates, () -> new CertificateParseException("Received an unsupported certificate type"));
     }
 
-    private static List<Object> parsePemContent(String pemContent) {
+    private static List<Object> parsePemContent(String pemContent, Predicate<PemType> predicate) {
         String formattedPemContent = PemFormatter.reformatIfNeeded(pemContent);
         try(Reader stringReader = new StringReader(formattedPemContent);
             PEMParser pemParser = new PEMParser(stringReader)) {
 
             List<Object> objects = new ArrayList<>();
             for (Object object = pemParser.readObject(); object != null; object = pemParser.readObject()) {
-                objects.add(object);
+                PemType pemType = PemType.from(object);
+                if (predicate.test(pemType)) {
+                    objects.add(object);
+                }
             }
 
             return objects;
@@ -469,7 +475,7 @@ public final class PemUtils {
      * contains multiple private keys it will use only the first one.
      */
     public static PrivateKey parsePrivateKey(String identityContent, char[] keyPassword) {
-        return parsePemContent(identityContent).stream()
+        return parsePemContent(identityContent, KEY::equals).stream()
                 .map(object -> extractPrivateKeyInfo(object, keyPassword))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
