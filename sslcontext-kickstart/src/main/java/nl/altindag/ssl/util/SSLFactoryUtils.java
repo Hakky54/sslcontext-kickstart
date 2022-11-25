@@ -20,9 +20,8 @@ import nl.altindag.ssl.keymanager.RootKeyManagerFactorySpi;
 import nl.altindag.ssl.provider.FenixProvider;
 import nl.altindag.ssl.provider.FenixServiceSupplier;
 import nl.altindag.ssl.trustmanager.RootTrustManagerFactorySpi;
-import sun.security.jca.ProviderList;
-import sun.security.jca.Providers;
 
+import java.security.Security;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -69,8 +68,7 @@ public final class SSLFactoryUtils {
             fenixProvider.putService(FenixServiceSupplier.createTrustManagerFactoryService(fenixProvider));
         });
 
-        ProviderList providerList = ProviderList.insertAt(Providers.getProviderList(), fenixProvider, 0);
-        Providers.setProviderList(providerList);
+        Security.insertProviderAt(fenixProvider, 1);
     }
 
 }

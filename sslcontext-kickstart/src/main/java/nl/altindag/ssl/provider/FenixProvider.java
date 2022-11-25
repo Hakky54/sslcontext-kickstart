@@ -19,7 +19,7 @@ import java.security.Provider;
 
 public final class FenixProvider extends Provider {
 
-    private static final String PROVIDER_NAME = "FENIX";
+    private static final String PROVIDER_NAME = "Fenix";
     private static final double PROVIDER_VERSION = 1.0;
     private static final String PROVIDER_INFO = "Provides various security objects";
 
