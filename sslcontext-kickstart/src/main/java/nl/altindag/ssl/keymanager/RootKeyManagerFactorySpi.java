@@ -35,7 +35,7 @@ import static nl.altindag.ssl.util.ValidationUtils.requireNotNull;
  *
  * @author Hakan Altindag
  */
-public class RootKeyManagerFactorySpi extends KeyManagerFactorySpi {
+public final class RootKeyManagerFactorySpi extends KeyManagerFactorySpi {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RootKeyManagerFactorySpi.class);
     private static KeyManager[] keyManagers;

@@ -24,6 +24,9 @@ import java.util.Collections;
 
 public final class FenixServiceSupplier {
 
+    private FenixServiceSupplier() {
+    }
+
     public static FenixService createKeyManagerFactoryService(Provider provider) {
         return new FenixService(provider,
                 "KeyManagerFactory",

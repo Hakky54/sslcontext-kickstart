@@ -35,7 +35,7 @@ import static nl.altindag.ssl.util.ValidationUtils.requireNotNull;
  *
  * @author Hakan Altindag
  */
-public class RootTrustManagerFactorySpi extends TrustManagerFactorySpi {
+public final class RootTrustManagerFactorySpi extends TrustManagerFactorySpi {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RootTrustManagerFactorySpi.class);
     private static TrustManager[] trustManagers;

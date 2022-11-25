@@ -19,7 +19,7 @@ import java.security.Provider;
 import java.util.List;
 import java.util.Map;
 
-class FenixService extends Provider.Service {
+final class FenixService extends Provider.Service {
 
     /**
      * Construct a new service.

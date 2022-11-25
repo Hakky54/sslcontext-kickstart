@@ -23,7 +23,7 @@ public final class FenixProvider extends Provider {
     private static final double PROVIDER_VERSION = 1.0;
     private static final String PROVIDER_INFO = "Provides various security objects";
 
-    private static FenixProvider INSTANCE = null;
+    private static FenixProvider instance = null;
 
     private FenixProvider() {
         super(PROVIDER_NAME, PROVIDER_VERSION, PROVIDER_INFO);
@@ -34,10 +34,10 @@ public final class FenixProvider extends Provider {
     }
 
     public static FenixProvider getInstance() {
-        if (INSTANCE == null) {
-            INSTANCE = new FenixProvider();
+        if (instance == null) {
+            instance = new FenixProvider();
         }
-        return INSTANCE;
+        return instance;
     }
 
 }
