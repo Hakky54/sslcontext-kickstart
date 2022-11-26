@@ -24,7 +24,6 @@ import javax.net.ssl.TrustManagerFactorySpi;
 import java.security.KeyStore;
 
 import static nl.altindag.ssl.util.ValidationUtils.GENERIC_EXCEPTION_MESSAGE;
-import static nl.altindag.ssl.util.ValidationUtils.requireEmpty;
 import static nl.altindag.ssl.util.ValidationUtils.requireNotNull;
 
 /**
@@ -56,7 +55,6 @@ public final class RootTrustManagerFactorySpi extends TrustManagerFactorySpi {
     }
 
     public static void setTrustManager(TrustManager trustManager) {
-        requireEmpty(trustManagers, "TrustManager has already been configured.");
         requireNotNull(trustManager, GENERIC_EXCEPTION_MESSAGE.apply("TrustManager"));
         trustManagers = new TrustManager[]{trustManager};
     }

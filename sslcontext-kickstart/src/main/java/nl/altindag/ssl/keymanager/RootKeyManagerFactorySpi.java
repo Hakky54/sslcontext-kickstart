@@ -24,7 +24,6 @@ import javax.net.ssl.ManagerFactoryParameters;
 import java.security.KeyStore;
 
 import static nl.altindag.ssl.util.ValidationUtils.GENERIC_EXCEPTION_MESSAGE;
-import static nl.altindag.ssl.util.ValidationUtils.requireEmpty;
 import static nl.altindag.ssl.util.ValidationUtils.requireNotNull;
 
 /**
@@ -56,7 +55,6 @@ public final class RootKeyManagerFactorySpi extends KeyManagerFactorySpi {
     }
 
     public static void setKeyManager(KeyManager keyManager) {
-        requireEmpty(keyManagers, "KeyManager has already been configured.");
         requireNotNull(keyManager, GENERIC_EXCEPTION_MESSAGE.apply("KeyManager"));
         keyManagers = new KeyManager[]{keyManager};
     }

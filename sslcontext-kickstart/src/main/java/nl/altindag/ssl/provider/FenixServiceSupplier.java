@@ -22,6 +22,12 @@ import java.security.Provider;
 import java.util.Arrays;
 import java.util.Collections;
 
+/**
+ * <strong>NOTE:</strong>
+ * Please don't use this class directly as it is part of the internal API. Class name and methods can be changed any time.
+ *
+ * @author Hakan Altindag
+ */
 public final class FenixServiceSupplier {
 
     private FenixServiceSupplier() {
@@ -41,7 +47,7 @@ public final class FenixServiceSupplier {
                 "TrustManagerFactory",
                 "PKIX",
                 RootTrustManagerFactorySpi.class.getName(),
-                Arrays.asList("X509", "SunPKIX", "SunX509"),
+                Arrays.asList("X.509", "X509", "SunPKIX", "SunX509"),
                 Collections.emptyMap());
     }
 

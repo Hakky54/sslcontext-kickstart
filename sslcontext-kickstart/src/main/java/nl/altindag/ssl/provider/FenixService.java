@@ -19,6 +19,12 @@ import java.security.Provider;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * <strong>NOTE:</strong>
+ * Please don't use this class directly as it is part of the internal API. Class name and methods can be changed any time.
+ *
+ * @author Hakan Altindag
+ */
 final class FenixService extends Provider.Service {
 
     /**
