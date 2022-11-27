@@ -17,8 +17,10 @@ package nl.altindag.ssl.util;
 
 import nl.altindag.log.LogCaptor;
 import nl.altindag.ssl.SSLFactory;
+import org.junit.jupiter.api.ClassOrderer;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestClassOrder;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.IOException;
@@ -32,6 +34,7 @@ import static org.assertj.core.api.Assertions.fail;
 /**
  * @author Hakan Altindag
  */
+@TestClassOrder(ClassOrderer.OrderAnnotation.class)
 class SSLFactoryUtilsIT {
 
     @Test
