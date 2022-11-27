@@ -35,12 +35,12 @@ import static org.assertj.core.api.Assertions.fail;
 /**
  * @author Hakan Altindag
  */
+@Order(0)
 @TestClassOrder(ClassOrderer.OrderAnnotation.class)
 class SSLFactoryUtilsIT {
 
     @Test
     @Tag("it-with-badssl.com")
-    @Order(0)
     void executeHttpsRequestWithMutualAuthenticationWithSimplifiedClientConfiguration() throws IOException {
         LogCaptor logCaptor = LogCaptor.forName("nl.altindag.ssl");
 
