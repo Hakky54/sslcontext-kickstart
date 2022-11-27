@@ -30,7 +30,7 @@ class FenixProviderShould {
         assertThat(fenixProvider.getInfo()).isEqualTo("Provides various security objects");
         assertThat(fenixProvider.getVersion()).isEqualTo(1.0);
 
-        assertThat(fenixProvider.hashCode()).isEqualTo(FenixProvider.getInstance().hashCode());
+        assertThat(fenixProvider.hashCode()).hasSameHashCodeAs(FenixProvider.getInstance());
     }
 
 }
