@@ -16,21 +16,13 @@
 package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.SSLFactory;
-import nl.altindag.ssl.keymanager.RootKeyManagerFactorySpi;
-import nl.altindag.ssl.trustmanager.RootTrustManagerFactorySpi;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.invocation.InvocationOnMock;
 
-import java.security.Provider;
-import java.security.Provider.Service;
-import java.security.Security;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.groups.Tuple.tuple;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
 
 class SSLFactoryUtilsShould {
 
@@ -140,42 +132,6 @@ class SSLFactoryUtilsShould {
 
             mock.verify(() -> KeyManagerUtils.swapKeyManager(any(), any()), times(1));
         }
-    }
-
-    @Test
-    void configureAsDefault() {
-        SSLFactory sslFactory = SSLFactory.builder()
-                .withDummyIdentityMaterial()
-                .withDummyTrustMaterial()
-                .build();
-
-        assertThat(sslFactory.getKeyManager()).isPresent();
-        assertThat(sslFactory.getTrustManager()).isPresent();
-
-        try (MockedStatic<RootKeyManagerFactorySpi> rootKeyManagerFactorySpiMock = mockStatic(RootKeyManagerFactorySpi.class, InvocationOnMock::callRealMethod);
-             MockedStatic<RootTrustManagerFactorySpi> rootTrustManagerFactorySpiMock = mockStatic(RootTrustManagerFactorySpi.class, InvocationOnMock::callRealMethod)) {
-
-            SSLFactoryUtils.configureAsDefault(sslFactory);
-
-            rootKeyManagerFactorySpiMock.verify(() -> RootKeyManagerFactorySpi.setKeyManager(sslFactory.getKeyManager().get()), times(1));
-            rootTrustManagerFactorySpiMock.verify(() -> RootTrustManagerFactorySpi.setTrustManager(sslFactory.getTrustManager().get()), times(1));
-
-
-            Provider[] providers = Security.getProviders();
-            assertThat(providers).isNotEmpty();
-            assertThat(providers[0].getName()).isEqualTo("Fenix");
-
-            List<Service> services = new ArrayList<>(providers[0].getServices());
-            assertThat(services).hasSize(2);
-
-            assertThat(services).extracting(Service::getType, Service::getAlgorithm)
-                    .containsExactlyInAnyOrder(
-                            tuple("KeyManagerFactory", "PKIX"),
-                            tuple("TrustManagerFactory", "PKIX")
-                    );
-        }
-
-        Security.removeProvider("Fenix");
     }
 
 }

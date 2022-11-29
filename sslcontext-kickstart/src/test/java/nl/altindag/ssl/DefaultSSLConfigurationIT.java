@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.altindag.ssl.util;
+package nl.altindag.ssl;
 
 import nl.altindag.log.LogCaptor;
-import nl.altindag.ssl.SSLFactory;
+import nl.altindag.ssl.util.KeyManagerUtils;
+import nl.altindag.ssl.util.TrustManagerUtils;
 import org.junit.jupiter.api.ClassOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Tag;
@@ -37,7 +38,7 @@ import static org.assertj.core.api.Assertions.fail;
  */
 @Order(0)
 @TestClassOrder(ClassOrderer.OrderAnnotation.class)
-class SSLFactoryUtilsIT {
+class DefaultSSLConfigurationIT {
 
     @Test
     @Tag("it-with-badssl.com")
@@ -50,7 +51,11 @@ class SSLFactoryUtilsIT {
                 .withDefaultTrustMaterial() // Adding additional trust material forces usage of CompositeX509ExtendedTrustManager and verbose logging
                 .build();
 
-        SSLFactoryUtils.configureAsDefault(sslFactory);
+        sslFactory.getTrustManager()
+                        .ifPresent(TrustManagerUtils::setDefault);
+        sslFactory.getKeyManager()
+                        .ifPresent(KeyManagerUtils::setDefault);
+
         assertThat(Security.getProvider("Fenix")).isNotNull();
 
         HttpsURLConnection connection = (HttpsURLConnection) new URL("https://client.badssl.com/").openConnection();

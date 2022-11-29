@@ -79,6 +79,7 @@
         <version.maven-scm-publish-plugin>3.0.0</version.maven-scm-publish-plugin>
         <version.nexus-staging-maven-plugin>1.6.13</version.nexus-staging-maven-plugin>
         <version.license-maven-plugin>4.2.rc3</version.license-maven-plugin>
+        <skip-tests>false</skip-tests>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <license.git.copyrightYears>2019</license.git.copyrightYears>
     </properties>
@@ -223,6 +224,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${version.maven-surefire-plugin}</version>
                 <configuration>
+                    <skip>${skip-tests}</skip>
                     <includes>
                         <include>%regex[.*Should.*]</include>
                     </includes>
@@ -235,6 +237,7 @@
                 <version>${version.maven-fail-safe}</version>
                 <configuration>
                     <useModulePath>false</useModulePath>
+                    <skip>${skip-tests}</skip>
                 </configuration>
                 <executions>
                     <execution>

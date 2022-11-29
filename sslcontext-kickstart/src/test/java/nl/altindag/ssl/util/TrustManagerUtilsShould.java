@@ -20,11 +20,13 @@ import nl.altindag.ssl.exception.GenericSecurityException;
 import nl.altindag.ssl.exception.GenericTrustManagerException;
 import nl.altindag.ssl.trustmanager.CompositeX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.DummyX509ExtendedTrustManager;
+import nl.altindag.ssl.trustmanager.RootTrustManagerFactorySpi;
 import nl.altindag.ssl.trustmanager.UnsafeX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.X509TrustManagerWrapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.net.ssl.CertPathTrustManagerParameters;
@@ -43,6 +45,7 @@ import java.security.cert.CertPathBuilder;
 import java.security.cert.PKIXBuilderParameters;
 import java.security.cert.PKIXRevocationChecker;
 import java.security.cert.X509CertSelector;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -51,10 +54,12 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.groups.Tuple.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
 
 /**
  * @author Hakan Altindag
@@ -451,6 +456,32 @@ class TrustManagerUtilsShould {
         X509ExtendedTrustManager trustManager = TrustManagerUtils.combine(emptyTrustManager, filledTrustManager);
 
         assertThat(trustManager).isNotInstanceOf(CompositeX509ExtendedTrustManager.class);
+    }
+
+    @Test
+    void setDefault() {
+        try (MockedStatic<RootTrustManagerFactorySpi> rootTrustManagerFactorySpiMock = mockStatic(RootTrustManagerFactorySpi.class, InvocationOnMock::callRealMethod)) {
+
+            X509ExtendedTrustManager trustManager = TrustManagerUtils.createDummyTrustManager();
+            TrustManagerUtils.setDefault(trustManager);
+
+            rootTrustManagerFactorySpiMock.verify(() -> RootTrustManagerFactorySpi.setTrustManager(trustManager), times(1));
+
+            Provider[] providers = Security.getProviders();
+            assertThat(providers).isNotEmpty();
+            assertThat(providers[0].getName()).isEqualTo("Fenix");
+
+            List<Provider.Service> services = new ArrayList<>(providers[0].getServices());
+            assertThat(services).hasSize(2);
+
+            assertThat(services).extracting(Provider.Service::getType, Provider.Service::getAlgorithm)
+                    .containsExactlyInAnyOrder(
+                            tuple("TrustManagerFactory", "SunX509"),
+                            tuple("TrustManagerFactory", "PKIX")
+                    );
+        }
+
+        Security.removeProvider("Fenix");
     }
 
     private CertPathTrustManagerParameters createTrustManagerParameters(KeyStore trustStore) throws NoSuchAlgorithmException, KeyStoreException, InvalidAlgorithmParameterException {

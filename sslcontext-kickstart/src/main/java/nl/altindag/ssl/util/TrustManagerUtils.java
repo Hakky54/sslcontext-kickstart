@@ -16,6 +16,8 @@
 package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.exception.GenericTrustManagerException;
+import nl.altindag.ssl.provider.FenixProvider;
+import nl.altindag.ssl.provider.FenixServiceSupplier;
 import nl.altindag.ssl.trustmanager.CertificateCapturingX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.ChainAndAuthTypeValidator;
 import nl.altindag.ssl.trustmanager.ChainAndAuthTypeWithSSLEngineValidator;
@@ -24,6 +26,7 @@ import nl.altindag.ssl.trustmanager.CompositeX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.DummyX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.EnhanceableX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.HotSwappableX509ExtendedTrustManager;
+import nl.altindag.ssl.trustmanager.RootTrustManagerFactorySpi;
 import nl.altindag.ssl.trustmanager.TrustManagerFactoryWrapper;
 import nl.altindag.ssl.trustmanager.UnsafeX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.X509TrustManagerWrapper;
@@ -41,6 +44,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.Provider;
+import java.security.Security;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -265,6 +269,13 @@ public final class TrustManagerUtils {
                 chainAndAuthTypeWithSocketValidator,
                 chainAndAuthTypeWithSSLEngineValidator
         );
+    }
+
+    public static void setDefault(TrustManager trustManager) {
+        RootTrustManagerFactorySpi.setTrustManager(trustManager);
+        FenixProvider fenixProvider = FenixProvider.getInstance();
+        FenixServiceSupplier.createTrustManagerFactoryService(fenixProvider).forEach(fenixProvider::putService);
+        Security.insertProviderAt(fenixProvider, 1);
     }
 
     private static List<X509ExtendedTrustManager> unwrapIfPossible(X509ExtendedTrustManager trustManager) {

@@ -21,6 +21,10 @@ import nl.altindag.ssl.trustmanager.RootTrustManagerFactorySpi;
 import java.security.Provider;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * <strong>NOTE:</strong>
@@ -33,22 +37,34 @@ public final class FenixServiceSupplier {
     private FenixServiceSupplier() {
     }
 
-    public static FenixService createKeyManagerFactoryService(Provider provider) {
-        return new FenixService(provider,
-                "KeyManagerFactory",
-                "PKIX",
-                RootKeyManagerFactorySpi.class.getName(),
-                Collections.singletonList("SunX509"),
-                Collections.emptyMap());
+    public static List<Provider.Service> createKeyManagerFactoryService(Provider provider) {
+        Map<String, List<String>> algorithmToAliases = new HashMap<>();
+        algorithmToAliases.put("SunX509", null);
+        algorithmToAliases.put("NewSunX509", Collections.singletonList("PKIX"));
+
+        return algorithmToAliases.entrySet().stream()
+                .map(entry -> new FenixService(provider,
+                        "KeyManagerFactory",
+                        entry.getKey(),
+                        RootKeyManagerFactorySpi.class.getName(),
+                        entry.getValue(),
+                        null))
+                .collect(Collectors.toList());
     }
 
-    public static FenixService createTrustManagerFactoryService(Provider provider) {
-        return new FenixService(provider,
-                "TrustManagerFactory",
-                "PKIX",
-                RootTrustManagerFactorySpi.class.getName(),
-                Arrays.asList("X.509", "X509", "SunPKIX", "SunX509"),
-                Collections.emptyMap());
+    public static List<Provider.Service> createTrustManagerFactoryService(Provider provider) {
+        Map<String, List<String>> algorithmToAliases = new HashMap<>();
+        algorithmToAliases.put("SunX509", null);
+        algorithmToAliases.put("PKIX", Arrays.asList("SunPKIX", "X509", "X.509"));
+
+        return algorithmToAliases.entrySet().stream()
+                .map(entry -> new FenixService(provider,
+                        "TrustManagerFactory",
+                        entry.getKey(),
+                        RootTrustManagerFactorySpi.class.getName(),
+                        entry.getValue(),
+                        null))
+                .collect(Collectors.toList());
     }
 
 }

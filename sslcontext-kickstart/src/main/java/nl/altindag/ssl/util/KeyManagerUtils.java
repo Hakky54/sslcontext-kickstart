@@ -20,8 +20,11 @@ import nl.altindag.ssl.keymanager.CompositeX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.DummyX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.HotSwappableX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.KeyManagerFactoryWrapper;
+import nl.altindag.ssl.keymanager.RootKeyManagerFactorySpi;
 import nl.altindag.ssl.keymanager.X509KeyManagerWrapper;
 import nl.altindag.ssl.model.KeyStoreHolder;
+import nl.altindag.ssl.provider.FenixProvider;
+import nl.altindag.ssl.provider.FenixServiceSupplier;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
@@ -34,6 +37,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.Provider;
+import java.security.Security;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.util.ArrayList;
@@ -272,6 +276,13 @@ public final class KeyManagerUtils {
                     CompositeX509ExtendedKeyManager.class.getName(),
                     keyManager.getClass().getName()));
         }
+    }
+
+    public static void setDefault(KeyManager keyManager) {
+        RootKeyManagerFactorySpi.setKeyManager(keyManager);
+        FenixProvider fenixProvider = FenixProvider.getInstance();
+        FenixServiceSupplier.createKeyManagerFactoryService(fenixProvider).forEach(fenixProvider::putService);
+        Security.insertProviderAt(fenixProvider, 1);
     }
 
     private static List<X509ExtendedKeyManager> unwrapIfPossible(X509ExtendedKeyManager keyManager) {

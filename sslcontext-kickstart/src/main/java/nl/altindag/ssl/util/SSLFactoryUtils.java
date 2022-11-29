@@ -16,12 +16,7 @@
 package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.SSLFactory;
-import nl.altindag.ssl.keymanager.RootKeyManagerFactorySpi;
-import nl.altindag.ssl.provider.FenixProvider;
-import nl.altindag.ssl.provider.FenixServiceSupplier;
-import nl.altindag.ssl.trustmanager.RootTrustManagerFactorySpi;
 
-import java.security.Security;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -53,22 +48,6 @@ public final class SSLFactoryUtils {
         if (baseManager.isPresent() && updatedManager.isPresent()) {
             consumer.accept(baseManager.get(), updatedManager.get());
         }
-    }
-
-    public static void configureAsDefault(SSLFactory sslFactory) {
-        FenixProvider fenixProvider = FenixProvider.getInstance();
-
-        sslFactory.getKeyManager().ifPresent(keyManager -> {
-            RootKeyManagerFactorySpi.setKeyManager(keyManager);
-            fenixProvider.putService(FenixServiceSupplier.createKeyManagerFactoryService(fenixProvider));
-        });
-
-        sslFactory.getTrustManager().ifPresent(trustManager -> {
-            RootTrustManagerFactorySpi.setTrustManager(trustManager);
-            fenixProvider.putService(FenixServiceSupplier.createTrustManagerFactoryService(fenixProvider));
-        });
-
-        Security.insertProviderAt(fenixProvider, 1);
     }
 
 }

@@ -17,10 +17,13 @@ package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.exception.GenericKeyManagerException;
 import nl.altindag.ssl.keymanager.CompositeX509ExtendedKeyManager;
+import nl.altindag.ssl.keymanager.RootKeyManagerFactorySpi;
 import nl.altindag.ssl.keymanager.X509KeyManagerWrapper;
 import nl.altindag.ssl.model.KeyStoreHolder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.MockedStatic;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.net.ssl.KeyManagerFactory;
@@ -30,7 +33,9 @@ import java.net.URI;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.Provider;
+import java.security.Provider.Service;
 import java.security.Security;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -38,7 +43,10 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.groups.Tuple.tuple;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
 
 /**
  * @author Hakan Altindag
@@ -352,6 +360,32 @@ class KeyManagerUtilsShould {
         assertThat(clientIdentityRoute)
                 .containsKey("client")
                 .containsValue(Arrays.asList("https://localhost:8443/", "https://localhost:8453/"));
+    }
+
+    @Test
+    void configureAsDefault() {
+        try (MockedStatic<RootKeyManagerFactorySpi> rootKeyManagerFactorySpiMock = mockStatic(RootKeyManagerFactorySpi.class, InvocationOnMock::callRealMethod)) {
+
+            X509ExtendedKeyManager keyManager = KeyManagerUtils.createDummyKeyManager();
+            KeyManagerUtils.setDefault(keyManager);
+
+            rootKeyManagerFactorySpiMock.verify(() -> RootKeyManagerFactorySpi.setKeyManager(keyManager), times(1));
+
+            Provider[] providers = Security.getProviders();
+            assertThat(providers).isNotEmpty();
+            assertThat(providers[0].getName()).isEqualTo("Fenix");
+
+            List<Service> services = new ArrayList<>(providers[0].getServices());
+            assertThat(services).hasSize(2);
+
+            assertThat(services).extracting(Service::getType, Service::getAlgorithm)
+                    .containsExactlyInAnyOrder(
+                            tuple("KeyManagerFactory", "SunX509"),
+                            tuple("KeyManagerFactory", "NewSunX509")
+                    );
+        }
+
+        Security.removeProvider("Fenix");
     }
 
     @Test

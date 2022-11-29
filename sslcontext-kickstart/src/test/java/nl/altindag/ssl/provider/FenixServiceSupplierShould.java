@@ -17,6 +17,9 @@ package nl.altindag.ssl.provider;
 
 import org.junit.jupiter.api.Test;
 
+import java.security.Provider.Service;
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
@@ -25,23 +28,23 @@ class FenixServiceSupplierShould {
     @Test
     void createKeyManagerFactoryService() {
         FenixProvider fenixProvider = mock(FenixProvider.class);
-        FenixService keyManagerFactoryService = FenixServiceSupplier.createKeyManagerFactoryService(fenixProvider);
+        List<Service> keyManagerFactoryServices = FenixServiceSupplier.createKeyManagerFactoryService(fenixProvider);
 
-        assertThat(keyManagerFactoryService).isNotNull();
-        assertThat(keyManagerFactoryService.getAlgorithm()).isEqualTo("PKIX");
-        assertThat(keyManagerFactoryService.getProvider()).isEqualTo(fenixProvider);
-        assertThat(keyManagerFactoryService.getType()).isEqualTo("KeyManagerFactory");
+        assertThat(keyManagerFactoryServices).isNotEmpty().hasSize(2);
+        assertThat(keyManagerFactoryServices).extracting(Service::getAlgorithm).containsExactlyInAnyOrder("SunX509", "NewSunX509");
+        assertThat(keyManagerFactoryServices).extracting(Service::getProvider).containsExactly(fenixProvider, fenixProvider);
+        assertThat(keyManagerFactoryServices).extracting(Service::getType).containsExactly("KeyManagerFactory", "KeyManagerFactory");
     }
 
     @Test
     void createTrustManagerFactoryService() {
         FenixProvider fenixProvider = mock(FenixProvider.class);
-        FenixService trustManagerFactoryService = FenixServiceSupplier.createTrustManagerFactoryService(fenixProvider);
+        List<Service> trustManagerFactoryServices = FenixServiceSupplier.createTrustManagerFactoryService(fenixProvider);
 
-        assertThat(trustManagerFactoryService).isNotNull();
-        assertThat(trustManagerFactoryService.getAlgorithm()).isEqualTo("PKIX");
-        assertThat(trustManagerFactoryService.getProvider()).isEqualTo(fenixProvider);
-        assertThat(trustManagerFactoryService.getType()).isEqualTo("TrustManagerFactory");
+        assertThat(trustManagerFactoryServices).isNotEmpty().hasSize(2);
+        assertThat(trustManagerFactoryServices).extracting(Service::getAlgorithm).containsExactlyInAnyOrder("SunX509", "PKIX");
+        assertThat(trustManagerFactoryServices).extracting(Service::getProvider).containsExactly(fenixProvider, fenixProvider);
+        assertThat(trustManagerFactoryServices).extracting(Service::getType).containsExactly("TrustManagerFactory", "TrustManagerFactory");
     }
 
 }
