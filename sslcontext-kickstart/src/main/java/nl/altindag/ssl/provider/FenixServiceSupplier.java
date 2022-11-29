@@ -43,7 +43,7 @@ public final class FenixServiceSupplier {
         algorithmToAliases.put("NewSunX509", Collections.singletonList("PKIX"));
 
         return algorithmToAliases.entrySet().stream()
-                .map(entry -> new FenixService(provider,
+                .map(entry -> new Provider.Service(provider,
                         "KeyManagerFactory",
                         entry.getKey(),
                         RootKeyManagerFactorySpi.class.getName(),
@@ -58,7 +58,7 @@ public final class FenixServiceSupplier {
         algorithmToAliases.put("PKIX", Arrays.asList("SunPKIX", "X509", "X.509"));
 
         return algorithmToAliases.entrySet().stream()
-                .map(entry -> new FenixService(provider,
+                .map(entry -> new Provider.Service(provider,
                         "TrustManagerFactory",
                         entry.getKey(),
                         RootTrustManagerFactorySpi.class.getName(),
