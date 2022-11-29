@@ -35,6 +35,7 @@ public final class FenixProvider extends Provider {
         super(PROVIDER_NAME, PROVIDER_VERSION, PROVIDER_INFO);
     }
 
+    @Override
     public void putService(Service service) {
         super.putService(service);
     }
