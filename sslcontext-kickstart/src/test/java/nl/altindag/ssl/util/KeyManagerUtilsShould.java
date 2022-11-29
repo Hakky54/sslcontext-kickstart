@@ -376,10 +376,8 @@ class KeyManagerUtilsShould {
             assertThat(providers[0].getName()).isEqualTo("Fenix");
 
             List<Service> services = new ArrayList<>(providers[0].getServices());
-            assertThat(services).hasSize(2);
-
             assertThat(services).extracting(Service::getType, Service::getAlgorithm)
-                    .containsExactlyInAnyOrder(
+                    .contains(
                             tuple("KeyManagerFactory", "SunX509"),
                             tuple("KeyManagerFactory", "NewSunX509")
                     );

@@ -472,10 +472,8 @@ class TrustManagerUtilsShould {
             assertThat(providers[0].getName()).isEqualTo("Fenix");
 
             List<Provider.Service> services = new ArrayList<>(providers[0].getServices());
-            assertThat(services).hasSize(2);
-
             assertThat(services).extracting(Provider.Service::getType, Provider.Service::getAlgorithm)
-                    .containsExactlyInAnyOrder(
+                    .contains(
                             tuple("TrustManagerFactory", "SunX509"),
                             tuple("TrustManagerFactory", "PKIX")
                     );
