@@ -46,6 +46,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import static nl.altindag.ssl.util.CollectorsUtils.toListAndThen;
+import static nl.altindag.ssl.util.CollectorsUtils.toUnmodifiableList;
 import static nl.altindag.ssl.util.ValidationUtils.GENERIC_EXCEPTION_MESSAGE;
 import static nl.altindag.ssl.util.ValidationUtils.requireNotEmpty;
 import static nl.altindag.ssl.util.ValidationUtils.requireNotNull;
@@ -74,7 +76,7 @@ public final class KeyManagerUtils {
     public static X509ExtendedKeyManager createKeyManager(KeyStoreHolder... keyStoreHolders) {
         return Arrays.stream(keyStoreHolders)
                 .map(keyStoreHolder -> createKeyManager(keyStoreHolder.getKeyStore(), keyStoreHolder.getKeyPassword()))
-                .collect(Collectors.collectingAndThen(Collectors.toList(), KeyManagerUtils::combine));
+                .collect(toListAndThen(KeyManagerUtils::combine));
     }
 
     public static X509ExtendedKeyManager createKeyManager(KeyStore keyStore, char[] keyPassword) {
@@ -159,7 +161,7 @@ public final class KeyManagerUtils {
                 .filter(X509KeyManager.class::isInstance)
                 .map(X509KeyManager.class::cast)
                 .map(KeyManagerUtils::wrapIfNeeded)
-                .collect(Collectors.collectingAndThen(Collectors.toList(), KeyManagerUtils::combine));
+                .collect(toListAndThen(KeyManagerUtils::combine));
     }
 
     public static X509ExtendedKeyManager createDummyKeyManager() {
@@ -263,7 +265,7 @@ public final class KeyManagerUtils {
                                     Entry::getKey,
                                     hosts -> hosts.getValue().stream()
                                             .map(URI::toString)
-                                            .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList))),
+                                            .collect(toUnmodifiableList())),
                             Collections::unmodifiableMap)
                     );
         } else {
@@ -357,10 +359,7 @@ public final class KeyManagerUtils {
                 keyManager = keyManagers.stream()
                         .map(KeyManagerUtils::unwrapIfPossible)
                         .flatMap(Collection::stream)
-                        .collect(Collectors.collectingAndThen(
-                                Collectors.toList(),
-                                extendedKeyManagers -> new CompositeX509ExtendedKeyManager(extendedKeyManagers, aliasToHost)
-                        ));
+                        .collect(toListAndThen(extendedKeyManagers -> new CompositeX509ExtendedKeyManager(extendedKeyManagers, aliasToHost)));
             }
 
             if (swappableKeyManagerEnabled) {

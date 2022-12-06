@@ -22,8 +22,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static nl.altindag.ssl.util.CollectorsUtils.toModifiableList;
 
 final class PemFormatter {
 
@@ -57,7 +58,7 @@ final class PemFormatter {
             String certificateContent = body.substring(String.join(EMPTY, innerEncryptionHeader).length());
 
             List<String> certificateContainer = Stream.of(certificateContent.split(MAX_64_CHARACTER_LINE_SPLITTER))
-                    .collect(Collectors.toCollection(ArrayList::new));
+                    .collect(toModifiableList());
             certificateContainer.add(0, header);
             certificateContainer.addAll(1, innerEncryptionHeader);
             certificateContainer.add(footer);

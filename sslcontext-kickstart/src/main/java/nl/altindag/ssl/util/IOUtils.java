@@ -32,6 +32,9 @@ import static nl.altindag.ssl.util.ValidationUtils.GENERIC_EXCEPTION_MESSAGE;
 import static nl.altindag.ssl.util.ValidationUtils.requireNotNull;
 
 /**
+ * <strong>NOTE:</strong>
+ * Please don't use this class directly as it is part of the internal API. Class name and methods can be changed any time.
+ *
  * @author Hakan Altindag
  */
 public final class IOUtils {

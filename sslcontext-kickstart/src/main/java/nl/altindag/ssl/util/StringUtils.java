@@ -18,6 +18,9 @@ package nl.altindag.ssl.util;
 import static java.util.Objects.isNull;
 
 /**
+ * <strong>NOTE:</strong>
+ * Please don't use this class directly as it is part of the internal API. Class name and methods can be changed any time.
+ *
  * @author Hakan Altindag
  */
 public final class StringUtils {

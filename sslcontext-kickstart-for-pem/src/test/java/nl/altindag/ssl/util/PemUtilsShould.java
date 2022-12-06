@@ -865,7 +865,7 @@ class PemUtilsShould {
             InputStreamReader inputStreamReader = new InputStreamReader(resource, StandardCharsets.UTF_8);
             BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
             return bufferedReader.lines()
-                    .collect(Collectors.joining("\n"));
+                    .collect(Collectors.joining(System.lineSeparator()));
         } catch (IOException e) {
            throw new UncheckedIOException(e);
         }

@@ -39,8 +39,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static nl.altindag.ssl.util.CollectorsUtils.toUnmodifiableList;
 
 /**
  * @author Hakan Altindag
@@ -97,7 +98,7 @@ class CertificateExtractorUtils {
                 return Stream.of(certificatesCollector, rootCa)
                         .flatMap(Collection::stream)
                         .distinct()
-                        .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
+                        .collect(toUnmodifiableList());
             } else {
                 return Collections.emptyList();
             }
@@ -160,7 +161,7 @@ class CertificateExtractorUtils {
                     .filter(X509Certificate.class::isInstance)
                     .map(X509Certificate.class::cast)
                     .filter(issuer -> isIssuerOfIntermediateCertificate(intermediateCertificate, issuer))
-                    .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
+                    .collect(toUnmodifiableList());
 
             inputStream.close();
 
@@ -177,7 +178,7 @@ class CertificateExtractorUtils {
 
         return jdkTrustedCertificates.stream()
                 .filter(issuer -> isIssuerOfIntermediateCertificate(intermediateCertificate, issuer))
-                .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
+                .collect(toUnmodifiableList());
     }
 
     boolean isIssuerOfIntermediateCertificate(X509Certificate intermediateCertificate, X509Certificate issuer) {

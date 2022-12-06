@@ -54,14 +54,14 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
-import java.util.stream.Collectors;
 
+import static nl.altindag.ssl.util.CollectorsUtils.toListAndThen;
+import static nl.altindag.ssl.util.CollectorsUtils.toUnmodifiableList;
 import static nl.altindag.ssl.util.PemType.CERTIFICATE;
 import static nl.altindag.ssl.util.PemType.KEY;
 import static nl.altindag.ssl.util.ValidationUtils.requireNotEmpty;
@@ -172,7 +172,7 @@ public final class PemUtils {
                 .map(IOUtils::getContent)
                 .map(PemUtils::parseCertificate)
                 .flatMap(Collection::stream)
-                .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
+                .collect(toUnmodifiableList());
     }
 
     public static List<X509Certificate> parseCertificate(String certContent) {
@@ -180,7 +180,7 @@ public final class PemUtils {
                 .map(PemUtils::extractCertificate)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
-                .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
+                .collect(toUnmodifiableList());
 
         return requireNotEmpty(certificates, () -> new CertificateParseException("Received an unsupported certificate type"));
     }
@@ -229,7 +229,7 @@ public final class PemUtils {
         return Arrays.stream(certificateContents)
                 .map(PemUtils::parseCertificate)
                 .flatMap(Collection::stream)
-                .collect(Collectors.collectingAndThen(Collectors.toList(), PemUtils::mapTrustMaterial));
+                .collect(toListAndThen(PemUtils::mapTrustMaterial));
     }
 
     private static X509ExtendedTrustManager mapTrustMaterial(List<X509Certificate> certificates) {

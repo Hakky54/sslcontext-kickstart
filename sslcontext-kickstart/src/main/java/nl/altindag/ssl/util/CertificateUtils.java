@@ -49,6 +49,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static nl.altindag.ssl.util.CollectorsUtils.toModifiableList;
+import static nl.altindag.ssl.util.CollectorsUtils.toUnmodifiableList;
 import static nl.altindag.ssl.util.ValidationUtils.requireNotNull;
 
 /**
@@ -203,20 +205,17 @@ public final class CertificateUtils {
 
     public static List<Certificate> parseDerCertificate(InputStream certificateStream) {
         try(BufferedInputStream bufferedCertificateStream = new BufferedInputStream(certificateStream)) {
-            CertificateFactory certificateFactory = CertificateFactory.getInstance(CERTIFICATE_TYPE);
-            return certificateFactory.generateCertificates(bufferedCertificateStream).stream()
-                    .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
+            return CertificateFactory.getInstance(CERTIFICATE_TYPE)
+                    .generateCertificates(bufferedCertificateStream).stream()
+                    .collect(toUnmodifiableList());
         } catch (CertificateException | IOException e) {
             throw new GenericCertificateException("There is no valid certificate present to parse. Please make sure to supply a valid der formatted certificate", e);
         }
     }
 
     public static List<X509Certificate> getJdkTrustedCertificates() {
-        return Collections.unmodifiableList(
-                Arrays.asList(
-                        TrustManagerUtils.createTrustManagerWithJdkTrustedCertificates().getAcceptedIssuers()
-                )
-        );
+        return Stream.of(TrustManagerUtils.createTrustManagerWithJdkTrustedCertificates().getAcceptedIssuers())
+                .collect(toUnmodifiableList());
     }
 
     public static List<X509Certificate> getSystemTrustedCertificates() {
@@ -230,7 +229,7 @@ public final class CertificateUtils {
     public static List<String> getCertificatesFromExternalSourceAsPem(String url) {
         return CertificateUtils.getCertificatesFromExternalSource(url).stream()
                 .map(CertificateUtils::convertToPem)
-                .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
+                .collect(toUnmodifiableList());
     }
 
     public static Map<String, List<String>> getCertificatesFromExternalSourcesAsPem(String... urls) {
@@ -281,7 +280,7 @@ public final class CertificateUtils {
     public static List<String> convertToPem(List<X509Certificate> certificates) {
         return certificates.stream()
                 .map(CertificateUtils::convertToPem)
-                .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
+                .collect(toUnmodifiableList());
     }
 
     public static String convertToPem(Certificate certificate) {
@@ -291,7 +290,7 @@ public final class CertificateUtils {
             String parsedCertificate = new String(base64EncodedCertificate);
 
             List<String> certificateContainer = Stream.of(parsedCertificate.split(MAX_64_CHARACTER_LINE_SPLITTER))
-                    .collect(Collectors.toCollection(ArrayList::new));
+                    .collect(toModifiableList());
             certificateContainer.add(0, PEM_HEADER);
             certificateContainer.add(PEM_FOOTER);
 

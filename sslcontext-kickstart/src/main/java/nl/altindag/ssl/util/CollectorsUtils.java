@@ -15,9 +15,12 @@
  */
 package nl.altindag.ssl.util;
 
-import java.net.URI;
-
-import static java.util.Objects.isNull;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 /**
  * <strong>NOTE:</strong>
@@ -25,22 +28,21 @@ import static java.util.Objects.isNull;
  *
  * @author Hakan Altindag
  */
-public final class UriUtils {
+public final class CollectorsUtils {
 
-    private UriUtils() {}
+    private CollectorsUtils() {
+    }
 
-    public static void validate(URI uri) {
-        if (isNull(uri)) {
-            throw new IllegalArgumentException("Host should be present");
-        }
+    public static <T> Collector<T, ?, List<T>> toUnmodifiableList() {
+        return Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList);
+    }
 
-        if (isNull(uri.getHost())) {
-            throw new IllegalArgumentException(String.format("Hostname should be defined for the given input: [%s]", uri));
-        }
+    public static <T> Collector<T, ?, List<T>> toModifiableList() {
+        return Collectors.toCollection(ArrayList::new);
+    }
 
-        if (uri.getPort() == -1) {
-            throw new IllegalArgumentException(String.format("Port should be defined for the given input: [%s]", uri));
-        }
+    public static <T, U> Collector<T, ?, U> toListAndThen(Function<List<T>,U> finisher) {
+        return Collectors.collectingAndThen(Collectors.toList(), finisher);
     }
 
 }

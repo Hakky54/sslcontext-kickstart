@@ -297,7 +297,7 @@ class SSLFactoryIT {
         int statusCode = connection.getResponseCode();
         String body = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))
                 .lines()
-                .collect(Collectors.joining("\n"));
+                .collect(Collectors.joining(System.lineSeparator()));
 
         connection.disconnect();
         return new Response(statusCode, body);

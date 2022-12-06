@@ -28,7 +28,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.LongFunction;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
+
+import static nl.altindag.ssl.util.CollectorsUtils.toUnmodifiableList;
 
 /**
  * @author Hakan Altindag
@@ -175,7 +176,7 @@ public final class SSLSessionUtils {
         return Collections.list(sslSessionContext.getIds()).stream()
                 .map(sslSessionContext::getSession)
                 .filter(Objects::nonNull)
-                .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
+                .collect(toUnmodifiableList());
     }
 
 }

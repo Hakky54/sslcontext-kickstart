@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static nl.altindag.ssl.util.CollectorsUtils.toListAndThen;
 import static nl.altindag.ssl.util.ValidationUtils.requireNotEmpty;
 
 /**
@@ -90,7 +91,7 @@ public final class TrustManagerUtils {
     public static X509ExtendedTrustManager createTrustManager(KeyStore... trustStores) {
         return Arrays.stream(trustStores)
                 .map(TrustManagerUtils::createTrustManager)
-                .collect(Collectors.collectingAndThen(Collectors.toList(), TrustManagerUtils::combine));
+                .collect(toListAndThen(TrustManagerUtils::combine));
     }
 
     public static X509ExtendedTrustManager createTrustManager(KeyStore trustStore) {
@@ -136,7 +137,7 @@ public final class TrustManagerUtils {
     public static X509ExtendedTrustManager createTrustManager(ManagerFactoryParameters... managerFactoryParameters) {
         return Arrays.stream(managerFactoryParameters)
                 .map(TrustManagerUtils::createTrustManager)
-                .collect(Collectors.collectingAndThen(Collectors.toList(), TrustManagerUtils::combine));
+                .collect(toListAndThen(TrustManagerUtils::combine));
     }
 
     public static X509ExtendedTrustManager createTrustManager(ManagerFactoryParameters managerFactoryParameters) {
