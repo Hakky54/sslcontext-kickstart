@@ -36,7 +36,7 @@
     </developers>
 
     <properties>
-        <version.httpcomponents.httpcore>4.5.13</version.httpcomponents.httpcore>
+        <version.httpcomponents.httpcore>4.5.14</version.httpcomponents.httpcore>
     </properties>
 
     <dependencies>
