@@ -24,6 +24,9 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.X509ExtendedTrustManager;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
+import java.net.Proxy;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
@@ -58,6 +61,8 @@ class CertificateExtractorUtils {
     private final SSLSocketFactory certificateCapturingSslSocketFactory;
     private final List<X509Certificate> certificatesCollector;
 
+    private Proxy proxy;
+
     private CertificateExtractorUtils() {
         certificatesCollector = new ArrayList<>();
 
@@ -75,6 +80,24 @@ class CertificateExtractorUtils {
         unsafeSslSocketFactory = unsafeSslFactory.getSslSocketFactory();
     }
 
+    protected CertificateExtractorUtils(Proxy proxy) {
+        this();
+        this.proxy = proxy;
+    }
+
+    protected CertificateExtractorUtils(Proxy proxy, PasswordAuthentication passwordAuthentication) {
+        this(proxy);
+
+        Authenticator authenticator = new Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return passwordAuthentication;
+            }
+        };
+
+        Authenticator.setDefault(authenticator);
+    }
+
     static CertificateExtractorUtils getInstance() {
         if (instance == null) {
             instance = new CertificateExtractorUtils();
@@ -89,7 +112,7 @@ class CertificateExtractorUtils {
         try {
             URL parsedUrl = new URL(url);
             if ("https".equalsIgnoreCase(parsedUrl.getProtocol())) {
-                HttpsURLConnection connection = (HttpsURLConnection) parsedUrl.openConnection();
+                HttpsURLConnection connection = (HttpsURLConnection) createConnection(parsedUrl);
                 connection.setSSLSocketFactory(certificateCapturingSslSocketFactory);
                 connection.connect();
                 connection.disconnect();
@@ -107,6 +130,10 @@ class CertificateExtractorUtils {
         } finally {
             SSLSessionUtils.invalidateCaches(sslFactoryForCertificateCapturing);
         }
+    }
+
+    private URLConnection createConnection(URL url) throws IOException {
+        return proxy != null ? url.openConnection(proxy) : url.openConnection();
     }
 
     List<X509Certificate> getRootCaFromChainIfPossible(List<X509Certificate> certificates) {
@@ -151,7 +178,7 @@ class CertificateExtractorUtils {
     List<X509Certificate> getCertificatesFromRemoteFile(URI uri, X509Certificate intermediateCertificate) {
         try {
             URL url = uri.toURL();
-            URLConnection connection = url.openConnection();
+            URLConnection connection = createConnection(url);
             if (connection instanceof HttpsURLConnection) {
                 ((HttpsURLConnection) connection).setSSLSocketFactory(unsafeSslSocketFactory);
             }
