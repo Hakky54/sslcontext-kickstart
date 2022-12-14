@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.security.cert.X509Certificate;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -70,12 +71,68 @@ class CertificateUtilsIT {
     }
 
     @Test
+    void getRemoteCertificatesFromList() {
+        List<String> urls = Arrays.asList(
+                "https://stackoverflow.com/",
+                "https://github.com/",
+                "https://www.linkedin.com/"
+        );
+
+        Supplier<Map<String, List<X509Certificate>>> certificateSupplier = () -> CertificateUtils.getCertificate(urls);
+
+        int amountOfRetries = 0;
+        int maxAmountOfRetries = 10;
+
+        Map<String, List<X509Certificate>> certificatesFromRemote = null;
+
+        while (certificatesFromRemote == null && amountOfRetries < maxAmountOfRetries) {
+            try {
+                certificatesFromRemote = certificateSupplier.get();
+                amountOfRetries++;
+            } catch (GenericCertificateException ignored) {}
+        }
+
+        assertThat(certificatesFromRemote)
+                .isNotNull()
+                .containsKeys(
+                        "https://stackoverflow.com/",
+                        "https://github.com/",
+                        "https://www.linkedin.com/"
+                );
+
+        assertThat(certificatesFromRemote.get("https://stackoverflow.com/")).hasSizeGreaterThan(0);
+        assertThat(certificatesFromRemote.get("https://github.com/")).hasSizeGreaterThan(0);
+        assertThat(certificatesFromRemote.get("https://www.linkedin.com/")).hasSizeGreaterThan(0);
+    }
+
+    @Test
     void getRemoteCertificatesAsPem() {
         Map<String, List<String>> certificatesFromRemote = CertificateUtils.getCertificateAsPem(
                 "https://stackoverflow.com/",
                 "https://github.com/",
                 "https://www.linkedin.com/"
         );
+
+        assertThat(certificatesFromRemote).containsKeys(
+                "https://stackoverflow.com/",
+                "https://github.com/",
+                "https://www.linkedin.com/"
+        );
+
+        assertThat(certificatesFromRemote.get("https://stackoverflow.com/")).hasSizeGreaterThan(0);
+        assertThat(certificatesFromRemote.get("https://github.com/")).hasSizeGreaterThan(0);
+        assertThat(certificatesFromRemote.get("https://www.linkedin.com/")).hasSizeGreaterThan(0);
+    }
+
+    @Test
+    void getRemoteCertificatesAsPemFromList() {
+        List<String> urls = Arrays.asList(
+                "https://stackoverflow.com/",
+                "https://github.com/",
+                "https://www.linkedin.com/"
+        );
+
+        Map<String, List<String>> certificatesFromRemote = CertificateUtils.getCertificateAsPem(urls);
 
         assertThat(certificatesFromRemote).containsKeys(
                 "https://stackoverflow.com/",
