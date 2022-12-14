@@ -16,14 +16,21 @@
 package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.exception.GenericCertificateException;
+import nl.altindag.ssl.exception.GenericIOException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.lang.reflect.Method;
+import java.net.Authenticator;
+import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
+import java.net.PasswordAuthentication;
+import java.net.Proxy;
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
@@ -35,7 +42,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -135,6 +142,35 @@ class CertificateExtractorUtilsShould {
 
         List<X509Certificate> certificatesFromRemoteFile = CertificateExtractorUtils.getInstance().getCertificatesFromRemoteFile(uri, intermediateCertificate);
         assertThat(certificatesFromRemoteFile).isNotEmpty();
+    }
+
+    @Test
+    void extractCertificatesWithProxyAndAuthentication() {
+        CertificateExtractorUtils certificateExtractorUtilsWithoutProxy = CertificateExtractorUtils.getInstance();
+        List<X509Certificate> certificates = certificateExtractorUtilsWithoutProxy.getCertificateFromExternalSource("https://google.com");
+        assertThat(certificates).isNotEmpty();
+
+        Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("my-custom-host", 8081));
+        CertificateExtractorUtils certificateExtractorUtilsWithProxy = new CertificateExtractorUtils(proxy);
+
+        assertThatThrownBy(() -> certificateExtractorUtilsWithProxy.getCertificateFromExternalSource("https://google.com"))
+                .isInstanceOf(GenericIOException.class)
+                .hasMessage("Failed getting certificate from: [https://google.com]")
+                .hasRootCauseInstanceOf(UnknownHostException.class)
+                .hasRootCauseMessage("my-custom-host");
+
+        try (MockedStatic<Authenticator> mockedAuthenticator = mockStatic(Authenticator.class, InvocationOnMock::callRealMethod)) {
+            PasswordAuthentication passwordAuthentication = new PasswordAuthentication("foo", "bar".toCharArray());
+            CertificateExtractorUtils certificateExtractorUtilsWithProxyAndAuthentication = new CertificateExtractorUtils(proxy, passwordAuthentication);
+
+            assertThatThrownBy(() -> certificateExtractorUtilsWithProxyAndAuthentication.getCertificateFromExternalSource("https://google.com"))
+                    .isInstanceOf(GenericIOException.class)
+                    .hasMessage("Failed getting certificate from: [https://google.com]")
+                    .hasRootCauseInstanceOf(UnknownHostException.class)
+                    .hasRootCauseMessage("my-custom-host");
+
+            mockedAuthenticator.verify(() -> Authenticator.setDefault(any(Authenticator.class)), times(1));
+        }
     }
 
 }

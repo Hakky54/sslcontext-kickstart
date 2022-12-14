@@ -20,6 +20,7 @@ import nl.altindag.ssl.exception.GenericIOException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.net.ssl.X509ExtendedTrustManager;
@@ -27,6 +28,11 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
+import java.net.Authenticator;
+import java.net.InetSocketAddress;
+import java.net.PasswordAuthentication;
+import java.net.Proxy;
+import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -35,6 +41,7 @@ import java.security.KeyStoreException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -47,10 +54,12 @@ import static nl.altindag.ssl.TestConstants.TRUSTSTORE_FILE_NAME;
 import static nl.altindag.ssl.TestConstants.TRUSTSTORE_PASSWORD;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
 /**
@@ -209,6 +218,196 @@ class CertificateUtilsShould {
                 .doesNotContain("subject", "issuer")
                 .contains("-----BEGIN CERTIFICATE-----", "-----END CERTIFICATE-----");
     }
+
+    @Test
+    void getCertificatesFromExternalSourceWithProxy() {
+        String url = "https://google.com";
+        Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("my-custom-host", 8081));
+
+        assertThat(CertificateUtils.getCertificatesFromExternalSource(url)).isNotEmpty();
+        assertThatThrownBy(() -> CertificateUtils.getCertificatesFromExternalSource(proxy, url))
+                .isInstanceOf(GenericIOException.class)
+                .hasMessage("Failed getting certificate from: [https://google.com]")
+                .hasRootCauseInstanceOf(UnknownHostException.class)
+                .hasRootCauseMessage("my-custom-host");
+    }
+
+    @Test
+    void getCertificatesFromExternalSourceWithProxyAndAuthentication() {
+        String url = "https://google.com";
+        Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("my-custom-host", 8081));
+        PasswordAuthentication passwordAuthentication = new PasswordAuthentication("foo", "bar".toCharArray());
+
+        assertThat(CertificateUtils.getCertificatesFromExternalSource(url)).isNotEmpty();
+        try (MockedStatic<Authenticator> mockedAuthenticator = mockStatic(Authenticator.class, InvocationOnMock::callRealMethod)) {
+
+            assertThatThrownBy(() -> CertificateUtils.getCertificatesFromExternalSource(proxy, passwordAuthentication, url))
+                    .isInstanceOf(GenericIOException.class)
+                    .hasMessage("Failed getting certificate from: [https://google.com]")
+                    .hasRootCauseInstanceOf(UnknownHostException.class)
+                    .hasRootCauseMessage("my-custom-host");
+
+            mockedAuthenticator.verify(() -> Authenticator.setDefault(any(Authenticator.class)), times(1));
+        }
+    }
+
+    @Test
+    void getCertificatesFromExternalSourceAsPemWithProxy() {
+        String url = "https://google.com";
+        Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("my-custom-host", 8081));
+
+        assertThat(CertificateUtils.getCertificatesFromExternalSourceAsPem(url)).isNotEmpty();
+        assertThatThrownBy(() -> CertificateUtils.getCertificatesFromExternalSourceAsPem(proxy, url))
+                .isInstanceOf(GenericIOException.class)
+                .hasMessage("Failed getting certificate from: [https://google.com]")
+                .hasRootCauseInstanceOf(UnknownHostException.class)
+                .hasRootCauseMessage("my-custom-host");
+    }
+
+    @Test
+    void getCertificatesFromExternalSourceAsPemWithProxyAndAuthentication() {
+        String url = "https://google.com";
+        Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("my-custom-host", 8081));
+        PasswordAuthentication passwordAuthentication = new PasswordAuthentication("foo", "bar".toCharArray());
+
+        assertThat(CertificateUtils.getCertificatesFromExternalSource(url)).isNotEmpty();
+        try (MockedStatic<Authenticator> mockedAuthenticator = mockStatic(Authenticator.class, InvocationOnMock::callRealMethod)) {
+
+            assertThatThrownBy(() -> CertificateUtils.getCertificatesFromExternalSourceAsPem(proxy, passwordAuthentication, url))
+                    .isInstanceOf(GenericIOException.class)
+                    .hasMessage("Failed getting certificate from: [https://google.com]")
+                    .hasRootCauseInstanceOf(UnknownHostException.class)
+                    .hasRootCauseMessage("my-custom-host");
+
+            mockedAuthenticator.verify(() -> Authenticator.setDefault(any(Authenticator.class)), times(1));
+        }
+    }
+
+    @Test
+    void getCertificatesFromExternalSourcesWithProxy() {
+        List<String> urls = Arrays.asList("https://google.com", "https://stackoverflow.com");
+        Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("my-custom-host", 8081));
+
+        assertThat(CertificateUtils.getCertificatesFromExternalSources(urls)).isNotEmpty();
+        assertThatThrownBy(() -> CertificateUtils.getCertificatesFromExternalSources(proxy, urls))
+                .isInstanceOf(GenericIOException.class)
+                .hasMessage("Failed getting certificate from: [https://google.com]")
+                .hasRootCauseInstanceOf(UnknownHostException.class)
+                .hasRootCauseMessage("my-custom-host");
+    }
+
+    @Test
+    void getCertificatesFromExternalSourcesWithProxyAndAuthentication() {
+        List<String> urls = Arrays.asList("https://google.com", "https://stackoverflow.com");
+        Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("my-custom-host", 8081));
+        PasswordAuthentication passwordAuthentication = new PasswordAuthentication("foo", "bar".toCharArray());
+
+        assertThat(CertificateUtils.getCertificatesFromExternalSources(urls)).isNotEmpty();
+        try (MockedStatic<Authenticator> mockedAuthenticator = mockStatic(Authenticator.class, InvocationOnMock::callRealMethod)) {
+
+            assertThatThrownBy(() -> CertificateUtils.getCertificatesFromExternalSources(proxy, passwordAuthentication, urls))
+                    .isInstanceOf(GenericIOException.class)
+                    .hasMessage("Failed getting certificate from: [https://google.com]")
+                    .hasRootCauseInstanceOf(UnknownHostException.class)
+                    .hasRootCauseMessage("my-custom-host");
+
+            mockedAuthenticator.verify(() -> Authenticator.setDefault(any(Authenticator.class)), times(1));
+        }
+    }
+
+    @Test
+    void getCertificatesFromExternalSourcesAsPemWithProxy() {
+        List<String> urls = Arrays.asList("https://google.com", "https://stackoverflow.com");
+        Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("my-custom-host", 8081));
+
+        assertThat(CertificateUtils.getCertificatesFromExternalSourcesAsPem(urls)).isNotEmpty();
+        assertThatThrownBy(() -> CertificateUtils.getCertificatesFromExternalSourcesAsPem(proxy, urls))
+                .isInstanceOf(GenericIOException.class)
+                .hasMessage("Failed getting certificate from: [https://google.com]")
+                .hasRootCauseInstanceOf(UnknownHostException.class)
+                .hasRootCauseMessage("my-custom-host");
+    }
+
+    @Test
+    void getCertificatesFromExternalSourcesAsPemWithProxyAndAuthentication() {
+        List<String> urls = Arrays.asList("https://google.com", "https://stackoverflow.com");
+        Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("my-custom-host", 8081));
+        PasswordAuthentication passwordAuthentication = new PasswordAuthentication("foo", "bar".toCharArray());
+
+        assertThat(CertificateUtils.getCertificatesFromExternalSourcesAsPem(urls)).isNotEmpty();
+        try (MockedStatic<Authenticator> mockedAuthenticator = mockStatic(Authenticator.class, InvocationOnMock::callRealMethod)) {
+
+            assertThatThrownBy(() -> CertificateUtils.getCertificatesFromExternalSourcesAsPem(proxy, passwordAuthentication, urls))
+                    .isInstanceOf(GenericIOException.class)
+                    .hasMessage("Failed getting certificate from: [https://google.com]")
+                    .hasRootCauseInstanceOf(UnknownHostException.class)
+                    .hasRootCauseMessage("my-custom-host");
+
+            mockedAuthenticator.verify(() -> Authenticator.setDefault(any(Authenticator.class)), times(1));
+        }
+    }
+
+    @Test
+    void getCertificatesFromExternalSourcesAsVarArgsWithProxy() {
+        Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("my-custom-host", 8081));
+
+        assertThat(CertificateUtils.getCertificatesFromExternalSources("https://google.com", "https://stackoverflow.com")).isNotEmpty();
+        assertThatThrownBy(() -> CertificateUtils.getCertificatesFromExternalSources(proxy, "https://google.com", "https://stackoverflow.com"))
+                .isInstanceOf(GenericIOException.class)
+                .hasMessage("Failed getting certificate from: [https://google.com]")
+                .hasRootCauseInstanceOf(UnknownHostException.class)
+                .hasRootCauseMessage("my-custom-host");
+    }
+
+    @Test
+    void getCertificatesFromExternalSourcesAsVarArgsWithProxyAndAuthentication() {
+        Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("my-custom-host", 8081));
+        PasswordAuthentication passwordAuthentication = new PasswordAuthentication("foo", "bar".toCharArray());
+
+        assertThat(CertificateUtils.getCertificatesFromExternalSources("https://google.com", "https://stackoverflow.com")).isNotEmpty();
+        try (MockedStatic<Authenticator> mockedAuthenticator = mockStatic(Authenticator.class, InvocationOnMock::callRealMethod)) {
+
+            assertThatThrownBy(() -> CertificateUtils.getCertificatesFromExternalSources(proxy, passwordAuthentication, "https://google.com", "https://stackoverflow.com"))
+                    .isInstanceOf(GenericIOException.class)
+                    .hasMessage("Failed getting certificate from: [https://google.com]")
+                    .hasRootCauseInstanceOf(UnknownHostException.class)
+                    .hasRootCauseMessage("my-custom-host");
+
+            mockedAuthenticator.verify(() -> Authenticator.setDefault(any(Authenticator.class)), times(1));
+        }
+    }
+
+    @Test
+    void getCertificatesFromExternalSourcesAsPemAsVarArgsWithProxy() {
+        Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("my-custom-host", 8081));
+
+        assertThat(CertificateUtils.getCertificatesFromExternalSourcesAsPem("https://google.com", "https://stackoverflow.com")).isNotEmpty();
+        assertThatThrownBy(() -> CertificateUtils.getCertificatesFromExternalSourcesAsPem(proxy, "https://google.com", "https://stackoverflow.com"))
+                .isInstanceOf(GenericIOException.class)
+                .hasMessage("Failed getting certificate from: [https://google.com]")
+                .hasRootCauseInstanceOf(UnknownHostException.class)
+                .hasRootCauseMessage("my-custom-host");
+    }
+
+    @Test
+    void getCertificatesFromExternalSourcesAsPemAsVarArgsWithProxyAndAuthentication() {
+        Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("my-custom-host", 8081));
+        PasswordAuthentication passwordAuthentication = new PasswordAuthentication("foo", "bar".toCharArray());
+
+        assertThat(CertificateUtils.getCertificatesFromExternalSourcesAsPem("https://google.com", "https://stackoverflow.com")).isNotEmpty();
+        try (MockedStatic<Authenticator> mockedAuthenticator = mockStatic(Authenticator.class, InvocationOnMock::callRealMethod)) {
+
+            assertThatThrownBy(() -> CertificateUtils.getCertificatesFromExternalSourcesAsPem(proxy, passwordAuthentication, "https://google.com", "https://stackoverflow.com"))
+                    .isInstanceOf(GenericIOException.class)
+                    .hasMessage("Failed getting certificate from: [https://google.com]")
+                    .hasRootCauseInstanceOf(UnknownHostException.class)
+                    .hasRootCauseMessage("my-custom-host");
+
+            mockedAuthenticator.verify(() -> Authenticator.setDefault(any(Authenticator.class)), times(1));
+        }
+    }
+
+
 
     @Test
     void throwsGenericCertificateExceptionWhenCertificateIsNotFoundOnTheClasspath() {
