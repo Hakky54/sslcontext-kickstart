@@ -19,10 +19,12 @@ import nl.altindag.ssl.exception.GenericCertificateException;
 import nl.altindag.ssl.exception.GenericIOException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.Authenticator;
 import java.net.InetSocketAddress;
@@ -145,7 +147,7 @@ class CertificateExtractorUtilsShould {
     }
 
     @Test
-    void extractCertificatesWithProxyAndAuthentication() {
+    void extractCertificatesWithProxyAndAuthentication() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         CertificateExtractorUtils certificateExtractorUtilsWithoutProxy = CertificateExtractorUtils.getInstance();
         List<X509Certificate> certificates = certificateExtractorUtilsWithoutProxy.getCertificateFromExternalSource("https://google.com");
         assertThat(certificates).isNotEmpty();
@@ -160,6 +162,8 @@ class CertificateExtractorUtilsShould {
                 .hasRootCauseMessage("my-custom-host");
 
         try (MockedStatic<Authenticator> mockedAuthenticator = mockStatic(Authenticator.class, InvocationOnMock::callRealMethod)) {
+            ArgumentCaptor<Authenticator> authenticatorCaptor = ArgumentCaptor.forClass(Authenticator.class);
+
             PasswordAuthentication passwordAuthentication = new PasswordAuthentication("foo", "bar".toCharArray());
             CertificateExtractorUtils certificateExtractorUtilsWithProxyAndAuthentication = new CertificateExtractorUtils(proxy, passwordAuthentication);
 
@@ -169,7 +173,13 @@ class CertificateExtractorUtilsShould {
                     .hasRootCauseInstanceOf(UnknownHostException.class)
                     .hasRootCauseMessage("my-custom-host");
 
-            mockedAuthenticator.verify(() -> Authenticator.setDefault(any(Authenticator.class)), times(1));
+            mockedAuthenticator.verify(() -> Authenticator.setDefault(authenticatorCaptor.capture()), times(1));
+
+            Authenticator authenticator = authenticatorCaptor.getValue();
+            Method getPasswordAuthenticationMethod = authenticator.getClass().getDeclaredMethod("getPasswordAuthentication");
+            Object pa = getPasswordAuthenticationMethod.invoke(authenticator);
+
+            assertThat(pa).hasSameClassAs(passwordAuthentication);
         }
     }
 
