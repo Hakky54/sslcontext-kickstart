@@ -3,6 +3,13 @@
 This list is not intended to be all-encompassing - it will document major and breaking API 
 changes with their rationale when appropriate:
 
+### v7.4.9
+ - Added proxy and authentication for extracting server certificates
+ - Added additional methods for extracting single server certificates
+ - Marked some methods as deprecated for extracting server certificates, these methods will be removed at version 7.5.0
+ - Bumped dependencies
+ - Improved performance of PemUtils with filtering option in early stage of parsing the content
+ - Improved readability of source code for regex and some lambda's
 ### v7.4.8
  - Feature request issue 241 - Added support for using one-liner pem formatted certificates
  - Bumped dependencies
