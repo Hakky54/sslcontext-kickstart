@@ -73,7 +73,12 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "7.4.9"
      - [Routing client identity to specific host](#routing-identity-material-to-specific-host) 
      - [Updating client identity routes at runtime](#updating-identity-routes-at-runtime) 
      - [Managing ssl session](#managing-ssl-session)
-     - [Extracting server certificates](#extracting-server-certificates)  
+     - [Extracting server certificates](#extracting-server-certificates)
+       - [Single server](#single-server)
+       - [Bulk extraction from multiple servers](#bulk-extraction-from-multiple-servers)
+       - [Extracting certificates behind proxy](#extracting-certificates-behind-proxy)
+       - [Extracting certificates behind proxy with authentication](#extracting-certificates-behind-proxy-with-authentication)
+       - [Extracting certificates as pem](#extracting-certificates-as-pem)
      - [Using P7B or PKCS#7 files](#using-p7b-or-pkcs7-files)
      - [Using DER files](#using-der-files)
      - [Using PFX or P12 or PKCS#12 Files](#using-pfx-p12-or-pkcs12-files)
@@ -566,21 +571,56 @@ SSLSessionUtils.invalidateCachesBetween(
 );
 ```
 ##### Extracting server certificates
+###### Single server
 ```text
-Map<String, List<Certificate>> certificates = CertificateUtils.getCertificate(
-            "https://github.com/", 
-            "https://stackoverflow.com/", 
-            "https://www.reddit.com/",
-            "https://www.youtube.com/");
-            
-// or get the server certificates as pem format
-Map<String, List<String>> certificatesAsPem = CertificateUtils.getCertificateAsPem(
+List<Certificate> certificates = CertificateUtils.getCertificatesFromExternalSource("https://github.com/");
+```
+
+###### Bulk extraction from multiple servers
+```text
+Map<String, List<Certificate>> certificates = CertificateUtils.getCertificatesFromExternalSources(
             "https://github.com/", 
             "https://stackoverflow.com/", 
             "https://www.reddit.com/",
             "https://www.youtube.com/");
 ```
-See here for a demo application: [GitHub - Certificate Ripper](https://github.com/Hakky54/certificate-ripper)
+
+###### Extracting certificates behind proxy
+```text
+Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("my-custom-host", 1234));
+List<Certificate> certificates = CertificateUtils.getCertificatesFromExternalSource(proxy, "https://github.com/");
+```
+
+###### Extracting certificates behind proxy with authentication
+```text
+Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("my-custom-host", 1234));
+PasswordAuthentication passwordAuthentication = new PasswordAuthentication("foo", "bar".toCharArray());
+List<Certificate> certificates = CertificateUtils.getCertificatesFromExternalSource(proxy, passwordAuthentication, "https://github.com/");
+```
+
+###### Extracting certificates as pem
+All previous examples are also available for extracting the server certificates as pem. The method has an additional `asPem` suffix. See below for all of the examples:
+```text
+// single
+List<String> certificates = CertificateUtils.getCertificatesFromExternalSourceAsPem("https://github.com/");
+
+// bulk
+Map<String, List<Certificate>> urlsToCertificates = CertificateUtils.getCertificatesFromExternalSourcesAsPem(
+            "https://github.com/", 
+            "https://stackoverflow.com/", 
+            "https://www.reddit.com/",
+            "https://www.youtube.com/");
+    
+// proxy        
+Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("my-custom-host", 1234));
+certificates = CertificateUtils.getCertificatesFromExternalSource(proxy, "https://github.com/");
+
+// proxy + authentication
+PasswordAuthentication passwordAuthentication = new PasswordAuthentication("foo", "bar".toCharArray());
+certificates = CertificateUtils.getCertificatesFromExternalSource(proxy, passwordAuthentication, "https://github.com/");
+```
+
+See here also for a demo application for the CLI: [GitHub - Certificate Ripper](https://github.com/Hakky54/certificate-ripper)
 
 #### Using P7B or PKCS#7 Files
 Support for using p7b formatted certificates and certificate-chain from classpath, any directory or as an InputStream. 
