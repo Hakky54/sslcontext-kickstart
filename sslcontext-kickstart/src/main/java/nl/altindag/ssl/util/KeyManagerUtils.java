@@ -16,6 +16,7 @@
 package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.exception.GenericKeyManagerException;
+import nl.altindag.ssl.exception.GenericKeyStoreException;
 import nl.altindag.ssl.keymanager.CompositeX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.DummyX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.HotSwappableX509ExtendedKeyManager;
@@ -33,6 +34,7 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
 import java.security.Provider;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
@@ -56,6 +58,8 @@ import static nl.altindag.ssl.util.ValidationUtils.requireNotNull;
  * @author Hakan Altindag
  */
 public final class KeyManagerUtils {
+
+    private static final char[] DUMMY_PASSWORD = KeyStoreUtils.DUMMY_PASSWORD.toCharArray();
 
     private KeyManagerUtils() {}
 
@@ -291,6 +295,21 @@ public final class KeyManagerUtils {
 
     public static KeyManagerBuilder keyManagerBuilder() {
         return new KeyManagerBuilder();
+    }
+
+    public static X509ExtendedKeyManager createKeyManager(PrivateKey privateKey, Certificate[] certificatesChain) {
+        String alias = CertificateUtils.generateAlias(certificatesChain[0]);
+        return createKeyManager(alias, privateKey, certificatesChain);
+    }
+
+    public static X509ExtendedKeyManager createKeyManager(String alias, PrivateKey privateKey, Certificate[] certificatesChain) {
+        try {
+            KeyStore keyStore = KeyStoreUtils.createKeyStore();
+            keyStore.setKeyEntry(alias, privateKey, DUMMY_PASSWORD, certificatesChain);
+            return KeyManagerUtils.createKeyManager(keyStore, DUMMY_PASSWORD);
+        } catch (KeyStoreException e) {
+            throw new GenericKeyStoreException(e);
+        }
     }
 
     public static final class KeyManagerBuilder {

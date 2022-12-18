@@ -20,7 +20,6 @@ import nl.altindag.ssl.decryptor.PemDecryptor;
 import nl.altindag.ssl.decryptor.Pkcs8Decryptor;
 import nl.altindag.ssl.exception.CertificateParseException;
 import nl.altindag.ssl.exception.GenericIOException;
-import nl.altindag.ssl.exception.GenericKeyStoreException;
 import nl.altindag.ssl.exception.PemParseException;
 import nl.altindag.ssl.exception.PrivateKeyParseException;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
@@ -44,8 +43,6 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.nio.file.Path;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
 import java.security.PrivateKey;
 import java.security.Security;
 import java.security.cert.Certificate;
@@ -92,7 +89,6 @@ public final class PemUtils {
 
     private static final String EMPTY_INPUT_STREAM_EXCEPTION_MESSAGE = "Failed to load the certificate from the provided InputStream because it is null";
     private static final UnaryOperator<String> CERTIFICATE_NOT_FOUND_EXCEPTION_MESSAGE = certificatePath -> String.format("Failed to load the certificate from the classpath for the given path: [%s]", certificatePath);
-    private static final char[] DUMMY_PASSWORD = KeyStoreUtils.DUMMY_PASSWORD.toCharArray();
     private static final char[] NO_PASSWORD = null;
     private static final PemUtils INSTANCE = new PemUtils(
             new JcaPEMKeyConverter(),
@@ -113,7 +109,7 @@ public final class PemUtils {
      * Loads certificates from the classpath and maps it to an instance of {@link X509ExtendedTrustManager}
      */
     public static X509ExtendedTrustManager loadTrustMaterial(String... certificatePaths) {
-        return mapTrustMaterial(
+        return TrustManagerUtils.createTrustManager(
                 loadCertificate(certificatePaths)
         );
     }
@@ -122,7 +118,7 @@ public final class PemUtils {
      * Loads certificates from the filesystem and maps it to an instance of {@link X509ExtendedTrustManager}
      */
     public static X509ExtendedTrustManager loadTrustMaterial(Path... certificatePaths) {
-        return mapTrustMaterial(
+        return TrustManagerUtils.createTrustManager(
                 loadCertificate(certificatePaths)
         );
     }
@@ -131,7 +127,7 @@ public final class PemUtils {
      * Loads certificates from multiple InputStreams and maps it to an instance of {@link X509ExtendedTrustManager}
      */
     public static X509ExtendedTrustManager loadTrustMaterial(InputStream... certificateStreams) {
-        return mapTrustMaterial(
+        return TrustManagerUtils.createTrustManager(
                 loadCertificate(certificateStreams)
         );
     }
@@ -229,12 +225,7 @@ public final class PemUtils {
         return Arrays.stream(certificateContents)
                 .map(PemUtils::parseCertificate)
                 .flatMap(Collection::stream)
-                .collect(toListAndThen(PemUtils::mapTrustMaterial));
-    }
-
-    private static X509ExtendedTrustManager mapTrustMaterial(List<X509Certificate> certificates) {
-        KeyStore trustStore = KeyStoreUtils.createTrustStore(certificates);
-        return TrustManagerUtils.createTrustManager(trustStore);
+                .collect(toListAndThen(TrustManagerUtils::createTrustManager));
     }
 
     /**
@@ -396,7 +387,7 @@ public final class PemUtils {
         Certificate[] certificateChain = PemUtils.parseCertificate(certificateChainContent)
                 .toArray(new Certificate[]{});
 
-        return parseIdentityMaterial(certificateChain, privateKey);
+        return KeyManagerUtils.createKeyManager(privateKey, certificateChain);
     }
 
     /**
@@ -514,16 +505,6 @@ public final class PemUtils {
             return PemUtils.getInstance().getKeyConverter().getPrivateKey(privateKeyInfo);
         } catch (PEMException exception) {
             throw new PrivateKeyParseException(exception);
-        }
-    }
-
-    private static X509ExtendedKeyManager parseIdentityMaterial(Certificate[] certificatesChain, PrivateKey privateKey) {
-        try {
-            KeyStore keyStore = KeyStoreUtils.createKeyStore();
-            keyStore.setKeyEntry(CertificateUtils.generateAlias(certificatesChain[0]), privateKey, DUMMY_PASSWORD, certificatesChain);
-            return KeyManagerUtils.createKeyManager(keyStore, DUMMY_PASSWORD);
-        } catch (KeyStoreException e) {
-            throw new GenericKeyStoreException(e);
         }
     }
 

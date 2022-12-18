@@ -88,6 +88,12 @@ public final class TrustManagerUtils {
         return Optional.of(trustManager);
     }
 
+
+    public static X509ExtendedTrustManager createTrustManager(List<X509Certificate> certificates) {
+        KeyStore trustStore = KeyStoreUtils.createTrustStore(certificates);
+        return TrustManagerUtils.createTrustManager(trustStore);
+    }
+
     public static X509ExtendedTrustManager createTrustManager(KeyStore... trustStores) {
         return Arrays.stream(trustStores)
                 .map(TrustManagerUtils::createTrustManager)
