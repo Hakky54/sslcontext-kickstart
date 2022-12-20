@@ -573,12 +573,12 @@ SSLSessionUtils.invalidateCachesBetween(
 ##### Extracting server certificates
 ###### Single server
 ```text
-List<Certificate> certificates = CertificateUtils.getCertificatesFromExternalSource("https://github.com/");
+List<X509Certificate> certificates = CertificateUtils.getCertificatesFromExternalSource("https://github.com/");
 ```
 
 ###### Bulk extraction from multiple servers
 ```text
-Map<String, List<Certificate>> certificates = CertificateUtils.getCertificatesFromExternalSources(
+Map<String, List<X509Certificate>> certificates = CertificateUtils.getCertificatesFromExternalSources(
             "https://github.com/", 
             "https://stackoverflow.com/", 
             "https://www.reddit.com/",
@@ -588,14 +588,14 @@ Map<String, List<Certificate>> certificates = CertificateUtils.getCertificatesFr
 ###### Extracting certificates behind proxy
 ```text
 Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("my-custom-host", 1234));
-List<Certificate> certificates = CertificateUtils.getCertificatesFromExternalSource(proxy, "https://github.com/");
+List<X509Certificate> certificates = CertificateUtils.getCertificatesFromExternalSource(proxy, "https://github.com/");
 ```
 
 ###### Extracting certificates behind proxy with authentication
 ```text
 Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("my-custom-host", 1234));
 PasswordAuthentication passwordAuthentication = new PasswordAuthentication("foo", "bar".toCharArray());
-List<Certificate> certificates = CertificateUtils.getCertificatesFromExternalSource(proxy, passwordAuthentication, "https://github.com/");
+List<X509Certificate> certificates = CertificateUtils.getCertificatesFromExternalSource(proxy, passwordAuthentication, "https://github.com/");
 ```
 
 ###### Extracting certificates as pem
@@ -605,7 +605,7 @@ All previous examples are also available for extracting the server certificates 
 List<String> certificates = CertificateUtils.getCertificatesFromExternalSourceAsPem("https://github.com/");
 
 // bulk
-Map<String, List<Certificate>> urlsToCertificates = CertificateUtils.getCertificatesFromExternalSourcesAsPem(
+Map<String, List<X509Certificate>> urlsToCertificates = CertificateUtils.getCertificatesFromExternalSourcesAsPem(
             "https://github.com/", 
             "https://stackoverflow.com/", 
             "https://www.reddit.com/",
