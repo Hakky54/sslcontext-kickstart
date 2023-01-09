@@ -2,7 +2,6 @@
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=io.github.hakky54%3Asslcontext-kickstart-parent&metric=security_rating)](https://sonarcloud.io/dashboard?id=io.github.hakky54%3Asslcontext-kickstart-parent)
 [![Known Vulnerabilities](https://snyk.io/test/github/Hakky54/sslcontext-kickstart/badge.svg)](https://snyk.io/test/github/Hakky54/sslcontext-kickstart)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=io.github.hakky54%3Asslcontext-kickstart-parent&metric=coverage)](https://sonarcloud.io/dashboard?id=io.github.hakky54%3Asslcontext-kickstart-parent)
-[![Language grade: Java](https://img.shields.io/lgtm/grade/java/g/Hakky54/sslcontext-kickstart.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/Hakky54/sslcontext-kickstart/context:java)
 [![JDK compatibility: 8+](https://img.shields.io/badge/JDK_compatibility-8+-blue.svg)](#)
 [![Apache2 license](https://img.shields.io/badge/license-Aache2.0-blue.svg)](https://github.com/Hakky54/sslcontext-kickstart/blob/master/LICENSE)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.hakky54/sslcontext-kickstart/badge.svg)](https://mvnrepository.com/artifact/io.github.hakky54/sslcontext-kickstart)
@@ -99,7 +98,6 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "7.4.9"
 4. [Tested HTTP Clients](#tested-http-clients)
 5. [Contributing](#contributing)
 6. [Contributors](#contributors-)   
-7. [License](#license)
 
 ## Introduction
 Hey, hello there 👋 Welcome, you are ![visitors](https://visitor-badge.glitch.me/badge?page_id=https://github.com/Hakky54/sslcontext-kickstart) I hope you will like this library ❤️
@@ -1064,6 +1062,3 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
-
-## License
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FHakky54%2Fsslcontext-kickstart.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FHakky54%2Fsslcontext-kickstart?ref=badge_large)
