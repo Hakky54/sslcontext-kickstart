@@ -119,6 +119,12 @@ class CertificateUtilsShould {
     }
 
     @Test
+    void loadBinaryP7bCertificateChainFromClassPath() {
+        List<Certificate> certificates = CertificateUtils.loadCertificate(P7B_LOCATION + "google-com.p7b");
+        assertThat(certificates).hasSize(4);
+    }
+
+    @Test
     void loadMultipleCertificatesFromDifferentFiles() {
         List<Certificate> certificates = CertificateUtils.loadCertificate(
                 PEM_LOCATION + "badssl-certificate.pem",
