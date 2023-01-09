@@ -23,6 +23,7 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.net.ssl.X509ExtendedTrustManager;
+import javax.security.auth.x500.X500Principal;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -70,7 +71,19 @@ class CertificateUtilsShould {
         X509Certificate certificate = trustManager.getAcceptedIssuers()[0];
 
         String alias = CertificateUtils.generateAlias(certificate);
-        assertThat(alias).isEqualTo("CN=*.google.com,O=Google LLC,L=Mountain View,ST=California,C=US".toLowerCase(Locale.ENGLISH));
+        assertThat(alias).isEqualTo("cn=googlecom_o=google-llc_l=mountain-view_st=california_c=us".toLowerCase(Locale.ENGLISH));
+    }
+
+    @Test
+    void generateAliasForX509CertificateWithReplacingInvalidCharacters() {
+        X509Certificate certificate = mock(X509Certificate.class);
+        X500Principal x500Principal = mock(X500Principal.class);
+
+        when(certificate.getSubjectX500Principal()).thenReturn(x500Principal);
+        when(x500Principal.getName(X500Principal.CANONICAL)).thenReturn("cn=*.youtube.google.com_o=google\\ llc,l=*mountain *view\\ top,st=california,c=us");
+
+        String alias = CertificateUtils.generateAlias(certificate);
+        assertThat(alias).isEqualTo("cn=youtubegooglecom_o=google-llc_l=mountain-view-top_st=california_c=us".toLowerCase(Locale.ENGLISH));
     }
 
     @Test

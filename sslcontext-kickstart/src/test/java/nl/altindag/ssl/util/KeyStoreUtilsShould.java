@@ -363,7 +363,7 @@ class KeyStoreUtilsShould {
 
         assertThat(identityStore).isNotNull();
         assertThat(identityStore.size()).isEqualTo(1);
-        assertThat(identityStore.isKeyEntry("cn=prof oak,ou=oak pokémon research lab,o=oak pokémon research lab,c=pallet town")).isTrue();
+        assertThat(identityStore.isKeyEntry("cn=prof-oak_ou=oak-pokémon-research-lab_o=oak-pokémon-research-lab_c=pallet-town")).isTrue();
     }
 
     @Test

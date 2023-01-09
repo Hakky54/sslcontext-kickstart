@@ -79,10 +79,12 @@ public final class CertificateUtils {
         if (certificate instanceof X509Certificate) {
             return ((X509Certificate) certificate)
                     .getSubjectX500Principal()
-                    .getName()
-                    .toLowerCase(Locale.ENGLISH);
+                    .getName(X500Principal.CANONICAL)
+                    .replace(" ", "-")
+                    .replace(",", "_")
+                    .replaceAll("[.*\\\\]+", "");
         } else {
-            return UUID.randomUUID().toString().toLowerCase(Locale.ENGLISH);
+            return UUID.randomUUID().toString().toLowerCase(Locale.US);
         }
     }
 

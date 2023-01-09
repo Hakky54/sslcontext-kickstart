@@ -811,8 +811,8 @@ class SSLFactoryShould {
 
         assertThat(sslFactory.getKeyManager()).isPresent();
         assertThat(sslFactory.getKeyManagerFactory()).isPresent();
-        assertThat(sslFactory.getKeyManager().get().getPrivateKey("cn=prof oak,ou=oak pokémon research lab,o=oak pokémon research lab,c=pallet town")).isNotNull();
-        assertThat(sslFactory.getKeyManager().get().getCertificateChain("cn=prof oak,ou=oak pokémon research lab,o=oak pokémon research lab,c=pallet town")).isNotNull();
+        assertThat(sslFactory.getKeyManager().get().getPrivateKey("cn=prof-oak_ou=oak-pokémon-research-lab_o=oak-pokémon-research-lab_c=pallet-town")).isNotNull();
+        assertThat(sslFactory.getKeyManager().get().getCertificateChain("cn=prof-oak_ou=oak-pokémon-research-lab_o=oak-pokémon-research-lab_c=pallet-town")).isNotNull();
 
         assertThat(sslFactory.getTrustManager()).isPresent();
         assertThat(sslFactory.getTrustManagerFactory()).isPresent();
