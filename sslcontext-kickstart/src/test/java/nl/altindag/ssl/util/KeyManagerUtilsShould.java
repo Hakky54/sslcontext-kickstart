@@ -16,11 +16,13 @@
 package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.exception.GenericKeyManagerException;
+import nl.altindag.ssl.exception.GenericKeyStoreException;
 import nl.altindag.ssl.keymanager.CompositeX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.X509KeyManagerWrapper;
 import nl.altindag.ssl.model.KeyStoreHolder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.net.ssl.KeyManagerFactory;
@@ -42,7 +44,11 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 
 /**
  * @author Hakan Altindag
@@ -496,6 +502,25 @@ class KeyManagerUtilsShould {
                 .isInstanceOf(GenericKeyManagerException.class)
                 .hasMessage("KeyManager should be an instance of: [nl.altindag.ssl.keymanager.CompositeX509ExtendedKeyManager], " +
                         "but received: [sun.security.ssl.SunX509KeyManagerImpl]");
+    }
+
+    @Test
+    void keyStoreExceptionShouldBeWrappedInGenericKeyStoreException() throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
+        KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        PrivateKey privateKey = (PrivateKey) identity.getKey("dummy-client", "secret".toCharArray());
+        Certificate[] chain = identity.getCertificateChain("dummy-client");
+
+        try (MockedStatic<KeyStoreUtils> keyStoreUtilsMock = mockStatic(KeyStoreUtils.class)) {
+            KeyStore keyStore = mock(KeyStore.class);
+
+            keyStoreUtilsMock.when(KeyStoreUtils::createKeyStore).thenReturn(keyStore);
+            doThrow(new KeyStoreException("KABOOM"))
+                    .when(keyStore).setKeyEntry(anyString(), any(PrivateKey.class), any(char[].class), any(Certificate[].class));
+
+            assertThatThrownBy(() -> KeyManagerUtils.createKeyManager(privateKey, chain))
+                    .isInstanceOf(GenericKeyStoreException.class)
+                    .hasMessageContaining("KABOOM");
+        }
     }
 
 }
