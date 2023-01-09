@@ -29,8 +29,12 @@ import javax.net.ssl.X509KeyManager;
 import java.net.URI;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.security.Provider;
 import java.security.Security;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.Certificate;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -55,6 +59,17 @@ class KeyManagerUtilsShould {
     void createKeyManagerWithKeyStoreAndCustomAlgorithm() {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         X509ExtendedKeyManager keyManager = KeyManagerUtils.createKeyManager(identity, IDENTITY_PASSWORD, KeyManagerFactory.getDefaultAlgorithm());
+
+        assertThat(keyManager).isNotNull();
+    }
+
+    @Test
+    void createKeyManagerWithPrivateKeyAndCertificateChain() throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
+        KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        PrivateKey privateKey = (PrivateKey) identity.getKey("dummy-client", "secret".toCharArray());
+        Certificate[] chain = identity.getCertificateChain("dummy-client");
+
+        X509ExtendedKeyManager keyManager = KeyManagerUtils.createKeyManager(privateKey, chain);
 
         assertThat(keyManager).isNotNull();
     }

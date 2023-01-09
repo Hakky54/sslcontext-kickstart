@@ -178,6 +178,16 @@ class TrustManagerUtilsShould {
     }
 
     @Test
+    void createTrustManagerWithCertificates() {
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(
+                Arrays.asList(TrustManagerUtils.createTrustManagerWithJdkTrustedCertificates().getAcceptedIssuers())
+        );
+
+        assertThat(trustManager).isNotNull();
+        assertThat((trustManager).getAcceptedIssuers()).hasSizeGreaterThan(10);
+    }
+
+    @Test
     void createTrustManagerWithSystemTrustedCertificate() {
         String operatingSystem = System.getProperty("os.name").toLowerCase();
         try (MockedStatic<KeyStoreUtils> mockedStatic = mockStatic(KeyStoreUtils.class, invocation -> {
