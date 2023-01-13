@@ -145,6 +145,18 @@ class CertificateUtilsShould {
     }
 
     @Test
+    void loadOneLinerCertificate() {
+        List<Certificate> certificates = CertificateUtils.loadCertificate(PEM_LOCATION + "one-liner-github-certificate.pem");
+        assertThat(certificates).hasSize(1);
+    }
+
+    @Test
+    void loadOneLinerContainingMultipleCertificate() {
+        List<Certificate> certificates = CertificateUtils.loadCertificate(PEM_LOCATION + "one-liner-multiple-certificates.pem");
+        assertThat(certificates).hasSize(3);
+    }
+
+    @Test
     void throwExceptionWhenLoadingCertificateFromUnknownPath() {
         Path certificatePath = Paths.get("somewhere-in-space.pem");
         assertThatThrownBy(() -> CertificateUtils.loadCertificate(certificatePath))
