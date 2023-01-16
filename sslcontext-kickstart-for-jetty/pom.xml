@@ -36,6 +36,7 @@
     </developers>
 
     <properties>
+        <version.jetty-util>9.4.50.v20221201</version.jetty-util>
         <version.jetty-reactive-httpclient>1.1.13</version.jetty-reactive-httpclient>
     </properties>
 
@@ -43,6 +44,10 @@
         <dependency>
             <groupId>io.github.hakky54</groupId>
             <artifactId>sslcontext-kickstart</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-util</artifactId>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
@@ -71,9 +76,15 @@
         <dependencies>
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-util</artifactId>
+                <version>${version.jetty-util}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-reactive-httpclient</artifactId>
                 <version>${version.jetty-reactive-httpclient}</version>
-                <scope>provided</scope>
+                <scope>test</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
