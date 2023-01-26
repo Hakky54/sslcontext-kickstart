@@ -26,6 +26,7 @@ import static nl.altindag.ssl.util.ValidationUtils.requireNotNull;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -231,6 +232,14 @@ public final class KeyStoreUtils {
         }
 
         return Collections.unmodifiableList(keyStores);
+    }
+
+    public static void write(KeyStore keyStore, Path keystorePath, char[] password) {
+        try(OutputStream outputStream = Files.newOutputStream(keystorePath, StandardOpenOption.CREATE)) {
+            keyStore.store(outputStream, password);
+        } catch (IOException | CertificateException | NoSuchAlgorithmException | KeyStoreException e) {
+            throw new GenericKeyStoreException(e);
+        }
     }
 
     public static int countAmountOfTrustMaterial(KeyStore keyStore) {
