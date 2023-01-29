@@ -15,6 +15,7 @@
  */
 package nl.altindag.ssl.util;
 
+import nl.altindag.ssl.TestConstants;
 import nl.altindag.ssl.exception.GenericCertificateException;
 import nl.altindag.ssl.exception.GenericIOException;
 import org.junit.jupiter.api.Test;
@@ -36,11 +37,14 @@ import java.security.KeyStoreException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static nl.altindag.ssl.TestConstants.KEYSTORE_LOCATION;
@@ -63,7 +67,6 @@ class CertificateUtilsShould {
     private static final String PEM_LOCATION = "pem/";
     private static final String DER_LOCATION = "der/";
     private static final String P7B_LOCATION = "p7b/";
-    private static final String TEMPORALLY_PEM_LOCATION = System.getProperty("user.home");
 
     @Test
     void generateAliasForX509Certificate() {
@@ -92,6 +95,32 @@ class CertificateUtilsShould {
 
         String alias = CertificateUtils.generateAlias(certificate);
         assertThat(alias).isNotBlank();
+    }
+
+
+    @Test
+    void generateAliasForDuplicateCertificate() {
+        X509Certificate certificate = mock(X509Certificate.class);
+        X500Principal x500Principal = mock(X500Principal.class);
+
+        when(certificate.getSubjectX500Principal()).thenReturn(x500Principal);
+        when(x500Principal.getName(X500Principal.CANONICAL)).thenReturn("cn=localhost");
+
+        List<X509Certificate> certificates = IntStream.rangeClosed(0, 1002)
+                .mapToObj(index -> certificate)
+                .collect(Collectors.toList());
+
+        Map<String, X509Certificate> aliasToCertificate = CertificateUtils.generateAliases(certificates);
+        assertThat(aliasToCertificate.get("cn=localhost")).isNotNull();
+        assertThat(aliasToCertificate.get("cn=localhost-1")).isNotNull();
+        assertThat(aliasToCertificate.get("cn=localhost-1000")).isNotNull();
+        assertThat(aliasToCertificate.get("cn=localhost-1001")).isNull();
+
+        List<String> expectedAliases = IntStream.rangeClosed(0, 1000)
+                .mapToObj(index -> "cn=localhost-" + index)
+                .collect(Collectors.toCollection(ArrayList::new));
+        expectedAliases.add(0, "cn=localhost");
+        assertThat(aliasToCertificate.keySet()).containsExactlyInAnyOrderElementsOf(expectedAliases);
     }
 
     @Test
@@ -201,6 +230,40 @@ class CertificateUtilsShould {
     }
 
     @Test
+    void writeDerCertificate() throws IOException {
+        List<Certificate> baseCertificates = CertificateUtils.loadCertificate(DER_LOCATION + "digicert.cer");
+        assertThat(baseCertificates).hasSize(1);
+        Certificate baseCertificate = baseCertificates.get(0);
+
+        Path certificatePath = Paths.get(TestConstants.HOME_DIRECTORY).resolve(Paths.get("digicert.crt"));
+
+        CertificateUtils.write(certificatePath, baseCertificate);
+
+        assertThat(Files.exists(certificatePath)).isTrue();
+
+        List<Certificate> certificates = CertificateUtils.loadCertificate(certificatePath);
+        assertThat(certificates).hasSize(1);
+        Certificate certificate = baseCertificates.get(0);
+        assertThat(baseCertificate).isEqualTo(certificate);
+
+        Files.delete(certificatePath);
+    }
+
+    @Test
+    void writeDerCertificateThrowsExceptionWhenSomethingUnexpectedIsHappening() throws CertificateEncodingException {
+        Path certificatePath = Paths.get(TestConstants.HOME_DIRECTORY).resolve(Paths.get("digicert.crt"));
+
+        Certificate certificate = mock(Certificate.class);
+        doThrow(new CertificateEncodingException("Kaboom!"))
+                .when(certificate)
+                .getEncoded();
+
+        assertThatThrownBy(() -> CertificateUtils.write(certificatePath, certificate))
+                .isInstanceOf(GenericCertificateException.class);
+
+    }
+
+    @Test
     void getSystemTrustedCertificatesDoesNotReturnCertificateIfNotACertificateEntry() throws KeyStoreException {
         KeyStore keyStore = mock(KeyStore.class);
         try (MockedStatic<KeyStoreUtils> keyStoreUtilsMockedStatic = mockStatic(KeyStoreUtils.class)) {
@@ -294,7 +357,7 @@ class CertificateUtilsShould {
 
     private Path copyFileToHomeDirectory(String path, String fileName) throws IOException {
         try (InputStream file = Thread.currentThread().getContextClassLoader().getResourceAsStream(path + fileName)) {
-            Path destination = Paths.get(TEMPORALLY_PEM_LOCATION, fileName);
+            Path destination = Paths.get(TestConstants.HOME_DIRECTORY, fileName);
             Files.copy(Objects.requireNonNull(file), destination, REPLACE_EXISTING);
             return destination;
         }

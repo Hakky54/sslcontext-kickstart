@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -75,7 +76,7 @@ public final class CertificateUtils {
 
     private CertificateUtils() {}
 
-    public static String generateAlias(Certificate certificate) {
+    public static <T extends Certificate> String generateAlias(T certificate) {
         if (certificate instanceof X509Certificate) {
             return ((X509Certificate) certificate)
                     .getSubjectX500Principal()
@@ -85,6 +86,41 @@ public final class CertificateUtils {
                     .replaceAll("[.*\\\\]+", "");
         } else {
             return UUID.randomUUID().toString().toLowerCase(Locale.US);
+        }
+    }
+
+    public static <T extends Certificate> Map<String, T> generateAliases(List<T> certificates) {
+        Map<String, T> aliasToCertificate = new HashMap<>();
+        for (T certificate : certificates) {
+            String alias = generateAlias(certificate);
+
+            boolean shouldAddCertificate = true;
+            if (aliasToCertificate.containsKey(alias)) {
+                for (int number = 0; number <= 1000; number++) {
+                    String mayBeUniqueAlias = alias + "-" + number;
+                    if (!aliasToCertificate.containsKey(mayBeUniqueAlias)) {
+                        alias = mayBeUniqueAlias;
+                        shouldAddCertificate = true;
+                        break;
+                    } else {
+                        shouldAddCertificate = false;
+                    }
+                }
+            }
+
+            if (shouldAddCertificate) {
+                aliasToCertificate.put(alias, certificate);
+            }
+        }
+        return aliasToCertificate;
+    }
+
+    public static <T extends Certificate> void write(Path destination, T certificate) {
+        try {
+            byte[] encodedCertificate = certificate.getEncoded();
+            IOUtils.write(destination, encodedCertificate);
+        } catch (CertificateEncodingException e) {
+            throw new GenericCertificateException(e);
         }
     }
 

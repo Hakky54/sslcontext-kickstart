@@ -22,6 +22,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -84,6 +85,27 @@ public final class IOUtils {
         } catch (IOException e) {
             throw new GenericIOException(e);
         }
+    }
+
+    static void write(Path path, byte[] data) {
+        try {
+            Files.write(path, data, StandardOpenOption.CREATE);
+        } catch (IOException e) {
+            throw new GenericIOException(e);
+        }
+    }
+
+    static void write(Path path, Consumer<OutputStream> consumer) {
+        try (OutputStream outputStream = Files.newOutputStream(path, StandardOpenOption.CREATE)) {
+            consumer.accept(outputStream);
+        } catch (Exception e) {
+            throw new GenericIOException(e);
+        }
+    }
+
+    @FunctionalInterface
+    interface Consumer<T> {
+        void accept(T t) throws Exception;
     }
 
 }

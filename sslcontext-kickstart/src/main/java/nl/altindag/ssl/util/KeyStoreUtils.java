@@ -233,6 +233,10 @@ public final class KeyStoreUtils {
         return Collections.unmodifiableList(keyStores);
     }
 
+    public static void write(Path destination, KeyStore keyStore, char[] password) {
+        IOUtils.write(destination, outputStream -> keyStore.store(outputStream, password));
+    }
+
     public static int countAmountOfTrustMaterial(KeyStore keyStore) {
         return amountOfSpecifiedMaterial(keyStore, KeyStore::isCertificateEntry, Integer.MAX_VALUE);
     }

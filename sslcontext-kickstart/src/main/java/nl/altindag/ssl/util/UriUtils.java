@@ -16,6 +16,7 @@
 package nl.altindag.ssl.util;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 
 import static java.util.Objects.isNull;
 
@@ -40,6 +41,15 @@ public final class UriUtils {
 
         if (uri.getPort() == -1) {
             throw new IllegalArgumentException(String.format("Port should be defined for the given input: [%s]", uri));
+        }
+    }
+
+    public static String extractHost(String value) {
+        try {
+            URI url = new URI(value);
+            return url.getHost();
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException(e);
         }
     }
 
