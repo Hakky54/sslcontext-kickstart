@@ -250,6 +250,20 @@ class CertificateUtilsShould {
     }
 
     @Test
+    void writeDerCertificateThrowsExceptionWhenSomethingUnexpectedIsHappening() throws CertificateEncodingException {
+        Path certificatePath = Paths.get(TestConstants.HOME_DIRECTORY).resolve(Paths.get("digicert.crt"));
+
+        Certificate certificate = mock(Certificate.class);
+        doThrow(new CertificateEncodingException("Kaboom!"))
+                .when(certificate)
+                .getEncoded();
+
+        assertThatThrownBy(() -> CertificateUtils.write(certificatePath, certificate))
+                .isInstanceOf(GenericCertificateException.class);
+
+    }
+
+    @Test
     void getSystemTrustedCertificatesDoesNotReturnCertificateIfNotACertificateEntry() throws KeyStoreException {
         KeyStore keyStore = mock(KeyStore.class);
         try (MockedStatic<KeyStoreUtils> keyStoreUtilsMockedStatic = mockStatic(KeyStoreUtils.class)) {

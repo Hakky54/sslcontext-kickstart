@@ -120,11 +120,12 @@ class IOUtilsShould {
     }
 
     @Test
-    void writeThrowsGenericIOExceptionWhenSomethingUnexpectedIsHappening() throws IOException, CertificateException, KeyStoreException, NoSuchAlgorithmException {
+    void writeThrowsGenericIOExceptionWhenSomethingUnexpectedIsHappening() throws IOException {
         Path path = Paths.get(TestConstants.HOME_DIRECTORY).resolve(Paths.get("my-non-existing-file.jks"));
         byte[] bytes = "Hello World".getBytes(StandardCharsets.UTF_8);
+        Files.createFile(path);
 
-        try (MockedStatic<Files> filesMockedStatic = mockStatic(Files.class, InvocationOnMock::callRealMethod)) {
+        try (MockedStatic<Files> filesMockedStatic = mockStatic(Files.class)) {
             filesMockedStatic.when(() -> IOUtils.write(path, bytes)).thenThrow(new IOException("Kaboom!"));
 
             assertThatThrownBy(() -> IOUtils.write(path, bytes))
