@@ -115,6 +115,15 @@ public final class CertificateUtils {
         return aliasToCertificate;
     }
 
+    public static <T extends Certificate> void write(Path destination, T certificate) {
+        try {
+            byte[] encodedCertificate = certificate.getEncoded();
+            IOUtils.write(destination, encodedCertificate);
+        } catch (CertificateEncodingException e) {
+            throw new GenericCertificateException(e);
+        }
+    }
+
     /**
      * Loads certificates from the classpath and maps it into a list of {@link Certificate}.
      * <br>

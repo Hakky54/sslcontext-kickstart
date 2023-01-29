@@ -234,12 +234,8 @@ public final class KeyStoreUtils {
         return Collections.unmodifiableList(keyStores);
     }
 
-    public static void write(KeyStore keyStore, Path keystorePath, char[] password) {
-        try(OutputStream outputStream = Files.newOutputStream(keystorePath, StandardOpenOption.CREATE)) {
-            keyStore.store(outputStream, password);
-        } catch (IOException | CertificateException | NoSuchAlgorithmException | KeyStoreException e) {
-            throw new GenericKeyStoreException(e);
-        }
+    public static void write(Path destination, KeyStore keyStore, char[] password) {
+        IOUtils.write(destination, outputStream -> keyStore.store(outputStream, password));
     }
 
     public static int countAmountOfTrustMaterial(KeyStore keyStore) {

@@ -36,11 +36,14 @@ import java.security.KeyStoreException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static nl.altindag.ssl.TestConstants.KEYSTORE_LOCATION;
@@ -92,6 +95,32 @@ class CertificateUtilsShould {
 
         String alias = CertificateUtils.generateAlias(certificate);
         assertThat(alias).isNotBlank();
+    }
+
+
+    @Test
+    void generateAliasForDuplicateCertificate() {
+        X509Certificate certificate = mock(X509Certificate.class);
+        X500Principal x500Principal = mock(X500Principal.class);
+
+        when(certificate.getSubjectX500Principal()).thenReturn(x500Principal);
+        when(x500Principal.getName(X500Principal.CANONICAL)).thenReturn("cn=localhost");
+
+        List<X509Certificate> certificates = IntStream.range(0, 1000)
+                .mapToObj(index -> certificate)
+                .collect(Collectors.toList());
+
+        Map<String, X509Certificate> aliasToCertificate = CertificateUtils.generateAliases(certificates);
+        assertThat(aliasToCertificate.get("cn=localhost")).isNotNull();
+        assertThat(aliasToCertificate.get("cn=localhost-1")).isNotNull();
+        assertThat(aliasToCertificate.get("cn=localhost-998")).isNotNull();
+        assertThat(aliasToCertificate.get("cn=localhost-999")).isNull();
+
+        List<String> expectedAliases = IntStream.range(0, 999)
+                .mapToObj(index -> "cn=localhost-" + index)
+                .collect(Collectors.toCollection(ArrayList::new));
+        expectedAliases.add(0, "cn=localhost");
+        assertThat(aliasToCertificate.keySet()).containsExactlyInAnyOrderElementsOf(expectedAliases);
     }
 
     @Test
