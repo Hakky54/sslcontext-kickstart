@@ -16,10 +16,13 @@
 package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.IOTestUtils;
+import nl.altindag.ssl.TestConstants;
 import nl.altindag.ssl.exception.GenericIOException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.ByteArrayInputStream;
@@ -29,12 +32,16 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Hakan Altindag
@@ -110,6 +117,36 @@ class IOUtilsShould {
         assertThatThrownBy(() -> IOUtils.copyToByteArray(inputStream))
                 .isInstanceOf(GenericIOException.class)
                 .hasRootCauseMessage("Could not read the content");
+    }
+
+    @Test
+    void writeThrowsGenericIOExceptionWhenSomethingUnexpectedIsHappening() throws IOException, CertificateException, KeyStoreException, NoSuchAlgorithmException {
+        Path path = Paths.get(TestConstants.HOME_DIRECTORY).resolve(Paths.get("my-non-existing-file.jks"));
+        byte[] bytes = "Hello World".getBytes(StandardCharsets.UTF_8);
+
+        try (MockedStatic<Files> filesMockedStatic = mockStatic(Files.class, InvocationOnMock::callRealMethod)) {
+            filesMockedStatic.when(() -> IOUtils.write(path, bytes)).thenThrow(new IOException("Kaboom!"));
+
+            assertThatThrownBy(() -> IOUtils.write(path, bytes))
+                    .isInstanceOf(GenericIOException.class);
+        }
+
+        Files.delete(path);
+    }
+
+    @Test
+    void writeWithOutputStreamThrowsGenericIOExceptionWhenSomethingUnexpectedIsHappening() throws IOException, CertificateException, KeyStoreException, NoSuchAlgorithmException {
+        Path path = Paths.get(TestConstants.HOME_DIRECTORY).resolve(Paths.get("my-non-existing-file.jks"));
+
+        char[] password = "hello".toCharArray();
+        KeyStore keyStore = Mockito.mock(KeyStore.class);
+        doThrow(new KeyStoreException("Kaboom!"))
+                .when(keyStore).store(any(), any());
+
+        assertThatThrownBy(() -> IOUtils.write(path, outputStream -> keyStore.store(outputStream, password)))
+                .isInstanceOf(GenericIOException.class);
+
+        Files.delete(path);
     }
 
 }

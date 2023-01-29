@@ -18,6 +18,7 @@ package nl.altindag.ssl.util;
 import nl.altindag.log.LogCaptor;
 import nl.altindag.ssl.IOTestUtils;
 import nl.altindag.ssl.SSLFactory;
+import nl.altindag.ssl.TestConstants;
 import nl.altindag.ssl.exception.GenericKeyStoreException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,6 +41,7 @@ import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -399,6 +401,28 @@ class KeyStoreUtilsShould {
         KeyStore trustStore = KeyStoreUtils.createTrustStore(trustedCertificates);
 
         assertThat(trustStore.size()).isEqualTo(1002);
+    }
+
+    @Test
+    void writeKeystoreToFilesystem() throws IOException, KeyStoreException {
+        KeyStore baseTruststore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+        Path truststorePath = Paths.get(TestConstants.HOME_DIRECTORY).resolve(Paths.get("truststore.jks"));
+        KeyStoreUtils.write(truststorePath, baseTruststore, TRUSTSTORE_PASSWORD);
+
+        assertThat(Files.exists(truststorePath)).isTrue();
+        KeyStore truststore = KeyStoreUtils.loadKeyStore(truststorePath, TRUSTSTORE_PASSWORD);
+        assertThat(truststore.size())
+                .isGreaterThan(0)
+                .isEqualTo(baseTruststore.size());
+
+        Enumeration<String> aliases = truststore.aliases();
+        while (aliases.hasMoreElements()) {
+            String alias = aliases.nextElement();
+            assertThat(truststore.isCertificateEntry(alias)).isTrue();
+            assertThat(truststore.getCertificate(alias)).isEqualTo(baseTruststore.getCertificate(alias));
+        }
+
+        Files.delete(truststorePath);
     }
 
     @Test

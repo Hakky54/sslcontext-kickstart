@@ -18,12 +18,25 @@ package nl.altindag.ssl.util;
 import org.junit.jupiter.api.Test;
 import java.net.URI;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @author Hakan Altindag
  */
 class UriUtilsShould {
+
+    @Test
+    void extractHost() {
+        String host = UriUtils.extractHost("https://my-first-domain.com");
+        assertThat(host).isEqualTo("my-first-domain.com");
+    }
+
+    @Test
+    void throwExceptionWhenInvalidUriIsProvided() {
+        assertThatThrownBy(() -> UriUtils.extractHost("https://my-first-domain.com/q/h?s=^IXIC"))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
 
     @Test
     void throwExceptionWhenNullIsProvidedWhenValidateIsCalled() {
