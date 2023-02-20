@@ -66,7 +66,7 @@
         <version.logcaptor>2.8.0</version.logcaptor>
         <version.mockito>4.11.0</version.mockito>
         <version.jacoco-maven-plugin>0.8.8</version.jacoco-maven-plugin>
-        <version.maven-surefire-plugin>3.0.0-M8</version.maven-surefire-plugin>
+        <version.maven-surefire-plugin>3.0.0-M9</version.maven-surefire-plugin>
         <version.maven-fail-safe>3.0.0-M9</version.maven-fail-safe>
         <version.maven-compiler-plugin>3.10.1</version.maven-compiler-plugin>
         <version.maven-enforcer-plugin>3.2.1</version.maven-enforcer-plugin>
