@@ -18,6 +18,7 @@
         <module>sslcontext-kickstart-for-apache4</module>
         <module>sslcontext-kickstart-for-apache5</module>
         <module>sslcontext-kickstart-for-pem</module>
+        <module>sslcontext-kickstart-bom</module>
     </modules>
 
     <licenses>
