@@ -4,7 +4,7 @@
 
     <groupId>io.github.hakky54</groupId>
     <artifactId>sslcontext-kickstart-bom</artifactId>
-    <version>${revision}</version>
+    <version>7.4.10</version>
     <packaging>pom</packaging>
 
     <name>SSLContext Kickstart (Bill Of Materials)</name>
