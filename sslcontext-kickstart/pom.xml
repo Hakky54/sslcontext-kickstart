@@ -11,9 +11,9 @@
     <artifactId>sslcontext-kickstart</artifactId>
     <packaging>jar</packaging>
 
-    <name>${project.artifactId}</name>
+    <name>SSLContext Kickstart Core</name>
     <description>High level library to configure a SSLContext and other properties to enable SSL/TLS connection</description>
-    <url>https://sslcontext-kickstart.com/</url>
+    <url>https://github.com/Hakky54/sslcontext-kickstart</url>
 
     <licenses>
         <license>
@@ -22,13 +22,6 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
-
-    <scm>
-        <url>https://github.com/Hakky54/sslcontext-kickstart</url>
-        <connection>scm:git:git@github.com:Hakky54/sslcontext-kickstart.git</connection>
-        <developerConnection>scm:git:git@github.com:Hakky54/sslcontext-kickstart.git</developerConnection>
-        <tag>HEAD</tag>
-    </scm>
 
     <developers>
         <developer>

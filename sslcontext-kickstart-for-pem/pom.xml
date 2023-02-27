@@ -11,9 +11,9 @@
     <artifactId>sslcontext-kickstart-for-pem</artifactId>
     <packaging>jar</packaging>
 
-    <name>${project.artifactId}</name>
+    <name>SSLContext Kickstart for PEM</name>
     <description>High level library to configure a SSLContext and other properties to enable SSL/TLS connection</description>
-    <url>https://sslcontext-kickstart.com/</url>
+    <url>https://github.com/Hakky54/sslcontext-kickstart</url>
 
     <licenses>
         <license>

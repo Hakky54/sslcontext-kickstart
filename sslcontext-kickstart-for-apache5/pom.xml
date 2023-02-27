@@ -3,17 +3,17 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <artifactId>sslcontext-kickstart-parent</artifactId>
         <groupId>io.github.hakky54</groupId>
+        <artifactId>sslcontext-kickstart-parent</artifactId>
         <version>${revision}</version>
     </parent>
 
     <artifactId>sslcontext-kickstart-for-apache5</artifactId>
     <packaging>jar</packaging>
 
-    <name>${project.artifactId}</name>
+    <name>SSLContext Kickstart for Apache 5</name>
     <description>High level library to configure a SSLContext and other properties to enable SSL/TLS connection</description>
-    <url>https://sslcontext-kickstart.com/</url>
+    <url>https://github.com/Hakky54/sslcontext-kickstart</url>
 
     <licenses>
         <license>
