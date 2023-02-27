@@ -3,6 +3,8 @@
 This list is not intended to be all-encompassing - it will document major and breaking API 
 changes with their rationale when appropriate:
 
+### v7.4.11
+ - Fixed releasing BOM (Bill of Materials)
 ### v7.4.10
  - Added BOM (Bill of Materials)
  - Bumped dependencies
