@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>io.github.hakky54</groupId>
-        <artifactId>sslcontext-kickstart-parent</artifactId>
-        <version>7.4.10-SNAPSHOT</version>
-    </parent>
+    <groupId>io.github.hakky54</groupId>
     <artifactId>sslcontext-kickstart-bom</artifactId>
+    <version>${revision}</version>
     <name>SSLContext Kickstart (Bill Of Materials)</name>
     <description>SSLContext Kickstart (Bill Of Materials)</description>
     <packaging>pom</packaging>
+
+    <properties>
+        <revision>7.4.10-SNAPSHOT</revision>
+    </properties>
 
     <dependencyManagement>
         <dependencies>
