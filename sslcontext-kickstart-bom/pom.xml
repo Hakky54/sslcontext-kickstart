@@ -42,10 +42,6 @@
         </repository>
     </distributionManagement>
 
-    <properties>
-        <revision>7.4.10-SNAPSHOT</revision>
-    </properties>
-
     <dependencyManagement>
         <dependencies>
             <dependency>
