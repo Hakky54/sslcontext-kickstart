@@ -54,7 +54,6 @@
     </developers>
 
     <properties>
-        <version.java>1.8</version.java>
         <version.slf4j>2.0.6</version.slf4j>
         <version.junit>5.9.2</version.junit>
         <version.assertj-core>3.24.2</version.assertj-core>
@@ -63,17 +62,11 @@
         <version.jacoco-maven-plugin>0.8.8</version.jacoco-maven-plugin>
         <version.maven-surefire-plugin>3.0.0-M9</version.maven-surefire-plugin>
         <version.maven-fail-safe>3.0.0-M9</version.maven-fail-safe>
-        <version.maven-compiler-plugin>3.10.1</version.maven-compiler-plugin>
         <version.maven-enforcer-plugin>3.2.1</version.maven-enforcer-plugin>
         <version.maven-jar-plugin>3.3.0</version.maven-jar-plugin>
         <version.maven-javadoc-plugin>3.5.0</version.maven-javadoc-plugin>
         <version.maven-source-plugin>3.2.1</version.maven-source-plugin>
-        <version.maven-gpg-plugin>3.0.1</version.maven-gpg-plugin>
-        <version.maven-release-plugin>2.5.3</version.maven-release-plugin>
-        <version.maven-scm-publish-plugin>3.0.0</version.maven-scm-publish-plugin>
-        <version.nexus-staging-maven-plugin>1.6.13</version.nexus-staging-maven-plugin>
         <version.license-maven-plugin>4.2.rc3</version.license-maven-plugin>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <license.git.copyrightYears>2019</license.git.copyrightYears>
     </properties>
 
@@ -136,16 +129,6 @@
         </pluginManagement>
 
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>${version.maven-compiler-plugin}</version>
-                <configuration>
-                    <source>${version.java}</source>
-                    <target>${version.java}</target>
-                </configuration>
-            </plugin>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
@@ -269,28 +252,6 @@
             </plugin>
 
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-release-plugin</artifactId>
-                <version>${version.maven-release-plugin}</version>
-                <configuration>
-                    <arguments>maven.test.skip=true</arguments>
-                    <tagNameFormat>v@{project.version}</tagNameFormat>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.sonatype.plugins</groupId>
-                <artifactId>nexus-staging-maven-plugin</artifactId>
-                <version>${version.nexus-staging-maven-plugin}</version>
-                <extensions>true</extensions>
-                <configuration>
-                    <serverId>ossrh</serverId>
-                    <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
-                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
-                </configuration>
-            </plugin>
-
-            <plugin>
                 <groupId>com.mycila</groupId>
                 <artifactId>license-maven-plugin</artifactId>
                 <version>${version.license-maven-plugin}</version>
@@ -343,34 +304,5 @@ limitations under the License.
             </plugin>
         </plugins>
     </build>
-
-    <profiles>
-        <profile>
-            <id>ossrh</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                        <version>${version.maven-gpg-plugin}</version>
-                        <configuration>
-                            <executable>gpg</executable>
-                            <keyname>${gpg.keyname}</keyname>
-                            <passphraseServerId>${gpg.keyname}</passphraseServerId>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <id>sign-artifacts</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>sign</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 
 </project>
