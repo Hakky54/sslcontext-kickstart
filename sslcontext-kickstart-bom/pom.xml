@@ -7,8 +7,8 @@
         <version>7.4.10-SNAPSHOT</version>
     </parent>
     <artifactId>sslcontext-kickstart-bom</artifactId>
-    <name>sslcontext-kickstart-bom</name>
-    <description>sslcontext-kickstart Bill Of Materials</description>
+    <name>SSLContext Kickstart (Bill Of Materials)</name>
+    <description>SSLContext Kickstart (Bill Of Materials)</description>
     <packaging>pom</packaging>
 
     <dependencyManagement>
