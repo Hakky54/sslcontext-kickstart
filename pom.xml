@@ -2,9 +2,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>io.github.hakky54</groupId>
+    <parent>
+        <groupId>io.github.hakky54</groupId>
+        <artifactId>sslcontext-kickstart-bom</artifactId>
+        <version>${revision}</version>
+        <relativePath>./sslcontext-kickstart-bom</relativePath>
+    </parent>
+
     <artifactId>sslcontext-kickstart-parent</artifactId>
-    <version>7.4.10-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>${project.artifactId}</name>
@@ -12,6 +17,7 @@
     <url>https://sslcontext-kickstart.com/</url>
 
     <modules>
+        <module>sslcontext-kickstart-bom</module>
         <module>sslcontext-kickstart</module>
         <module>sslcontext-kickstart-for-netty</module>
         <module>sslcontext-kickstart-for-jetty</module>

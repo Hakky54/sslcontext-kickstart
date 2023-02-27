@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.github.hakky54</groupId>
         <artifactId>sslcontext-kickstart-parent</artifactId>
-        <version>7.4.10-SNAPSHOT</version>
+        <version>${revision}</version>
     </parent>
 
     <artifactId>sslcontext-kickstart-for-apache4</artifactId>
