@@ -57,6 +57,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
       - name: Build, test and quality scan
-        run: mvn clean verify sonar:sonar -Dsonar.organization=hakky54 -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ secrets.SONAR_TOKEN }} --no-transfer-progress
+        run: mvn clean verify sonar:sonar -Dsonar.projectName=sslcontext-kickstart-parent -Dsonar.organization=hakky54 -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ secrets.SONAR_TOKEN }} --no-transfer-progress
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
