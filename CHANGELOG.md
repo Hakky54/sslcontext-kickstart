@@ -10,7 +10,6 @@ changes with their rationale when appropriate:
  - Bumped dependencies
  - Enhanced CertificateUtils with additional methods
  - Enhanced KeyStoreUtils with write method
- - 
 ### v7.4.9
  - Added proxy and authentication for extracting server certificates
  - Added additional methods for extracting single server certificates
