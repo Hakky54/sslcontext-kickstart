@@ -53,22 +53,11 @@ import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.Key;
-import java.security.KeyStore;
-import java.security.Provider;
-import java.security.SecureRandom;
+import java.security.*;
 import java.security.cert.Certificate;
 import java.security.cert.TrustAnchor;
 import java.security.cert.X509Certificate;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.isNull;
@@ -118,6 +107,19 @@ public final class SSLFactory {
     public List<X509Certificate> getTrustedCertificates() {
         return getTrustManager()
                 .map(X509ExtendedTrustManager::getAcceptedIssuers)
+                .map(Arrays::asList)
+                .map(Collections::unmodifiableList)
+                .orElseGet(Collections::emptyList);
+    }
+
+    public Optional<PrivateKey> getPrivateKey(String alias) {
+        return getKeyManager()
+                .map(keyManager -> keyManager.getPrivateKey(alias));
+    }
+
+    public List<X509Certificate> getCertificateChain(String alias) {
+        return getKeyManager()
+                .map(keyManager -> keyManager.getCertificateChain(alias))
                 .map(Arrays::asList)
                 .map(Collections::unmodifiableList)
                 .orElseGet(Collections::emptyList);
