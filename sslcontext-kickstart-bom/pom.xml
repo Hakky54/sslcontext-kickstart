@@ -53,7 +53,7 @@
         <version.java>1.8</version.java>
         <version.maven-compiler-plugin>3.11.0</version.maven-compiler-plugin>
         <version.maven-gpg-plugin>3.0.1</version.maven-gpg-plugin>
-        <version.maven-release-plugin>2.5.3</version.maven-release-plugin>
+        <version.maven-release-plugin>3.0.0</version.maven-release-plugin>
         <version.nexus-staging-maven-plugin>1.6.13</version.nexus-staging-maven-plugin>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
