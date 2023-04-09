@@ -529,11 +529,21 @@ public final class SSLFactory {
             return this;
         }
 
-        public Builder withIdentityMaterial(Key privateKey, char[] privateKeyPassword, Certificate... certificateChain) {
+        @SafeVarargs
+        public final <T extends Certificate> Builder withIdentityMaterial(Key privateKey, char[] privateKeyPassword, T... certificateChain) {
             return withIdentityMaterial(privateKey, privateKeyPassword, null, certificateChain);
         }
 
-        public Builder withIdentityMaterial(Key privateKey, char[] privateKeyPassword, String alias, Certificate... certificateChain) {
+        @SafeVarargs
+        public final <T extends Certificate> Builder withIdentityMaterial(Key privateKey, char[] privateKeyPassword, String alias, T... certificateChain) {
+            return withIdentityMaterial(privateKey, privateKeyPassword, alias, Arrays.asList(certificateChain));
+        }
+
+        public final <T extends Certificate> Builder withIdentityMaterial(Key privateKey, char[] privateKeyPassword, List<T> certificateChain) {
+            return withIdentityMaterial(privateKey, privateKeyPassword, null, certificateChain);
+        }
+
+        public final <T extends Certificate> Builder withIdentityMaterial(Key privateKey, char[] privateKeyPassword, String alias, List<T> certificateChain) {
             KeyStore identityStore = KeyStoreUtils.createIdentityStore(privateKey, privateKeyPassword, alias, certificateChain);
             identities.add(new KeyStoreHolder(identityStore, privateKeyPassword));
             return this;

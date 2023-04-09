@@ -797,7 +797,7 @@ class SSLFactoryShould {
     }
 
     @Test
-    void buildSSLFactoryWithIdentityMaterialAndTrustMaterialFromPrivateKey() throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException {
+    void buildSSLFactoryWithIdentityMaterialAndTrustMaterialAsArrayFromPrivateKey() throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         PrivateKey privateKey = (PrivateKey) identity.getKey("dummy-client", IDENTITY_PASSWORD);
         Certificate[] certificateChain = identity.getCertificateChain("dummy-client");
@@ -821,10 +821,56 @@ class SSLFactoryShould {
     }
 
     @Test
-    void buildSSLFactoryWithIdentityMaterialAndTrustMaterialFromPrivateKeyWithCustomAlias() throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException {
+    void buildSSLFactoryWithIdentityMaterialAndTrustMaterialAsArrayFromPrivateKeyWithCustomAlias() throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         PrivateKey privateKey = (PrivateKey) identity.getKey("dummy-client", IDENTITY_PASSWORD);
         Certificate[] certificateChain = identity.getCertificateChain("dummy-client");
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(privateKey, IDENTITY_PASSWORD, "thunder-client", certificateChain)
+                .withDefaultTrustMaterial()
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+
+        assertThat(sslFactory.getKeyManager()).isPresent();
+        assertThat(sslFactory.getKeyManagerFactory()).isPresent();
+
+        assertThat(sslFactory.getTrustManager()).isPresent();
+        assertThat(sslFactory.getTrustManagerFactory()).isPresent();
+        assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
+        assertThat(sslFactory.getHostnameVerifier()).isNotNull();
+    }
+
+    @Test
+    void buildSSLFactoryWithIdentityMaterialAndTrustMaterialAsListFromPrivateKey() throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException {
+        KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        PrivateKey privateKey = (PrivateKey) identity.getKey("dummy-client", IDENTITY_PASSWORD);
+        List<Certificate> certificateChain = Arrays.asList(identity.getCertificateChain("dummy-client"));
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(privateKey, IDENTITY_PASSWORD, certificateChain)
+                .withDefaultTrustMaterial()
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+
+        assertThat(sslFactory.getKeyManager()).isPresent();
+        assertThat(sslFactory.getKeyManagerFactory()).isPresent();
+        assertThat(sslFactory.getKeyManager().get().getPrivateKey("cn=prof-oak_ou=oak-pokémon-research-lab_o=oak-pokémon-research-lab_c=pallet-town")).isNotNull();
+        assertThat(sslFactory.getKeyManager().get().getCertificateChain("cn=prof-oak_ou=oak-pokémon-research-lab_o=oak-pokémon-research-lab_c=pallet-town")).isNotNull();
+
+        assertThat(sslFactory.getTrustManager()).isPresent();
+        assertThat(sslFactory.getTrustManagerFactory()).isPresent();
+        assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
+        assertThat(sslFactory.getHostnameVerifier()).isNotNull();
+    }
+
+    @Test
+    void buildSSLFactoryWithIdentityMaterialAndTrustMaterialAsListFromPrivateKeyWithCustomAlias2() throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException {
+        KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        PrivateKey privateKey = (PrivateKey) identity.getKey("dummy-client", IDENTITY_PASSWORD);
+        List<Certificate> certificateChain = Arrays.asList(identity.getCertificateChain("dummy-client"));
 
         SSLFactory sslFactory = SSLFactory.builder()
                 .withIdentityMaterial(privateKey, IDENTITY_PASSWORD, "thunder-client", certificateChain)
