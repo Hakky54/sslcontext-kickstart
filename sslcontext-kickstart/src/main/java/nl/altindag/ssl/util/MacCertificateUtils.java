@@ -64,7 +64,7 @@ public final class MacCertificateUtils {
         executorService.shutdownNow();
 
         String certificateContent = stringBuilder.toString();
-        return CertificateUtils.parseCertificate(certificateContent).stream()
+        return CertificateUtils.parsePemCertificate(certificateContent).stream()
                 .distinct()
                 .collect(toUnmodifiableList());
     }
