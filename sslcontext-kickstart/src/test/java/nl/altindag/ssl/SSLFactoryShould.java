@@ -539,6 +539,10 @@ class SSLFactoryShould {
                         && method.getParameterCount() == 2
                         && operatingSystem.contains("mac")) {
                     return KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+                } else if ("createTrustStore".equals(method.getName())
+                        && method.getParameterCount() == 1
+                        && method.getParameters()[0].getType().equals(List.class)) {
+                    return KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-without-password.jks", null);
                 } else {
                     return invocation.callRealMethod();
                 }
