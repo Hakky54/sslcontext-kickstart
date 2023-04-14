@@ -226,6 +226,10 @@ public final class KeyStoreUtils {
 
                 KeyStore androidCAStore = createKeyStore("AndroidCAStore", null);
                 keyStores.add(androidCAStore);
+            } else {
+                List<Certificate> certificates = LinuxCertificateUtils.getCertificates();
+                KeyStore linuxTrustStore = createTrustStore(certificates);
+                keyStores.add(linuxTrustStore);
             }
         }
 

@@ -224,12 +224,8 @@ class CertificateUtilsShould {
             }
         })) {
             List<X509Certificate> certificates = CertificateUtils.getSystemTrustedCertificates();
-            if (operatingSystem.contains("mac") || operatingSystem.contains("windows")) {
+            if (operatingSystem.contains("mac") || operatingSystem.contains("windows") || operatingSystem.contains("linux")) {
                 assertThat(certificates).isNotEmpty();
-            }
-
-            if (operatingSystem.contains("linux")) {
-                assertThat(certificates).isEmpty();
             }
         }
 

@@ -60,6 +60,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
 /**
@@ -188,18 +189,21 @@ class KeyStoreUtilsShould {
 
         KeyStore androidCAStore = mock(KeyStore.class);
 
-        try (MockedStatic<KeyStoreUtils> keyStoreUtilsMock = mockStatic(KeyStoreUtils.class, invocation -> {
+        try (MockedStatic<LinuxCertificateUtils> linuxCertificateUtilsMockedStatic = mockStatic(LinuxCertificateUtils.class);
+             MockedStatic<KeyStoreUtils> keyStoreUtilsMock = mockStatic(KeyStoreUtils.class, invocation -> {
             Method method = invocation.getMethod();
             if ("loadSystemKeyStores".equals(method.getName()) && method.getParameterCount() == 0) {
                 return invocation.callRealMethod();
             } else if ("createKeyStore".equals(method.getName()) && method.getParameterCount() == 2 && "AndroidCAStore".equals(invocation.getArgument(0))) {
                 return androidCAStore;
+            } else if ("createTrustStore".equals(method.getName()) && method.getParameterCount() == 1) {
+                return mock(KeyStore.class);
             } else {
                 return invocation.getMock();
             }
         })) {
-            List<KeyStore> keyStores = KeyStoreUtils.loadSystemKeyStores();
-            assertThat(keyStores).isEmpty();
+            KeyStoreUtils.loadSystemKeyStores();
+            keyStoreUtilsMock.verify(() -> KeyStoreUtils.createKeyStore("AndroidCAStore", null), times(0));
         } finally {
             resetOsName();
         }
@@ -226,23 +230,33 @@ class KeyStoreUtilsShould {
         })) {
             List<KeyStore> keyStores = KeyStoreUtils.loadSystemKeyStores();
             assertThat(keyStores).containsExactly(keychainStore, systemTrustStore);
+            macCertificateUtilsMockedStatic.verify(MacCertificateUtils::getCertificates, times(1));
         }
 
         resetOsName();
     }
 
     @Test
-    void loadLinuxSystemKeyStoreReturnsEmptyList() {
+    void loadLinuxSystemKeyStoreReturns() {
         System.setProperty("os.name", "linux");
 
-        LogCaptor logCaptor = LogCaptor.forClass(KeyStoreUtils.class);
+        KeyStore systemTrustStore = mock(KeyStore.class);
 
-        List<KeyStore> trustStores = KeyStoreUtils.loadSystemKeyStores();
-
-        assertThat(trustStores).isEmpty();
-        assertThat(logCaptor.getWarnLogs())
-                .hasSize(1)
-                .contains("No system KeyStores available for [linux]");
+        try (MockedStatic<LinuxCertificateUtils> linuxCertificateUtilsMockedStatic = mockStatic(LinuxCertificateUtils.class);
+             MockedStatic<KeyStoreUtils> keyStoreUtilsMockedStatic = mockStatic(KeyStoreUtils.class, invocation -> {
+                 Method method = invocation.getMethod();
+                 if ("loadSystemKeyStores".equals(method.getName()) && method.getParameterCount() == 0) {
+                     return invocation.callRealMethod();
+                 } else if ("createTrustStore".equals(method.getName()) && method.getParameterCount() == 1 && method.getParameters()[0].getType().equals(List.class)) {
+                     return systemTrustStore;
+                 } else {
+                     return invocation.getMock();
+                 }
+             })) {
+            List<KeyStore> keyStores = KeyStoreUtils.loadSystemKeyStores();
+            assertThat(keyStores).containsExactly(systemTrustStore);
+            linuxCertificateUtilsMockedStatic.verify(LinuxCertificateUtils::getCertificates, times(1));
+        }
 
         resetOsName();
     }

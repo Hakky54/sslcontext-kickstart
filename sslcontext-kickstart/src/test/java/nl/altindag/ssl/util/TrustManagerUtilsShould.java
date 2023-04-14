@@ -207,13 +207,9 @@ class TrustManagerUtilsShould {
             }
         })) {
             Optional<X509ExtendedTrustManager> trustManager = TrustManagerUtils.createTrustManagerWithSystemTrustedCertificates();
-            if (operatingSystem.contains("mac") || operatingSystem.contains("windows")) {
+            if (operatingSystem.contains("mac") || operatingSystem.contains("windows") || operatingSystem.contains("linux")) {
                 assertThat(trustManager).isPresent();
                 assertThat((trustManager).get().getAcceptedIssuers()).hasSizeGreaterThan(0);
-            }
-
-            if (operatingSystem.contains("linux")) {
-                assertThat(trustManager).isNotPresent();
             }
         }
     }
@@ -321,13 +317,22 @@ class TrustManagerUtilsShould {
     }
 
     @Test
-    void loadLinuxSystemKeyStoreReturnsOptionalOfEmpty() {
+    void loadLinuxSystemKeyStoreReturnsOptionalOfEmptyIfThereAreNoKeyStoresPresent() {
         System.setProperty("os.name", "linux");
 
-        Optional<X509ExtendedTrustManager> trustManager = TrustManagerUtils.createTrustManagerWithSystemTrustedCertificates();
-        assertThat(trustManager).isNotPresent();
-
-        resetOsName();
+        try (MockedStatic<KeyStoreUtils> keyStoreUtilsMock = mockStatic(KeyStoreUtils.class, invocation -> {
+                 Method method = invocation.getMethod();
+                 if ("loadSystemKeyStores".equals(method.getName()) && method.getParameterCount() == 0) {
+                     return Collections.emptyList();
+                 } else {
+                     return invocation.callRealMethod();
+                 }
+             })) {
+            Optional<X509ExtendedTrustManager> trustManager = TrustManagerUtils.createTrustManagerWithSystemTrustedCertificates();
+            assertThat(trustManager).isNotPresent();
+        } finally {
+            resetOsName();
+        }
     }
 
     @Test

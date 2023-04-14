@@ -533,7 +533,7 @@ class SSLFactoryShould {
     @Test
     void buildSSLFactoryWithTrustMaterialFromOnlySystemTrustedCertificates() {
         String operatingSystem = System.getProperty("os.name").toLowerCase();
-        if (operatingSystem.contains("mac") || operatingSystem.contains("windows")) {
+        if (operatingSystem.contains("mac") || operatingSystem.contains("windows") || operatingSystem.contains("linux")) {
             try (MockedStatic<MacCertificateUtils> macCertificateUtilsMockedStatic = mockStatic(MacCertificateUtils.class);
                  MockedStatic<KeyStoreUtils> keyStoreUtilsMockedStatic = mockStatic(KeyStoreUtils.class, invocation -> {
                 Method method = invocation.getMethod();
@@ -563,15 +563,6 @@ class SSLFactoryShould {
                 assertThat(sslFactory.getKeyManager()).isNotPresent();
                 assertThat(sslFactory.getKeyManagerFactory()).isNotPresent();
             }
-        }
-
-        if (operatingSystem.contains("linux")) {
-            SSLFactory.Builder sslFactoryBuilder = SSLFactory.builder()
-                    .withSystemTrustMaterial();
-
-            assertThatThrownBy(sslFactoryBuilder::build)
-                    .isInstanceOf(GenericSecurityException.class)
-                    .hasMessage("Could not create instance of SSLFactory because Identity and Trust material are not present. Please provide at least a Trust material.");
         }
     }
 
