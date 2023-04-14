@@ -31,6 +31,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
+import static nl.altindag.ssl.util.CollectorsUtils.toUnmodifiableList;
+
 final class MacCertificateUtils {
 
     private static final Path HOME_DIRECTORY = Paths.get(System.getProperty("user.home"));
@@ -61,7 +63,9 @@ final class MacCertificateUtils {
         executorService.shutdownNow();
 
         String certificateContent = stringBuilder.toString();
-        return CertificateUtils.parseCertificate(certificateContent);
+        return CertificateUtils.parseCertificate(certificateContent).stream()
+                .distinct()
+                .collect(toUnmodifiableList());
     }
 
     private static Process createProcess(String keychainFile) {

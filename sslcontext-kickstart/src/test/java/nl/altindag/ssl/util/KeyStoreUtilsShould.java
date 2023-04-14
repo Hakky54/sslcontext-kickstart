@@ -208,20 +208,23 @@ class KeyStoreUtilsShould {
     @Test
     void loadMacSystemKeyStore() {
         System.setProperty("os.name", "mac");
-        KeyStore macKeyStore = mock(KeyStore.class);
+        KeyStore keychainStore = mock(KeyStore.class);
+        KeyStore systemTrustStore = mock(KeyStore.class);
 
         try (MockedStatic<KeyStoreUtils> keyStoreUtilsMock = mockStatic(KeyStoreUtils.class, invocation -> {
             Method method = invocation.getMethod();
             if ("loadSystemKeyStores".equals(method.getName()) && method.getParameterCount() == 0) {
                 return invocation.callRealMethod();
             } else if ("createKeyStore".equals(method.getName()) && method.getParameterCount() == 2 && "KeychainStore".equals(invocation.getArgument(0))) {
-                return macKeyStore;
+                return keychainStore;
+            } else if ("createTrustStore".equals(method.getName()) && method.getParameterCount() == 1 && method.getParameters()[0].getType().equals(List.class)) {
+                return systemTrustStore;
             } else {
                 return invocation.getMock();
             }
         })) {
             List<KeyStore> keyStores = KeyStoreUtils.loadSystemKeyStores();
-            assertThat(keyStores).containsExactly(macKeyStore);
+            assertThat(keyStores).containsExactly(keychainStore, systemTrustStore);
         }
 
         resetOsName();
