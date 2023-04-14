@@ -211,7 +211,8 @@ class KeyStoreUtilsShould {
         KeyStore keychainStore = mock(KeyStore.class);
         KeyStore systemTrustStore = mock(KeyStore.class);
 
-        try (MockedStatic<KeyStoreUtils> keyStoreUtilsMock = mockStatic(KeyStoreUtils.class, invocation -> {
+        try (MockedStatic<MacCertificateUtils> macCertificateUtilsMockedStatic = mockStatic(MacCertificateUtils.class);
+             MockedStatic<KeyStoreUtils> keyStoreUtilsMockedStatic = mockStatic(KeyStoreUtils.class, invocation -> {
             Method method = invocation.getMethod();
             if ("loadSystemKeyStores".equals(method.getName()) && method.getParameterCount() == 0) {
                 return invocation.callRealMethod();
