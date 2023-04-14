@@ -199,6 +199,17 @@ public final class CertificateUtils {
         return certificates;
     }
 
+    static List<Certificate> parseCertificate(String certificateContent) {
+        List<Certificate> certificates = Collections.emptyList();
+        if (isPemFormatted(certificateContent)) {
+            certificates = parsePemCertificate(certificateContent);
+        } else if(isP7bFormatted(certificateContent)) {
+            certificates = parseP7bCertificate(certificateContent);
+        }
+
+        return certificates;
+    }
+
     private static boolean isPemFormatted(String certificateContent) {
         return PEM_PATTERN.matcher(certificateContent).find();
     }
