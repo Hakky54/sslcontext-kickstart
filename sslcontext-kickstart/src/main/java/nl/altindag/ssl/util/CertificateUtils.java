@@ -199,6 +199,10 @@ public final class CertificateUtils {
         return certificates;
     }
 
+    /**
+     * Tries to map the certificate content to a list of {@link Certificate}.
+     * It assumes that the content is either PEM or P7B.
+     */
     static List<Certificate> parseCertificate(String certificateContent) {
         List<Certificate> certificates = Collections.emptyList();
         if (isPemFormatted(certificateContent)) {
