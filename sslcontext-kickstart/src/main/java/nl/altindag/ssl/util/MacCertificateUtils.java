@@ -33,7 +33,7 @@ import java.util.function.Consumer;
 
 import static nl.altindag.ssl.util.CollectorsUtils.toUnmodifiableList;
 
-final class MacCertificateUtils {
+public final class MacCertificateUtils {
 
     private static final Path HOME_DIRECTORY = Paths.get(System.getProperty("user.home"));
     private static final List<String> KEYCHAIN_FILES = Arrays.asList(
@@ -45,7 +45,7 @@ final class MacCertificateUtils {
     private MacCertificateUtils() {
     }
 
-    static List<Certificate> getCertificates() {
+    public static List<Certificate> getCertificates() {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         StringBuilder stringBuilder = new StringBuilder();
         KEYCHAIN_FILES.stream()
