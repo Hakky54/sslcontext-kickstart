@@ -56,6 +56,7 @@ public final class MacCertificateUtils {
                     try {
                         future.get(10, TimeUnit.SECONDS);
                     } catch (ExecutionException | InterruptedException | TimeoutException e) {
+                        Thread.currentThread().interrupt();
                         throw new RuntimeException(e);
                     }
                 });
