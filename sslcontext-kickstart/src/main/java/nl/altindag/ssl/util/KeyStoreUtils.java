@@ -15,6 +15,7 @@
  */
 package nl.altindag.ssl.util;
 
+import nl.altindag.ssl.exception.GenericIOException;
 import nl.altindag.ssl.exception.GenericKeyStoreException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.security.Key;
 import java.security.KeyStore;
@@ -42,6 +44,8 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Hakan Altindag
@@ -56,6 +60,14 @@ public final class KeyStoreUtils {
     private static final UnaryOperator<String> KEYSTORE_NOT_FOUND_EXCEPTION_MESSAGE = certificatePath -> String.format("Failed to load the keystore from the classpath for the given path: [%s]", certificatePath);
     private static final String EMPTY_TRUST_MANAGER_FOR_TRUSTSTORE_EXCEPTION = "Could not create TrustStore because the provided TrustManager does not contain any trusted certificates";
     private static final String EMPTY_CERTIFICATES_EXCEPTION = "Could not create TrustStore because certificate is absent";
+    private static final List<Path> LINUX_CERTIFICATE_PATHS = Stream.of(
+                    "/etc/ssl/certs/ca-certificates.crt",
+                    "/etc/ssl/certs",
+                    "/usr/local/share/ca-certificates",
+                    "/usr/share/ca-certificates",
+                    "/etc/pki/ca-trust/source/anchors/")
+            .map(Paths::get)
+            .collect(Collectors.toList());
 
     private KeyStoreUtils() {}
 
@@ -222,6 +234,31 @@ public final class KeyStoreUtils {
 
                 KeyStore androidCAStore = createKeyStore("AndroidCAStore", null);
                 keyStores.add(androidCAStore);
+            } else {
+                List<Certificate> certificates = new ArrayList<>();
+                try {
+                    for (Path path : LINUX_CERTIFICATE_PATHS) {
+                        if (Files.exists(path)) {
+                            if (Files.isRegularFile(path)) {
+                                List<Certificate> certs = loadCertificate(path);
+                                certificates.addAll(certs);
+                            } else if (Files.isDirectory(path)) {
+                                try(Stream<Path> files = Files.walk(path, 1)) {
+                                    List<Certificate> certs = files
+                                            .filter(Files::isRegularFile)
+                                            .flatMap(file -> loadCertificate(file).stream())
+                                            .collect(Collectors.toList());
+                                    certificates.addAll(certs);
+                                }
+                            }
+                        }
+                    }
+                } catch (IOException e) {
+                    throw new GenericIOException(e);
+                }
+
+                KeyStore linuxTrustStore = createTrustStore(certificates);
+                keyStores.add(linuxTrustStore);
             }
         }
 
@@ -231,6 +268,16 @@ public final class KeyStoreUtils {
         }
 
         return Collections.unmodifiableList(keyStores);
+    }
+
+    private static List<Certificate> loadCertificate(Path path) {
+        try {
+            return CertificateUtils.loadCertificate(path);
+        } catch (Exception e) {
+            // Ignore exception and skip trying to parse the file as it is most likely
+            // not a (supported) certificate at all. It might be a regular text file maybe containing random text?
+            return Collections.emptyList();
+        }
     }
 
     public static void write(Path destination, KeyStore keyStore, char[] password) {
