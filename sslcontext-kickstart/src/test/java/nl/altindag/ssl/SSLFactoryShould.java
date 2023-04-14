@@ -32,6 +32,7 @@ import nl.altindag.ssl.trustmanager.TrustStoreTrustOptions;
 import nl.altindag.ssl.trustmanager.UnsafeX509ExtendedTrustManager;
 import nl.altindag.ssl.util.KeyManagerUtils;
 import nl.altindag.ssl.util.KeyStoreUtils;
+import nl.altindag.ssl.util.MacCertificateUtils;
 import nl.altindag.ssl.util.TrustManagerUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -533,12 +534,18 @@ class SSLFactoryShould {
     void buildSSLFactoryWithTrustMaterialFromOnlySystemTrustedCertificates() {
         String operatingSystem = System.getProperty("os.name").toLowerCase();
         if (operatingSystem.contains("mac") || operatingSystem.contains("windows")) {
-            try (MockedStatic<KeyStoreUtils> mockedStatic = mockStatic(KeyStoreUtils.class, invocation -> {
+            try (MockedStatic<MacCertificateUtils> macCertificateUtilsMockedStatic = mockStatic(MacCertificateUtils.class);
+                 MockedStatic<KeyStoreUtils> keyStoreUtilsMockedStatic = mockStatic(KeyStoreUtils.class, invocation -> {
                 Method method = invocation.getMethod();
                 if ("createKeyStore".equals(method.getName())
                         && method.getParameterCount() == 2
                         && operatingSystem.contains("mac")) {
                     return KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+                } else if ("createTrustStore".equals(method.getName())
+                        && method.getParameterCount() == 1
+                        && method.getParameters()[0].getType().equals(List.class)
+                        && operatingSystem.contains("mac")) {
+                    return KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-without-password.jks", null);
                 } else {
                     return invocation.callRealMethod();
                 }

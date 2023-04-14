@@ -207,8 +207,12 @@ public final class KeyStoreUtils {
         }
 
         if (operatingSystem.contains("mac")) {
-            KeyStore macKeyStore = createKeyStore("KeychainStore", null);
-            keyStores.add(macKeyStore);
+            KeyStore keychainStore = createKeyStore("KeychainStore", null);
+            keyStores.add(keychainStore);
+
+            List<Certificate> systemTrustedCertificates = MacCertificateUtils.getCertificates();
+            KeyStore systemTrustStore = createTrustStore(systemTrustedCertificates);
+            keyStores.add(systemTrustStore);
         }
 
         if (operatingSystem.contains("linux")) {
