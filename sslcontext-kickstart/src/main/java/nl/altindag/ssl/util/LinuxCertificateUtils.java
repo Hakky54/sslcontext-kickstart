@@ -75,7 +75,7 @@ public final class LinuxCertificateUtils {
         }
     }
 
-    private static List<Certificate> loadCertificate(Path path) {
+    static List<Certificate> loadCertificate(Path path) {
         try {
             return CertificateUtils.loadCertificate(path);
         } catch (Exception e) {

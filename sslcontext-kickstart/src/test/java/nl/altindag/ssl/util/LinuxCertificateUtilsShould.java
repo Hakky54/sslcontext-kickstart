@@ -16,12 +16,20 @@
 package nl.altindag.ssl.util;
 
 
+import nl.altindag.ssl.IOTestUtils;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Method;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.cert.Certificate;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mockStatic;
 
 /**
  * @author Hakan Altindag
@@ -36,6 +44,53 @@ class LinuxCertificateUtilsShould {
             List<Certificate> certificates = LinuxCertificateUtils.getCertificates();
             assertThat(certificates).isNotEmpty();
         }
+    }
+
+    @Test
+    void loadCertificateIgnoresInvalidFiles() throws IOException {
+        Path path = IOTestUtils.copyFileToHomeDirectory("pem/", "invalid.pem");
+        List<Certificate> certificates = LinuxCertificateUtils.loadCertificate(path);
+        assertThat(certificates).isEmpty();
+        Files.delete(path);
+    }
+
+    @Test
+    void loadCertificateReadsValidFiles() throws IOException {
+        Path path = IOTestUtils.copyFileToHomeDirectory("pem/", "badssl-certificate.pem");
+        List<Certificate> certificates = LinuxCertificateUtils.loadCertificate(path);
+        assertThat(certificates).isNotEmpty();
+        Files.delete(path);
+    }
+
+    @Test
+    void getCertificatesWhenFileExistAndIsARegularFile() throws IOException {
+        InputStream inputStream = IOUtils.getResourceAsStream("pem/badssl-certificate.pem");
+        String content = IOUtils.getContent(inputStream);
+        List<Certificate> mockedCertificates = CertificateUtils.parsePemCertificate(content);
+
+        try (MockedStatic<LinuxCertificateUtils> linuxCertificateUtilsMockedStatic = mockStatic(LinuxCertificateUtils.class, invocation -> {
+            Method method = invocation.getMethod();
+            if ("loadCertificate".equals(method.getName())) {
+                return mockedCertificates;
+            } else {
+                return invocation.callRealMethod();
+            }
+        });
+             MockedStatic<Files> filesMockedStatic = mockStatic(Files.class, invocation -> {
+                 Method method = invocation.getMethod();
+                 if ("exists".equals(method.getName())) {
+                     return true;
+                 } else if ("isRegularFile".equals(method.getName())) {
+                     return true;
+                 } else {
+                     return invocation.callRealMethod();
+                 }
+             })) {
+
+            List<Certificate> certificates = LinuxCertificateUtils.getCertificates();
+            assertThat(certificates).isNotEmpty();
+        }
+
     }
 
 }
