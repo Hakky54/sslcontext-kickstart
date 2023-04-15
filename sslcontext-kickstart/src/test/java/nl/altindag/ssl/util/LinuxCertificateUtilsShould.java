@@ -149,10 +149,15 @@ class LinuxCertificateUtilsShould {
     void getCertificatesReturnsEmptyListWhenFileExistButIsNotARegularFile() {
         try (MockedStatic<Files> filesMockedStatic = mockStatic(Files.class, invocation -> {
             Method method = invocation.getMethod();
-            if ("exists".equals(method.getName())) {
+            String methodName = method.getName();
+            if ("exists".equals(methodName)) {
                 return true;
-            } else if ("isRegularFile".equals(method.getName())) {
+            } else if ("isRegularFile".equals(methodName)) {
                 return false;
+            } else if ("isDirectory".equals(methodName)) {
+                return true;
+            } else if ("walk".equals(methodName)) {
+                return Stream.of(Paths.get("/etc/ssl/certs/some-certificate.pem"));
             } else {
                 return invocation.callRealMethod();
             }
@@ -196,6 +201,8 @@ class LinuxCertificateUtilsShould {
                      return Stream.of(Paths.get("/etc/ssl/certs/some-certificate.pem"));
                  } else if ("isRegularFile".equals(methodName) && "/etc/ssl/certs/some-certificate.pem".equals(path)) {
                      return true;
+                 } else if ("exists".equals(methodName)) {
+                     return false;
                  } else {
                      return invocation.callRealMethod();
                  }
@@ -238,29 +245,31 @@ class LinuxCertificateUtilsShould {
 
     @Test
     void containAListOfToBeSearchPathsForCertificates() {
-        List<String> capturedPaths = new ArrayList<>();
-        try (MockedStatic<Files> filesMockedStatic = mockStatic(Files.class, invocation -> {
-            Method method = invocation.getMethod();
-            if ("exists".equals(method.getName())) {
-                String absolutePath = invocation.getArguments()[0].toString();
-                capturedPaths.add(absolutePath);
-                return false;
-            } else {
-                return invocation.callRealMethod();
-            }
-        })) {
+        if (!OPERATING_SYSTEM.contains("windows")) {
+            List<String> capturedPaths = new ArrayList<>();
+            try (MockedStatic<Files> filesMockedStatic = mockStatic(Files.class, invocation -> {
+                Method method = invocation.getMethod();
+                if ("exists".equals(method.getName())) {
+                    String absolutePath = invocation.getArguments()[0].toString();
+                    capturedPaths.add(absolutePath);
+                    return false;
+                } else {
+                    return invocation.callRealMethod();
+                }
+            })) {
 
-            LinuxCertificateUtils.getCertificates();
-            assertThat(capturedPaths).containsExactly(
-                    "/etc/ssl/certs",
-                    "/etc/pki/nssdb",
-                    "/usr/local/share/ca-certificates",
-                    "/usr/share/ca-certificates",
-                    "/etc/pki/tls/certs/ca-bundle.crt",
-                    "/etc/pki/ca-trust/source/anchors",
-                    "/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem",
-                    System.getProperty("user.home") + "/.pki/nssdb"
-            );
+                LinuxCertificateUtils.getCertificates();
+                assertThat(capturedPaths).containsExactly(
+                        "/etc/ssl/certs",
+                        "/etc/pki/nssdb",
+                        "/usr/local/share/ca-certificates",
+                        "/usr/share/ca-certificates",
+                        "/etc/pki/tls/certs/ca-bundle.crt",
+                        "/etc/pki/ca-trust/source/anchors",
+                        "/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem",
+                        System.getProperty("user.home") + "/.pki/nssdb"
+                );
+            }
         }
     }
 
