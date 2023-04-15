@@ -19,7 +19,6 @@ package nl.altindag.ssl.util;
 import nl.altindag.ssl.exception.GenericException;
 import nl.altindag.ssl.exception.GenericIOException;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 
 import java.io.File;
