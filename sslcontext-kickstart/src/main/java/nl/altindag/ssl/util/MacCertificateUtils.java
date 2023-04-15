@@ -23,44 +23,43 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.cert.Certificate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import static nl.altindag.ssl.util.CollectorsUtils.toUnmodifiableList;
 
 public final class MacCertificateUtils {
 
     private static final Path HOME_DIRECTORY = Paths.get(System.getProperty("user.home"));
-    private static final List<String> KEYCHAIN_FILES = Arrays.asList(
-            "/System/Library/Keychains/SystemRootCertificates.keychain",
-            "/Library/Keychains/System.keychain",
-            "~/Library/Keychains/login.keychain-db"
-    );
+    private static final String SYSTEM_ROOT_KEYCHAIN_FILE = "/System/Library/Keychains/SystemRootCertificates.keychain";
+    private static final List<String> KEYCHAIN_LOOKUP_COMMANDS = Arrays.asList("list-keychains", "default-keychain");
 
     private MacCertificateUtils() {
+    }
+
+    public static void main(String[] args) {
+        List<Certificate> certificates = getCertificates();
+        System.out.println(certificates.size());
     }
 
     public static List<Certificate> getCertificates() {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         StringBuilder stringBuilder = new StringBuilder();
-        KEYCHAIN_FILES.stream()
-                .map(MacCertificateUtils::createProcess)
+        getKeychainFiles(executorService).stream()
+                .distinct()
+                .map(MacCertificateUtils::createProcessForGettingCertificates)
                 .map(process -> new StringInputStreamRunnable(process.getInputStream(), content -> stringBuilder.append(content).append(System.lineSeparator())))
                 .map(executorService::submit)
-                .forEach(future -> {
-                    try {
-                        future.get(10, TimeUnit.SECONDS);
-                    } catch (ExecutionException | InterruptedException | TimeoutException e) {
-                        Thread.currentThread().interrupt();
-                        throw new GenericCertificateException(e);
-                    }
-                });
+                .forEach(MacCertificateUtils::waitAtMostTillTimeout);
 
         executorService.shutdownNow();
 
@@ -70,14 +69,58 @@ public final class MacCertificateUtils {
                 .collect(toUnmodifiableList());
     }
 
-    private static Process createProcess(String keychainFile) {
+    private static List<String> getKeychainFiles(ExecutorService executorService) {
+        List<String> keychainFiles = new ArrayList<>();
+        keychainFiles.add(SYSTEM_ROOT_KEYCHAIN_FILE);
+
+        KEYCHAIN_LOOKUP_COMMANDS.stream()
+                .map(MacCertificateUtils::createProcessForGettingKeychainFile)
+                .map(process -> new StringInputStreamRunnable(process.getInputStream(), content -> {
+                    Stream.of(content.split(System.lineSeparator()))
+                            .map(line -> line.replaceAll("\"", ""))
+                            .map(String::trim)
+                            .forEach(keychainFiles::add);
+                }))
+                .map(executorService::submit)
+                .forEach(MacCertificateUtils::waitAtMostTillTimeout);
+
+        return keychainFiles;
+    }
+
+    private static Process createProcessForGettingKeychainFile(String command) {
+        return createProcess("security " + command);
+    }
+
+    /**
+     * Uses a mac command while using bash to get the certificates from keychain with: security find-certificate
+     * <p>
+     * <pre>
+     * It uses the following CLI options:
+     *     -a Find all matching certificates, not just the first one
+     *     -p Output certificate in pem format
+     * </pre>
+     */
+    private static Process createProcessForGettingCertificates(String keychainFilePath) {
+        return createProcess("security find-certificate -a -p " + keychainFilePath);
+    }
+
+    private static Process createProcess(String command) {
         try {
             return new ProcessBuilder()
-                    .command("sh", "-c", "security find-certificate -a -p " + keychainFile)
+                    .command("sh", "-c", command)
                     .directory(HOME_DIRECTORY.toFile())
                     .start();
         } catch (IOException e) {
             throw new GenericIOException(e);
+        }
+    }
+
+    private static void waitAtMostTillTimeout(Future<?> future) {
+        try {
+            future.get(10, TimeUnit.SECONDS);
+        } catch (ExecutionException | InterruptedException | TimeoutException e) {
+            Thread.currentThread().interrupt();
+            throw new GenericCertificateException(e);
         }
     }
 
