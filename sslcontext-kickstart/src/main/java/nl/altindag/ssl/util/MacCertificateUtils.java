@@ -15,7 +15,7 @@
  */
 package nl.altindag.ssl.util;
 
-import nl.altindag.ssl.exception.GenericCertificateException;
+import nl.altindag.ssl.exception.GenericException;
 import nl.altindag.ssl.exception.GenericIOException;
 
 import java.io.IOException;
@@ -100,7 +100,7 @@ public final class MacCertificateUtils {
 
     private static Process createProcess(String command) {
         try {
-            return new ProcessBuilder()
+            return createProcess()
                     .command("sh", "-c", command)
                     .directory(HOME_DIRECTORY.toFile())
                     .start();
@@ -109,12 +109,19 @@ public final class MacCertificateUtils {
         }
     }
 
-    private static void waitAtMostTillTimeout(Future<?> future) {
+    /**
+     * Added to make {@link MacCertificateUtils#createProcess(String)} testable
+     */
+    static ProcessBuilder createProcess() {
+        return new ProcessBuilder();
+    }
+
+    static void waitAtMostTillTimeout(Future<?> future) {
         try {
             future.get(10, TimeUnit.SECONDS);
         } catch (ExecutionException | InterruptedException | TimeoutException e) {
             Thread.currentThread().interrupt();
-            throw new GenericCertificateException(e);
+            throw new GenericException(e);
         }
     }
 
