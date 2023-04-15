@@ -17,6 +17,7 @@ package nl.altindag.ssl.util;
 
 
 import nl.altindag.ssl.IOTestUtils;
+import nl.altindag.ssl.exception.GenericIOException;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
@@ -25,10 +26,14 @@ import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.cert.Certificate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mockStatic;
 
 /**
@@ -63,7 +68,7 @@ class LinuxCertificateUtilsShould {
     }
 
     @Test
-    void getCertificatesWhenFileExistAndIsARegularFile() throws IOException {
+    void getCertificatesWhenFileExistAndIsARegularFile() {
         InputStream inputStream = IOUtils.getResourceAsStream("pem/badssl-certificate.pem");
         String content = IOUtils.getContent(inputStream);
         List<Certificate> mockedCertificates = CertificateUtils.parsePemCertificate(content);
@@ -90,7 +95,173 @@ class LinuxCertificateUtilsShould {
             List<Certificate> certificates = LinuxCertificateUtils.getCertificates();
             assertThat(certificates).isNotEmpty();
         }
+    }
 
+    @Test
+    void getCertificatesWhenFilesExistUnderADirectory() {
+        InputStream inputStream = IOUtils.getResourceAsStream("pem/badssl-certificate.pem");
+        String content = IOUtils.getContent(inputStream);
+        List<Certificate> mockedCertificates = CertificateUtils.parsePemCertificate(content);
+
+        try (MockedStatic<LinuxCertificateUtils> linuxCertificateUtilsMockedStatic = mockStatic(LinuxCertificateUtils.class, invocation -> {
+            Method method = invocation.getMethod();
+            if ("loadCertificate".equals(method.getName())) {
+                return mockedCertificates;
+            } else {
+                return invocation.callRealMethod();
+            }
+        });
+             MockedStatic<Files> filesMockedStatic = mockStatic(Files.class, invocation -> {
+                 Method method = invocation.getMethod();
+                 if ("exists".equals(method.getName())) {
+                     return true;
+                 } else if ("isRegularFile".equals(method.getName())) {
+                     return true;
+                 } else {
+                     return invocation.callRealMethod();
+                 }
+             })) {
+
+            List<Certificate> certificates = LinuxCertificateUtils.getCertificates();
+            assertThat(certificates).isNotEmpty();
+        }
+    }
+
+    @Test
+    void getCertificatesReturnsEmptyListWhenFileDoesNotExist() {
+        try (MockedStatic<Files> filesMockedStatic = mockStatic(Files.class, invocation -> {
+            Method method = invocation.getMethod();
+            if ("exists".equals(method.getName())) {
+                return false;
+            } else if ("isRegularFile".equals(method.getName())) {
+                return true;
+            } else {
+                return invocation.callRealMethod();
+            }
+        })) {
+
+            List<Certificate> certificates = LinuxCertificateUtils.getCertificates();
+            assertThat(certificates).isEmpty();
+        }
+    }
+
+    @Test
+    void getCertificatesReturnsEmptyListWhenFileExistButIsNotARegularFile() {
+        try (MockedStatic<Files> filesMockedStatic = mockStatic(Files.class, invocation -> {
+            Method method = invocation.getMethod();
+            if ("exists".equals(method.getName())) {
+                return true;
+            } else if ("isRegularFile".equals(method.getName())) {
+                return false;
+            } else {
+                return invocation.callRealMethod();
+            }
+        })) {
+
+            List<Certificate> certificates = LinuxCertificateUtils.getCertificates();
+            assertThat(certificates).isEmpty();
+        }
+    }
+
+    @Test
+    void getCertificatesReturnsCertificatesWhenFileExistWithinDirectory() {
+        InputStream inputStream = IOUtils.getResourceAsStream("pem/badssl-certificate.pem");
+        String content = IOUtils.getContent(inputStream);
+        List<Certificate> mockedCertificates = CertificateUtils.parsePemCertificate(content);
+
+        try (MockedStatic<LinuxCertificateUtils> linuxCertificateUtilsMockedStatic = mockStatic(LinuxCertificateUtils.class, invocation -> {
+            Method method = invocation.getMethod();
+            if ("loadCertificate".equals(method.getName())) {
+                return mockedCertificates;
+            } else {
+                return invocation.callRealMethod();
+            }
+        });
+             MockedStatic<Files> filesMockedStatic = mockStatic(Files.class, invocation -> {
+                 Method method = invocation.getMethod();
+                 String methodName = method.getName();
+
+                 if (invocation.getArguments().length == 0) {
+                     return invocation.callRealMethod();
+                 }
+
+                 String path = invocation.getArguments()[0].toString();
+                 if ("exists".equals(methodName) && "/etc/ssl/certs".equals(path)) {
+                     return true;
+                 } else if ("isRegularFile".equals(methodName) && "/etc/ssl/certs".equals(path)) {
+                     return false;
+                 } else if ("isDirectory".equals(methodName) && "/etc/ssl/certs".equals(path)) {
+                     return true;
+                 } else if ("walk".equals(methodName)) {
+                     return Stream.of(Paths.get("/etc/ssl/certs/some-certificate.pem"));
+                 } else if ("isRegularFile".equals(methodName) && "/etc/ssl/certs/some-certificate.pem".equals(path)) {
+                     return true;
+                 } else {
+                     return invocation.callRealMethod();
+                 }
+             })) {
+
+            List<Certificate> certificates = LinuxCertificateUtils.getCertificates();
+            assertThat(certificates).isNotEmpty();
+        }
+    }
+
+    @Test
+    void wrapAnIOExceptionInAGenericIOExceptionWhenFilesWalkFails() {
+        try (MockedStatic<Files> filesMockedStatic = mockStatic(Files.class, invocation -> {
+            Method method = invocation.getMethod();
+            String methodName = method.getName();
+
+            if (invocation.getArguments().length == 0) {
+                return invocation.callRealMethod();
+            }
+
+            String path = invocation.getArguments()[0].toString();
+            if ("exists".equals(methodName) && "/etc/ssl/certs".equals(path)) {
+                return true;
+            } else if ("isRegularFile".equals(methodName) && "/etc/ssl/certs".equals(path)) {
+                return false;
+            } else if ("isDirectory".equals(methodName) && "/etc/ssl/certs".equals(path)) {
+                return true;
+            } else if ("walk".equals(methodName)) {
+                throw new IOException("KABOOM");
+            } else {
+                return invocation.callRealMethod();
+            }
+        })) {
+
+            assertThatThrownBy(LinuxCertificateUtils::getCertificates)
+                    .isInstanceOf(GenericIOException.class)
+                    .hasMessageContaining("KABOOM");
+        }
+    }
+
+    @Test
+    void containAListOfToBeSearchPathsForCertificates() {
+        List<String> capturedPaths = new ArrayList<>();
+        try (MockedStatic<Files> filesMockedStatic = mockStatic(Files.class, invocation -> {
+            Method method = invocation.getMethod();
+            if ("exists".equals(method.getName())) {
+                String absolutePath = invocation.getArguments()[0].toString();
+                capturedPaths.add(absolutePath);
+                return false;
+            } else {
+                return invocation.callRealMethod();
+            }
+        })) {
+
+            LinuxCertificateUtils.getCertificates();
+            assertThat(capturedPaths).containsExactly(
+                    "/etc/ssl/certs",
+                    "/etc/pki/nssdb",
+                    "/usr/local/share/ca-certificates",
+                    "/usr/share/ca-certificates",
+                    "/etc/pki/tls/certs/ca-bundle.crt",
+                    "/etc/pki/ca-trust/source/anchors",
+                    "/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem",
+                    System.getProperty("user.home") + "/.pki/nssdb"
+            );
+        }
     }
 
 }
