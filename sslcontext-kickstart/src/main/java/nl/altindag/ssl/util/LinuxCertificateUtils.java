@@ -28,14 +28,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static nl.altindag.ssl.util.CollectorsUtils.toUnmodifiableList;
+
 public final class LinuxCertificateUtils {
 
     private static final List<Path> LINUX_CERTIFICATE_PATHS = Stream.of(
-                    "/etc/ssl/certs/ca-certificates.crt",
                     "/etc/ssl/certs",
                     "/usr/local/share/ca-certificates",
                     "/usr/share/ca-certificates",
-                    "/etc/pki/ca-trust/source/anchors/")
+                    "/etc/pki/ca-trust/source/anchors")
             .map(Paths::get)
             .collect(Collectors.toList());
 
@@ -61,7 +62,9 @@ public final class LinuxCertificateUtils {
                     }
                 }
             }
-            return Collections.unmodifiableList(certificates);
+            return certificates.stream()
+                    .distinct()
+                    .collect(toUnmodifiableList());
         } catch (IOException e) {
             throw new GenericIOException(e);
         }
