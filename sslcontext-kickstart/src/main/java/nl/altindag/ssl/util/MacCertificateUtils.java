@@ -15,6 +15,7 @@
  */
 package nl.altindag.ssl.util;
 
+import nl.altindag.ssl.exception.GenericCertificateException;
 import nl.altindag.ssl.exception.GenericIOException;
 
 import java.io.IOException;
@@ -57,7 +58,7 @@ public final class MacCertificateUtils {
                         future.get(10, TimeUnit.SECONDS);
                     } catch (ExecutionException | InterruptedException | TimeoutException e) {
                         Thread.currentThread().interrupt();
-                        throw new RuntimeException(e);
+                        throw new GenericCertificateException(e);
                     }
                 });
 
