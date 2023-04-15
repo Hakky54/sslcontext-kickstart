@@ -32,11 +32,16 @@ import static nl.altindag.ssl.util.CollectorsUtils.toUnmodifiableList;
 
 public final class LinuxCertificateUtils {
 
+    private static final String HOME_DIRECTORY = System.getProperty("user.home");
     private static final List<Path> LINUX_CERTIFICATE_PATHS = Stream.of(
                     "/etc/ssl/certs",
+                    "/etc/pki/nssdb",
                     "/usr/local/share/ca-certificates",
                     "/usr/share/ca-certificates",
-                    "/etc/pki/ca-trust/source/anchors")
+                    "/etc/pki/tls/certs/ca-bundle.crt",
+                    "/etc/pki/ca-trust/source/anchors",
+                    "/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem",
+                    HOME_DIRECTORY + "/.pki/nssdb")
             .map(Paths::get)
             .collect(Collectors.toList());
 
