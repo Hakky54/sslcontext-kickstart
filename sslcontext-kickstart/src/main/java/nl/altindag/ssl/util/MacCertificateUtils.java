@@ -46,11 +46,6 @@ public final class MacCertificateUtils {
     private MacCertificateUtils() {
     }
 
-    public static void main(String[] args) {
-        List<Certificate> certificates = getCertificates();
-        System.out.println(certificates.size());
-    }
-
     public static List<Certificate> getCertificates() {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         StringBuilder stringBuilder = new StringBuilder();
@@ -75,12 +70,11 @@ public final class MacCertificateUtils {
 
         KEYCHAIN_LOOKUP_COMMANDS.stream()
                 .map(MacCertificateUtils::createProcessForGettingKeychainFile)
-                .map(process -> new StringInputStreamRunnable(process.getInputStream(), content -> {
-                    Stream.of(content.split(System.lineSeparator()))
-                            .map(line -> line.replaceAll("\"", ""))
-                            .map(String::trim)
-                            .forEach(keychainFiles::add);
-                }))
+                .map(process -> new StringInputStreamRunnable(process.getInputStream(), content ->
+                        Stream.of(content.split(System.lineSeparator()))
+                                .map(line -> line.replace("\"", ""))
+                                .map(String::trim)
+                                .forEach(keychainFiles::add)))
                 .map(executorService::submit)
                 .forEach(MacCertificateUtils::waitAtMostTillTimeout);
 
