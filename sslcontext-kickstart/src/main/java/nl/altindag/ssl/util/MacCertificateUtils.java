@@ -25,6 +25,7 @@ import java.nio.file.Paths;
 import java.security.cert.Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -47,6 +48,10 @@ public final class MacCertificateUtils {
     }
 
     public static List<Certificate> getCertificates() {
+        if (!System.getProperty("os.name").toLowerCase().contains("mac")) {
+            return Collections.emptyList();
+        }
+
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         StringBuilder stringBuilder = new StringBuilder();
         getKeychainFiles(executorService).stream()

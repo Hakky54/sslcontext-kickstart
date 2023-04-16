@@ -33,18 +33,22 @@ import java.util.concurrent.TimeoutException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Hakan Altindag
  */
 class MacCertificateUtilsShould {
 
-    private static final String OPERATING_SYSTEM = System.getProperty("os.name").toLowerCase();
+    private static final String OS_NAME = System.getProperty("os.name");
 
     @Test
     void getCertificate() {
-        if (OPERATING_SYSTEM.contains("mac")) {
+        if (OS_NAME.toLowerCase().contains("mac")) {
             List<Certificate> certificates = MacCertificateUtils.getCertificates();
             assertThat(certificates).isNotEmpty();
         }
@@ -52,6 +56,8 @@ class MacCertificateUtilsShould {
 
     @Test
     void throwsGenericIOExceptionWhenSystemProcessCannotStarted() throws IOException {
+        System.setProperty("os.name", "Mac OS X");
+
         ProcessBuilder processBuilder = mock(ProcessBuilder.class);
         when(processBuilder.command(anyString(), anyString(), anyString())).thenReturn(processBuilder);
         when(processBuilder.directory(any(File.class))).thenReturn(processBuilder);
@@ -70,6 +76,8 @@ class MacCertificateUtilsShould {
                     .isInstanceOf(GenericIOException.class)
                     .hasMessageContaining("KABOOM!");
         }
+
+        resetOsName();
     }
 
     @Test
@@ -80,6 +88,20 @@ class MacCertificateUtilsShould {
         assertThatThrownBy(() -> MacCertificateUtils.waitAtMostTillTimeout(future))
                 .isInstanceOf(GenericException.class)
                 .hasMessageContaining("KABOOM!");
+    }
+
+    @Test
+    void returnEmptyListForaNonMacOs() {
+        System.setProperty("os.name", "windows");
+
+        List<Certificate> certificates = MacCertificateUtils.getCertificates();
+        assertThat(certificates).isEmpty();
+
+        resetOsName();
+    }
+
+    private void resetOsName() {
+        System.setProperty("os.name", OS_NAME);
     }
 
 }

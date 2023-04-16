@@ -41,11 +41,11 @@ import static org.mockito.Mockito.mockStatic;
  */
 class LinuxCertificateUtilsShould {
 
-    private static final String OPERATING_SYSTEM = System.getProperty("os.name").toLowerCase();
+    private static final String ORIGINAL_OS_NAME = System.getProperty("os.name").toLowerCase();
 
     @Test
     void getCertificate() {
-        if (OPERATING_SYSTEM.contains("linux")) {
+        if (ORIGINAL_OS_NAME.contains("linux")) {
             List<Certificate> certificates = LinuxCertificateUtils.getCertificates();
             assertThat(certificates).isNotEmpty();
         }
@@ -92,8 +92,12 @@ class LinuxCertificateUtilsShould {
                  }
              })) {
 
+            System.setProperty("os.name", "linux");
+
             List<Certificate> certificates = LinuxCertificateUtils.getCertificates();
             assertThat(certificates).isNotEmpty();
+
+            resetOsName();
         }
     }
 
@@ -122,8 +126,12 @@ class LinuxCertificateUtilsShould {
                  }
              })) {
 
+            System.setProperty("os.name", "linux");
+
             List<Certificate> certificates = LinuxCertificateUtils.getCertificates();
             assertThat(certificates).isNotEmpty();
+
+            resetOsName();
         }
     }
 
@@ -147,6 +155,8 @@ class LinuxCertificateUtilsShould {
 
     @Test
     void getCertificatesReturnsEmptyListWhenFileExistButIsNotARegularFile() {
+        System.setProperty("os.name", "linux");
+
         try (MockedStatic<Files> filesMockedStatic = mockStatic(Files.class, invocation -> {
             Method method = invocation.getMethod();
             String methodName = method.getName();
@@ -166,11 +176,15 @@ class LinuxCertificateUtilsShould {
             List<Certificate> certificates = LinuxCertificateUtils.getCertificates();
             assertThat(certificates).isEmpty();
         }
+
+        resetOsName();
     }
 
     @Test
     void getCertificatesReturnsCertificatesWhenFileExistWithinDirectory() {
-        if (!OPERATING_SYSTEM.contains("windows")) {
+        System.setProperty("os.name", "linux");
+
+        if (!ORIGINAL_OS_NAME.contains("windows")) {
             InputStream inputStream = IOUtils.getResourceAsStream("pem/badssl-certificate.pem");
             String content = IOUtils.getContent(inputStream);
             List<Certificate> mockedCertificates = CertificateUtils.parsePemCertificate(content);
@@ -213,11 +227,15 @@ class LinuxCertificateUtilsShould {
                 assertThat(certificates).isNotEmpty();
             }
         }
+
+        resetOsName();
     }
 
     @Test
     void wrapAnIOExceptionInAGenericIOExceptionWhenFilesWalkFails() {
-        if (!OPERATING_SYSTEM.contains("windows")) {
+        System.setProperty("os.name", "linux");
+
+        if (!ORIGINAL_OS_NAME.contains("windows")) {
             try (MockedStatic<Files> filesMockedStatic = mockStatic(Files.class, invocation -> {
                 Method method = invocation.getMethod();
                 String methodName = method.getName();
@@ -245,10 +263,14 @@ class LinuxCertificateUtilsShould {
                         .hasMessageContaining("KABOOM");
             }
         }
+
+        resetOsName();
     }
 
     @Test
     void notGetCertificatesIfPathIsNotARegularFileAndAlsoNotADirectory() {
+        System.setProperty("os.name", "linux");
+
         try (MockedStatic<Files> filesMockedStatic = mockStatic(Files.class, invocation -> {
             Method method = invocation.getMethod();
             String methodName = method.getName();
@@ -267,11 +289,15 @@ class LinuxCertificateUtilsShould {
             List<Certificate> certificates = LinuxCertificateUtils.getCertificates();
             assertThat(certificates).isEmpty();
         }
+
+        resetOsName();
     }
 
     @Test
     void containAListOfToBeSearchPathsForCertificates() {
-        if (!OPERATING_SYSTEM.contains("windows")) {
+        System.setProperty("os.name", "linux");
+
+        if (!ORIGINAL_OS_NAME.contains("windows")) {
             List<String> capturedPaths = new ArrayList<>();
             try (MockedStatic<Files> filesMockedStatic = mockStatic(Files.class, invocation -> {
                 Method method = invocation.getMethod();
@@ -297,6 +323,22 @@ class LinuxCertificateUtilsShould {
                 );
             }
         }
+
+        resetOsName();
+    }
+
+    @Test
+    void returnEmptyListForaNonLinuxOs() {
+        System.setProperty("os.name", "windows");
+
+        List<Certificate> certificates = LinuxCertificateUtils.getCertificates();
+        assertThat(certificates).isEmpty();
+
+        resetOsName();
+    }
+
+    private void resetOsName() {
+        System.setProperty("os.name", ORIGINAL_OS_NAME);
     }
 
 }

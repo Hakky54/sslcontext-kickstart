@@ -49,6 +49,10 @@ public final class LinuxCertificateUtils {
     }
 
     public static List<Certificate> getCertificates() {
+        if (!System.getProperty("os.name").toLowerCase().contains("linux")) {
+            return Collections.emptyList();
+        }
+
         List<Certificate> certificates = new ArrayList<>();
         try {
             for (Path path : LINUX_CERTIFICATE_PATHS) {
