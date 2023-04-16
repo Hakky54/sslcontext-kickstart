@@ -258,7 +258,7 @@ class LinuxCertificateUtilsShould {
             } else if ("isRegularFile".equals(methodName)) {
                 return false;
             } else if ("isDirectory".equals(methodName)) {
-                return true;
+                return false;
             } else {
                 return invocation.callRealMethod();
             }
