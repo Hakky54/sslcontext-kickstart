@@ -249,25 +249,23 @@ class LinuxCertificateUtilsShould {
 
     @Test
     void notGetCertificatesIfPathIsNotARegularFileAndAlsoNotADirectory() {
-        if (!OPERATING_SYSTEM.contains("windows")) {
-            try (MockedStatic<Files> filesMockedStatic = mockStatic(Files.class, invocation -> {
-                Method method = invocation.getMethod();
-                String methodName = method.getName();
+        try (MockedStatic<Files> filesMockedStatic = mockStatic(Files.class, invocation -> {
+            Method method = invocation.getMethod();
+            String methodName = method.getName();
 
-                if ("exists".equals(methodName)) {
-                    return false;
-                } else if ("isRegularFile".equals(methodName)) {
-                    return false;
-                } else if ("isDirectory".equals(methodName)) {
-                    return true;
-                } else {
-                    return invocation.callRealMethod();
-                }
-            })) {
-
-                List<Certificate> certificates = LinuxCertificateUtils.getCertificates();
-                assertThat(certificates).isEmpty();
+            if ("exists".equals(methodName)) {
+                return false;
+            } else if ("isRegularFile".equals(methodName)) {
+                return false;
+            } else if ("isDirectory".equals(methodName)) {
+                return true;
+            } else {
+                return invocation.callRealMethod();
             }
+        })) {
+
+            List<Certificate> certificates = LinuxCertificateUtils.getCertificates();
+            assertThat(certificates).isEmpty();
         }
     }
 
