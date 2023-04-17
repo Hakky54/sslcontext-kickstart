@@ -67,6 +67,7 @@
         <version.maven-javadoc-plugin>3.5.0</version.maven-javadoc-plugin>
         <version.maven-source-plugin>3.2.1</version.maven-source-plugin>
         <version.license-maven-plugin>4.2</version.license-maven-plugin>
+        <version.maven-surefire-junit5-tree-reporter>1.1.0</version.maven-surefire-junit5-tree-reporter>
         <license.git.copyrightYears>2019</license.git.copyrightYears>
     </properties>
 
@@ -181,10 +182,24 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${version.maven-surefire-plugin}</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>me.fabriciorby</groupId>
+                        <artifactId>maven-surefire-junit5-tree-reporter</artifactId>
+                        <version>${version.maven-surefire-junit5-tree-reporter}</version>
+                    </dependency>
+                </dependencies>
                 <configuration>
                     <includes>
                         <include>%regex[.*Should.*]</include>
                     </includes>
+                    <reportFormat>plain</reportFormat>
+                    <consoleOutputReporter>
+                        <disable>true</disable>
+                    </consoleOutputReporter>
+                    <statelessTestsetInfoReporter
+                            implementation="org.apache.maven.plugin.surefire.extensions.junit5.JUnit5StatelessTestsetInfoTreeReporterUnicode">
+                    </statelessTestsetInfoReporter>
                 </configuration>
             </plugin>
 
@@ -192,8 +207,22 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <version>${version.maven-fail-safe}</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>me.fabriciorby</groupId>
+                        <artifactId>maven-surefire-junit5-tree-reporter</artifactId>
+                        <version>${version.maven-surefire-junit5-tree-reporter}</version>
+                    </dependency>
+                </dependencies>
                 <configuration>
                     <useModulePath>false</useModulePath>
+                    <reportFormat>plain</reportFormat>
+                    <consoleOutputReporter>
+                        <disable>true</disable>
+                    </consoleOutputReporter>
+                    <statelessTestsetInfoReporter
+                            implementation="org.apache.maven.plugin.surefire.extensions.junit5.JUnit5StatelessTestsetInfoTreeReporterUnicode">
+                    </statelessTestsetInfoReporter>
                 </configuration>
                 <executions>
                     <execution>
