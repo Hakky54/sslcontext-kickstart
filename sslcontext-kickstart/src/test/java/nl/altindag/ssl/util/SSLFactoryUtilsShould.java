@@ -134,4 +134,46 @@ class SSLFactoryUtilsShould {
         }
     }
 
+    @Test
+    void byDefaultInvalidateCaches() {
+        try (MockedStatic<SSLSessionUtils> mock = mockStatic(SSLSessionUtils.class, InvocationOnMock::callRealMethod)) {
+            SSLFactory baseSslFactory = SSLFactory.builder()
+                    .withDummyTrustMaterial()
+                    .withSwappableTrustMaterial()
+                    .withDummyIdentityMaterial()
+                    .withSwappableIdentityMaterial()
+                    .build();
+
+            SSLFactory updatedSslFactory = SSLFactory.builder()
+                    .withDummyTrustMaterial()
+                    .withDummyIdentityMaterial()
+                    .build();
+
+            SSLFactoryUtils.reload(baseSslFactory, updatedSslFactory);
+
+            mock.verify(() -> SSLSessionUtils.invalidateCaches(baseSslFactory), times(1));
+        }
+    }
+
+    @Test
+    void notInvalidateCachesIfDisabled() {
+        try (MockedStatic<SSLSessionUtils> mock = mockStatic(SSLSessionUtils.class, InvocationOnMock::callRealMethod)) {
+            SSLFactory baseSslFactory = SSLFactory.builder()
+                    .withDummyTrustMaterial()
+                    .withSwappableTrustMaterial()
+                    .withDummyIdentityMaterial()
+                    .withSwappableIdentityMaterial()
+                    .build();
+
+            SSLFactory updatedSslFactory = SSLFactory.builder()
+                    .withDummyTrustMaterial()
+                    .withDummyIdentityMaterial()
+                    .build();
+
+            SSLFactoryUtils.reload(baseSslFactory, updatedSslFactory, false);
+
+            mock.verify(() -> SSLSessionUtils.invalidateCaches(baseSslFactory), times(0));
+        }
+    }
+
 }

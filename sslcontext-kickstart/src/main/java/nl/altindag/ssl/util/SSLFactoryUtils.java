@@ -33,9 +33,19 @@ public final class SSLFactoryUtils {
      * Other properties such as ciphers, protocols, secure-random, {@link javax.net.ssl.HostnameVerifier} and {@link javax.net.ssl.SSLParameters} will not be reloaded.
      */
     public static void reload(SSLFactory baseSslFactory, SSLFactory updatedSslFactory) {
+        reload(baseSslFactory, updatedSslFactory, true);
+    }
+
+    /**
+     * Reloads the ssl material for the KeyManager and / or TrustManager within the base SSLFactory if present and if it is swappable.
+     * Other properties such as ciphers, protocols, secure-random, {@link javax.net.ssl.HostnameVerifier} and {@link javax.net.ssl.SSLParameters} will not be reloaded.
+     */
+    public static void reload(SSLFactory baseSslFactory, SSLFactory updatedSslFactory, boolean shouldInvalidateCaches) {
         reload(baseSslFactory, updatedSslFactory, SSLFactory::getKeyManager, KeyManagerUtils::swapKeyManager);
         reload(baseSslFactory, updatedSslFactory, SSLFactory::getTrustManager, TrustManagerUtils::swapTrustManager);
-        SSLSessionUtils.invalidateCaches(baseSslFactory);
+        if (shouldInvalidateCaches) {
+            SSLSessionUtils.invalidateCaches(baseSslFactory);
+        }
     }
 
     private static <T> void reload(SSLFactory baseSslFactory,
