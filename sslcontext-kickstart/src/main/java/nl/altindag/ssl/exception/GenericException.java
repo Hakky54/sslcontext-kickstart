@@ -18,17 +18,17 @@ package nl.altindag.ssl.exception;
 /**
  * @author Hakan Altindag
  */
-public class GenericSecurityException extends GenericException {
+public class GenericException extends RuntimeException {
 
-    public GenericSecurityException(String message) {
+    public GenericException(String message) {
         super(message);
     }
 
-    public GenericSecurityException(String message, Throwable cause) {
+    public GenericException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public GenericSecurityException(Throwable cause) {
+    public GenericException(Throwable cause) {
         super(cause);
     }
 

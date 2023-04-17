@@ -243,12 +243,19 @@ public final class CertificateUtils {
         return Collections.unmodifiableList(certificates);
     }
 
+    /**
+     * PKIX/RFC 5280 states that duplicate extensions are not allowed. See section 4.2 of it.
+     * A certificate which contains a duplicate extension is not parseable. Instead of throwing an exception, it will be ignored.
+     */
     public static List<Certificate> parseDerCertificate(InputStream certificateStream) {
         try(BufferedInputStream bufferedCertificateStream = new BufferedInputStream(certificateStream)) {
             return CertificateFactory.getInstance(CERTIFICATE_TYPE)
                     .generateCertificates(bufferedCertificateStream).stream()
                     .collect(toUnmodifiableList());
         } catch (CertificateException | IOException e) {
+            if (e.getMessage().contains("Duplicate extensions not allowed")) {
+                return Collections.emptyList();
+            }
             throw new GenericCertificateException("There is no valid certificate present to parse. Please make sure to supply a valid der formatted certificate", e);
         }
     }
