@@ -296,16 +296,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ]]>
                     </inlineHeader>
+                    <includes>
+                        <include>**/*.java</include>
+                    </includes>
                     <excludes>
-                        <exclude>.gitignore</exclude>
-                        <exclude>.all-contributorsrc</exclude>
-                        <exclude>release.sh</exclude>
-                        <exclude>**/.idea/**</exclude>
-                        <exclude>**/target/**</exclude>
-                        <exclude>**/resources/**</exclude>
-                        <exclude>LICENSE</exclude>
-                        <exclude>**/*.md</exclude>
-                        <exclude>**/*.xml</exclude>
                         <exclude>**/FenixHostnameVerifier.java</exclude>
                         <exclude>**/HostnameCommon.java</exclude>
                         <exclude>**/Hostnames.java</exclude>
