@@ -474,6 +474,12 @@ Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(sslUpdater, 1, 
 HttpResponse<String> response = httpClient.send(aRequest, HttpResponse.BodyHandlers.ofString());
 ```
 See here for a basic reference implementation for a server: [GitHub - Instant SSL Reloading](https://github.com/Hakky54/java-tutorials/tree/main/instant-server-ssl-reloading)
+The code example above cleans the cache instantly which forces any client or server to create a new ssl session and so it requires a new ssl handshake. If you prefer to use existing ssl session for existing connection, but want to use a new ssl session for new clients or servers, then you can use the following snippet below. 
+In that way existing connections which already have done the ssl handshake won't require to do another handshake till the ssl session expires with the default timeout. 
+```text
+SSLFactoryUtils.reload(baseSslFactory, updatedSslFactory, false);
+```
+
 ##### Support for swapping KeyManager and TrustManager at runtime
 It is possible to swap a KeyManager and TrustManager from a SSLContext, SSLSocketFactory and SSLServerSocketFactory while already using it within your client or server at runtime. This option will enable to refresh the identity and trust material of a server or client without the need of restarting your application or recreating it with SSLFactory. The identity and trust material may expire at some point in time and needs to be replaced to be still functional.
 Restart of the application with a traditional setup is unavoidable and can result into a downtime for x amount of time. A restart is not needed when using the setup below.
