@@ -22,6 +22,7 @@ import nl.altindag.ssl.exception.PrivateKeyParseException;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMException;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.junit.jupiter.api.Test;
@@ -762,7 +763,7 @@ class PemUtilsShould {
         String certificateContent = getResourceContent(PEM_LOCATION + "github-certificate.pem");
 
         JcaX509CertificateConverter certificateConverter = mock(JcaX509CertificateConverter.class);
-        PemUtils pemUtils = new PemUtils(mock(JcaPEMKeyConverter.class), certificateConverter);
+        PemUtils pemUtils = new PemUtils(new BouncyCastleProvider(), mock(JcaPEMKeyConverter.class), certificateConverter);
 
         try(MockedStatic<PemUtils> pemUtilsMockedStatic = mockStatic(PemUtils.class, invocation -> {
             Method method = invocation.getMethod();
@@ -787,7 +788,7 @@ class PemUtilsShould {
         String identityContent = getResourceContent(PEM_LOCATION + "unencrypted-identity.pem");
 
         JcaPEMKeyConverter keyConverter = mock(JcaPEMKeyConverter.class);
-        PemUtils pemUtils = new PemUtils(keyConverter, mock(JcaX509CertificateConverter.class));
+        PemUtils pemUtils = new PemUtils(new BouncyCastleProvider(), keyConverter, mock(JcaX509CertificateConverter.class));
 
         try(MockedStatic<PemUtils> pemUtilsMockedStatic = mockStatic(PemUtils.class, invocation -> {
             Method method = invocation.getMethod();

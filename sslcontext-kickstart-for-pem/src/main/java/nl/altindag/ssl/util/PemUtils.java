@@ -83,14 +83,11 @@ import static nl.altindag.ssl.util.ValidationUtils.requireNotNull;
  */
 public final class PemUtils {
 
-    static {
-        Security.addProvider(new BouncyCastleProvider());
-    }
-
     private static final String EMPTY_INPUT_STREAM_EXCEPTION_MESSAGE = "Failed to load the certificate from the provided InputStream because it is null";
     private static final UnaryOperator<String> CERTIFICATE_NOT_FOUND_EXCEPTION_MESSAGE = certificatePath -> String.format("Failed to load the certificate from the classpath for the given path: [%s]", certificatePath);
     private static final char[] NO_PASSWORD = null;
     private static final PemUtils INSTANCE = new PemUtils(
+            new BouncyCastleProvider(),
             new JcaPEMKeyConverter(),
             new JcaX509CertificateConverter()
     );
@@ -98,9 +95,11 @@ public final class PemUtils {
     private final JcaPEMKeyConverter keyConverter;
     private final JcaX509CertificateConverter certificateConverter;
 
-    PemUtils(JcaPEMKeyConverter keyConverter,
+    PemUtils(BouncyCastleProvider bouncyCastleProvider,
+             JcaPEMKeyConverter keyConverter,
              JcaX509CertificateConverter certificateConverter) {
 
+        Security.addProvider(bouncyCastleProvider);
         this.keyConverter = keyConverter;
         this.certificateConverter = certificateConverter;
     }
