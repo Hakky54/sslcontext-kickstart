@@ -18,6 +18,7 @@ package nl.altindag.ssl;
 import com.sun.net.httpserver.HttpsServer;
 import nl.altindag.log.LogCaptor;
 import nl.altindag.ssl.util.SSLFactoryUtils;
+import nl.altindag.ssl.util.SSLSessionUtils;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
@@ -276,6 +277,73 @@ class SSLFactoryIT {
                 .build();
 
         SSLFactoryUtils.reload(sslFactoryForClient, updatedSslFactoryForClient);
+
+        assertThatThrownBy(() -> executeRequest("https://localhost:8443/api/hello", sslSocketFactory))
+                .isInstanceOfAny(SocketException.class, SSLException.class);
+
+        response = executeRequest("https://localhost:8444/api/hello", sslFactoryForClient.getSslSocketFactory());
+        assertThat(response.getStatusCode()).isEqualTo(200);
+        assertThat(response.getBody()).contains("Hello from server two");
+
+        serverOne.stop(0);
+        serverTwo.stop(0);
+        executorService.shutdownNow();
+    }
+
+    @Test
+    void executeRequestToTwoServersWithMutualAuthenticationWithSwappingClientIdentityAndTrustMaterialWhileDisablingInstantlyInvalidatingSslCaches() throws IOException {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+
+        char[] keyStorePassword = "secret".toCharArray();
+
+        SSLFactory sslFactoryForServerOne = SSLFactory.builder()
+                .withIdentityMaterial("keystore/client-server/server-one/identity.jks", keyStorePassword)
+                .withTrustMaterial("keystore/client-server/server-one/truststore.jks", keyStorePassword)
+                .withNeedClientAuthentication()
+                .withProtocols("TLSv1.2")
+                .build();
+
+        SSLFactory sslFactoryForServerTwo = SSLFactory.builder()
+                .withIdentityMaterial("keystore/client-server/server-two/identity.jks", keyStorePassword)
+                .withTrustMaterial("keystore/client-server/server-two/truststore.jks", keyStorePassword)
+                .withNeedClientAuthentication()
+                .withProtocols("TLSv1.2")
+                .build();
+
+        HttpsServer serverOne = ServerUtils.createServer(8443, sslFactoryForServerOne, executorService, "Hello from server one");
+        HttpsServer serverTwo = ServerUtils.createServer(8444, sslFactoryForServerTwo, executorService, "Hello from server two");
+
+        serverOne.start();
+        serverTwo.start();
+
+        SSLFactory sslFactoryForClient = SSLFactory.builder()
+                .withIdentityMaterial("keystore/client-server/client-one/identity.jks", keyStorePassword)
+                .withTrustMaterial("keystore/client-server/client-one/truststore.jks", keyStorePassword)
+                .withSwappableIdentityMaterial()
+                .withSwappableTrustMaterial()
+                .build();
+
+        SSLSocketFactory sslSocketFactory = sslFactoryForClient.getSslSocketFactory();
+
+        Response response = executeRequest("https://localhost:8443/api/hello", sslSocketFactory);
+        assertThat(response.getStatusCode()).isEqualTo(200);
+        assertThat(response.getBody()).contains("Hello from server one");
+
+        assertThatThrownBy(() -> executeRequest("https://localhost:8444/api/hello", sslSocketFactory))
+                .isInstanceOfAny(SocketException.class, SSLException.class);
+
+        SSLFactory updatedSslFactoryForClient = SSLFactory.builder()
+                .withIdentityMaterial("keystore/client-server/client-two/identity.jks", keyStorePassword)
+                .withTrustMaterial("keystore/client-server/client-two/truststore.jks", keyStorePassword)
+                .build();
+
+        SSLFactoryUtils.reload(sslFactoryForClient, updatedSslFactoryForClient, false);
+
+        response = executeRequest("https://localhost:8443/api/hello", sslSocketFactory);
+        assertThat(response.getStatusCode()).isEqualTo(200);
+        assertThat(response.getBody()).contains("Hello from server one");
+
+        SSLSessionUtils.invalidateCaches(sslFactoryForClient);
 
         assertThatThrownBy(() -> executeRequest("https://localhost:8443/api/hello", sslSocketFactory))
                 .isInstanceOfAny(SocketException.class, SSLException.class);
