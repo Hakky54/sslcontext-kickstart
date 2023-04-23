@@ -223,6 +223,9 @@
                     <statelessTestsetInfoReporter
                             implementation="org.apache.maven.plugin.surefire.extensions.junit5.JUnit5StatelessTestsetInfoTreeReporterUnicode">
                     </statelessTestsetInfoReporter>
+                    <excludedGroups>
+                        it-with-badssl.com
+                    </excludedGroups>
                 </configuration>
                 <executions>
                     <execution>
