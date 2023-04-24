@@ -38,7 +38,10 @@ import java.util.stream.Stream;
 
 import static nl.altindag.ssl.util.CollectorsUtils.toUnmodifiableList;
 
-public final class MacCertificateUtils {
+/**
+ * @author Hakan Altindag
+ */
+final class MacCertificateUtils {
 
     private static final Path HOME_DIRECTORY = Paths.get(System.getProperty("user.home"));
     private static final String SYSTEM_ROOT_KEYCHAIN_FILE = "/System/Library/Keychains/SystemRootCertificates.keychain";

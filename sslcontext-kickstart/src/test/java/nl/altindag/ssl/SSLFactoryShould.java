@@ -32,7 +32,6 @@ import nl.altindag.ssl.trustmanager.TrustStoreTrustOptions;
 import nl.altindag.ssl.trustmanager.UnsafeX509ExtendedTrustManager;
 import nl.altindag.ssl.util.KeyManagerUtils;
 import nl.altindag.ssl.util.KeyStoreUtils;
-import nl.altindag.ssl.util.MacCertificateUtils;
 import nl.altindag.ssl.util.TrustManagerUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -98,6 +97,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
 /**
@@ -532,37 +532,21 @@ class SSLFactoryShould {
 
     @Test
     void buildSSLFactoryWithTrustMaterialFromOnlySystemTrustedCertificates() {
-        String operatingSystem = System.getProperty("os.name").toLowerCase();
-        if (operatingSystem.contains("mac") || operatingSystem.contains("windows") || operatingSystem.contains("linux")) {
-            try (MockedStatic<MacCertificateUtils> macCertificateUtilsMockedStatic = mockStatic(MacCertificateUtils.class);
-                 MockedStatic<KeyStoreUtils> keyStoreUtilsMockedStatic = mockStatic(KeyStoreUtils.class, invocation -> {
-                Method method = invocation.getMethod();
-                if ("createKeyStore".equals(method.getName())
-                        && method.getParameterCount() == 2
-                        && operatingSystem.contains("mac")) {
-                    return KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
-                } else if ("createTrustStore".equals(method.getName())
-                        && method.getParameterCount() == 1
-                        && method.getParameters()[0].getType().equals(List.class)
-                        && operatingSystem.contains("mac")) {
-                    return KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-without-password.jks", null);
-                } else {
-                    return invocation.callRealMethod();
-                }
-            })) {
-                SSLFactory sslFactory = SSLFactory.builder()
-                        .withSystemTrustMaterial()
-                        .build();
-
-                assertThat(sslFactory.getSslContext()).isNotNull();
-
-                assertThat(sslFactory.getTrustManager()).isPresent();
-                assertThat(sslFactory.getTrustManagerFactory()).isPresent();
-
-                assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
-                assertThat(sslFactory.getKeyManager()).isNotPresent();
-                assertThat(sslFactory.getKeyManagerFactory()).isNotPresent();
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-without-password.jks", null);
+        try (MockedStatic<KeyStoreUtils> keyStoreUtilsMockedStatic = mockStatic(KeyStoreUtils.class, invocation -> {
+            Method method = invocation.getMethod();
+            if ("loadSystemKeyStores".equals(method.getName())) {
+                return Collections.singletonList(trustStore);
+            } else {
+                return invocation.callRealMethod();
             }
+        })) {
+            SSLFactory sslFactory = SSLFactory.builder()
+                    .withSystemTrustMaterial()
+                    .build();
+
+            keyStoreUtilsMockedStatic.verify(KeyStoreUtils::loadSystemKeyStores, times(1));
+            assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
         }
     }
 

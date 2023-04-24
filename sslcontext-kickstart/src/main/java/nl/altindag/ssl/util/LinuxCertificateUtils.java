@@ -30,7 +30,10 @@ import java.util.stream.Stream;
 
 import static nl.altindag.ssl.util.CollectorsUtils.toUnmodifiableList;
 
-public final class LinuxCertificateUtils {
+/**
+ * @author Hakan Altindag
+ */
+final class LinuxCertificateUtils {
 
     private static final String HOME_DIRECTORY = System.getProperty("user.home");
     private static final List<Path> LINUX_CERTIFICATE_PATHS = Stream.of(
