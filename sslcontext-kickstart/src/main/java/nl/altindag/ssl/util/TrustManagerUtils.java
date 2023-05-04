@@ -24,6 +24,7 @@ import nl.altindag.ssl.trustmanager.CompositeX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.DummyX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.EnhanceableX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.HotSwappableX509ExtendedTrustManager;
+import nl.altindag.ssl.trustmanager.LoggingX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.TrustManagerFactoryWrapper;
 import nl.altindag.ssl.trustmanager.UnsafeX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.X509TrustManagerWrapper;
@@ -194,6 +195,10 @@ public final class TrustManagerUtils {
         return DummyX509ExtendedTrustManager.getInstance();
     }
 
+    public static X509ExtendedTrustManager createLoggingTrustManager(X509TrustManager baseTrustManager) {
+        return new LoggingX509ExtendedTrustManager(wrapIfNeeded(baseTrustManager));
+    }
+
     public static X509ExtendedTrustManager createCertificateCapturingTrustManager(List<X509Certificate> certificatesCollector) {
         return createCertificateCapturingTrustManager(TrustManagerUtils.createUnsafeTrustManager(), certificatesCollector);
     }
@@ -251,6 +256,11 @@ public final class TrustManagerUtils {
 
         if (baseTrustManager instanceof HotSwappableX509ExtendedTrustManager) {
             ((HotSwappableX509ExtendedTrustManager) baseTrustManager).setTrustManager(TrustManagerUtils.wrapIfNeeded(newTrustManager));
+        } else if (baseTrustManager instanceof LoggingX509ExtendedTrustManager
+                && ((LoggingX509ExtendedTrustManager) baseTrustManager).getInnerTrustManager() instanceof HotSwappableX509ExtendedTrustManager) {
+
+            X509ExtendedTrustManager loggingTrustManager = TrustManagerUtils.createLoggingTrustManager(TrustManagerUtils.wrapIfNeeded(newTrustManager));
+            ((HotSwappableX509ExtendedTrustManager) ((LoggingX509ExtendedTrustManager) baseTrustManager).getInnerTrustManager()).setTrustManager(loggingTrustManager);
         } else {
             throw new GenericTrustManagerException(
                     String.format("The baseTrustManager is from the instance of [%s] and should be an instance of [%s].",
@@ -301,6 +311,7 @@ public final class TrustManagerUtils {
 
         private final List<X509ExtendedTrustManager> trustManagers = new ArrayList<>();
         private boolean swappableTrustManagerEnabled = false;
+        private boolean loggingTrustManagerEnabled = false;
 
         private ChainAndAuthTypeValidator chainAndAuthTypeValidator;
         private ChainAndAuthTypeWithSocketValidator chainAndAuthTypeWithSocketValidator;
@@ -351,6 +362,11 @@ public final class TrustManagerUtils {
             return this;
         }
 
+        public TrustManagerBuilder withLoggingTrustManager(boolean loggingTrustManagerEnabled) {
+            this.loggingTrustManagerEnabled = loggingTrustManagerEnabled;
+            return this;
+        }
+
         public TrustManagerBuilder withTrustEnhancer(ChainAndAuthTypeValidator validator) {
             this.chainAndAuthTypeValidator = validator;
             return this;
@@ -381,6 +397,10 @@ public final class TrustManagerUtils {
 
             if (swappableTrustManagerEnabled) {
                 baseTrustManager = TrustManagerUtils.createSwappableTrustManager(baseTrustManager);
+            }
+
+            if (loggingTrustManagerEnabled) {
+                baseTrustManager = TrustManagerUtils.createLoggingTrustManager(baseTrustManager);
             }
 
             return baseTrustManager;

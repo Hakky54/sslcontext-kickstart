@@ -68,4 +68,8 @@ abstract class DelegatingTrustManager<T extends X509TrustManager> extends X509Ex
         return Arrays.copyOf(acceptedIssuers, acceptedIssuers.length);
     }
 
+    public T getInnerTrustManager() {
+        return trustManager;
+    }
+
 }

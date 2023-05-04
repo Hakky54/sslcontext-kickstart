@@ -127,13 +127,4 @@ interface RoutableX509ExtendedKeyManager extends CombinableX509ExtendedKeyManage
         return socket != null && socket.getRemoteSocketAddress() instanceof InetSocketAddress;
     }
 
-    default Entry<String, Integer> extractHostAndPort(Socket socket) {
-        InetSocketAddress address = (InetSocketAddress) socket.getRemoteSocketAddress();
-        return new AbstractMap.SimpleImmutableEntry<>(address.getHostName(), address.getPort());
-    }
-
-    default Entry<String, Integer> extractHostAndPort(SSLEngine sslEngine) {
-        return new AbstractMap.SimpleImmutableEntry<>(sslEngine.getPeerHost(), sslEngine.getPeerPort());
-    }
-
 }

@@ -15,7 +15,6 @@
  */
 package nl.altindag.ssl.trustmanager;
 
-import nl.altindag.log.LogCaptor;
 import nl.altindag.ssl.util.KeyStoreUtils;
 import nl.altindag.ssl.util.TrustManagerUtils;
 import org.junit.jupiter.api.Test;
@@ -60,9 +59,6 @@ class CompositeX509ExtendedTrustManagerShould {
         X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
 
-        LogCaptor logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
-        logCaptor.setLogLevelToInfo();
-
         CompositeX509ExtendedTrustManager compositeX509ExtendedTrustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(trustManager));
         assertThat(trustManager).isNotNull();
         assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
@@ -72,9 +68,6 @@ class CompositeX509ExtendedTrustManagerShould {
 
         assertThatCode(() -> compositeX509ExtendedTrustManager.checkClientTrusted(trustedCerts, "RSA"))
                 .doesNotThrowAnyException();
-
-        assertThat(logCaptor.getLogs()).isEmpty();
-        logCaptor.resetLogLevel();
     }
 
     @Test
@@ -83,9 +76,6 @@ class CompositeX509ExtendedTrustManagerShould {
         X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
 
-        LogCaptor logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
-        logCaptor.setLogLevelToInfo();
-
         CompositeX509ExtendedTrustManager compositeX509ExtendedTrustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(trustManager));
         assertThat(trustManager).isNotNull();
         assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
@@ -93,9 +83,6 @@ class CompositeX509ExtendedTrustManagerShould {
 
         assertThatCode(() -> compositeX509ExtendedTrustManager.checkClientTrusted(trustedCerts, "RSA", SSL_ENGINE))
                 .doesNotThrowAnyException();
-
-        assertThat(logCaptor.getLogs()).isEmpty();
-        logCaptor.resetLogLevel();
     }
 
     @Test
@@ -104,9 +91,6 @@ class CompositeX509ExtendedTrustManagerShould {
         X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
 
-        LogCaptor logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
-        logCaptor.setLogLevelToInfo();
-
         CompositeX509ExtendedTrustManager compositeX509ExtendedTrustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(trustManager));
         assertThat(trustManager).isNotNull();
         assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
@@ -114,72 +98,6 @@ class CompositeX509ExtendedTrustManagerShould {
 
         assertThatCode(() -> compositeX509ExtendedTrustManager.checkClientTrusted(trustedCerts, "RSA", SOCKET))
                 .doesNotThrowAnyException();
-
-        assertThat(logCaptor.getLogs()).isEmpty();
-        logCaptor.resetLogLevel();
-    }
-
-    @Test
-    void checkClientTrustedLogsCertificateChainIfDebugIsEnabled() throws KeyStoreException {
-        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
-        X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
-        X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
-
-        LogCaptor logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
-
-        CompositeX509ExtendedTrustManager compositeX509ExtendedTrustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(trustManager));
-        assertThat(trustManager).isNotNull();
-        assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
-        assertThat(trustedCerts).hasSize(1);
-
-        assertThatCode(() -> compositeX509ExtendedTrustManager.checkClientTrusted(trustedCerts, "RSA"))
-                .doesNotThrowAnyException();
-
-        assertThat(logCaptor.getDebugLogs())
-                .hasSize(1)
-                .contains("Received the following client certificate: [CN=*.google.com, O=Google LLC, L=Mountain View, ST=California, C=US]");
-    }
-
-    @Test
-    void checkClientTrustedWithSslEngineLogsCertificateChainIfDebugIsEnabled() throws KeyStoreException {
-        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
-        X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
-        X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
-
-        LogCaptor logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
-
-        CompositeX509ExtendedTrustManager compositeX509ExtendedTrustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(trustManager));
-        assertThat(trustManager).isNotNull();
-        assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
-        assertThat(trustedCerts).hasSize(1);
-
-        assertThatCode(() -> compositeX509ExtendedTrustManager.checkClientTrusted(trustedCerts, "RSA", SSL_ENGINE))
-                .doesNotThrowAnyException();
-
-        assertThat(logCaptor.getDebugLogs())
-                .hasSize(1)
-                .contains("Received the following client certificate: [CN=*.google.com, O=Google LLC, L=Mountain View, ST=California, C=US]");
-    }
-
-    @Test
-    void checkClientTrustedWithSocketLogsCertificateChainIfDebugIsEnabled() throws KeyStoreException {
-        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
-        X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
-        X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
-
-        LogCaptor logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
-
-        CompositeX509ExtendedTrustManager compositeX509ExtendedTrustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(trustManager));
-        assertThat(trustManager).isNotNull();
-        assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
-        assertThat(trustedCerts).hasSize(1);
-
-        assertThatCode(() -> compositeX509ExtendedTrustManager.checkClientTrusted(trustedCerts, "RSA", SOCKET))
-                .doesNotThrowAnyException();
-
-        assertThat(logCaptor.getDebugLogs())
-                .hasSize(1)
-                .contains("Received the following client certificate: [CN=*.google.com, O=Google LLC, L=Mountain View, ST=California, C=US]");
     }
 
     @Test
@@ -187,18 +105,12 @@ class CompositeX509ExtendedTrustManagerShould {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-dummy-client.jks", TRUSTSTORE_PASSWORD);
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
-        LogCaptor logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
-        logCaptor.setLogLevelToInfo();
-
         CompositeX509ExtendedTrustManager trustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(TrustManagerUtils.createTrustManager(trustStore)));
         assertThat(trustedCerts).hasSize(1);
         assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
 
         assertThatCode(() -> trustManager.checkServerTrusted(trustedCerts, "RSA"))
                 .doesNotThrowAnyException();
-
-        assertThat(logCaptor.getLogs()).isEmpty();
-        logCaptor.resetLogLevel();
     }
 
     @Test
@@ -206,18 +118,12 @@ class CompositeX509ExtendedTrustManagerShould {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-dummy-client.jks", TRUSTSTORE_PASSWORD);
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
-        LogCaptor logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
-        logCaptor.setLogLevelToInfo();
-
         CompositeX509ExtendedTrustManager trustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(TrustManagerUtils.createTrustManager(trustStore)));
         assertThat(trustedCerts).hasSize(1);
         assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
 
         assertThatCode(() -> trustManager.checkServerTrusted(trustedCerts, "RSA", SSL_ENGINE))
                 .doesNotThrowAnyException();
-
-        assertThat(logCaptor.getLogs()).isEmpty();
-        logCaptor.resetLogLevel();
     }
 
     @Test
@@ -225,75 +131,12 @@ class CompositeX509ExtendedTrustManagerShould {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-dummy-client.jks", TRUSTSTORE_PASSWORD);
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
-        LogCaptor logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
-        logCaptor.setLogLevelToInfo();
-
         CompositeX509ExtendedTrustManager trustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(TrustManagerUtils.createTrustManager(trustStore)));
         assertThat(trustedCerts).hasSize(1);
         assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
 
         assertThatCode(() -> trustManager.checkServerTrusted(trustedCerts, "RSA", SOCKET))
                 .doesNotThrowAnyException();
-
-        assertThat(logCaptor.getLogs()).isEmpty();
-        logCaptor.resetLogLevel();
-    }
-
-    @Test
-    void checkServerTrustedLogsCertificateChainIfDebugIsEnabled() throws KeyStoreException {
-        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-dummy-client.jks", TRUSTSTORE_PASSWORD);
-        X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
-
-        LogCaptor logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
-
-        CompositeX509ExtendedTrustManager trustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(TrustManagerUtils.createTrustManager(trustStore)));
-        assertThat(trustedCerts).hasSize(1);
-        assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
-
-        assertThatCode(() -> trustManager.checkServerTrusted(trustedCerts, "RSA"))
-                .doesNotThrowAnyException();
-
-        assertThat(logCaptor.getDebugLogs())
-                .hasSize(1)
-                .contains("Received the following server certificate: [CN=Prof Oak, OU=Oak Pokémon Research Lab, O=Oak Pokémon Research Lab, C=Pallet Town]");
-    }
-
-    @Test
-    void checkServerTrustedWithSslEngineLogsCertificateChainIfDebugIsEnabled() throws KeyStoreException {
-        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-dummy-client.jks", TRUSTSTORE_PASSWORD);
-        X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
-
-        LogCaptor logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
-
-        CompositeX509ExtendedTrustManager trustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(TrustManagerUtils.createTrustManager(trustStore)));
-        assertThat(trustedCerts).hasSize(1);
-        assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
-
-        assertThatCode(() -> trustManager.checkServerTrusted(trustedCerts, "RSA", SSL_ENGINE))
-                .doesNotThrowAnyException();
-
-        assertThat(logCaptor.getDebugLogs())
-                .hasSize(1)
-                .contains("Received the following server certificate: [CN=Prof Oak, OU=Oak Pokémon Research Lab, O=Oak Pokémon Research Lab, C=Pallet Town]");
-    }
-
-    @Test
-    void checkServerTrustedWithSocketLogsCertificateChainIfDebugIsEnabled() throws KeyStoreException {
-        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-dummy-client.jks", TRUSTSTORE_PASSWORD);
-        X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
-
-        LogCaptor logCaptor = LogCaptor.forClass(CompositeX509ExtendedTrustManager.class);
-
-        CompositeX509ExtendedTrustManager trustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(TrustManagerUtils.createTrustManager(trustStore)));
-        assertThat(trustedCerts).hasSize(1);
-        assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
-
-        assertThatCode(() -> trustManager.checkServerTrusted(trustedCerts, "RSA", SOCKET))
-                .doesNotThrowAnyException();
-
-        assertThat(logCaptor.getDebugLogs())
-                .hasSize(1)
-                .contains("Received the following server certificate: [CN=Prof Oak, OU=Oak Pokémon Research Lab, O=Oak Pokémon Research Lab, C=Pallet Town]");
     }
 
     @Test
