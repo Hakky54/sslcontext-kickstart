@@ -29,6 +29,7 @@ import java.security.KeyStoreException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.AbstractMap;
+import java.util.Arrays;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -73,6 +74,9 @@ class LoggingX509ExtendedTrustManagerShould {
         verify(innerTrustManager, times(1)).getAcceptedIssuers();
 
         assertThat(logCaptor.getLogs()).hasSize(1);
+        assertThat(logCaptor.getLogs().get(0))
+                .contains("Validating the certificate chain of the client with authentication type RSA. See below for the full chain of the client")
+                .contains(Arrays.toString(trustedCerts));
     }
 
     @Test
@@ -91,13 +95,21 @@ class LoggingX509ExtendedTrustManagerShould {
         assertThat(trustManager.getAcceptedIssuers()).isEmpty();
         assertThat(trustedCerts).hasSize(1);
 
-        assertThatCode(() -> trustManager.checkClientTrusted(trustedCerts, "RSA", (SSLEngine) null))
-                .doesNotThrowAnyException();
+        SSLEngine sslEngine = mock(SSLEngine.class);
+        try (MockedStatic<HostUtils> mockedStatic = mockStatic(HostUtils.class)) {
+            mockedStatic.when(() -> HostUtils.extractHostAndPort(any(SSLEngine.class))).thenReturn(new AbstractMap.SimpleEntry<>("foo", 443));
 
-        verify(innerTrustManager, times(1)).checkClientTrusted(trustedCerts, "RSA", (SSLEngine) null);
+            assertThatCode(() -> trustManager.checkClientTrusted(trustedCerts, "RSA", sslEngine))
+                    .doesNotThrowAnyException();
+        }
+
+        verify(innerTrustManager, times(1)).checkClientTrusted(trustedCerts, "RSA", sslEngine);
         verify(innerTrustManager, times(1)).getAcceptedIssuers();
 
         assertThat(logCaptor.getLogs()).hasSize(1);
+        assertThat(logCaptor.getLogs().get(0))
+                .contains("Validating the certificate chain of the client[foo:443] with authentication type RSA, while also using the SSLEngine. See below for the full chain of the client")
+                .contains(Arrays.toString(trustedCerts));
     }
 
     @Test
@@ -116,13 +128,21 @@ class LoggingX509ExtendedTrustManagerShould {
         assertThat(trustManager.getAcceptedIssuers()).isEmpty();
         assertThat(trustedCerts).hasSize(1);
 
-        assertThatCode(() -> trustManager.checkClientTrusted(trustedCerts, "RSA", (Socket) null))
-                .doesNotThrowAnyException();
+        Socket socket = mock(Socket.class);
+        try (MockedStatic<HostUtils> mockedStatic = mockStatic(HostUtils.class)) {
+            mockedStatic.when(() -> HostUtils.extractHostAndPort(any(Socket.class))).thenReturn(new AbstractMap.SimpleEntry<>("foo", 443));
 
-        verify(innerTrustManager, times(1)).checkClientTrusted(trustedCerts, "RSA", (Socket) null);
+            assertThatCode(() -> trustManager.checkClientTrusted(trustedCerts, "RSA", socket))
+                    .doesNotThrowAnyException();
+        }
+
+        verify(innerTrustManager, times(1)).checkClientTrusted(trustedCerts, "RSA", socket);
         verify(innerTrustManager, times(1)).getAcceptedIssuers();
 
         assertThat(logCaptor.getLogs()).hasSize(1);
+        assertThat(logCaptor.getLogs().get(0))
+                .contains("Validating the certificate chain of the client[foo:443] with authentication type RSA, while also using the Socket. See below for the full chain of the client:")
+                .contains(Arrays.toString(trustedCerts));
     }
 
     @Test
@@ -148,6 +168,9 @@ class LoggingX509ExtendedTrustManagerShould {
         verify(innerTrustManager, times(1)).getAcceptedIssuers();
 
         assertThat(logCaptor.getLogs()).hasSize(1);
+        assertThat(logCaptor.getLogs().get(0))
+                .contains("Validating the certificate chain of the server with authentication type RSA. See below for the full chain of the server")
+                .contains(Arrays.toString(trustedCerts));
     }
 
     @Test
@@ -166,13 +189,21 @@ class LoggingX509ExtendedTrustManagerShould {
         assertThat(trustManager.getAcceptedIssuers()).isEmpty();
         assertThat(trustedCerts).hasSize(1);
 
-        assertThatCode(() -> trustManager.checkServerTrusted(trustedCerts, "RSA", (SSLEngine) null))
-                .doesNotThrowAnyException();
+        SSLEngine sslEngine = mock(SSLEngine.class);
+        try (MockedStatic<HostUtils> mockedStatic = mockStatic(HostUtils.class)) {
+            mockedStatic.when(() -> HostUtils.extractHostAndPort(any(SSLEngine.class))).thenReturn(new AbstractMap.SimpleEntry<>("foo", 443));
 
-        verify(innerTrustManager, times(1)).checkServerTrusted(trustedCerts, "RSA", (SSLEngine) null);
+            assertThatCode(() -> trustManager.checkServerTrusted(trustedCerts, "RSA", sslEngine))
+                    .doesNotThrowAnyException();
+        }
+
+        verify(innerTrustManager, times(1)).checkServerTrusted(trustedCerts, "RSA", sslEngine);
         verify(innerTrustManager, times(1)).getAcceptedIssuers();
 
         assertThat(logCaptor.getLogs()).hasSize(1);
+        assertThat(logCaptor.getLogs().get(0))
+                .contains("Validating the certificate chain of the server[foo:443] with authentication type RSA, while also using the SSLEngine. See below for the full chain of the server")
+                .contains(Arrays.toString(trustedCerts));
     }
 
     @Test
@@ -191,13 +222,21 @@ class LoggingX509ExtendedTrustManagerShould {
         assertThat(trustManager.getAcceptedIssuers()).isEmpty();
         assertThat(trustedCerts).hasSize(1);
 
-        assertThatCode(() -> trustManager.checkServerTrusted(trustedCerts, "RSA", (Socket) null))
-                .doesNotThrowAnyException();
+        Socket socket = mock(Socket.class);
+        try (MockedStatic<HostUtils> mockedStatic = mockStatic(HostUtils.class)) {
+            mockedStatic.when(() -> HostUtils.extractHostAndPort(any(Socket.class))).thenReturn(new AbstractMap.SimpleEntry<>("foo", 443));
 
-        verify(innerTrustManager, times(1)).checkServerTrusted(trustedCerts, "RSA", (Socket) null);
+            assertThatCode(() -> trustManager.checkServerTrusted(trustedCerts, "RSA", socket))
+                    .doesNotThrowAnyException();
+        }
+
+        verify(innerTrustManager, times(1)).checkServerTrusted(trustedCerts, "RSA", socket);
         verify(innerTrustManager, times(1)).getAcceptedIssuers();
 
         assertThat(logCaptor.getLogs()).hasSize(1);
+        assertThat(logCaptor.getLogs().get(0))
+                .contains("Validating the certificate chain of the server[foo:443] with authentication type RSA, while also using the Socket. See below for the full chain of the server:")
+                .contains(Arrays.toString(trustedCerts));
     }
 
     @Test
