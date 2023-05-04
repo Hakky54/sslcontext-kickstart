@@ -206,7 +206,7 @@ class LoggingX509ExtendedTrustManagerShould {
         Optional<String> classname = LoggingX509ExtendedTrustManager.getClassnameOfEitherOrOther(socket, null);
 
         assertThat(classname).isPresent();
-        assertThat(classname.get()).isEqualTo("Socket");
+        assertThat(classname).hasValue("Socket");
     }
 
     @Test
@@ -215,7 +215,7 @@ class LoggingX509ExtendedTrustManagerShould {
         Optional<String> classname = LoggingX509ExtendedTrustManager.getClassnameOfEitherOrOther(null, sslEngine);
 
         assertThat(classname).isPresent();
-        assertThat(classname.get()).isEqualTo("SSLEngine");
+        assertThat(classname).hasValue("SSLEngine");
     }
 
     @Test
@@ -234,7 +234,7 @@ class LoggingX509ExtendedTrustManagerShould {
             Optional<String> hostAndPort = LoggingX509ExtendedTrustManager.getHostAndPortOfEitherOrOther(socket, null);
 
             assertThat(hostAndPort).isPresent();
-            assertThat(hostAndPort.get()).isEqualTo("foo:443");
+            assertThat(hostAndPort).hasValue("foo:443");
         }
     }
 
@@ -247,7 +247,7 @@ class LoggingX509ExtendedTrustManagerShould {
             Optional<String> hostAndPort = LoggingX509ExtendedTrustManager.getHostAndPortOfEitherOrOther(null, sslEngine);
 
             assertThat(hostAndPort).isPresent();
-            assertThat(hostAndPort.get()).isEqualTo("foo:443");
+            assertThat(hostAndPort).hasValue("foo:443");
         }
     }
 
