@@ -20,6 +20,8 @@ import nl.altindag.ssl.exception.GenericSecurityException;
 import nl.altindag.ssl.exception.GenericTrustManagerException;
 import nl.altindag.ssl.trustmanager.CompositeX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.DummyX509ExtendedTrustManager;
+import nl.altindag.ssl.trustmanager.HotSwappableX509ExtendedTrustManager;
+import nl.altindag.ssl.trustmanager.LoggingX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.UnsafeX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.X509TrustManagerWrapper;
 import org.junit.jupiter.api.Test;
@@ -231,6 +233,52 @@ class TrustManagerUtilsShould {
                 .isNotNull()
                 .isInstanceOf(UnsafeX509ExtendedTrustManager.class)
                 .isEqualTo(TrustManagerUtils.createUnsafeTrustManager());
+    }
+
+    @Test
+    void createLoggingTrustManager() {
+        X509ExtendedTrustManager unsafeTrustManager = TrustManagerUtils.createUnsafeTrustManager();
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.createLoggingTrustManager(unsafeTrustManager);
+
+        assertThat(trustManager).isInstanceOf(LoggingX509ExtendedTrustManager.class);
+
+        X509ExtendedTrustManager innerTrustManager = ((LoggingX509ExtendedTrustManager) trustManager).getInnerTrustManager();
+        assertThat(innerTrustManager).isInstanceOf(UnsafeX509ExtendedTrustManager.class);
+    }
+
+    @Test
+    void createLoggingTrustManagerFromBuilder() {
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.trustManagerBuilder()
+                .withTrustManager(TrustManagerUtils.createUnsafeTrustManager())
+                .withLoggingTrustManager(true)
+                .build();
+
+        assertThat(trustManager).isInstanceOf(LoggingX509ExtendedTrustManager.class);
+
+        X509ExtendedTrustManager innerTrustManager = ((LoggingX509ExtendedTrustManager) trustManager).getInnerTrustManager();
+        assertThat(innerTrustManager).isInstanceOf(UnsafeX509ExtendedTrustManager.class);
+    }
+
+    @Test
+    void trustManagerShouldSwapEvenThoughItContainsALoggingTrustManager() {
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.trustManagerBuilder()
+                .withTrustManager(TrustManagerUtils.createUnsafeTrustManager())
+                .withSwappableTrustManager(true)
+                .withLoggingTrustManager(true)
+                .build();
+
+        assertThat(trustManager).isInstanceOf(LoggingX509ExtendedTrustManager.class);
+        assertThat(trustManager.getAcceptedIssuers()).isEmpty();
+
+        X509ExtendedTrustManager innerTrustManager = ((LoggingX509ExtendedTrustManager) trustManager).getInnerTrustManager();
+        assertThat(innerTrustManager).isInstanceOf(HotSwappableX509ExtendedTrustManager.class);
+
+        X509ExtendedTrustManager innerInnerTrustManager = ((HotSwappableX509ExtendedTrustManager) innerTrustManager).getInnerTrustManager();
+        assertThat(innerInnerTrustManager).isInstanceOf(UnsafeX509ExtendedTrustManager.class);
+
+        X509ExtendedTrustManager trustManagerWithJdkTrustedCertificates = TrustManagerUtils.createTrustManagerWithJdkTrustedCertificates();
+        TrustManagerUtils.swapTrustManager(trustManager, trustManagerWithJdkTrustedCertificates);
+        assertThat(trustManager.getAcceptedIssuers()).isNotEmpty();
     }
 
     @Test

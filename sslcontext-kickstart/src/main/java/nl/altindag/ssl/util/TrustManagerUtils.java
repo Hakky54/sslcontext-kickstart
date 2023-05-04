@@ -259,8 +259,8 @@ public final class TrustManagerUtils {
         } else if (baseTrustManager instanceof LoggingX509ExtendedTrustManager
                 && ((LoggingX509ExtendedTrustManager) baseTrustManager).getInnerTrustManager() instanceof HotSwappableX509ExtendedTrustManager) {
 
-            X509ExtendedTrustManager loggingTrustManager = TrustManagerUtils.createLoggingTrustManager(TrustManagerUtils.wrapIfNeeded(newTrustManager));
-            ((HotSwappableX509ExtendedTrustManager) ((LoggingX509ExtendedTrustManager) baseTrustManager).getInnerTrustManager()).setTrustManager(loggingTrustManager);
+            ((HotSwappableX509ExtendedTrustManager) ((LoggingX509ExtendedTrustManager) baseTrustManager).getInnerTrustManager())
+                    .setTrustManager(TrustManagerUtils.wrapIfNeeded(newTrustManager));
         } else {
             throw new GenericTrustManagerException(
                     String.format("The baseTrustManager is from the instance of [%s] and should be an instance of [%s].",
