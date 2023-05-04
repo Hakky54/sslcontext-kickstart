@@ -91,6 +91,7 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "7.4.11"
        - [Loading pem files from string content](#loading-pem-files-from-string-content)
        - [Loading encrypted pem files](#loading-encrypted-pem-files)
      - [Migrating from classic configuration](#migrating-from-classic-configuration)
+     - [Logging certificate validation](#logging-detailed-certificate-validation)
    - [Returnable values from the SSLFactory](#returnable-values-from-the-sslfactory)
 3. [Additional mappers for specific libraries](#additional-mappers-for-specific-libraries)
    - [Netty](#netty)
@@ -747,6 +748,210 @@ SSLContext.setDefault(sslFactory.getSslContext());
 ```
 
 The SSLFactory returnable values can be supplied to the http client as shown [here](#tested-http-clients)
+
+##### Logging detailed certificate validation
+```text
+SSLFactory sslFactory = SSLFactory.builder()
+        .withTrustMaterial(Paths.get("/path/to/your/truststore.jks"), "password".toCharArray())
+        .withLoggingTrustMaterial()
+        .build();
+        
+// run your server or client and analyse the logs
+```
+
+You will get a log message which is similar to the following one:
+```text
+Validating the certificate chain of the server[google.com:443] with authentication type RSA, while also using the SSLEngine. See below for the full chain of the server:
+[[
+[
+  Version: V3
+  Subject: CN=*.google.com, O=Google LLC, L=Mountain View, ST=California, C=US
+  Signature Algorithm: SHA256withRSA, OID = 1.2.840.113549.1.1.11
+
+  Key:  Sun EC public key, 256 bits
+  public x coord: 54347275970077566368513898626765286548687250565786921039060191273785455056345
+  public y coord: 88043846562958291988419087726639688241289668084120802006631053348150453315748
+  parameters: secp256r1 [NIST P-256, X9.62 prime256v1] (1.2.840.10045.3.1.7)
+  Validity: [From: Wed Oct 16 14:36:57 CEST 2019,
+               To: Wed Jan 08 13:36:57 CET 2020]
+  Issuer: CN=GTS CA 1O1, O=Google Trust Services, C=US
+  SerialNumber: [    a2b1428b 94a636b2 08000000 0019fa68]
+
+Certificate Extensions: 10
+[1]: ObjectId: 1.3.6.1.4.1.11129.2.4.2 Criticality=false
+Extension unknown: DER encoded OCTET string =
+0000: 04 81 F5 04 81 F2 00 F0   00 76 00 B2 1E 05 CC 8B  .........v......
+0010: A2 CD 8A 20 4E 87 66 F9   2B B9 8A 25 20 67 6B DA  ... N.f.+..% gk.
+0020: FA 70 E7 B2 49 53 2D EF   8B 90 5E 00 00 01 6D D4  .p..IS-...^...m.
+0030: C9 39 F6 00 00 04 03 00   47 30 45 02 20 3B E9 89  .9......G0E. ;..
+0040: 83 7B 8C F6 11 AC C5 2C   2E 8C 21 E9 DE 24 3F E2  .......,..!..$?.
+0050: 3B 46 6C 20 86 36 38 A3   E2 39 89 80 13 02 21 00  ;Fl .68..9....!.
+0060: C0 B8 0E AC C3 71 A9 66   B3 49 AE 46 2F FF CE 35  .....q.f.I.F/..5
+0070: CE C0 CD 5B 3E AA 3B 33   1B CC A4 7E E2 62 98 78  ...[>.;3.....b.x
+0080: 00 76 00 5E A7 73 F9 DF   56 C0 E7 B5 36 48 7D D0  .v.^.s..V...6H..
+0090: 49 E0 32 7A 91 9A 0C 84   A1 12 12 84 18 75 96 81  I.2z.........u..
+00A0: 71 45 58 00 00 01 6D D4   C9 39 99 00 00 04 03 00  qEX...m..9......
+00B0: 47 30 45 02 20 1B 76 BF   FD 79 76 D9 A0 A1 6D F7  G0E. .v..yv...m.
+00C0: F2 33 67 55 DD 38 7A F5   98 E0 28 05 25 DD 3D 8B  .3gU.8z...(.%.=.
+00D0: A5 91 BC DF 2E 02 21 00   87 81 AD 92 A6 1D 6B A0  ......!.......k.
+00E0: 32 75 B8 68 FF 5C D2 F6   FA 11 0E FF 44 2D 7D DB  2u.h.\......D-..
+00F0: 9C 1A 27 3A D3 32 CB B7                            ..':.2..
+
+
+[2]: ObjectId: 1.3.6.1.5.5.7.1.1 Criticality=false
+AuthorityInfoAccess [
+  [
+   accessMethod: ocsp
+   accessLocation: URIName: http://ocsp.pki.goog/gts1o1
+, 
+   accessMethod: caIssuers
+   accessLocation: URIName: http://pki.goog/gsr2/GTS1O1.crt
+]
+]
+
+[3]: ObjectId: 2.5.29.35 Criticality=false
+AuthorityKeyIdentifier [
+KeyIdentifier [
+0000: 98 D1 F8 6E 10 EB CF 9B   EC 60 9F 18 90 1B A0 EB  ...n.....`......
+0010: 7D 09 FD 2B                                        ...+
+]
+]
+
+[4]: ObjectId: 2.5.29.19 Criticality=true
+BasicConstraints:[
+  CA:false
+  PathLen: undefined
+]
+
+[5]: ObjectId: 2.5.29.31 Criticality=false
+CRLDistributionPoints [
+  [DistributionPoint:
+     [URIName: http://crl.pki.goog/GTS1O1.crl]
+]]
+
+[6]: ObjectId: 2.5.29.32 Criticality=false
+CertificatePolicies [
+  [CertificatePolicyId: [2.23.140.1.2.2]
+[]  ]
+  [CertificatePolicyId: [1.3.6.1.4.1.11129.2.5.3]
+[]  ]
+]
+
+[7]: ObjectId: 2.5.29.37 Criticality=false
+ExtendedKeyUsages [
+  serverAuth
+]
+
+[8]: ObjectId: 2.5.29.15 Criticality=true
+KeyUsage [
+  DigitalSignature
+]
+
+[9]: ObjectId: 2.5.29.17 Criticality=false
+SubjectAlternativeName [
+  DNSName: *.google.com
+  DNSName: *.android.com
+  DNSName: *.appengine.google.com
+  DNSName: *.cloud.google.com
+  DNSName: *.crowdsource.google.com
+  DNSName: *.g.co
+  DNSName: *.gcp.gvt2.com
+  DNSName: *.gcpcdn.gvt1.com
+  DNSName: *.ggpht.cn
+  DNSName: *.gkecnapps.cn
+  DNSName: *.google-analytics.com
+  DNSName: *.google.ca
+  DNSName: *.google.cl
+  DNSName: *.google.co.in
+  DNSName: *.google.co.jp
+  DNSName: *.google.co.uk
+  DNSName: *.google.com.ar
+  DNSName: *.google.com.au
+  DNSName: *.google.com.br
+  DNSName: *.google.com.co
+  DNSName: *.google.com.mx
+  DNSName: *.google.com.tr
+  DNSName: *.google.com.vn
+  DNSName: *.google.de
+  DNSName: *.google.es
+  DNSName: *.google.fr
+  DNSName: *.google.hu
+  DNSName: *.google.it
+  DNSName: *.google.nl
+  DNSName: *.google.pl
+  DNSName: *.google.pt
+  DNSName: *.googleadapis.com
+  DNSName: *.googleapis.cn
+  DNSName: *.googlecnapps.cn
+  DNSName: *.googlecommerce.com
+  DNSName: *.googlevideo.com
+  DNSName: *.gstatic.cn
+  DNSName: *.gstatic.com
+  DNSName: *.gstaticcnapps.cn
+  DNSName: *.gvt1.com
+  DNSName: *.gvt2.com
+  DNSName: *.metric.gstatic.com
+  DNSName: *.urchin.com
+  DNSName: *.url.google.com
+  DNSName: *.wear.gkecnapps.cn
+  DNSName: *.youtube-nocookie.com
+  DNSName: *.youtube.com
+  DNSName: *.youtubeeducation.com
+  DNSName: *.youtubekids.com
+  DNSName: *.yt.be
+  DNSName: *.ytimg.com
+  DNSName: android.clients.google.com
+  DNSName: android.com
+  DNSName: developer.android.google.cn
+  DNSName: developers.android.google.cn
+  DNSName: g.co
+  DNSName: ggpht.cn
+  DNSName: gkecnapps.cn
+  DNSName: goo.gl
+  DNSName: google-analytics.com
+  DNSName: google.com
+  DNSName: googlecnapps.cn
+  DNSName: googlecommerce.com
+  DNSName: source.android.google.cn
+  DNSName: urchin.com
+  DNSName: www.goo.gl
+  DNSName: youtu.be
+  DNSName: youtube.com
+  DNSName: youtubeeducation.com
+  DNSName: youtubekids.com
+  DNSName: yt.be
+]
+
+[10]: ObjectId: 2.5.29.14 Criticality=false
+SubjectKeyIdentifier [
+KeyIdentifier [
+0000: BA 16 19 65 61 DB B1 32   D3 8E E7 C6 A6 A5 CC A4  ...ea..2........
+0010: 3F 19 20 73                                        ?. s
+]
+]
+
+]
+  Algorithm: [SHA256withRSA]
+  Signature:
+0000: 52 3B 09 75 6D 73 2C 57   CE F5 6B F3 1F A8 5C FD  R;.ums,W..k...\.
+0010: 0F F7 78 6D 02 9F DB 19   99 B1 9B A2 A5 42 7A 3B  ..xm.........Bz;
+0020: 0C 92 2C 65 F6 36 B8 15   28 5B 63 D2 7A 9D 34 94  ..,e.6..([c.z.4.
+0030: 6E 2E 40 82 E0 90 95 BE   B7 27 85 01 8F D7 25 6A  n.@......'....%j
+0040: 74 11 06 92 2C 6B 2F E7   D7 D3 AD BD 89 B3 C5 1F  t...,k/.........
+0050: 57 9B BB C6 43 79 8B 34   42 41 1C 80 A8 01 77 03  W...Cy.4BA....w.
+0060: 10 34 95 C4 B2 67 31 9D   2B 3B 5A 77 9D 96 7C 14  .4...g1.+;Zw....
+0070: F4 9A F3 E3 1C 18 08 60   CB 63 E1 17 EB 5C C2 B9  .......`.c...\..
+0080: 21 4D 22 05 D7 63 E1 5B   D7 DD A6 E1 46 48 17 7D  !M"..c.[....FH..
+0090: 10 54 FA 08 E3 43 DD F2   C7 41 A1 42 F7 EC D2 70  .T...C...A.B...p
+00A0: 5E 4A FB 8B 85 2E F4 A1   D1 3E AD 4E 39 72 21 AF  ^J.......>.N9r!.
+00B0: B7 5B 9E 7D EB C0 29 91   7C 75 9F F7 7A 94 8C 46  .[....)..u..z..F
+00C0: FA 0B F7 A3 E9 49 6D B7   5D FE 68 49 E1 9F 18 B2  .....Im.].hI....
+00D0: A0 50 EB 93 8D 71 53 84   A2 34 C4 F8 C9 08 9D 5F  .P...qS..4....._
+00E0: 9B 2A 37 5E E0 F8 5D F5   7A 7D BC EB 3D 78 5C 23  .*7^..].z...=x\#
+00F0: 84 DD CC 32 97 6C 77 92   7C 06 E4 5D 52 A0 5A 39  ...2.lw....]R.Z9
+
+]]
+```
 
 ### Returnable values from the SSLFactory
 The SSLFactory provides different kinds of returnable values, see below for all the options:
