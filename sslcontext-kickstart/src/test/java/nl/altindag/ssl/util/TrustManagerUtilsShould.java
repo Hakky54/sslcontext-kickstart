@@ -282,6 +282,27 @@ class TrustManagerUtilsShould {
     }
 
     @Test
+    void trustManagerShouldNotSwapWhenLoggingTrustManagerDoesNotContainSwappableTrustManager() {
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.trustManagerBuilder()
+                .withTrustManager(TrustManagerUtils.createUnsafeTrustManager())
+                .withSwappableTrustManager(false)
+                .withLoggingTrustManager(true)
+                .build();
+
+        assertThat(trustManager).isInstanceOf(LoggingX509ExtendedTrustManager.class);
+        assertThat(trustManager.getAcceptedIssuers()).isEmpty();
+
+        X509ExtendedTrustManager innerTrustManager = ((LoggingX509ExtendedTrustManager) trustManager).getInnerTrustManager();
+        assertThat(innerTrustManager).isInstanceOf(UnsafeX509ExtendedTrustManager.class);
+
+        X509ExtendedTrustManager trustManagerWithJdkTrustedCertificates = TrustManagerUtils.createTrustManagerWithJdkTrustedCertificates();
+        assertThatThrownBy(() -> TrustManagerUtils.swapTrustManager(trustManager, trustManagerWithJdkTrustedCertificates))
+                .isInstanceOf(GenericTrustManagerException.class)
+                .hasMessage("The baseTrustManager is from the instance of [nl.altindag.ssl.trustmanager.LoggingX509ExtendedTrustManager] " +
+                        "and should be an instance of [nl.altindag.ssl.trustmanager.HotSwappableX509ExtendedTrustManager].");
+    }
+
+    @Test
     void createTrustManagerFromMultipleTrustManagers() {
         KeyStore trustStoreOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         KeyStore trustStoreTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD);
