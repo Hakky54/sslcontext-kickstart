@@ -97,7 +97,7 @@ public final class LoggingX509ExtendedTrustManager extends DelegatingX509Extende
         LOGGER.info(logMessage);
     }
 
-    private static Optional<String> getClassnameOfEitherOrOther(Socket socket, SSLEngine sslEngine) {
+    static Optional<String> getClassnameOfEitherOrOther(Socket socket, SSLEngine sslEngine) {
         if (socket != null) {
             return Optional.of(Socket.class.getSimpleName());
         }
@@ -109,7 +109,7 @@ public final class LoggingX509ExtendedTrustManager extends DelegatingX509Extende
         return Optional.empty();
     }
 
-    private static Optional<String> getHostAndPortOfEitherOrOther(Socket socket, SSLEngine sslEngine) {
+    static Optional<String> getHostAndPortOfEitherOrOther(Socket socket, SSLEngine sslEngine) {
         Map.Entry<String, Integer> hostToPort = null;
         if (socket != null) {
             hostToPort = HostUtils.extractHostAndPort(socket);
