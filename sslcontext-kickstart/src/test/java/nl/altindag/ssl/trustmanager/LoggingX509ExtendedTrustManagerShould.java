@@ -244,8 +244,9 @@ class LoggingX509ExtendedTrustManagerShould {
         Socket socket = mock(Socket.class);
         Optional<String> classname = LoggingX509ExtendedTrustManager.getClassnameOfEitherOrOther(socket, null);
 
-        assertThat(classname).isPresent();
-        assertThat(classname).hasValue("Socket");
+        assertThat(classname)
+                .isPresent()
+                .hasValue("Socket");
     }
 
     @Test
@@ -253,8 +254,9 @@ class LoggingX509ExtendedTrustManagerShould {
         SSLEngine sslEngine = mock(SSLEngine.class);
         Optional<String> classname = LoggingX509ExtendedTrustManager.getClassnameOfEitherOrOther(null, sslEngine);
 
-        assertThat(classname).isPresent();
-        assertThat(classname).hasValue("SSLEngine");
+        assertThat(classname)
+                .isPresent()
+                .hasValue("SSLEngine");
     }
 
     @Test
@@ -272,8 +274,9 @@ class LoggingX509ExtendedTrustManagerShould {
             mockedStatic.when(() -> HostUtils.extractHostAndPort(any(Socket.class))).thenReturn(new AbstractMap.SimpleEntry<>("foo", 443));
             Optional<String> hostAndPort = LoggingX509ExtendedTrustManager.getHostAndPortOfEitherOrOther(socket, null);
 
-            assertThat(hostAndPort).isPresent();
-            assertThat(hostAndPort).hasValue("foo:443");
+            assertThat(hostAndPort)
+                    .isPresent()
+                    .hasValue("foo:443");
         }
     }
 
@@ -285,8 +288,9 @@ class LoggingX509ExtendedTrustManagerShould {
             mockedStatic.when(() -> HostUtils.extractHostAndPort(any(SSLEngine.class))).thenReturn(new AbstractMap.SimpleEntry<>("foo", 443));
             Optional<String> hostAndPort = LoggingX509ExtendedTrustManager.getHostAndPortOfEitherOrOther(null, sslEngine);
 
-            assertThat(hostAndPort).isPresent();
-            assertThat(hostAndPort).hasValue("foo:443");
+            assertThat(hostAndPort)
+                    .isPresent()
+                    .hasValue("foo:443");
         }
     }
 
