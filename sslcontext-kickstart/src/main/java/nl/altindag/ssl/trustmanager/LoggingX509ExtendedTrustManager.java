@@ -27,7 +27,6 @@ import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.BiFunction;
 
 /**
  * <strong>NOTE:</strong>
@@ -38,7 +37,7 @@ import java.util.function.BiFunction;
 public final class LoggingX509ExtendedTrustManager extends DelegatingX509ExtendedTrustManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggingX509ExtendedTrustManager.class);
-    private static final String LOG_MESSAGE_TEMPLATE = "Validating the certificate chain of the {}{} with authentication type {}{}. See below for the full chain of the {}:\n{}";
+    private static final String LOG_MESSAGE_TEMPLATE = "Validating the certificate chain of the %s%s with authentication type %s%s. See below for the full chain of the %s:\n%s";
 
     public LoggingX509ExtendedTrustManager(X509ExtendedTrustManager trustManager) {
         super(trustManager);
@@ -94,7 +93,8 @@ public final class LoggingX509ExtendedTrustManager extends DelegatingX509Extende
         Optional<String> hostAndPortLogMessage = getHostAndPortOfEitherOrOther(socket, sslEngine)
                 .map(hostAndPort -> "[" + hostAndPort + "]");
 
-        LOGGER.info(LOG_MESSAGE_TEMPLATE, counterParty, hostAndPortLogMessage.orElse(""), authType, classNameLogMessage.orElse(""), counterParty, certificateChain);
+        String logMessage = String.format(LOG_MESSAGE_TEMPLATE, counterParty, hostAndPortLogMessage.orElse(""), authType, classNameLogMessage.orElse(""), counterParty, certificateChain);
+        LOGGER.info(logMessage);
     }
 
     private static Optional<String> getClassnameOfEitherOrOther(Socket socket, SSLEngine sslEngine) {

@@ -17,23 +17,21 @@ package nl.altindag.ssl.keymanager;
 
 import javax.net.ssl.ExtendedSSLSession;
 import javax.net.ssl.SNIServerName;
-import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509KeyManager;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
-import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.Set;
 
 /**
  * <strong>NOTE:</strong>
