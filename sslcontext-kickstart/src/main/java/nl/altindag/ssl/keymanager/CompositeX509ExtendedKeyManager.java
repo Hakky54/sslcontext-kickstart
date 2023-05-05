@@ -15,6 +15,8 @@
  */
 package nl.altindag.ssl.keymanager;
 
+import nl.altindag.ssl.util.HostUtils;
+
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.X509ExtendedKeyManager;
@@ -95,7 +97,7 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
         return chooseClientAlias(
                 socket,
                 this::containsInetSocketAddress,
-                this::extractHostAndPort,
+                HostUtils::extractHostAndPort,
                 keyManager -> keyManager.chooseClientAlias(keyType, issuers, socket)
         );
     }
@@ -109,7 +111,7 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
         return chooseClientAlias(
                 sslEngine,
                 Objects::nonNull,
-                this::extractHostAndPort,
+                HostUtils::extractHostAndPort,
                 keyManager -> keyManager.chooseEngineClientAlias(keyTypes, issuers, sslEngine)
         );
     }

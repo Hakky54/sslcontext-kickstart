@@ -15,9 +15,6 @@
  */
 package nl.altindag.ssl.trustmanager;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedTrustManager;
 import java.net.Socket;
@@ -58,10 +55,6 @@ import java.util.List;
  */
 public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustManager implements CombinableX509TrustManager {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(CompositeX509ExtendedTrustManager.class);
-    private static final String CLIENT_CERTIFICATE_LOG_MESSAGE = "Received the following client certificate: [{}]";
-    private static final String SERVER_CERTIFICATE_LOG_MESSAGE = "Received the following server certificate: [{}]";
-
     private final List<X509ExtendedTrustManager> trustManagers;
     private final X509Certificate[] acceptedIssuers;
 
@@ -76,37 +69,31 @@ public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustMa
 
     @Override
     public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-        logCertificate(CLIENT_CERTIFICATE_LOG_MESSAGE, chain);
         checkTrusted(trustManager -> trustManager.checkClientTrusted(chain, authType));
     }
 
     @Override
     public void checkClientTrusted(X509Certificate[] chain, String authType, Socket socket) throws CertificateException {
-        logCertificate(CLIENT_CERTIFICATE_LOG_MESSAGE, chain);
         checkTrusted(trustManager -> trustManager.checkClientTrusted(chain, authType, socket));
     }
 
     @Override
     public void checkClientTrusted(X509Certificate[] chain, String authType, SSLEngine sslEngine) throws CertificateException {
-        logCertificate(CLIENT_CERTIFICATE_LOG_MESSAGE, chain);
         checkTrusted(trustManager -> trustManager.checkClientTrusted(chain, authType, sslEngine));
     }
 
     @Override
     public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-        logCertificate(SERVER_CERTIFICATE_LOG_MESSAGE, chain);
         checkTrusted(trustManager -> trustManager.checkServerTrusted(chain, authType));
     }
 
     @Override
     public void checkServerTrusted(X509Certificate[] chain, String authType, Socket socket) throws CertificateException {
-        logCertificate(SERVER_CERTIFICATE_LOG_MESSAGE, chain);
         checkTrusted(trustManager -> trustManager.checkServerTrusted(chain, authType, socket));
     }
 
     @Override
     public void checkServerTrusted(X509Certificate[] chain, String authType, SSLEngine sslEngine) throws CertificateException {
-        logCertificate(SERVER_CERTIFICATE_LOG_MESSAGE, chain);
         checkTrusted(trustManager -> trustManager.checkServerTrusted(chain, authType, sslEngine));
     }
 
@@ -118,12 +105,6 @@ public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustMa
     @Override
     public List<X509ExtendedTrustManager> getTrustManagers() {
         return trustManagers;
-    }
-
-    private static void logCertificate(String messageTemplate, X509Certificate[] chain) {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(messageTemplate, chain[0].getSubjectX500Principal());
-        }
     }
 
 }

@@ -185,6 +185,7 @@ public final class SSLFactory {
 
         private boolean swappableKeyManagerEnabled = false;
         private boolean swappableTrustManagerEnabled = false;
+        private boolean loggingTrustManagerEnabled = false;
 
         private int sessionTimeoutInSeconds = -1;
         private int sessionCacheSizeInBytes = -1;
@@ -239,6 +240,11 @@ public final class SSLFactory {
          */
         public Builder withSwappableTrustMaterial() {
             swappableTrustManagerEnabled = true;
+            return this;
+        }
+
+        public Builder withLoggingTrustMaterial() {
+            loggingTrustManagerEnabled = true;
             return this;
         }
 
@@ -832,6 +838,7 @@ public final class SSLFactory {
                     .withTrustManagers(trustManagers)
                     .withTrustStores(trustStores)
                     .withSwappableTrustManager(swappableTrustManagerEnabled)
+                    .withLoggingTrustManager(loggingTrustManagerEnabled)
                     .withTrustEnhancer(chainAndAuthTypeValidator)
                     .withTrustEnhancer(chainAndAuthTypeWithSocketValidator)
                     .withTrustEnhancer(chainAndAuthTypeWithSSLEngineValidator)
