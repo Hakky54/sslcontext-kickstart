@@ -373,6 +373,14 @@ public final class PemUtils {
      * Parses the identity material based on a string representation containing the certificate chain and the private key
      * and maps it to an instance of {@link X509ExtendedTrustManager}
      */
+    public static X509ExtendedKeyManager parseIdentityMaterial(String identityContent) {
+        return parseIdentityMaterial(identityContent, identityContent, null);
+    }
+
+    /**
+     * Parses the identity material based on a string representation containing the certificate chain and the private key
+     * and maps it to an instance of {@link X509ExtendedTrustManager}
+     */
     public static X509ExtendedKeyManager parseIdentityMaterial(String identityContent, char[] keyPassword) {
         return parseIdentityMaterial(identityContent, identityContent, keyPassword);
     }

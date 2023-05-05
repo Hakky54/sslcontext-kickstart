@@ -15,15 +15,16 @@
  */
 package nl.altindag.ssl;
 
-import nl.altindag.log.LogCaptor;
+import com.sun.net.httpserver.HttpsServer;
 import nl.altindag.ssl.util.JettySslUtils;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -33,36 +34,39 @@ import static org.assertj.core.api.Assertions.assertThat;
 class SSLFactoryIT {
 
     @Test
-    @Tag("it-with-badssl.com")
     void executeHttpsRequestWithMutualAuthentication() throws Exception {
-        LogCaptor logCaptor = LogCaptor.forName("nl.altindag.ssl");
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
 
-        SSLFactory sslFactory = SSLFactory.builder()
-                .withIdentityMaterial("keystore/badssl-identity.p12", "badssl.com".toCharArray())
-                .withTrustMaterial("keystore/badssl-truststore.p12", "badssl.com".toCharArray())
-                .withDefaultTrustMaterial() // Adding additional trust material forces usage of CompositeX509ExtendedTrustManager and verbose logging
+        SSLFactory sslFactoryForServer = SSLFactory.builder()
+                .withIdentityMaterial("keystore/client-server/server-one/identity.jks", "secret".toCharArray())
+                .withTrustMaterial("keystore/client-server/server-one/truststore.jks", "secret".toCharArray())
+                .withNeedClientAuthentication()
                 .build();
 
-        SslContextFactory.Client sslContextFactory = JettySslUtils.forClient(sslFactory);
+        HttpsServer server = ServerUtils.createServer(8443, sslFactoryForServer, executorService, "Hello from server");
+        server.start();
+
+        SSLFactory sslFactoryForClient = SSLFactory.builder()
+                .withIdentityMaterial("keystore/client-server/client-one/identity.jks", "secret".toCharArray())
+                .withTrustMaterial("keystore/client-server/client-one/truststore.jks", "secret".toCharArray())
+                .build();
+
+        SslContextFactory.Client sslContextFactory = JettySslUtils.forClient(sslFactoryForClient);
 
         HttpClient httpClient = new HttpClient(sslContextFactory);
         httpClient.start();
 
-        ContentResponse contentResponse = httpClient.newRequest("https://client.badssl.com/")
+        ContentResponse contentResponse = httpClient.newRequest("https://localhost:8443/api/hello")
                 .method(HttpMethod.GET)
                 .send();
 
         httpClient.stop();
-        logCaptor.close();
 
         int statusCode = contentResponse.getStatus();
+        assertThat(statusCode).isEqualTo(200);
 
-        if (statusCode == 400) {
-            Assertions.fail("Certificate may have expired and needs to be updated");
-        } else {
-            assertThat(statusCode).isEqualTo(200);
-            assertThat(logCaptor.getLogs()).contains("Received the following server certificate: [CN=*.badssl.com]");
-        }
+        server.stop(0);
+        executorService.shutdownNow();
     }
 
 }
