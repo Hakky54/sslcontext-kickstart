@@ -16,10 +16,8 @@
 package nl.altindag.ssl;
 
 import com.sun.net.httpserver.HttpsServer;
-import nl.altindag.log.LogCaptor;
 import nl.altindag.ssl.util.SSLFactoryUtils;
 import nl.altindag.ssl.util.SSLSessionUtils;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -39,10 +37,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
-import static nl.altindag.ssl.TestConstants.KEYSTORE_LOCATION;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.fail;
 
 /**
  * @author Hakan Altindag
@@ -50,57 +46,33 @@ import static org.assertj.core.api.Assertions.fail;
 class SSLFactoryIT {
 
     @Test
-    @Tag("it-with-badssl.com")
     void executeHttpsRequestWithMutualAuthentication() throws IOException {
-        LogCaptor logCaptor = LogCaptor.forName("nl.altindag.ssl");
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
 
-        SSLFactory sslFactory = SSLFactory.builder()
-                .withIdentityMaterial(KEYSTORE_LOCATION + "badssl-identity.p12", "badssl.com".toCharArray())
-                .withTrustMaterial(KEYSTORE_LOCATION + "badssl-truststore.p12", "badssl.com".toCharArray())
-                .withDefaultTrustMaterial() // Adding additional trust material forces usage of CompositeX509ExtendedTrustManager and verbose logging
+        SSLFactory sslFactoryForServer = SSLFactory.builder()
+                .withIdentityMaterial("keystore/client-server/server-one/identity.jks", "secret".toCharArray())
+                .withTrustMaterial("keystore/client-server/server-one/truststore.jks", "secret".toCharArray())
+                .withNeedClientAuthentication()
                 .build();
 
-        HttpsURLConnection connection = (HttpsURLConnection) new URL("https://client.badssl.com/").openConnection();
-        connection.setSSLSocketFactory(sslFactory.getSslSocketFactory());
-        connection.setHostnameVerifier(sslFactory.getHostnameVerifier());
+        HttpsServer server = ServerUtils.createServer(8443, sslFactoryForServer, executorService, "Hello from server");
+        server.start();
+
+        SSLFactory sslFactoryForClient = SSLFactory.builder()
+                .withIdentityMaterial("keystore/client-server/client-one/identity.jks", "secret".toCharArray())
+                .withTrustMaterial("keystore/client-server/client-one/truststore.jks", "secret".toCharArray())
+                .build();
+
+        HttpsURLConnection connection = (HttpsURLConnection) new URL("https://localhost:8443/api/hello").openConnection();
+        connection.setSSLSocketFactory(sslFactoryForClient.getSslSocketFactory());
+        connection.setHostnameVerifier(sslFactoryForClient.getHostnameVerifier());
         connection.setRequestMethod("GET");
 
         int statusCode = connection.getResponseCode();
-        logCaptor.close();
+        assertThat(statusCode).isEqualTo(200);
 
-        if (statusCode == 400) {
-            fail("Certificate may have expired and needs to be updated");
-        } else {
-            assertThat(statusCode).isEqualTo(200);
-            assertThat(logCaptor.getLogs()).containsExactlyInAnyOrder("Received the following server certificate: [CN=*.badssl.com]");
-        }
-    }
-
-    @Test
-    @Tag("it-with-badssl.com")
-    void executeHttpsRequestWithMutualAuthenticationWhileHavingTrustMaterialSpecifiedInDifferentOrderWhileUsingAnEmptyTrustManagerShouldStillPassAs() throws IOException {
-        LogCaptor logCaptor = LogCaptor.forName("nl.altindag.ssl");
-
-        SSLFactory sslFactory = SSLFactory.builder()
-                .withIdentityMaterial(KEYSTORE_LOCATION + "badssl-identity.p12", "badssl.com".toCharArray())
-                .withDefaultTrustMaterial() // Adding additional trust material forces usage of CompositeX509ExtendedTrustManager and verbose logging
-                .withTrustMaterial(KEYSTORE_LOCATION + "badssl-truststore.p12", "badssl.com".toCharArray())
-                .build();
-
-        HttpsURLConnection connection = (HttpsURLConnection) new URL("https://client.badssl.com/").openConnection();
-        connection.setSSLSocketFactory(sslFactory.getSslSocketFactory());
-        connection.setHostnameVerifier(sslFactory.getHostnameVerifier());
-        connection.setRequestMethod("GET");
-
-        int statusCode = connection.getResponseCode();
-        logCaptor.close();
-
-        if (statusCode == 400) {
-            fail("Certificate may have expired and needs to be updated");
-        } else {
-            assertThat(statusCode).isEqualTo(200);
-            assertThat(logCaptor.getLogs()).containsExactlyInAnyOrder("Received the following server certificate: [CN=*.badssl.com]");
-        }
+        server.stop(0);
+        executorService.shutdownNow();
     }
 
     @Test
@@ -152,7 +124,6 @@ class SSLFactoryIT {
     }
 
     @Test
-    @Tag("it-with-badssl.com")
     void executeRequestToTwoServersWithMutualAuthenticationWithReroutingClientCertificates() throws IOException {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
 
@@ -182,15 +153,12 @@ class SSLFactoryIT {
         Map<String, List<String>> clientAliasesToHosts = new HashMap<>();
         clientAliasesToHosts.put("client-one", Collections.singletonList("https://localhost:8443/api/hello"));
         clientAliasesToHosts.put("client-two", Collections.singletonList("https://localhost:8444/api/hello"));
-        clientAliasesToHosts.put("1", Collections.singletonList("https://client.badssl.com:443/"));
 
         SSLFactory sslFactoryForClient = SSLFactory.builder()
                 .withIdentityMaterial("keystore/client-server/client-one/identity.jks", keyStorePassword)
                 .withIdentityMaterial("keystore/client-server/client-two/identity.jks", keyStorePassword)
-                .withIdentityMaterial(KEYSTORE_LOCATION + "badssl-identity.p12", "badssl.com".toCharArray())
                 .withTrustMaterial("keystore/client-server/client-one/truststore.jks", keyStorePassword)
                 .withTrustMaterial("keystore/client-server/client-two/truststore.jks", keyStorePassword)
-                .withTrustMaterial(KEYSTORE_LOCATION + "badssl-truststore.p12", "badssl.com".toCharArray())
                 .withIdentityRoute(clientAliasesToHosts)
                 .build();
 
@@ -205,9 +173,6 @@ class SSLFactoryIT {
 
         assertThat(response.getStatusCode()).isEqualTo(200);
         assertThat(response.getBody()).contains("Hello from server two");
-
-        response = executeRequest("https://client.badssl.com/", sslSocketFactoryWithCorrectClientRoutes);
-        assertThat(response.getStatusCode()).isEqualTo(200);
 
         sslFactoryForClient = SSLFactory.builder()
                 .withIdentityMaterial("keystore/client-server/client-one/identity.jks", keyStorePassword)

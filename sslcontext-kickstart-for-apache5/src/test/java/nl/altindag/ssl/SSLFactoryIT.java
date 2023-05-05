@@ -15,7 +15,7 @@
  */
 package nl.altindag.ssl;
 
-import nl.altindag.log.LogCaptor;
+import com.sun.net.httpserver.HttpsServer;
 import nl.altindag.ssl.util.Apache5SslUtils;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleResponseConsumer;
@@ -32,36 +32,57 @@ import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.nio.support.BasicRequestProducer;
-import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 
 /**
  * @author Hakan Altindag
  */
 class SSLFactoryIT {
 
-    @Test
-    @Tag("it-with-badssl.com")
-    void executeHttpsRequestWithMutualAuthentication() throws IOException {
-        LogCaptor logCaptor = LogCaptor.forName("nl.altindag.ssl");
+    private static ExecutorService executorService;
+    private static HttpsServer server;
 
-        SSLFactory sslFactory = SSLFactory.builder()
-                .withIdentityMaterial("keystore/badssl-identity.p12", "badssl.com".toCharArray())
-                .withTrustMaterial("keystore/badssl-truststore.p12", "badssl.com".toCharArray())
-                .withDefaultTrustMaterial() // Adding additional trust material forces usage of CompositeX509ExtendedTrustManager and verbose logging
+    @BeforeAll
+    static void startServer() throws IOException {
+        executorService = Executors.newSingleThreadExecutor();
+
+        SSLFactory sslFactoryForServer = SSLFactory.builder()
+                .withIdentityMaterial("keystore/client-server/server-one/identity.jks", "secret".toCharArray())
+                .withTrustMaterial("keystore/client-server/server-one/truststore.jks", "secret".toCharArray())
+                .withNeedClientAuthentication()
                 .build();
 
-        LayeredConnectionSocketFactory socketFactory = Apache5SslUtils.toSocketFactory(sslFactory);
+        server = ServerUtils.createServer(8443, sslFactoryForServer, executorService, "Hello from server");
+        server.start();
+    }
+
+    @AfterAll
+    static void stopServer() {
+        server.stop(0);
+        executorService.shutdownNow();
+    }
+
+    @Test
+    void executeHttpsRequestWithMutualAuthentication() throws IOException {
+        SSLFactory sslFactoryForClient = SSLFactory.builder()
+                .withIdentityMaterial("keystore/client-server/client-one/identity.jks", "secret".toCharArray())
+                .withTrustMaterial("keystore/client-server/client-one/truststore.jks", "secret".toCharArray())
+                .build();
+
+        LayeredConnectionSocketFactory socketFactory = Apache5SslUtils.toSocketFactory(sslFactoryForClient);
         PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
                 .setSSLSocketFactory(socketFactory)
                 .build();
@@ -70,33 +91,22 @@ class SSLFactoryIT {
                 .setConnectionManager(connectionManager)
                 .build();
 
-        HttpGet request = new HttpGet("https://client.badssl.com/");
+        HttpGet request = new HttpGet("https://localhost:8443/api/hello");
         HttpResponse response = httpClient.execute(request);
 
-        logCaptor.close();
-
         int statusCode = response.getCode();
-        if (statusCode == 400) {
-            fail("Certificate may have expired and needs to be updated");
-        } else {
-            assertThat(statusCode).isEqualTo(200);
-            assertThat(logCaptor.getLogs()).contains("Received the following server certificate: [CN=*.badssl.com]");
-        }
+        assertThat(statusCode).isEqualTo(200);
     }
 
     @Test
-    @Tag("it-with-badssl.com")
-    void executeHttpsRequestWithMutualAuthenticationForAsyncClient() throws URISyntaxException, InterruptedException, ExecutionException, TimeoutException {
-        LogCaptor logCaptor = LogCaptor.forName("nl.altindag.ssl");
-
-        SSLFactory sslFactory = SSLFactory.builder()
-                .withIdentityMaterial("keystore/badssl-identity.p12", "badssl.com".toCharArray())
-                .withTrustMaterial("keystore/badssl-truststore.p12", "badssl.com".toCharArray())
-                .withDefaultTrustMaterial() // Adding additional trust material forces usage of CompositeX509ExtendedTrustManager and verbose logging
+    void executeHttpsRequestWithMutualAuthenticationForAsyncClient() throws IOException, URISyntaxException, ExecutionException, InterruptedException, TimeoutException {
+        SSLFactory sslFactoryForClient = SSLFactory.builder()
+                .withIdentityMaterial("keystore/client-server/client-one/identity.jks", "secret".toCharArray())
+                .withTrustMaterial("keystore/client-server/client-one/truststore.jks", "secret".toCharArray())
                 .build();
 
         PoolingAsyncClientConnectionManager connectionManager = PoolingAsyncClientConnectionManagerBuilder.create()
-                .setTlsStrategy(Apache5SslUtils.toTlsStrategy(sslFactory))
+                .setTlsStrategy(Apache5SslUtils.toTlsStrategy(sslFactoryForClient))
                 .build();
 
         CloseableHttpAsyncClient httpAsyncClient = HttpAsyncClients.custom()
@@ -106,19 +116,12 @@ class SSLFactoryIT {
         httpAsyncClient.start();
 
         SimpleHttpResponse response = httpAsyncClient.execute(
-                new BasicRequestProducer(Method.GET, new URI("https://client.badssl.com/")),
+                new BasicRequestProducer(Method.GET, new URI("https://localhost:8443/api/hello")),
                 SimpleResponseConsumer.create(), null, null, null)
                 .get(10, TimeUnit.SECONDS);
 
-        logCaptor.close();
-
         int statusCode = response.getCode();
-        if (statusCode == 400) {
-            fail("Certificate may have expired and needs to be updated");
-        } else {
-            assertThat(statusCode).isEqualTo(200);
-            assertThat(logCaptor.getLogs()).contains("Received the following server certificate: [CN=*.badssl.com]");
-        }
+        assertThat(statusCode).isEqualTo(200);
     }
 
 }

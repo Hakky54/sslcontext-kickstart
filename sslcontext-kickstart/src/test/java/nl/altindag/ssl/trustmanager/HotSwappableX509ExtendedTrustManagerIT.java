@@ -15,11 +15,15 @@
  */
 package nl.altindag.ssl.trustmanager;
 
+import com.sun.net.httpserver.HttpsServer;
 import nl.altindag.ssl.SSLFactory;
+import nl.altindag.ssl.ServerUtils;
 import nl.altindag.ssl.util.KeyStoreUtils;
 import nl.altindag.ssl.util.SSLSessionUtils;
 import nl.altindag.ssl.util.TrustManagerUtils;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Tag;
@@ -33,9 +37,12 @@ import javax.net.ssl.X509ExtendedTrustManager;
 import java.io.IOException;
 import java.net.URL;
 import java.security.KeyStore;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static nl.altindag.ssl.TestConstants.KEYSTORE_LOCATION;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
 
 /**
@@ -47,15 +54,17 @@ class HotSwappableX509ExtendedTrustManagerIT {
     private static SSLSocketFactory sslSocketFactory;
     private static SSLSessionContext sslSessionContext;
     private static X509ExtendedTrustManager trustManager;
+    private ExecutorService executorService;
+    private HttpsServer server;
 
     @BeforeAll
     static void setUpSSLSocketFactory() {
-        KeyStore trustStoreWithBadSsl = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "badssl-truststore.p12", "badssl.com".toCharArray());
-        X509ExtendedTrustManager trustManagerWithBadSsl = TrustManagerUtils.createTrustManager(trustStoreWithBadSsl);
-        trustManager = TrustManagerUtils.createSwappableTrustManager(trustManagerWithBadSsl);
+        KeyStore trustStoreWithClientOne = KeyStoreUtils.loadKeyStore("keystore/client-server/client-one/truststore.jks", "secret".toCharArray());
+        X509ExtendedTrustManager trustManagerWithClientOne = TrustManagerUtils.createTrustManager(trustStoreWithClientOne);
+        trustManager = TrustManagerUtils.createSwappableTrustManager(trustManagerWithClientOne);
 
         SSLFactory sslFactory = SSLFactory.builder()
-                .withIdentityMaterial(KEYSTORE_LOCATION + "badssl-identity.p12", "badssl.com".toCharArray())
+                .withIdentityMaterial("keystore/client-server/client-one/identity.jks", "secret".toCharArray())
                 .withTrustMaterial(trustManager)
                 .build();
 
@@ -63,43 +72,51 @@ class HotSwappableX509ExtendedTrustManagerIT {
         sslSessionContext = sslFactory.getSslContext().getClientSessionContext();
     }
 
+    @BeforeEach
+    void startServer() throws IOException {
+        executorService = Executors.newSingleThreadExecutor();
+        SSLFactory sslFactoryForServer = SSLFactory.builder()
+                .withIdentityMaterial("keystore/client-server/server-one/identity.jks", "secret".toCharArray())
+                .withTrustMaterial("keystore/client-server/server-one/truststore.jks", "secret".toCharArray())
+                .withNeedClientAuthentication()
+                .build();
+
+        server = ServerUtils.createServer(8443, sslFactoryForServer, executorService, "Hello from server");
+        server.start();
+    }
+
+    @AfterEach
+    void stopServer() {
+        server.stop(0);
+        executorService.shutdownNow();
+    }
+
     @Test
     @Order(1)
-    @Tag("it-with-badssl.com")
-    void executeHttpsRequestWithSslSocketFactoryContainingBadSslTrustManager() throws IOException {
-        HttpsURLConnection connection = (HttpsURLConnection) new URL("https://client.badssl.com/").openConnection();
+    void executeHttpsRequestWithSslSocketFactoryContainingTrustManager() throws IOException {
+        HttpsURLConnection connection = (HttpsURLConnection) new URL("https://localhost:8443/api/hello").openConnection();
         connection.setSSLSocketFactory(sslSocketFactory);
         connection.setRequestMethod("GET");
 
         int statusCode = connection.getResponseCode();
         connection.disconnect();
 
-        if (statusCode == 400) {
-            fail("Certificate may have expired and needs to be updated");
-        } else {
-            assertThat(statusCode).isEqualTo(200);
-        }
+        assertThat(statusCode).isEqualTo(200);
     }
 
     @Test
     @Order(2)
-    @Tag("it-with-badssl.com")
     void executeHttpsRequestWithExistingSslSocketFactoryContainingASwappedUnsafeTrustManager() throws IOException {
-        TrustManagerUtils.swapTrustManager(trustManager, TrustManagerUtils.createUnsafeTrustManager());
+        KeyStore trustStoreWithClientTwo = KeyStoreUtils.loadKeyStore("keystore/client-server/client-two/truststore.jks", "secret".toCharArray());
+        X509ExtendedTrustManager trustManagerWithClientTwo = TrustManagerUtils.createTrustManager(trustStoreWithClientTwo);
+        TrustManagerUtils.swapTrustManager(trustManager, trustManagerWithClientTwo);
         SSLSessionUtils.invalidateCaches(sslSessionContext);
 
-        HttpsURLConnection connection = (HttpsURLConnection) new URL("https://client.badssl.com/").openConnection();
+        HttpsURLConnection connection = (HttpsURLConnection) new URL("https://localhost:8443/api/hello").openConnection();
         connection.setSSLSocketFactory(sslSocketFactory);
         connection.setRequestMethod("GET");
 
-        int statusCode = connection.getResponseCode();
-        connection.disconnect();
-
-        if (statusCode == 400) {
-            fail("Certificate may have expired and needs to be updated");
-        } else {
-            assertThat(statusCode).isEqualTo(200);
-        }
+        assertThatThrownBy(connection::getResponseCode);
     }
 
 }

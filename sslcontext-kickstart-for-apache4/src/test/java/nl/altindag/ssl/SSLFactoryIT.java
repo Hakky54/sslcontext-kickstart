@@ -15,20 +15,20 @@
  */
 package nl.altindag.ssl;
 
-import nl.altindag.log.LogCaptor;
+import com.sun.net.httpserver.HttpsServer;
 import nl.altindag.ssl.util.Apache4SslUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.impl.client.HttpClients;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 
 /**
  * @author Hakan Altindag
@@ -36,34 +36,37 @@ import static org.assertj.core.api.Assertions.fail;
 class SSLFactoryIT {
 
     @Test
-    @Tag("it-with-badssl.com")
     void executeHttpsRequestWithMutualAuthentication() throws IOException {
-        LogCaptor logCaptor = LogCaptor.forName("nl.altindag.ssl");
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
 
-        SSLFactory sslFactory = SSLFactory.builder()
-                .withIdentityMaterial("keystore/badssl-identity.p12", "badssl.com".toCharArray())
-                .withTrustMaterial("keystore/badssl-truststore.p12", "badssl.com".toCharArray())
-                .withDefaultTrustMaterial() // Adding additional trust material forces usage of CompositeX509ExtendedTrustManager and verbose logging
+        SSLFactory sslFactoryForServer = SSLFactory.builder()
+                .withIdentityMaterial("keystore/client-server/server-one/identity.jks", "secret".toCharArray())
+                .withTrustMaterial("keystore/client-server/server-one/truststore.jks", "secret".toCharArray())
+                .withNeedClientAuthentication()
                 .build();
 
-        LayeredConnectionSocketFactory socketFactory = Apache4SslUtils.toSocketFactory(sslFactory);
+        HttpsServer server = ServerUtils.createServer(8443, sslFactoryForServer, executorService, "Hello from server");
+        server.start();
+
+        SSLFactory sslFactoryForClient = SSLFactory.builder()
+                .withIdentityMaterial("keystore/client-server/client-one/identity.jks", "secret".toCharArray())
+                .withTrustMaterial("keystore/client-server/client-one/truststore.jks", "secret".toCharArray())
+                .build();
+
+        LayeredConnectionSocketFactory socketFactory = Apache4SslUtils.toSocketFactory(sslFactoryForClient);
 
         HttpClient httpClient = HttpClients.custom()
                 .setSSLSocketFactory(socketFactory)
                 .build();
 
-        HttpGet request = new HttpGet("https://client.badssl.com/");
+        HttpGet request = new HttpGet("https://localhost:8443/api/hello");
         HttpResponse response = httpClient.execute(request);
 
         int statusCode = response.getStatusLine().getStatusCode();
-        logCaptor.close();
+        assertThat(statusCode).isEqualTo(200);
 
-        if (statusCode == 400) {
-            fail("Certificate may have expired and needs to be updated");
-        } else {
-            assertThat(statusCode).isEqualTo(200);
-            assertThat(logCaptor.getLogs()).containsExactly("Received the following server certificate: [CN=*.badssl.com]");
-        }
+        server.stop(0);
+        executorService.shutdownNow();
     }
 
 }

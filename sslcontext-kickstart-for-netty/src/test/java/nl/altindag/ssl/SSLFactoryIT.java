@@ -15,20 +15,19 @@
  */
 package nl.altindag.ssl;
 
+import com.sun.net.httpserver.HttpsServer;
 import io.netty.handler.ssl.SslContext;
-import nl.altindag.log.LogCaptor;
 import nl.altindag.ssl.util.NettySslUtils;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.function.Tuple2;
 
 import java.io.IOException;
-import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 
 /**
  * @author Hakan Altindag
@@ -36,33 +35,36 @@ import static org.assertj.core.api.Assertions.fail;
 class SSLFactoryIT {
 
     @Test
-    @Tag("it-with-badssl.com")
     void executeHttpsRequestWithMutualAuthentication() throws IOException {
-        LogCaptor logCaptor = LogCaptor.forName("nl.altindag.ssl");
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
 
-        SSLFactory sslFactory = SSLFactory.builder()
-                .withIdentityMaterial("keystore/badssl-identity.p12", "badssl.com".toCharArray())
-                .withTrustMaterial("keystore/badssl-truststore.p12", "badssl.com".toCharArray())
-                .withDefaultTrustMaterial() // Adding additional trust material forces usage of CompositeX509ExtendedTrustManager and verbose logging
+        SSLFactory sslFactoryForServer = SSLFactory.builder()
+                .withIdentityMaterial("keystore/client-server/server-one/identity.jks", "secret".toCharArray())
+                .withTrustMaterial("keystore/client-server/server-one/truststore.jks", "secret".toCharArray())
+                .withNeedClientAuthentication()
                 .build();
 
-        SslContext sslContext = NettySslUtils.forClient(sslFactory).build();
+        HttpsServer server = ServerUtils.createServer(8443, sslFactoryForServer, executorService, "Hello from server");
+        server.start();
+
+        SSLFactory sslFactoryForClient = SSLFactory.builder()
+                .withIdentityMaterial("keystore/client-server/client-one/identity.jks", "secret".toCharArray())
+                .withTrustMaterial("keystore/client-server/client-one/truststore.jks", "secret".toCharArray())
+                .build();
+
+        SslContext sslContext = NettySslUtils.forClient(sslFactoryForClient).build();
         HttpClient httpClient = HttpClient.create().secure(sslSpec -> sslSpec.sslContext(sslContext));
 
         Integer statusCode = httpClient.get()
-                .uri("https://client.badssl.com/")
+                .uri("https://localhost:8443/api/hello")
                 .responseSingle((response, body) -> Mono.zip(body.asString(), Mono.just(response.status().code())))
                 .map(Tuple2::getT2)
                 .block();
 
-        logCaptor.close();
+        assertThat(statusCode).isEqualTo(200);
 
-        if (Objects.requireNonNull(statusCode) == 400) {
-            fail("Certificate may have expired and needs to be updated");
-        } else {
-            assertThat(statusCode).isEqualTo(200);
-            assertThat(logCaptor.getLogs()).contains("Received the following server certificate: [CN=*.badssl.com]");
-        }
+        server.stop(0);
+        executorService.shutdownNow();
     }
 
 }

@@ -15,14 +15,17 @@
  */
 package nl.altindag.ssl.keymanager;
 
+import com.sun.net.httpserver.HttpsServer;
 import nl.altindag.ssl.SSLFactory;
+import nl.altindag.ssl.ServerUtils;
 import nl.altindag.ssl.util.KeyManagerUtils;
 import nl.altindag.ssl.util.KeyStoreUtils;
 import nl.altindag.ssl.util.SSLSessionUtils;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
@@ -33,10 +36,11 @@ import javax.net.ssl.X509ExtendedKeyManager;
 import java.io.IOException;
 import java.net.URL;
 import java.security.KeyStore;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-import static nl.altindag.ssl.TestConstants.KEYSTORE_LOCATION;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @author Hakan Altindag
@@ -47,58 +51,70 @@ class HotSwappableX509ExtendedKeyManagerIT {
     private static SSLSocketFactory sslSocketFactory;
     private static SSLSessionContext sslSessionContext;
     private static X509ExtendedKeyManager keyManager;
+    private ExecutorService executorService;
+    private HttpsServer server;
 
     @BeforeAll
-    static void setUpSSLSocketFactory() {
-        KeyStore identityStoreWithBadSsl = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "badssl-identity.p12", "badssl.com".toCharArray());
-        X509ExtendedKeyManager keyManagerWithBadSsl = KeyManagerUtils.createKeyManager(identityStoreWithBadSsl, "badssl.com".toCharArray());
-        keyManager = KeyManagerUtils.createSwappableKeyManager(keyManagerWithBadSsl);
+    static void setUpClientSSLSocketFactory() {
+        KeyStore identityStoreWithClientOne = KeyStoreUtils.loadKeyStore("keystore/client-server/client-one/identity.jks", "secret".toCharArray());
+        X509ExtendedKeyManager keyManagerClientOne = KeyManagerUtils.createKeyManager(identityStoreWithClientOne, "secret".toCharArray());
+        keyManager = KeyManagerUtils.createSwappableKeyManager(keyManagerClientOne);
 
         SSLFactory sslFactory = SSLFactory.builder()
                 .withIdentityMaterial(keyManager)
-                .withTrustMaterial(KEYSTORE_LOCATION + "badssl-truststore.p12", "badssl.com".toCharArray())
+                .withTrustMaterial("keystore/client-server/client-one/truststore.jks", "secret".toCharArray())
                 .build();
 
         sslSocketFactory = sslFactory.getSslSocketFactory();
         sslSessionContext = sslFactory.getSslContext().getClientSessionContext();
     }
 
+    @BeforeEach
+    void startServer() throws IOException {
+        executorService = Executors.newSingleThreadExecutor();
+        SSLFactory sslFactoryForServer = SSLFactory.builder()
+                .withIdentityMaterial("keystore/client-server/server-one/identity.jks", "secret".toCharArray())
+                .withTrustMaterial("keystore/client-server/server-one/truststore.jks", "secret".toCharArray())
+                .withNeedClientAuthentication()
+                .build();
+
+        server = ServerUtils.createServer(8443, sslFactoryForServer, executorService, "Hello from server");
+        server.start();
+    }
+
+    @AfterEach
+    void stopServer() {
+        server.stop(0);
+        executorService.shutdownNow();
+    }
+
     @Test
     @Order(1)
-    @Tag("it-with-badssl.com")
-    void executeHttpsRequestWithSslSocketFactoryContainingBadSslKeyManager() throws IOException {
-        HttpsURLConnection connection = (HttpsURLConnection) new URL("https://client.badssl.com/").openConnection();
+    void executeHttpsRequestWithSslSocketFactoryContainingKeyManager() throws IOException {
+        HttpsURLConnection connection = (HttpsURLConnection) new URL("https://localhost:8443/api/hello").openConnection();
         connection.setSSLSocketFactory(sslSocketFactory);
         connection.setRequestMethod("GET");
 
         int statusCode = connection.getResponseCode();
         connection.disconnect();
 
-        if (statusCode == 400) {
-            fail("Certificate may have expired and needs to be updated");
-        } else {
-            assertThat(statusCode).isEqualTo(200);
-        }
+        assertThat(statusCode).isEqualTo(200);
     }
 
     @Test
     @Order(2)
-    @Tag("it-with-badssl.com")
     void executeHttpsRequestWithExistingSslSocketFactoryContainingASwappedKeyManager() throws IOException {
-        KeyStore identityStore = KeyStoreUtils.loadKeyStore("keystore/identity.jks", "secret".toCharArray());
+        KeyStore identityStore = KeyStoreUtils.loadKeyStore("keystore/client-server/client-two/identity.jks", "secret".toCharArray());
         X509ExtendedKeyManager anotherKeyManager = KeyManagerUtils.createKeyManager(identityStore, "secret".toCharArray());
 
         KeyManagerUtils.swapKeyManager(keyManager, anotherKeyManager);
         SSLSessionUtils.invalidateCaches(sslSessionContext);
 
-        HttpsURLConnection connection = (HttpsURLConnection) new URL("https://client.badssl.com/").openConnection();
+        HttpsURLConnection connection = (HttpsURLConnection) new URL("https://localhost:8443/api/hello").openConnection();
         connection.setSSLSocketFactory(sslSocketFactory);
         connection.setRequestMethod("GET");
 
-        int statusCode = connection.getResponseCode();
-        connection.disconnect();
-
-        assertThat(statusCode).isEqualTo(400);
+        assertThatThrownBy(connection::getResponseCode);
     }
 
 }
