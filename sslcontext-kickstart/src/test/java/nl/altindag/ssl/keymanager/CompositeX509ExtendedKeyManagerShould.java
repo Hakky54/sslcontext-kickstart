@@ -66,7 +66,7 @@ class CompositeX509ExtendedKeyManagerShould {
                 Arrays.asList(keyManagerOne, keyManagerTwo)
         );
 
-        int amountOfKeyManagers = keyManager.getKeyManagers().size();
+        int amountOfKeyManagers = keyManager.getInnerKeyManagers().size();
         assertThat(keyManager).isNotNull();
         assertThat(amountOfKeyManagers).isEqualTo(2);
 
@@ -88,7 +88,7 @@ class CompositeX509ExtendedKeyManagerShould {
                 Arrays.asList(keyManagerOne, keyManagerTwo)
         );
 
-        int amountOfKeyManagers = keyManager.getKeyManagers().size();
+        int amountOfKeyManagers = keyManager.getInnerKeyManagers().size();
         assertThat(keyManager).isNotNull();
         assertThat(amountOfKeyManagers).isEqualTo(2);
 
@@ -109,7 +109,7 @@ class CompositeX509ExtendedKeyManagerShould {
                 Arrays.asList(keyManagerOne, keyManagerTwo)
         );
 
-        int amountOfKeyManagers = keyManager.getKeyManagers().size();
+        int amountOfKeyManagers = keyManager.getInnerKeyManagers().size();
         assertThat(keyManager).isNotNull();
         assertThat(amountOfKeyManagers).isEqualTo(2);
 
@@ -137,7 +137,7 @@ class CompositeX509ExtendedKeyManagerShould {
                 Arrays.asList(keyManagerOne, keyManagerTwo)
         );
 
-        int amountOfKeyManagers = keyManager.getKeyManagers().size();
+        int amountOfKeyManagers = keyManager.getInnerKeyManagers().size();
         assertThat(keyManager).isNotNull();
         assertThat(amountOfKeyManagers).isEqualTo(2);
 
@@ -172,7 +172,7 @@ class CompositeX509ExtendedKeyManagerShould {
 
         String[] aliases = keyManager.getServerAliases("RSA", null);
 
-        int amountOfKeyManagers = keyManager.getKeyManagers().size();
+        int amountOfKeyManagers = keyManager.getInnerKeyManagers().size();
         assertThat(keyManager).isNotNull();
         assertThat(amountOfKeyManagers).isEqualTo(2);
         assertThat(identityOne.size()).isEqualTo(1);
@@ -207,7 +207,7 @@ class CompositeX509ExtendedKeyManagerShould {
 
         String[] aliases = keyManager.getClientAliases("RSA", null);
 
-        int amountOfKeyManagers = keyManager.getKeyManagers().size();
+        int amountOfKeyManagers = keyManager.getInnerKeyManagers().size();
         assertThat(keyManager).isNotNull();
         assertThat(amountOfKeyManagers).isEqualTo(2);
         assertThat(identityOne.size()).isEqualTo(1);
@@ -229,7 +229,7 @@ class CompositeX509ExtendedKeyManagerShould {
 
         String alias = keyManager.chooseServerAlias("RSA", null, null);
 
-        int amountOfKeyManagers = keyManager.getKeyManagers().size();
+        int amountOfKeyManagers = keyManager.getInnerKeyManagers().size();
         assertThat(keyManager).isNotNull();
         assertThat(amountOfKeyManagers).isEqualTo(2);
         assertThat(identityOne.size()).isEqualTo(1);
@@ -259,7 +259,7 @@ class CompositeX509ExtendedKeyManagerShould {
 
         String alias = keyManager.chooseServerAlias("RSA", null, socket);
 
-        int amountOfKeyManagers = keyManager.getKeyManagers().size();
+        int amountOfKeyManagers = keyManager.getInnerKeyManagers().size();
         assertThat(keyManager).isNotNull();
         assertThat(amountOfKeyManagers).isEqualTo(2);
         assertThat(identityOne.size()).isEqualTo(1);
@@ -282,7 +282,7 @@ class CompositeX509ExtendedKeyManagerShould {
 
         String alias = keyManager.chooseServerAlias("RSA", null, socket);
 
-        int amountOfKeyManagers = keyManager.getKeyManagers().size();
+        int amountOfKeyManagers = keyManager.getInnerKeyManagers().size();
         assertThat(keyManager).isNotNull();
         assertThat(amountOfKeyManagers).isEqualTo(2);
         assertThat(alias).isNull();
@@ -300,7 +300,7 @@ class CompositeX509ExtendedKeyManagerShould {
 
         String alias = keyManager.chooseServerAlias("RSA", null, socket);
 
-        int amountOfKeyManagers = keyManager.getKeyManagers().size();
+        int amountOfKeyManagers = keyManager.getInnerKeyManagers().size();
         assertThat(keyManager).isNotNull();
         assertThat(amountOfKeyManagers).isEqualTo(2);
         assertThat(alias).isNull();
@@ -320,7 +320,7 @@ class CompositeX509ExtendedKeyManagerShould {
 
         String alias = keyManager.chooseEngineServerAlias("RSA", null, null);
 
-        int amountOfKeyManagers = keyManager.getKeyManagers().size();
+        int amountOfKeyManagers = keyManager.getInnerKeyManagers().size();
         assertThat(keyManager).isNotNull();
         assertThat(amountOfKeyManagers).isEqualTo(2);
         assertThat(identityOne.size()).isEqualTo(1);
@@ -350,7 +350,7 @@ class CompositeX509ExtendedKeyManagerShould {
 
         String alias = keyManager.chooseEngineServerAlias("RSA", null, sslEngine);
 
-        int amountOfKeyManagers = keyManager.getKeyManagers().size();
+        int amountOfKeyManagers = keyManager.getInnerKeyManagers().size();
         assertThat(keyManager).isNotNull();
         assertThat(amountOfKeyManagers).isEqualTo(2);
         assertThat(identityOne.size()).isEqualTo(1);
@@ -372,7 +372,7 @@ class CompositeX509ExtendedKeyManagerShould {
 
         String alias = keyManager.chooseServerAlias("RSA", null, null);
 
-        int amountOfKeyManagers = keyManager.getKeyManagers().size();
+        int amountOfKeyManagers = keyManager.getInnerKeyManagers().size();
         assertThat(keyManager).isNotNull();
         assertThat(amountOfKeyManagers).isEqualTo(2);
         assertThat(identityOne.size()).isEqualTo(1);
@@ -394,7 +394,7 @@ class CompositeX509ExtendedKeyManagerShould {
 
         String alias = keyManager.chooseServerAlias("RSA", null, null);
 
-        int amountOfKeyManagers = keyManager.getKeyManagers().size();
+        int amountOfKeyManagers = keyManager.getInnerKeyManagers().size();
         assertThat(keyManager).isNotNull();
         assertThat(amountOfKeyManagers).isEqualTo(2);
         assertThat(identityOne.size()).isEqualTo(1);
@@ -416,7 +416,7 @@ class CompositeX509ExtendedKeyManagerShould {
 
         String alias = keyManager.chooseServerAlias("ECDSA", null, null);
 
-        int amountOfKeyManagers = keyManager.getKeyManagers().size();
+        int amountOfKeyManagers = keyManager.getInnerKeyManagers().size();
         assertThat(keyManager).isNotNull();
         assertThat(amountOfKeyManagers).isEqualTo(2);
         assertThat(identityOne.size()).isEqualTo(1);
@@ -438,7 +438,7 @@ class CompositeX509ExtendedKeyManagerShould {
 
         String alias = keyManager.chooseEngineServerAlias("ECDSA", null, null);
 
-        int amountOfKeyManagers = keyManager.getKeyManagers().size();
+        int amountOfKeyManagers = keyManager.getInnerKeyManagers().size();
         assertThat(keyManager).isNotNull();
         assertThat(amountOfKeyManagers).isEqualTo(2);
         assertThat(identityOne.size()).isEqualTo(1);
@@ -460,7 +460,7 @@ class CompositeX509ExtendedKeyManagerShould {
 
         String alias = keyManager.chooseClientAlias(new String[]{"RSA"}, null, null);
 
-        int amountOfKeyManagers = keyManager.getKeyManagers().size();
+        int amountOfKeyManagers = keyManager.getInnerKeyManagers().size();
         assertThat(keyManager).isNotNull();
         assertThat(amountOfKeyManagers).isEqualTo(2);
         assertThat(identityOne.size()).isEqualTo(1);
@@ -490,7 +490,7 @@ class CompositeX509ExtendedKeyManagerShould {
 
         String alias = keyManager.chooseClientAlias(new String[]{"RSA"}, null, socket);
 
-        int amountOfKeyManagers = keyManager.getKeyManagers().size();
+        int amountOfKeyManagers = keyManager.getInnerKeyManagers().size();
         assertThat(keyManager).isNotNull();
         assertThat(amountOfKeyManagers).isEqualTo(2);
         assertThat(identityOne.size()).isEqualTo(1);
@@ -517,7 +517,7 @@ class CompositeX509ExtendedKeyManagerShould {
 
         String alias = keyManager.chooseClientAlias(new String[]{"RSA"}, null, socket);
 
-        int amountOfKeyManagers = keyManager.getKeyManagers().size();
+        int amountOfKeyManagers = keyManager.getInnerKeyManagers().size();
         assertThat(keyManager).isNotNull();
         assertThat(amountOfKeyManagers).isEqualTo(2);
         assertThat(identityOne.size()).isEqualTo(1);
@@ -546,7 +546,7 @@ class CompositeX509ExtendedKeyManagerShould {
 
         String alias = keyManager.chooseClientAlias(new String[]{"RSA"}, null, socket);
 
-        int amountOfKeyManagers = keyManager.getKeyManagers().size();
+        int amountOfKeyManagers = keyManager.getInnerKeyManagers().size();
         assertThat(keyManager).isNotNull();
         assertThat(amountOfKeyManagers).isEqualTo(2);
         assertThat(identityOne.size()).isEqualTo(1);
@@ -569,7 +569,7 @@ class CompositeX509ExtendedKeyManagerShould {
 
         String alias = keyManager.chooseClientAlias(new String[]{"RSA"}, null, null);
 
-        int amountOfKeyManagers = keyManager.getKeyManagers().size();
+        int amountOfKeyManagers = keyManager.getInnerKeyManagers().size();
         assertThat(keyManager).isNotNull();
         assertThat(amountOfKeyManagers).isEqualTo(2);
         assertThat(identityOne.size()).isEqualTo(1);
@@ -591,7 +591,7 @@ class CompositeX509ExtendedKeyManagerShould {
 
         String alias = keyManager.chooseEngineClientAlias(new String[]{"RSA"}, null, null);
 
-        int amountOfKeyManagers = keyManager.getKeyManagers().size();
+        int amountOfKeyManagers = keyManager.getInnerKeyManagers().size();
         assertThat(keyManager).isNotNull();
         assertThat(amountOfKeyManagers).isEqualTo(2);
         assertThat(identityOne.size()).isEqualTo(1);
@@ -618,7 +618,7 @@ class CompositeX509ExtendedKeyManagerShould {
 
         String alias = keyManager.chooseEngineClientAlias(new String[]{"RSA"}, null, sslEngine);
 
-        int amountOfKeyManagers = keyManager.getKeyManagers().size();
+        int amountOfKeyManagers = keyManager.getInnerKeyManagers().size();
         assertThat(keyManager).isNotNull();
         assertThat(amountOfKeyManagers).isEqualTo(2);
         assertThat(identityOne.size()).isEqualTo(1);
@@ -641,7 +641,7 @@ class CompositeX509ExtendedKeyManagerShould {
 
         String alias = keyManager.chooseEngineClientAlias(new String[]{"RSA"}, null, null);
 
-        int amountOfKeyManagers = keyManager.getKeyManagers().size();
+        int amountOfKeyManagers = keyManager.getInnerKeyManagers().size();
         assertThat(keyManager).isNotNull();
         assertThat(amountOfKeyManagers).isEqualTo(2);
         assertThat(identityOne.size()).isEqualTo(1);
@@ -663,7 +663,7 @@ class CompositeX509ExtendedKeyManagerShould {
 
         String alias = keyManager.chooseClientAlias(new String[]{"ECDSA"}, null, null);
 
-        int amountOfKeyManagers = keyManager.getKeyManagers().size();
+        int amountOfKeyManagers = keyManager.getInnerKeyManagers().size();
         assertThat(keyManager).isNotNull();
         assertThat(amountOfKeyManagers).isEqualTo(2);
         assertThat(identityOne.size()).isEqualTo(1);
@@ -685,7 +685,7 @@ class CompositeX509ExtendedKeyManagerShould {
 
         String alias = keyManager.chooseEngineClientAlias(new String[]{"ECDSA"}, null, null);
 
-        int amountOfKeyManagers = keyManager.getKeyManagers().size();
+        int amountOfKeyManagers = keyManager.getInnerKeyManagers().size();
         assertThat(keyManager).isNotNull();
         assertThat(amountOfKeyManagers).isEqualTo(2);
         assertThat(identityOne.size()).isEqualTo(1);

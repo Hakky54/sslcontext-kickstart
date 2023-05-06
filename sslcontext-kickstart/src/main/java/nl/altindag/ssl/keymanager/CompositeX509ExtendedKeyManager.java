@@ -187,7 +187,7 @@ public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManage
     }
 
     @Override
-    public List<X509ExtendedKeyManager> getKeyManagers() {
+    public List<X509ExtendedKeyManager> getInnerKeyManagers() {
         return keyManagers;
     }
 

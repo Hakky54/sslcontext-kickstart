@@ -32,10 +32,10 @@ import java.util.stream.Collectors;
  */
 interface CombinableX509ExtendedKeyManager extends X509KeyManager {
 
-    List<X509ExtendedKeyManager> getKeyManagers();
+    List<X509ExtendedKeyManager> getInnerKeyManagers();
 
     default <T> T extractInnerField(Function<X509ExtendedKeyManager, T> keyManagerMapper, Predicate<T> predicate) {
-        return getKeyManagers().stream()
+        return getInnerKeyManagers().stream()
                 .map(keyManagerMapper)
                 .filter(predicate)
                 .findFirst()
@@ -43,7 +43,7 @@ interface CombinableX509ExtendedKeyManager extends X509KeyManager {
     }
 
     default String[] getAliases(Function<X509ExtendedKeyManager, String[]> aliasExtractor) {
-        List<String> aliases = getKeyManagers().stream()
+        List<String> aliases = getInnerKeyManagers().stream()
                 .map(aliasExtractor)
                 .filter(Objects::nonNull)
                 .flatMap(Arrays::stream)

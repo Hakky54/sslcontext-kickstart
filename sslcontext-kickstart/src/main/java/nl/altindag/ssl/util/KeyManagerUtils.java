@@ -283,7 +283,7 @@ public final class KeyManagerUtils {
     private static List<X509ExtendedKeyManager> unwrapIfPossible(X509ExtendedKeyManager keyManager) {
         if (keyManager instanceof CompositeX509ExtendedKeyManager) {
             List<X509ExtendedKeyManager> keyManagers = new ArrayList<>();
-            for (X509ExtendedKeyManager innerKeyManager : ((CompositeX509ExtendedKeyManager) keyManager).getKeyManagers()) {
+            for (X509ExtendedKeyManager innerKeyManager : ((CompositeX509ExtendedKeyManager) keyManager).getInnerKeyManagers()) {
                 List<X509ExtendedKeyManager> unwrappedKeyManagers = KeyManagerUtils.unwrapIfPossible(innerKeyManager);
                 keyManagers.addAll(unwrappedKeyManagers);
             }
