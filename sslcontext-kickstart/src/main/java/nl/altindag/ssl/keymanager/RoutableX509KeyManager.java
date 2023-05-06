@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
  *
  * @author Hakan Altindag
  */
-interface RoutableX509ExtendedKeyManager extends CombinableX509ExtendedKeyManager, X509KeyManager {
+interface RoutableX509KeyManager extends CombinableX509KeyManager, X509KeyManager {
 
     Predicate<String> NON_NULL = Objects::nonNull;
 

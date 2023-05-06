@@ -62,7 +62,7 @@ import java.util.Objects;
  * @author Cody Ray
  * @author Hakan Altindag
  */
-public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManager implements CombinableX509ExtendedKeyManager, RoutableX509ExtendedKeyManager {
+public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManager implements CombinableX509KeyManager, RoutableX509KeyManager {
 
     private final List<X509ExtendedKeyManager> keyManagers;
     private final Map<String, List<URI>> preferredAliasToHost;

@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  *
  * @author Hakan Altindag
  */
-interface CombinableX509ExtendedKeyManager extends X509KeyManager {
+interface CombinableX509KeyManager extends X509KeyManager {
 
     List<X509ExtendedKeyManager> getInnerKeyManagers();
 
