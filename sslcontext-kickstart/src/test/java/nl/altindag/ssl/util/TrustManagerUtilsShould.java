@@ -267,13 +267,13 @@ class TrustManagerUtilsShould {
                 .withLoggingTrustManager(true)
                 .build();
 
-        assertThat(trustManager).isInstanceOf(LoggingX509ExtendedTrustManager.class);
+        assertThat(trustManager).isInstanceOf(HotSwappableX509ExtendedTrustManager.class);
         assertThat(trustManager.getAcceptedIssuers()).isEmpty();
 
-        X509ExtendedTrustManager innerTrustManager = ((LoggingX509ExtendedTrustManager) trustManager).getInnerTrustManager();
-        assertThat(innerTrustManager).isInstanceOf(HotSwappableX509ExtendedTrustManager.class);
+        X509ExtendedTrustManager innerTrustManager = ((HotSwappableX509ExtendedTrustManager) trustManager).getInnerTrustManager();
+        assertThat(innerTrustManager).isInstanceOf(LoggingX509ExtendedTrustManager.class);
 
-        X509ExtendedTrustManager innerInnerTrustManager = ((HotSwappableX509ExtendedTrustManager) innerTrustManager).getInnerTrustManager();
+        X509ExtendedTrustManager innerInnerTrustManager = ((LoggingX509ExtendedTrustManager) innerTrustManager).getInnerTrustManager();
         assertThat(innerInnerTrustManager).isInstanceOf(UnsafeX509ExtendedTrustManager.class);
 
         X509ExtendedTrustManager trustManagerWithJdkTrustedCertificates = TrustManagerUtils.createTrustManagerWithJdkTrustedCertificates();

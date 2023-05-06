@@ -254,13 +254,15 @@ public final class TrustManagerUtils {
             );
         }
 
-        if (baseTrustManager instanceof HotSwappableX509ExtendedTrustManager) {
+        if (baseTrustManager instanceof HotSwappableX509ExtendedTrustManager
+                && ((HotSwappableX509ExtendedTrustManager) baseTrustManager).getInnerTrustManager() instanceof LoggingX509ExtendedTrustManager) {
+            ((HotSwappableX509ExtendedTrustManager) baseTrustManager).setTrustManager(
+                    new LoggingX509ExtendedTrustManager(
+                            TrustManagerUtils.wrapIfNeeded(newTrustManager)
+                    )
+            );
+        } else if (baseTrustManager instanceof HotSwappableX509ExtendedTrustManager) {
             ((HotSwappableX509ExtendedTrustManager) baseTrustManager).setTrustManager(TrustManagerUtils.wrapIfNeeded(newTrustManager));
-        } else if (baseTrustManager instanceof LoggingX509ExtendedTrustManager
-                && ((LoggingX509ExtendedTrustManager) baseTrustManager).getInnerTrustManager() instanceof HotSwappableX509ExtendedTrustManager) {
-
-            ((HotSwappableX509ExtendedTrustManager) ((LoggingX509ExtendedTrustManager) baseTrustManager).getInnerTrustManager())
-                    .setTrustManager(TrustManagerUtils.wrapIfNeeded(newTrustManager));
         } else {
             throw new GenericTrustManagerException(
                     String.format("The baseTrustManager is from the instance of [%s] and should be an instance of [%s].",
@@ -395,12 +397,12 @@ public final class TrustManagerUtils {
                         .orElse(baseTrustManager);
             }
 
-            if (swappableTrustManagerEnabled) {
-                baseTrustManager = TrustManagerUtils.createSwappableTrustManager(baseTrustManager);
-            }
-
             if (loggingTrustManagerEnabled) {
                 baseTrustManager = TrustManagerUtils.createLoggingTrustManager(baseTrustManager);
+            }
+
+            if (swappableTrustManagerEnabled) {
+                baseTrustManager = TrustManagerUtils.createSwappableTrustManager(baseTrustManager);
             }
 
             return baseTrustManager;
