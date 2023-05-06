@@ -31,11 +31,11 @@ interface CombinableX509TrustManager extends X509TrustManager {
 
     String CERTIFICATE_EXCEPTION_MESSAGE = "None of the TrustManagers trust this certificate chain";
 
-    List<X509ExtendedTrustManager> getTrustManagers();
+    List<X509ExtendedTrustManager> getInnerTrustManagers();
 
     default void checkTrusted(TrustManagerConsumer callBackConsumer) throws CertificateException {
         List<CertificateException> certificateExceptions = new ArrayList<>();
-        for (X509ExtendedTrustManager trustManager : getTrustManagers()) {
+        for (X509ExtendedTrustManager trustManager : getInnerTrustManagers()) {
             try {
                 callBackConsumer.checkTrusted(trustManager);
                 return;

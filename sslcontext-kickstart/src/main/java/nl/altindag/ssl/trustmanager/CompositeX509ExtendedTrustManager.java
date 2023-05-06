@@ -103,7 +103,7 @@ public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustMa
     }
 
     @Override
-    public List<X509ExtendedTrustManager> getTrustManagers() {
+    public List<X509ExtendedTrustManager> getInnerTrustManagers() {
         return trustManagers;
     }
 

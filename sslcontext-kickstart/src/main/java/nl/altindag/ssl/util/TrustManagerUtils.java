@@ -289,7 +289,7 @@ public final class TrustManagerUtils {
     private static List<X509ExtendedTrustManager> unwrapIfPossible(X509ExtendedTrustManager trustManager) {
         if (trustManager instanceof CompositeX509ExtendedTrustManager) {
             List<X509ExtendedTrustManager> trustManagers = new ArrayList<>();
-            for (X509ExtendedTrustManager innerTrustManager : ((CompositeX509ExtendedTrustManager) trustManager).getTrustManagers()) {
+            for (X509ExtendedTrustManager innerTrustManager : ((CompositeX509ExtendedTrustManager) trustManager).getInnerTrustManagers()) {
                 List<X509ExtendedTrustManager> unwrappedTrustManagers = TrustManagerUtils.unwrapIfPossible(innerTrustManager);
                 trustManagers.addAll(unwrappedTrustManagers);
             }

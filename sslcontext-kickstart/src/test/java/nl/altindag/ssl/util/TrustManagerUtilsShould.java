@@ -99,8 +99,8 @@ class TrustManagerUtilsShould {
 
         assertThat(combinedTrustManager).isInstanceOf(CompositeX509ExtendedTrustManager.class);
         assertThat(combinedCombinedTrustManager).isInstanceOf(CompositeX509ExtendedTrustManager.class);
-        assertThat(((CompositeX509ExtendedTrustManager) combinedTrustManager).getTrustManagers().size()).isEqualTo(2);
-        assertThat(((CompositeX509ExtendedTrustManager) combinedCombinedTrustManager).getTrustManagers().size()).isEqualTo(4);
+        assertThat(((CompositeX509ExtendedTrustManager) combinedTrustManager).getInnerTrustManagers().size()).isEqualTo(2);
+        assertThat(((CompositeX509ExtendedTrustManager) combinedCombinedTrustManager).getInnerTrustManagers().size()).isEqualTo(4);
     }
 
     @Test
@@ -500,7 +500,7 @@ class TrustManagerUtilsShould {
         assertThat(trustManager).isInstanceOf(CompositeX509ExtendedTrustManager.class);
 
         CompositeX509ExtendedTrustManager compositeX509ExtendedTrustManager = (CompositeX509ExtendedTrustManager) trustManager;
-        assertThat(compositeX509ExtendedTrustManager.getTrustManagers()).hasSize(2);
+        assertThat(compositeX509ExtendedTrustManager.getInnerTrustManagers()).hasSize(2);
     }
 
     @Test
