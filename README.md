@@ -682,8 +682,8 @@ SSLFactory.builder()
 ```
 ##### Loading pem files from anywhere on the filesystem
 ```
-X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(Paths.get("/path/to/your/certificate.pem"), Paths.get("/path/to/your/"private-key.pem"));
-X509ExtendedTrustManager trustManager = PemUtils.loadTrustMaterial(Paths.get("/path/to/your/"some-trusted-certificate.pem"));
+X509ExtendedKeyManager keyManager = PemUtils.loadIdentityMaterial(Paths.get("/path/to/your/certificate.pem"), Paths.get("/path/to/your/private-key.pem"));
+X509ExtendedTrustManager trustManager = PemUtils.loadTrustMaterial(Paths.get("/path/to/your/some-trusted-certificate.pem"));
 ```
 ##### Loading pem files from InputStream
 ```
