@@ -15,7 +15,7 @@
 [![SonarCloud](https://sonarcloud.io/images/project_badges/sonarcloud-white.svg)](https://sonarcloud.io/dashboard?id=io.github.hakky54%3Asslcontext-kickstart-parent)
 
 # SSLContext Kickstart 🔐 [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Easily%20configure%20ssl/tls%20for%20your%20favourite%20http%20client%20with%20sslcontext-kickstart.%20Works%20with%20over%2040%20different%20java,%20scala,%20kotlin%20clients&url=https://github.com/Hakky54/sslcontext-kickstart&via=hakky541&hashtags=encryption,security,https,ssl,tls,developer,java,scala,kotlin,sslcontextkickstart)
-Hey, hello there 👋 Welcome, you are ![visitors](https://visitor-badge.glitch.me/badge?page_id=https://github.com/Hakky54/sslcontext-kickstart) I hope you will like this library ❤️ Feel free to drop a message in the [📖 Guestbook](https://github.com/Hakky54/sslcontext-kickstart/discussions/302), I would love to hear your story and experience in using this library.
+Hey, hello there 👋 Welcome, I hope you will like this library ❤️ Feel free to drop a message in the [📖 Guestbook](https://github.com/Hakky54/sslcontext-kickstart/discussions/302), I would love to hear your story and experience in using this library.
 
 # Install library with:
 ### Install with [Maven](https://mvnrepository.com/artifact/io.github.hakky54/sslcontext-kickstart)
