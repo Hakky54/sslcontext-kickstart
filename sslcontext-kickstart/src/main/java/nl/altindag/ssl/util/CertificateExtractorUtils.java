@@ -87,14 +87,7 @@ class CertificateExtractorUtils {
 
     protected CertificateExtractorUtils(Proxy proxy, PasswordAuthentication passwordAuthentication) {
         this(proxy);
-
-        Authenticator authenticator = new Authenticator() {
-            @Override
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return passwordAuthentication;
-            }
-        };
-
+        Authenticator authenticator = new FelixAuthenticator(passwordAuthentication);
         Authenticator.setDefault(authenticator);
     }
 
@@ -214,6 +207,20 @@ class CertificateExtractorUtils {
             return true;
         } catch (CertificateException | NoSuchAlgorithmException | InvalidKeyException | NoSuchProviderException | SignatureException e) {
             return false;
+        }
+    }
+
+    private static class FelixAuthenticator extends Authenticator {
+
+        private final PasswordAuthentication passwordAuthentication;
+
+        private FelixAuthenticator(PasswordAuthentication passwordAuthentication) {
+            this.passwordAuthentication = passwordAuthentication;
+        }
+
+        @Override
+        protected PasswordAuthentication getPasswordAuthentication() {
+            return passwordAuthentication;
         }
     }
 
