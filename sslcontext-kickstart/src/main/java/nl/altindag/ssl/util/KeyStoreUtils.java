@@ -197,45 +197,42 @@ public final class KeyStoreUtils {
 
     public static List<KeyStore> loadSystemKeyStores() {
         List<KeyStore> keyStores = new ArrayList<>();
-        String operatingSystem = System.getProperty("os.name").toLowerCase();
-        if (operatingSystem.contains("windows")) {
-            KeyStore windowsRootKeyStore = createKeyStore("Windows-ROOT", null);
-            KeyStore windowsMyKeyStore = createKeyStore("Windows-MY", null);
 
-            keyStores.add(windowsRootKeyStore);
-            keyStores.add(windowsMyKeyStore);
-        }
+        OperatingSystem operatingSystem = OperatingSystem.get();
+        switch (operatingSystem) {
+            case MAC: {
+                KeyStore keychainStore = createKeyStore("KeychainStore", null);
+                keyStores.add(keychainStore);
 
-        if (operatingSystem.contains("mac")) {
-            KeyStore keychainStore = createKeyStore("KeychainStore", null);
-            keyStores.add(keychainStore);
-
-            List<Certificate> systemTrustedCertificates = MacCertificateUtils.getCertificates();
-            KeyStore systemTrustStore = createTrustStore(systemTrustedCertificates);
-            keyStores.add(systemTrustStore);
-        }
-
-        if (operatingSystem.contains("linux")) {
-            String javaVendor = System.getProperty("java.vendor", "").toLowerCase();
-            String javaVmVendor = System.getProperty("java.vm.vendor", "").toLowerCase();
-            String javaRuntimeName = System.getProperty("java.runtime.name", "").toLowerCase();
-
-            if (javaVendor.equals("the android project")
-                    || javaVmVendor.equals("the android project")
-                    || javaRuntimeName.equals("android runtime")) {
-
-                KeyStore androidCAStore = createKeyStore("AndroidCAStore", null);
-                keyStores.add(androidCAStore);
-            } else {
+                List<Certificate> systemTrustedCertificates = MacCertificateUtils.getCertificates();
+                KeyStore systemTrustStore = createTrustStore(systemTrustedCertificates);
+                keyStores.add(systemTrustStore);
+                break;
+            }
+            case LINUX: {
                 List<Certificate> certificates = LinuxCertificateUtils.getCertificates();
                 KeyStore linuxTrustStore = createTrustStore(certificates);
                 keyStores.add(linuxTrustStore);
+                break;
             }
-        }
+            case ANDROID: {
+                KeyStore androidCAStore = createKeyStore("AndroidCAStore", null);
+                keyStores.add(androidCAStore);
+                break;
+            }
+            case WINDOWS: {
+                KeyStore windowsRootKeyStore = createKeyStore("Windows-ROOT", null);
+                KeyStore windowsMyKeyStore = createKeyStore("Windows-MY", null);
 
-        if (keyStores.isEmpty()) {
-            LOGGER.warn("No system KeyStores available for [{}]", operatingSystem);
-            return Collections.emptyList();
+                keyStores.add(windowsRootKeyStore);
+                keyStores.add(windowsMyKeyStore);
+                break;
+            }
+            case UNKNOWN: {
+                String resolvedOsName = OperatingSystem.UNKNOWN.getResolvedOsName();
+                LOGGER.warn("No system KeyStores available for [{}]", resolvedOsName);
+                return Collections.emptyList();
+            }
         }
 
         return Collections.unmodifiableList(keyStores);
@@ -282,6 +279,43 @@ public final class KeyStoreUtils {
 
     private interface KeyStoreBiPredicate<T extends KeyStore, U> {
         boolean test(T t, U u) throws KeyStoreException;
+    }
+
+    private enum OperatingSystem {
+
+        MAC, LINUX, ANDROID, WINDOWS, UNKNOWN;
+
+        private String getResolvedOsName() {
+            return System.getProperty("os.name").toLowerCase();
+        }
+
+        static OperatingSystem get() {
+            String operatingSystem = System.getProperty("os.name").toLowerCase();
+            if (operatingSystem.contains("windows")) {
+                return WINDOWS;
+            }
+
+            if (operatingSystem.contains("mac")) {
+                return MAC;
+            }
+
+            if (operatingSystem.contains("linux")) {
+                String javaVendor = System.getProperty("java.vendor", "").toLowerCase();
+                String javaVmVendor = System.getProperty("java.vm.vendor", "").toLowerCase();
+                String javaRuntimeName = System.getProperty("java.runtime.name", "").toLowerCase();
+
+                if (javaVendor.equals("the android project")
+                        || javaVmVendor.equals("the android project")
+                        || javaRuntimeName.equals("android runtime")) {
+
+                    return ANDROID;
+                } else {
+                    return LINUX;
+                }
+            }
+
+            return UNKNOWN;
+        }
     }
 
 }
