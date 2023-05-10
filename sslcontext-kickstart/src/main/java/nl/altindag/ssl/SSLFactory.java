@@ -185,6 +185,7 @@ public final class SSLFactory {
 
         private boolean swappableKeyManagerEnabled = false;
         private boolean swappableTrustManagerEnabled = false;
+        private boolean loggingKeyManagerEnabled = false;
         private boolean loggingTrustManagerEnabled = false;
 
         private int sessionTimeoutInSeconds = -1;
@@ -583,6 +584,11 @@ public final class SSLFactory {
             return this;
         }
 
+        public Builder withLoggingIdentityMaterial() {
+            loggingKeyManagerEnabled = true;
+            return this;
+        }
+
         private void validateKeyStore(KeyStore keyStore, String exceptionMessage) {
             if (isNull(keyStore)) {
                 throw new GenericKeyStoreException(exceptionMessage);
@@ -829,6 +835,7 @@ public final class SSLFactory {
                     .withKeyManagers(identityManagers)
                     .withIdentities(identities)
                     .withSwappableKeyManager(swappableKeyManagerEnabled)
+                    .withLoggingKeyManager(loggingKeyManagerEnabled)
                     .withIdentityRoute(preferredAliasToHost)
                     .build();
         }
