@@ -37,7 +37,7 @@ public class LoggingX509ExtendedKeyManager extends DelegatingX509ExtendedKeyMana
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggingX509ExtendedKeyManager.class);
     private static final String CHOOSE_ALIAS_LOG_MESSAGE_TEMPLATE = "Attempting to find a %s alias for key types %s%s.%s";
-    private static final String FOUND_ALIAS_LOG_MESSAGE_TEMPLATE = "Found the following %s alias: %s";
+    private static final String FOUND_ALIAS_LOG_MESSAGE_TEMPLATE = "Found the following %s aliases [%s] for key types %s%s.%s";
 
     public LoggingX509ExtendedKeyManager(X509ExtendedKeyManager keyManager) {
         super(keyManager);
@@ -45,101 +45,70 @@ public class LoggingX509ExtendedKeyManager extends DelegatingX509ExtendedKeyMana
 
     @Override
     public String chooseClientAlias(String[] keyType, Principal[] issuers, Socket socket) {
-        logChooseAlias(ServerOrClient.CLIENT, keyType, issuers, socket, null);
+        logAttemptOfChoosingAlias(ServerOrClient.CLIENT, keyType, issuers, socket, null);
 
         String alias = super.chooseClientAlias(keyType, issuers, socket);
-        logFoundAlias(ServerOrClient.CLIENT, alias);
+        logAliasIfPresent(ServerOrClient.CLIENT, alias, keyType, issuers, socket, null);
 
         return alias;
     }
 
     @Override
     public String chooseEngineClientAlias(String[] keyTypes, Principal[] issuers, SSLEngine sslEngine) {
-        logChooseAlias(ServerOrClient.CLIENT, keyTypes, issuers, null, sslEngine);
+        logAttemptOfChoosingAlias(ServerOrClient.CLIENT, keyTypes, issuers, null, sslEngine);
 
         String alias = super.chooseEngineClientAlias(keyTypes, issuers, sslEngine);
-        logFoundAlias(ServerOrClient.CLIENT, alias);
+        logAliasIfPresent(ServerOrClient.CLIENT, alias, keyTypes, issuers, null, sslEngine);
 
         return alias;
     }
 
     @Override
     public String chooseServerAlias(String keyType, Principal[] issuers, Socket socket) {
-        logChooseAlias(ServerOrClient.SERVER, keyType, issuers, socket, null);
+        logAttemptOfChoosingAlias(ServerOrClient.SERVER, keyType, issuers, socket, null);
 
         String alias = super.chooseServerAlias(keyType, issuers, socket);
-        logFoundAlias(ServerOrClient.SERVER, alias);
+        logAliasIfPresent(ServerOrClient.SERVER, alias, keyType, issuers, socket, null);
 
         return alias;
     }
 
     @Override
     public String chooseEngineServerAlias(String keyType, Principal[] issuers, SSLEngine sslEngine) {
-        logChooseAlias(ServerOrClient.SERVER, keyType, issuers, null, sslEngine);
+        logAttemptOfChoosingAlias(ServerOrClient.SERVER, keyType, issuers, null, sslEngine);
 
         String alias = super.chooseEngineServerAlias(keyType, issuers, sslEngine);
-        logFoundAlias(ServerOrClient.SERVER, alias);
+        logAliasIfPresent(ServerOrClient.SERVER, alias, keyType, issuers, null, sslEngine);
 
         return alias;
     }
 
-    @Override
-    public PrivateKey getPrivateKey(String alias) {
-        LOGGER.info("Attempting to get the private key for the alias: " + alias);
-
-        PrivateKey privateKey = super.getPrivateKey(alias);
-        if (privateKey != null) {
-            String logMessage = String.format("Found a private key for the alias: %s", alias);
-            LOGGER.info(logMessage);
-        }
-        return privateKey;
+    private void logAttemptOfChoosingAlias(ServerOrClient serverOrClient, String keyType, Principal[] issuers, Socket socket, SSLEngine sslEngine) {
+        logAttemptOfChoosingAlias(serverOrClient, new String[]{keyType}, issuers, socket, sslEngine);
     }
 
-    @Override
-    public X509Certificate[] getCertificateChain(String alias) {
-        LOGGER.info("Attempting to get the certificate chain for the alias: " + alias);
-
-        X509Certificate[] certificateChain = super.getCertificateChain(alias);
-        if (certificateChain != null && certificateChain.length > 0) {
-            String combinedCertificateChain = Arrays.toString(certificateChain);
-            String logMessage = String.format("Found the certificate chain with a size of %d for the alias: %s. See below for the full chain:\n%s",
-                    certificateChain.length, alias, combinedCertificateChain);
-            LOGGER.info(logMessage);
-        }
-
-        return certificateChain;
-    }
-
-    @Override
-    public String[] getClientAliases(String keyType, Principal[] issuers) {
-        String[] clientAliases = super.getClientAliases(keyType, issuers);
-        return clientAliases;
-    }
-
-    @Override
-    public String[] getServerAliases(String keyType, Principal[] issuers) {
-        String[] serverAliases = super.getServerAliases(keyType, issuers);
-        return serverAliases;
-    }
-
-    private void logChooseAlias(ServerOrClient serverOrClient, String keyType, Principal[] issuers, Socket socket, SSLEngine sslEngine) {
-        logChooseAlias(serverOrClient, new String[]{keyType}, issuers, socket, sslEngine);
-    }
-
-    private void logChooseAlias(ServerOrClient serverOrClient, String[] keyTypes, Principal[] issuers, Socket socket, SSLEngine sslEngine) {
+    private void logAttemptOfChoosingAlias(ServerOrClient serverOrClient, String[] keyTypes, Principal[] issuers, Socket socket, SSLEngine sslEngine) {
         String combinedKeyTypes = Arrays.toString(keyTypes);
+        String issuersLogMessage = getIssuersLogMessage(issuers);
+        String classNameLogMessage = getClassNameLogMessage(socket, sslEngine);
 
-        String issuersLogMessage = Optional.ofNullable(issuers)
-                .filter(principals -> principals.length > 0)
-                .map(Arrays::toString)
-                .map(combinedIssuers -> String.format(" See below for list of the issuers:\n%s", combinedIssuers))
-                .orElse("");
+        String logMessage = String.format(CHOOSE_ALIAS_LOG_MESSAGE_TEMPLATE, serverOrClient, combinedKeyTypes, classNameLogMessage, issuersLogMessage);
+        LOGGER.debug(logMessage);
+    }
 
-        Optional<String> classNameLogMessage = getClassnameOfEitherOrOther(socket, sslEngine)
-                .map(className -> ", while also using the " + className + "");
+    private void logAliasIfPresent(ServerOrClient serverOrClient, String alias, String keyType, Principal[] issuers, Socket socket, SSLEngine sslEngine) {
+        logAliasIfPresent(serverOrClient, alias, new String[]{keyType}, issuers, socket, sslEngine);
+    }
 
-        String logMessage = String.format(CHOOSE_ALIAS_LOG_MESSAGE_TEMPLATE, serverOrClient, combinedKeyTypes, classNameLogMessage.orElse(""), issuersLogMessage);
-        LOGGER.info(logMessage);
+    private void logAliasIfPresent(ServerOrClient serverOrClient, String alias, String[] keyTypes, Principal[] issuers, Socket socket, SSLEngine sslEngine) {
+        if (alias != null) {
+            String combinedKeyTypes = Arrays.toString(keyTypes);
+            String issuersLogMessage = getIssuersLogMessage(issuers);
+            String classNameLogMessage = getClassNameLogMessage(socket, sslEngine);
+
+            String logMessage = String.format(FOUND_ALIAS_LOG_MESSAGE_TEMPLATE, serverOrClient, alias, combinedKeyTypes, classNameLogMessage, issuersLogMessage);
+            LOGGER.debug(logMessage);
+        }
     }
 
     static Optional<String> getClassnameOfEitherOrOther(Socket socket, SSLEngine sslEngine) {
@@ -154,10 +123,70 @@ public class LoggingX509ExtendedKeyManager extends DelegatingX509ExtendedKeyMana
         return Optional.empty();
     }
 
-    private void logFoundAlias(ServerOrClient serverOrClient, String alias) {
-        if (alias != null) {
-            String logMessage = String.format(FOUND_ALIAS_LOG_MESSAGE_TEMPLATE, serverOrClient, alias);
-            LOGGER.info(logMessage);
+    private static String getClassNameLogMessage(Socket socket, SSLEngine sslEngine) {
+        return getClassnameOfEitherOrOther(socket, sslEngine)
+                .map(className -> ", while also using the " + className + "")
+                .orElse("");
+    }
+
+    private static String getIssuersLogMessage(Principal[] issuers) {
+        return Optional.ofNullable(issuers)
+                .filter(principals -> principals.length > 0)
+                .map(Arrays::toString)
+                .map(combinedIssuers -> String.format(" See below for list of the issuers:\n%s", combinedIssuers))
+                .orElse("");
+    }
+
+    @Override
+    public PrivateKey getPrivateKey(String alias) {
+        LOGGER.debug("Attempting to get the private key for the alias: " + alias);
+
+        PrivateKey privateKey = super.getPrivateKey(alias);
+        if (privateKey != null) {
+            String logMessage = String.format("Found a private key for the alias: %s", alias);
+            LOGGER.debug(logMessage);
+        }
+        return privateKey;
+    }
+
+    @Override
+    public X509Certificate[] getCertificateChain(String alias) {
+        LOGGER.debug("Attempting to get the certificate chain for the alias: " + alias);
+
+        X509Certificate[] certificateChain = super.getCertificateChain(alias);
+        if (certificateChain != null && certificateChain.length > 0) {
+            String combinedCertificateChain = Arrays.toString(certificateChain);
+            String logMessage = String.format("Found the certificate chain with a size of %d for the alias: %s. See below for the full chain:\n%s",
+                    certificateChain.length, alias, combinedCertificateChain);
+            LOGGER.debug(logMessage);
+        }
+
+        return certificateChain;
+    }
+
+    @Override
+    public String[] getClientAliases(String keyType, Principal[] issuers) {
+        logAttemptOfChoosingAlias(ServerOrClient.SERVER, keyType, issuers, null, null);
+
+        String[] clientAliases = super.getClientAliases(keyType, issuers);
+        logAliasIfPresent(ServerOrClient.CLIENT, clientAliases, keyType, issuers);
+
+        return clientAliases;
+    }
+
+    @Override
+    public String[] getServerAliases(String keyType, Principal[] issuers) {
+        logAttemptOfChoosingAlias(ServerOrClient.SERVER, keyType, issuers, null, null);
+
+        String[] serverAliases = super.getServerAliases(keyType, issuers);
+        logAliasIfPresent(ServerOrClient.SERVER, serverAliases, keyType, issuers);
+
+        return serverAliases;
+    }
+
+    private void logAliasIfPresent(ServerOrClient serverOrClient, String[] aliases, String keyType, Principal[] issuers) {
+        if (aliases != null && aliases.length > 0) {
+            logAliasIfPresent(serverOrClient, String.join(", ", aliases), new String[]{keyType}, issuers, null, null);
         }
     }
 
