@@ -40,7 +40,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author Hakan Altindag
  */
-public class LoggingX509ExtendedKeyManagerShould {
+class LoggingX509ExtendedKeyManagerShould {
 
     private static LogCaptor logCaptor;
     private static Principal[] issuers;

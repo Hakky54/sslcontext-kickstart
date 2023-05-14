@@ -75,7 +75,7 @@ public class LoggingX509ExtendedKeyManager extends DelegatingX509ExtendedKeyMana
 
     @Override
     public String chooseEngineServerAlias(String keyType, Principal[] issuers, SSLEngine sslEngine) {
-        logAttemptOfChoosingAlias(ServerOrClient.SERVER, keyType, issuers, null, sslEngine);
+        logAttemptOfChoosingAlias(ServerOrClient.SERVER, new String[]{keyType}, issuers, null, sslEngine);
 
         String alias = super.chooseEngineServerAlias(keyType, issuers, sslEngine);
         logAliasIfPresent(ServerOrClient.SERVER, alias, keyType, issuers, null, sslEngine);
@@ -133,13 +133,13 @@ public class LoggingX509ExtendedKeyManager extends DelegatingX509ExtendedKeyMana
         return Optional.ofNullable(issuers)
                 .filter(principals -> principals.length > 0)
                 .map(Arrays::toString)
-                .map(combinedIssuers -> String.format(" See below for list of the issuers:\n%s", combinedIssuers))
+                .map(combinedIssuers -> String.format(" See below for list of the issuers:%n%s", combinedIssuers))
                 .orElse("");
     }
 
     @Override
     public PrivateKey getPrivateKey(String alias) {
-        LOGGER.debug("Attempting to get the private key for the alias: " + alias);
+        LOGGER.debug("Attempting to get the private key for the alias: {}", alias);
 
         PrivateKey privateKey = super.getPrivateKey(alias);
         if (privateKey != null) {
@@ -151,12 +151,12 @@ public class LoggingX509ExtendedKeyManager extends DelegatingX509ExtendedKeyMana
 
     @Override
     public X509Certificate[] getCertificateChain(String alias) {
-        LOGGER.debug("Attempting to get the certificate chain for the alias: " + alias);
+        LOGGER.debug("Attempting to get the certificate chain for the alias: {}", alias);
 
         X509Certificate[] certificateChain = super.getCertificateChain(alias);
         if (certificateChain != null && certificateChain.length > 0) {
             String combinedCertificateChain = Arrays.toString(certificateChain);
-            String logMessage = String.format("Found the certificate chain with a size of %d for the alias: %s. See below for the full chain:\n%s",
+            String logMessage = String.format("Found the certificate chain with a size of %d for the alias: %s. See below for the full chain:%n%s",
                     certificateChain.length, alias, combinedCertificateChain);
             LOGGER.debug(logMessage);
         }
