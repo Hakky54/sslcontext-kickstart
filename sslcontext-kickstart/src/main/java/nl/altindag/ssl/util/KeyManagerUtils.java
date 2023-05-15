@@ -21,6 +21,7 @@ import nl.altindag.ssl.keymanager.CompositeX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.DummyX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.HotSwappableX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.KeyManagerFactoryWrapper;
+import nl.altindag.ssl.keymanager.LoggingX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.X509KeyManagerWrapper;
 import nl.altindag.ssl.model.KeyStoreHolder;
 
@@ -172,6 +173,10 @@ public final class KeyManagerUtils {
         return DummyX509ExtendedKeyManager.getInstance();
     }
 
+    public static X509ExtendedKeyManager createLoggingKeyManager(X509KeyManager keyManager) {
+        return new LoggingX509ExtendedKeyManager(KeyManagerUtils.wrapIfNeeded(keyManager));
+    }
+
     /**
      * Wraps the given KeyManager into an instance of a Hot Swappable KeyManager
      * This type of KeyManager has the capability of swapping in and out different KeyManagers at runtime.
@@ -199,7 +204,14 @@ public final class KeyManagerUtils {
             );
         }
 
-        if (baseKeyManager instanceof HotSwappableX509ExtendedKeyManager) {
+        if (baseKeyManager instanceof HotSwappableX509ExtendedKeyManager
+                && ((HotSwappableX509ExtendedKeyManager) baseKeyManager).getInnerKeyManager() instanceof LoggingX509ExtendedKeyManager) {
+            ((HotSwappableX509ExtendedKeyManager) baseKeyManager).setKeyManager(
+                    new LoggingX509ExtendedKeyManager(
+                            KeyManagerUtils.wrapIfNeeded(newKeyManager)
+                    )
+            );
+        } else if (baseKeyManager instanceof HotSwappableX509ExtendedKeyManager) {
             ((HotSwappableX509ExtendedKeyManager) baseKeyManager).setKeyManager(KeyManagerUtils.wrapIfNeeded(newKeyManager));
         } else {
             throw new GenericKeyManagerException(
@@ -319,6 +331,7 @@ public final class KeyManagerUtils {
         private final List<X509ExtendedKeyManager> keyManagers = new ArrayList<>();
         private final Map<String, List<URI>> aliasToHost = new HashMap<>();
         private boolean swappableKeyManagerEnabled = false;
+        private boolean loggingKeyManagerEnabled = false;
 
         private KeyManagerBuilder() {}
 
@@ -363,6 +376,11 @@ public final class KeyManagerUtils {
             return this;
         }
 
+        public KeyManagerBuilder withLoggingKeyManager(boolean loggingKeyManagerEnabled) {
+            this.loggingKeyManagerEnabled = loggingKeyManagerEnabled;
+            return this;
+        }
+
         public KeyManagerBuilder withIdentityRoute(Map<String, List<URI>> aliasToHost) {
             this.aliasToHost.putAll(aliasToHost);
             return this;
@@ -371,21 +389,25 @@ public final class KeyManagerUtils {
         public X509ExtendedKeyManager build() {
             requireNotEmpty(keyManagers, () -> new GenericKeyManagerException(EMPTY_KEY_MANAGER_EXCEPTION));
 
-            X509ExtendedKeyManager keyManager;
+            X509ExtendedKeyManager baseKeyManager;
             if (keyManagers.size() == 1) {
-                keyManager = keyManagers.get(0);
+                baseKeyManager = keyManagers.get(0);
             } else {
-                keyManager = keyManagers.stream()
+                baseKeyManager = keyManagers.stream()
                         .map(KeyManagerUtils::unwrapIfPossible)
                         .flatMap(Collection::stream)
                         .collect(toListAndThen(extendedKeyManagers -> new CompositeX509ExtendedKeyManager(extendedKeyManagers, aliasToHost)));
             }
 
-            if (swappableKeyManagerEnabled) {
-                keyManager = KeyManagerUtils.createSwappableKeyManager(keyManager);
+            if (loggingKeyManagerEnabled) {
+                baseKeyManager = KeyManagerUtils.createLoggingKeyManager(baseKeyManager);
             }
 
-            return keyManager;
+            if (swappableKeyManagerEnabled) {
+                baseKeyManager = KeyManagerUtils.createSwappableKeyManager(baseKeyManager);
+            }
+
+            return baseKeyManager;
         }
 
     }

@@ -77,4 +77,8 @@ abstract class DelegatingKeyManager<T extends X509KeyManager> extends X509Extend
     @Override
     public abstract String chooseEngineServerAlias(String keyType, Principal[] issuers, SSLEngine engine);
 
+    public T getInnerKeyManager() {
+        return keyManager;
+    }
+
 }
