@@ -94,7 +94,7 @@ public final class LoggingX509ExtendedTrustManager extends DelegatingX509Extende
                 .map(hostAndPort -> "[" + hostAndPort + "]");
 
         String logMessage = String.format(LOG_MESSAGE_TEMPLATE, counterParty, hostAndPortLogMessage.orElse(""), authType, classNameLogMessage.orElse(""), counterParty, certificateChain);
-        LOGGER.info(logMessage);
+        LOGGER.debug(logMessage);
     }
 
     static Optional<String> getClassnameOfEitherOrOther(Socket socket, SSLEngine sslEngine) {
