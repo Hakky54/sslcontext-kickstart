@@ -92,9 +92,9 @@ class LoggingX509ExtendedKeyManagerShould {
 
         List<String> logs = logCaptor.getDebugLogs();
         assertThat(logs)
-                .contains("Attempting to find a client alias for key types [RSA], while also using the Socket. See below for list of the issuers:\n" +
+                .contains("Attempting to find a client alias for key types [RSA], while also using the Socket. See below for list of the issuers:" + System.lineSeparator() +
                         "[CN=Let's Encrypt Authority X3, O=Let's Encrypt, C=US]")
-                .contains("Found the following client aliases [some-alias] for key types [RSA], while also using the Socket. See below for list of the issuers:\n" +
+                .contains("Found the following client aliases [some-alias] for key types [RSA], while also using the Socket. See below for list of the issuers:" + System.lineSeparator() +
                         "[CN=Let's Encrypt Authority X3, O=Let's Encrypt, C=US]");
     }
 
