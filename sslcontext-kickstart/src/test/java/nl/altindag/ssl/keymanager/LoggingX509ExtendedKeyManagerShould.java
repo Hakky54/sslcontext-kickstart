@@ -213,6 +213,22 @@ class LoggingX509ExtendedKeyManagerShould {
     }
 
     @Test
+    void attemptToGetCertificateChainReturnsEmpty() {
+        String alias = "some-alias";
+
+        when(innerMockedKeyManager.getCertificateChain(alias)).thenReturn(new X509Certificate[]{});
+
+        X509Certificate[] certificateChain = victim.getCertificateChain(alias);
+
+        assertThat(certificateChain).isEmpty();
+
+        verify(innerMockedKeyManager, times(1)).getCertificateChain(alias);
+
+        List<String> logs = logCaptor.getDebugLogs();
+        assertThat(logs).contains("Attempting to get the certificate chain for the alias: some-alias");
+    }
+
+    @Test
     void getCertificateChain() {
         X509Certificate mockedCertificate = mock(X509Certificate.class);
         String alias = "some-alias";
@@ -269,6 +285,57 @@ class LoggingX509ExtendedKeyManagerShould {
                         "[CN=Let's Encrypt Authority X3, O=Let's Encrypt, C=US]")
                 .contains("Found the following server aliases [some-alias] for key types [RSA]. See below for list of the issuers:" + System.lineSeparator() +
                         "[CN=Let's Encrypt Authority X3, O=Let's Encrypt, C=US]");
+    }
+
+    @Test
+    void notLogFoundAlisWhenGettingServerAliasesIfItIsReturningANull() {
+        String keyType = "RSA";
+
+        when(innerMockedKeyManager.getServerAliases(keyType, issuers)).thenReturn(null);
+
+        String[] alias = victim.getServerAliases(keyType, issuers);
+        assertThat(alias).isNull();
+
+        verify(innerMockedKeyManager, times(1)).getServerAliases(keyType, issuers);
+
+        List<String> logs = logCaptor.getDebugLogs();
+        assertThat(logs)
+                .containsExactly("Attempting to find a server alias for key types [RSA]. See below for list of the issuers:" + System.lineSeparator() +
+                        "[CN=Let's Encrypt Authority X3, O=Let's Encrypt, C=US]")
+                .doesNotContain("Found the following server aliases [some-alias] for key types [RSA]. See below for list of the issuers:" + System.lineSeparator() +
+                        "[CN=Let's Encrypt Authority X3, O=Let's Encrypt, C=US]");
+    }
+
+    @Test
+    void notLogIssuersIfAbsentGetServerAliases() {
+        String keyType = "RSA";
+
+        when(innerMockedKeyManager.getServerAliases(keyType, null)).thenReturn(new String[]{"some-alias"});
+
+        String[] alias = victim.getServerAliases(keyType, null);
+        assertThat(alias).contains("some-alias");
+
+        verify(innerMockedKeyManager, times(1)).getServerAliases(keyType, null);
+
+        List<String> logs = logCaptor.getDebugLogs();
+        assertThat(logs)
+                .contains("Attempting to find a server alias for key types [RSA].")
+                .contains("Found the following server aliases [some-alias] for key types [RSA].");
+    }
+
+    @Test
+    void notLogAliasIfAbsentGetServerAliases() {
+        String keyType = "RSA";
+
+        when(innerMockedKeyManager.getServerAliases(keyType, null)).thenReturn(new String[]{});
+
+        String[] alias = victim.getServerAliases(keyType, null);
+        assertThat(alias).isEmpty();
+
+        verify(innerMockedKeyManager, times(1)).getServerAliases(keyType, null);
+
+        List<String> logs = logCaptor.getDebugLogs();
+        assertThat(logs).containsExactly("Attempting to find a server alias for key types [RSA].");
     }
 
 }

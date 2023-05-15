@@ -24,6 +24,7 @@ import nl.altindag.ssl.hostnameverifier.FenixHostnameVerifier;
 import nl.altindag.ssl.keymanager.CompositeX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.DummyX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.HotSwappableX509ExtendedKeyManager;
+import nl.altindag.ssl.keymanager.LoggingX509ExtendedKeyManager;
 import nl.altindag.ssl.trustmanager.DummyX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.EnhanceableX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.HotSwappableX509ExtendedTrustManager;
@@ -632,6 +633,24 @@ class SSLFactoryShould {
 
         assertThat(sslFactory.getKeyManager()).isPresent();
         assertThat(sslFactory.getKeyManager().get()).isInstanceOf(HotSwappableX509ExtendedKeyManager.class);
+        assertThat(sslFactory.getKeyManagerFactory()).isPresent();
+
+        assertThat(sslFactory.getTrustManager()).isNotPresent();
+        assertThat(sslFactory.getTrustManagerFactory()).isNotPresent();
+        assertThat(sslFactory.getTrustedCertificates()).isEmpty();
+    }
+
+    @Test
+    void buildSSLFactoryWithLoggingIdentityMaterial() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD)
+                .withLoggingIdentityMaterial()
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+
+        assertThat(sslFactory.getKeyManager()).isPresent();
+        assertThat(sslFactory.getKeyManager().get()).isInstanceOf(LoggingX509ExtendedKeyManager.class);
         assertThat(sslFactory.getKeyManagerFactory()).isPresent();
 
         assertThat(sslFactory.getTrustManager()).isNotPresent();

@@ -18,6 +18,8 @@ package nl.altindag.ssl.util;
 import nl.altindag.ssl.exception.GenericKeyManagerException;
 import nl.altindag.ssl.exception.GenericKeyStoreException;
 import nl.altindag.ssl.keymanager.CompositeX509ExtendedKeyManager;
+import nl.altindag.ssl.keymanager.HotSwappableX509ExtendedKeyManager;
+import nl.altindag.ssl.keymanager.LoggingX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.X509KeyManagerWrapper;
 import nl.altindag.ssl.model.KeyStoreHolder;
 import org.junit.jupiter.api.Test;
@@ -259,6 +261,58 @@ class KeyManagerUtilsShould {
                 .build();
 
         assertThat(keyManager).isNotNull();
+    }
+
+    @Test
+    void createLoggingKeyManagerWithKeyStore() {
+        KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager keyManager = KeyManagerUtils.keyManagerBuilder()
+                .withIdentity(identity, IDENTITY_PASSWORD, KeyManagerFactory.getDefaultAlgorithm())
+                .withLoggingKeyManager(true)
+                .build();
+
+        assertThat(keyManager).isInstanceOf(LoggingX509ExtendedKeyManager.class);
+    }
+
+    @Test
+    void createLoggingKeyManagerWhichIsAlsoSwappable() {
+        KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager keyManager = KeyManagerUtils.keyManagerBuilder()
+                .withIdentity(identity, IDENTITY_PASSWORD, KeyManagerFactory.getDefaultAlgorithm())
+                .withLoggingKeyManager(true)
+                .withSwappableKeyManager(true)
+                .build();
+
+        assertThat(keyManager).isInstanceOf(HotSwappableX509ExtendedKeyManager.class);
+        X509ExtendedKeyManager innerKeyManager = ((HotSwappableX509ExtendedKeyManager) keyManager).getInnerKeyManager();
+        assertThat(innerKeyManager).isInstanceOf(LoggingX509ExtendedKeyManager.class);
+    }
+
+    @Test
+    void swapKeyManagerWhileLoggingIsEnabled() {
+        KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager keyManager = KeyManagerUtils.keyManagerBuilder()
+                .withIdentity(identityOne, IDENTITY_PASSWORD, KeyManagerFactory.getDefaultAlgorithm())
+                .withLoggingKeyManager(true)
+                .withSwappableKeyManager(true)
+                .build();
+
+        assertThat(keyManager).isInstanceOf(HotSwappableX509ExtendedKeyManager.class);
+        X509ExtendedKeyManager innerKeyManager = ((HotSwappableX509ExtendedKeyManager) keyManager).getInnerKeyManager();
+        assertThat(innerKeyManager).isInstanceOf(LoggingX509ExtendedKeyManager.class);
+        X509ExtendedKeyManager innerInnerKeyManager = ((LoggingX509ExtendedKeyManager) innerKeyManager).getInnerKeyManager();
+
+        X509ExtendedKeyManager newKeyManager = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
+        KeyManagerUtils.swapKeyManager(keyManager, newKeyManager);
+
+        X509ExtendedKeyManager newInnerKeyManager = ((HotSwappableX509ExtendedKeyManager) keyManager).getInnerKeyManager();
+        assertThat(newInnerKeyManager).isInstanceOf(LoggingX509ExtendedKeyManager.class);
+        X509ExtendedKeyManager newInnerInnerKeyManager = ((LoggingX509ExtendedKeyManager) newInnerKeyManager).getInnerKeyManager();
+        assertThat(innerKeyManager).isNotEqualTo(newInnerInnerKeyManager);
     }
 
     @Test
