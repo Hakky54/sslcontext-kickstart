@@ -307,7 +307,7 @@ class LoggingX509ExtendedKeyManagerShould {
     }
 
     @Test
-    void notLogIssuersIfAbsentGetServerAliases() {
+    void notLogIssuersIfAbsentForGetServerAliases() {
         String keyType = "RSA";
 
         when(innerMockedKeyManager.getServerAliases(keyType, null)).thenReturn(new String[]{"some-alias"});
@@ -316,6 +316,24 @@ class LoggingX509ExtendedKeyManagerShould {
         assertThat(alias).contains("some-alias");
 
         verify(innerMockedKeyManager, times(1)).getServerAliases(keyType, null);
+
+        List<String> logs = logCaptor.getDebugLogs();
+        assertThat(logs)
+                .contains("Attempting to find a server alias for key types [RSA].")
+                .contains("Found the following server aliases [some-alias] for key types [RSA].");
+    }
+
+    @Test
+    void notLogIssuersIfEmptyForGetServerAliases() {
+        String keyType = "RSA";
+        Principal[] issuers = {};
+
+        when(innerMockedKeyManager.getServerAliases(keyType, issuers)).thenReturn(new String[]{"some-alias"});
+
+        String[] alias = victim.getServerAliases(keyType, issuers);
+        assertThat(alias).contains("some-alias");
+
+        verify(innerMockedKeyManager, times(1)).getServerAliases(keyType, issuers);
 
         List<String> logs = logCaptor.getDebugLogs();
         assertThat(logs)
@@ -336,6 +354,24 @@ class LoggingX509ExtendedKeyManagerShould {
 
         List<String> logs = logCaptor.getDebugLogs();
         assertThat(logs).containsExactly("Attempting to find a server alias for key types [RSA].");
+    }
+
+    @Test
+    void notLogAliasWhenChooseClientAliasReturnsNoAlias() {
+        String[] keyTypes = new String[]{"RSA"};
+        Socket socket = mock(Socket.class);
+
+        when(innerMockedKeyManager.chooseClientAlias(keyTypes, issuers, socket)).thenReturn(null);
+
+        String alias = victim.chooseClientAlias(keyTypes, issuers, socket);
+        assertThat(alias).isNull();
+
+        verify(innerMockedKeyManager, times(1)).chooseClientAlias(keyTypes, issuers, socket);
+
+        List<String> logs = logCaptor.getDebugLogs();
+        assertThat(logs)
+                .containsExactly("Attempting to find a client alias for key types [RSA], while also using the Socket. See below for list of the issuers:" + System.lineSeparator() +
+                        "[CN=Let's Encrypt Authority X3, O=Let's Encrypt, C=US]");
     }
 
 }
