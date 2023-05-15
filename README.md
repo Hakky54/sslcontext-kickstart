@@ -92,6 +92,7 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "7.4.11"
        - [Loading encrypted pem files](#loading-encrypted-pem-files)
      - [Migrating from classic configuration](#migrating-from-classic-configuration)
      - [Logging certificate validation](#logging-detailed-certificate-validation)
+     - [Logging detailed KeyManager flow, input and output](#logging-detailed-keymanager-flow-input-and-output)
    - [Returnable values from the SSLFactory](#returnable-values-from-the-sslfactory)
 3. [Additional mappers for specific libraries](#additional-mappers-for-specific-libraries)
    - [Netty](#netty)
@@ -879,6 +880,90 @@ KeyIdentifier [
 00D0: A0 50 EB 93 8D 71 53 84   A2 34 C4 F8 C9 08 9D 5F  .P...qS..4....._
 00E0: 9B 2A 37 5E E0 F8 5D F5   7A 7D BC EB 3D 78 5C 23  .*7^..].z...=x\#
 00F0: 84 DD CC 32 97 6C 77 92   7C 06 E4 5D 52 A0 5A 39  ...2.lw....]R.Z9
+
+]]
+```
+
+##### Logging detailed KeyManager flow, input and output
+```text
+SSLFactory sslFactory = SSLFactory.builder()
+        .withIdentityMaterial(Paths.get("/path/to/your/identity.jks"), "password".toCharArray())
+        .withLoggingIdentityMaterial()
+        .withDefaultTrustMaterial()
+        .build();
+        
+// run your server or client and analyse the logs
+```
+
+You will get a log message which is similar to the following one:
+```text
+Attempting to find a client alias for key types [EC], while also using the Socket. See below for list of the issuers:
+[CN=some-cn, OU=java-business-unit, O=thunderberry, C=NL]
+Attempting to find a client alias for key types [RSA], while also using the Socket. See below for list of the issuers:
+[CN=some-cn, OU=java-business-unit, O=thunderberry, C=NL]
+Found the following client aliases [my-client-alias] for key types [RSA], while also using the Socket. See below for list of the issuers:
+[CN=some-cn, OU=java-business-unit, O=thunderberry, C=NL]
+Attempting to get the private key for the alias: my-client-alias
+Found a private key for the alias: my-client-alias
+Attempting to get the certificate chain for the alias: my-client-alias
+Found the certificate chain with a size of 1 for the alias: my-client-alias. See below for the full chain:
+[[
+[
+  Version: V3
+  Subject: CN=some-cn, OU=java-business-unit, O=thunderberry, C=NL
+  Signature Algorithm: SHA256withRSA, OID = 1.2.840.113549.1.1.11
+
+  Key:  Sun RSA public key, 2048 bits
+  params: null
+  modulus: 24358361148173123789972454702359337497482540111137434929916055417657354571697209833398713022918665517266658129513432713825681637659966415899913132315999013865220594646161546243646863695313013179456071195691453898185614193141245291456731398570603932104743113343898797041713131938343069988939700047591424592896073860712253945927117061051481828014230668012078029149888844657841672769678941972627103264098329661131121121108364416406527046714029325801099459715576059589001573317998720822010338410175438085716969314224320362271384261147189938038370804394737540861857893390249061609350687279289599644929221019981684263046077
+  public exponent: 65537
+  Validity: [From: Mon Feb 08 18:14:16 CET 2021,
+               To: Thu Feb 06 18:14:16 CET 2031]
+  Issuer: CN=some-cn, OU=java-business-unit, O=thunderberry, C=NL
+  SerialNumber: [    3a03c719]
+
+Certificate Extensions: 3
+[1]: ObjectId: 2.5.29.37 Criticality=false
+ExtendedKeyUsages [
+  serverAuth
+  clientAuth
+]
+
+[2]: ObjectId: 2.5.29.15 Criticality=false
+KeyUsage [
+  DigitalSignature
+  Key_Encipherment
+  Data_Encipherment
+  Key_Agreement
+]
+
+[3]: ObjectId: 2.5.29.14 Criticality=false
+SubjectKeyIdentifier [
+KeyIdentifier [
+0000: 6C D2 C6 3D 90 94 1F C9   43 9A A8 A3 41 3E BC 93  l..=....C...A>..
+0010: FF E9 00 9E                                        ....
+]
+]
+
+]
+  Algorithm: [SHA256withRSA]
+  Signature:
+0000: 5F CD B8 0D 27 23 46 81   80 96 A0 E3 4D 79 82 F3  _...'#F.....My..
+0010: AC E4 FC 53 B6 8B 17 FD   88 E7 03 DF B5 A6 DC 78  ...S...........x
+0020: 75 D7 57 BE 14 C6 12 44   A3 25 E2 9B 2B E1 F1 FA  u.W....D.%..+...
+0030: 68 19 19 F3 1B E7 67 17   8F 12 F6 C7 82 CA B7 E2  h.....g.........
+0040: F9 66 44 09 3C D7 0F E1   0B FB CF 4B 58 37 79 32  .fD.<......KX7y2
+0050: DC E1 E1 CD 97 9B 99 C8   95 DA F3 0E 74 0D 36 7E  ............t.6.
+0060: A4 E0 DA BC 66 A0 CD AD   0C BE 6D C5 12 7E F2 6E  ....f.....m....n
+0070: AC 89 00 55 1B 1A 23 CA   26 0D B3 B8 E5 52 8C F6  ...U..#.&....R..
+0080: 20 D3 ED A3 D7 CD 55 2F   2D EB 07 12 1E 70 C6 0E   .....U/-....p..
+0090: 1F 3C AB 8C 23 2F 15 19   A4 F6 4E B0 0E F5 2A D9  .<..#/....N...*.
+00A0: E1 F2 50 A9 BC 6D 7A 24   CA CA 07 69 61 0E 55 C5  ..P..mz$...ia.U.
+00B0: C3 36 72 2D B8 4A 93 2E   19 45 F9 49 C1 C8 14 15  .6r-.J...E.I....
+00C0: 99 C7 06 8D 2A 93 08 87   0B 89 BE 3D 72 01 A5 E7  ....*......=r...
+00D0: 97 2A B3 EA 63 92 45 32   D3 58 55 BE BB 69 B8 21  .*..c.E2.XU..i.!
+00E0: 5A 98 D2 7D 0B 8D BD 23   A2 3B C3 53 94 5A 54 BA  Z......#.;.S.ZT.
+00F0: F2 FD 48 AD 59 F6 E1 CB   86 BF EF 12 0E BD 69 1E  ..H.Y.........i.
 
 ]]
 ```
