@@ -166,7 +166,7 @@ public class LoggingX509ExtendedKeyManager extends DelegatingX509ExtendedKeyMana
 
     @Override
     public String[] getClientAliases(String keyType, Principal[] issuers) {
-        logAttemptOfChoosingAlias(ServerOrClient.SERVER, keyType, issuers, null, null);
+        logAttemptOfChoosingAlias(ServerOrClient.CLIENT, keyType, issuers, null, null);
 
         String[] clientAliases = super.getClientAliases(keyType, issuers);
         logAliasIfPresent(ServerOrClient.CLIENT, clientAliases, keyType, issuers);
