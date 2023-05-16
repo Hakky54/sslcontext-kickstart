@@ -3,6 +3,15 @@
 This list is not intended to be all-encompassing - it will document major and breaking API 
 changes with their rationale when appropriate:
 
+### v7.5.0
+ - Enhanced loading system trusted certificates
+ - Added option to disable invalidating caches in SSLFactoryUtils
+ - Replaced https://badssl.com integration test with local server
+ - Added verbose logging as debug for TrustManager
+ - Added verbose logging as debug for KeyManager
+ - Renamed internal method names and class names
+ - Refactored KeyStoreUtils, PemUtils and CertificateExtractorUtils to make it more readable
+ - Bumped dependencies
 ### v7.4.11
  - Fixed releasing BOM (Bill of Materials)
 ### v7.4.10
