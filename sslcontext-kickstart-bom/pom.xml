@@ -110,7 +110,6 @@
                 <artifactId>maven-release-plugin</artifactId>
                 <version>${version.maven-release-plugin}</version>
                 <configuration>
-                    <arguments>maven.test.skip=true</arguments>
                     <tagNameFormat>v@{project.version}</tagNameFormat>
                 </configuration>
             </plugin>
