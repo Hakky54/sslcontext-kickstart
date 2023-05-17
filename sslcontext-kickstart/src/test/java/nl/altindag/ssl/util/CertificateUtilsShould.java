@@ -20,7 +20,9 @@ import nl.altindag.ssl.exception.GenericCertificateException;
 import nl.altindag.ssl.exception.GenericIOException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.net.ssl.X509ExtendedTrustManager;
@@ -29,6 +31,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
+import java.net.PasswordAuthentication;
+import java.net.Proxy;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -38,7 +42,9 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -183,6 +189,181 @@ class CertificateUtilsShould {
     void loadOneLinerContainingMultipleCertificate() {
         List<Certificate> certificates = CertificateUtils.loadCertificate(PEM_LOCATION + "one-liner-multiple-certificates.pem");
         assertThat(certificates).hasSize(3);
+    }
+
+    @Test
+    void createAnInstanceOfCertificateExtractorUtilsWithProxyDetailsWhenGetCertificatesFromExternalSource() {
+        Map<CertificateExtractorUtils, List<Object>> constructorArgs = new HashMap<>();
+        try (MockedConstruction<CertificateExtractorUtils> mockedConstruction = Mockito.mockConstruction(CertificateExtractorUtils.class,
+                (mock, context) -> constructorArgs.put(mock, new ArrayList<>(context.arguments())))) {
+            Proxy proxy = mock(Proxy.class);
+
+            CertificateUtils.getCertificatesFromExternalSource(proxy, "https://github.com");
+
+            List<CertificateExtractorUtils> constructed = mockedConstruction.constructed();
+            assertThat(constructed).hasSize(1);
+
+            CertificateExtractorUtils certificateExtractorUtils = constructed.get(0);
+            assertThat(constructorArgs.get(certificateExtractorUtils)).containsExactly(proxy);
+        }
+    }
+
+    @Test
+    void createAnInstanceOfCertificateExtractorUtilsWithProxyDetailsAndPasswordAuthenticationWhenGetCertificatesFromExternalSource() {
+        Map<CertificateExtractorUtils, List<Object>> constructorArgs = new HashMap<>();
+        try (MockedConstruction<CertificateExtractorUtils> mockedConstruction = Mockito.mockConstruction(CertificateExtractorUtils.class,
+                (mock, context) -> constructorArgs.put(mock, new ArrayList<>(context.arguments())))) {
+            Proxy proxy = mock(Proxy.class);
+            PasswordAuthentication passwordAuthentication = mock(PasswordAuthentication.class);
+
+            CertificateUtils.getCertificatesFromExternalSource(proxy, passwordAuthentication, "https://github.com");
+
+            List<CertificateExtractorUtils> constructed = mockedConstruction.constructed();
+            assertThat(constructed).hasSize(1);
+
+            CertificateExtractorUtils certificateExtractorUtils = constructed.get(0);
+            assertThat(constructorArgs.get(certificateExtractorUtils)).containsExactly(proxy, passwordAuthentication);
+        }
+    }
+
+    @Test
+    void createAnInstanceOfCertificateExtractorUtilsWithProxyDetailsWhenGetCertificatesFromExternalSourceAsPem() {
+        Map<CertificateExtractorUtils, List<Object>> constructorArgs = new HashMap<>();
+        try (MockedConstruction<CertificateExtractorUtils> mockedConstruction = Mockito.mockConstruction(CertificateExtractorUtils.class,
+                (mock, context) -> constructorArgs.put(mock, new ArrayList<>(context.arguments())))) {
+            Proxy proxy = mock(Proxy.class);
+
+            CertificateUtils.getCertificatesFromExternalSourceAsPem(proxy, "https://github.com");
+
+            List<CertificateExtractorUtils> constructed = mockedConstruction.constructed();
+            assertThat(constructed).hasSize(1);
+
+            CertificateExtractorUtils certificateExtractorUtils = constructed.get(0);
+            assertThat(constructorArgs.get(certificateExtractorUtils)).containsExactly(proxy);
+        }
+    }
+
+    @Test
+    void createAnInstanceOfCertificateExtractorUtilsWithProxyDetailsAndPasswordAuthenticationWhenGetCertificatesFromExternalSourceAsPem() {
+        Map<CertificateExtractorUtils, List<Object>> constructorArgs = new HashMap<>();
+        try (MockedConstruction<CertificateExtractorUtils> mockedConstruction = Mockito.mockConstruction(CertificateExtractorUtils.class,
+                (mock, context) -> constructorArgs.put(mock, new ArrayList<>(context.arguments())))) {
+            Proxy proxy = mock(Proxy.class);
+            PasswordAuthentication passwordAuthentication = mock(PasswordAuthentication.class);
+
+            CertificateUtils.getCertificatesFromExternalSourceAsPem(proxy, passwordAuthentication, "https://github.com");
+
+            List<CertificateExtractorUtils> constructed = mockedConstruction.constructed();
+            assertThat(constructed).hasSize(1);
+
+            CertificateExtractorUtils certificateExtractorUtils = constructed.get(0);
+            assertThat(constructorArgs.get(certificateExtractorUtils)).containsExactly(proxy, passwordAuthentication);
+        }
+    }
+
+    @Test
+    void createAnInstanceOfCertificateExtractorUtilsWithProxyDetailsWhenGetCertificatesFromExternalSources() {
+        Map<CertificateExtractorUtils, List<Object>> constructorArgs = new HashMap<>();
+        try (MockedConstruction<CertificateExtractorUtils> mockedConstruction = Mockito.mockConstruction(CertificateExtractorUtils.class,
+                (mock, context) -> constructorArgs.put(mock, new ArrayList<>(context.arguments())))) {
+            Proxy proxy = mock(Proxy.class);
+
+            CertificateUtils.getCertificatesFromExternalSources(proxy, "https://github.com", "https://stackoverflow.com");
+
+            List<CertificateExtractorUtils> constructed = mockedConstruction.constructed();
+            assertThat(constructed).hasSize(1);
+
+            CertificateExtractorUtils certificateExtractorUtils = constructed.get(0);
+            assertThat(constructorArgs.get(certificateExtractorUtils)).containsExactly(proxy);
+        }
+    }
+
+    @Test
+    void createAnInstanceOfCertificateExtractorUtilsWithProxyDetailsAndPasswordAuthenticationWhenGetCertificatesFromExternalSources() {
+        Map<CertificateExtractorUtils, List<Object>> constructorArgs = new HashMap<>();
+        try (MockedConstruction<CertificateExtractorUtils> mockedConstruction = Mockito.mockConstruction(CertificateExtractorUtils.class,
+                (mock, context) -> constructorArgs.put(mock, new ArrayList<>(context.arguments())))) {
+            Proxy proxy = mock(Proxy.class);
+            PasswordAuthentication passwordAuthentication = mock(PasswordAuthentication.class);
+
+            CertificateUtils.getCertificatesFromExternalSources(proxy, passwordAuthentication, "https://github.com", "https://stackoverflow.com");
+
+            List<CertificateExtractorUtils> constructed = mockedConstruction.constructed();
+            assertThat(constructed).hasSize(1);
+
+            CertificateExtractorUtils certificateExtractorUtils = constructed.get(0);
+            assertThat(constructorArgs.get(certificateExtractorUtils)).containsExactly(proxy, passwordAuthentication);
+        }
+    }
+
+    @Test
+    void createAnInstanceOfCertificateExtractorUtilsWithProxyDetailsWhenGetCertificatesFromExternalSourcesAsPem() {
+        Map<CertificateExtractorUtils, List<Object>> constructorArgs = new HashMap<>();
+        try (MockedConstruction<CertificateExtractorUtils> mockedConstruction = Mockito.mockConstruction(CertificateExtractorUtils.class,
+                (mock, context) -> constructorArgs.put(mock, new ArrayList<>(context.arguments())))) {
+            Proxy proxy = mock(Proxy.class);
+
+            CertificateUtils.getCertificatesFromExternalSourcesAsPem(proxy, "https://github.com", "https://stackoverflow.com");
+
+            List<CertificateExtractorUtils> constructed = mockedConstruction.constructed();
+            assertThat(constructed).hasSize(1);
+
+            CertificateExtractorUtils certificateExtractorUtils = constructed.get(0);
+            assertThat(constructorArgs.get(certificateExtractorUtils)).containsExactly(proxy);
+        }
+    }
+
+    @Test
+    void createAnInstanceOfCertificateExtractorUtilsWithProxyDetailsWhenGetCertificatesFromExternalSourcesAsPemAndUrlsAsList() {
+        Map<CertificateExtractorUtils, List<Object>> constructorArgs = new HashMap<>();
+        try (MockedConstruction<CertificateExtractorUtils> mockedConstruction = Mockito.mockConstruction(CertificateExtractorUtils.class,
+                (mock, context) -> constructorArgs.put(mock, new ArrayList<>(context.arguments())))) {
+            Proxy proxy = mock(Proxy.class);
+
+            CertificateUtils.getCertificatesFromExternalSourcesAsPem(proxy, Arrays.asList("https://github.com", "https://stackoverflow.com"));
+
+            List<CertificateExtractorUtils> constructed = mockedConstruction.constructed();
+            assertThat(constructed).hasSize(1);
+
+            CertificateExtractorUtils certificateExtractorUtils = constructed.get(0);
+            assertThat(constructorArgs.get(certificateExtractorUtils)).containsExactly(proxy);
+        }
+    }
+
+    @Test
+    void createAnInstanceOfCertificateExtractorUtilsWithProxyDetailsAndPasswordAuthenticationWhenGetCertificatesFromExternalSourcesAsPem() {
+        Map<CertificateExtractorUtils, List<Object>> constructorArgs = new HashMap<>();
+        try (MockedConstruction<CertificateExtractorUtils> mockedConstruction = Mockito.mockConstruction(CertificateExtractorUtils.class,
+                (mock, context) -> constructorArgs.put(mock, new ArrayList<>(context.arguments())))) {
+            Proxy proxy = mock(Proxy.class);
+            PasswordAuthentication passwordAuthentication = mock(PasswordAuthentication.class);
+
+            CertificateUtils.getCertificatesFromExternalSourcesAsPem(proxy, passwordAuthentication, "https://github.com", "https://stackoverflow.com");
+
+            List<CertificateExtractorUtils> constructed = mockedConstruction.constructed();
+            assertThat(constructed).hasSize(1);
+
+            CertificateExtractorUtils certificateExtractorUtils = constructed.get(0);
+            assertThat(constructorArgs.get(certificateExtractorUtils)).containsExactly(proxy, passwordAuthentication);
+        }
+    }
+
+    @Test
+    void createAnInstanceOfCertificateExtractorUtilsWithProxyDetailsAndPasswordAuthenticationWhenGetCertificatesFromExternalSourcesAsPemAndUrlsAsList() {
+        Map<CertificateExtractorUtils, List<Object>> constructorArgs = new HashMap<>();
+        try (MockedConstruction<CertificateExtractorUtils> mockedConstruction = Mockito.mockConstruction(CertificateExtractorUtils.class,
+                (mock, context) -> constructorArgs.put(mock, new ArrayList<>(context.arguments())))) {
+            Proxy proxy = mock(Proxy.class);
+            PasswordAuthentication passwordAuthentication = mock(PasswordAuthentication.class);
+
+            CertificateUtils.getCertificatesFromExternalSourcesAsPem(proxy, passwordAuthentication, Arrays.asList("https://github.com", "https://stackoverflow.com"));
+
+            List<CertificateExtractorUtils> constructed = mockedConstruction.constructed();
+            assertThat(constructed).hasSize(1);
+
+            CertificateExtractorUtils certificateExtractorUtils = constructed.get(0);
+            assertThat(constructorArgs.get(certificateExtractorUtils)).containsExactly(proxy, passwordAuthentication);
+        }
     }
 
     @Test
