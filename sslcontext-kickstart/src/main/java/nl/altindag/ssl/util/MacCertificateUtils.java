@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static nl.altindag.ssl.util.OperatingSystem.MAC;
+
 /**
  * @author Hakan Altindag
  */
@@ -41,7 +43,7 @@ final class MacCertificateUtils {
     }
 
     public static List<Certificate> getCertificates() {
-        if (!System.getProperty("os.name").toLowerCase().contains("mac")) {
+        if (OperatingSystem.get() != MAC) {
             return Collections.emptyList();
         }
 

@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static nl.altindag.ssl.util.OperatingSystem.LINUX;
+
 /**
  * @author Hakan Altindag
  */
@@ -50,7 +52,7 @@ final class LinuxCertificateUtils {
     }
 
     public static List<Certificate> getCertificates() {
-        if (!System.getProperty("os.name").toLowerCase().contains("linux")) {
+        if (OperatingSystem.get() != LINUX) {
             return Collections.emptyList();
         }
 
