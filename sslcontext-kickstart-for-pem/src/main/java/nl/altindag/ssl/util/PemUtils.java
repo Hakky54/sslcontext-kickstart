@@ -199,7 +199,7 @@ public final class PemUtils {
         }
     }
 
-    private static Optional<X509Certificate> extractCertificate(Object object) {
+    static Optional<X509Certificate> extractCertificate(Object object) {
         try {
 
             X509Certificate certificate = null;
@@ -482,7 +482,7 @@ public final class PemUtils {
                 .orElseThrow(() -> new PrivateKeyParseException("Received an unsupported private key type"));
     }
 
-    private static Optional<PrivateKeyInfo> extractPrivateKeyInfo(Object object, char[] keyPassword) {
+    static Optional<PrivateKeyInfo> extractPrivateKeyInfo(Object object, char[] keyPassword) {
         try {
             PrivateKeyInfo privateKeyInfo = null;
 

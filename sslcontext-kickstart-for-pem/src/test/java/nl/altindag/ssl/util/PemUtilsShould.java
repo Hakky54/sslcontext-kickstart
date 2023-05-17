@@ -47,6 +47,8 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.PrivateKey;
 import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -589,6 +591,18 @@ class PemUtilsShould {
         X509ExtendedKeyManager keyManager = PemUtils.parseIdentityMaterial(identityContent, null);
 
         assertThat(keyManager).isNotNull();
+    }
+
+    @Test
+    void returnEmptyForUnknownPrivateKeyInfo() {
+        Optional<PrivateKeyInfo> privateKeyInfo = PemUtils.extractPrivateKeyInfo(new Object(), "".toCharArray());
+        assertThat(privateKeyInfo).isEmpty();
+    }
+
+    @Test
+    void returnEmptyForUnknownCertificate() {
+        Optional<X509Certificate> certificate = PemUtils.extractCertificate(new Object());
+        assertThat(certificate).isEmpty();
     }
 
     @Test

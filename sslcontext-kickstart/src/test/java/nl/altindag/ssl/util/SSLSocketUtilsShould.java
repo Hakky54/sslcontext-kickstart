@@ -15,8 +15,12 @@
  */
 package nl.altindag.ssl.util;
 
+import nl.altindag.ssl.trustmanager.UnsafeX509ExtendedTrustManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.net.ssl.SSLContext;
@@ -40,8 +44,8 @@ class SSLSocketUtilsShould {
     void createSslSocketFactory() throws NoSuchAlgorithmException {
         SSLParameters sslParameters = spy(
                 new SSLParameters(
-                        new String[] {"TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384"},
-                        new String[] {"TLSv1.2"}
+                        new String[]{"TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384"},
+                        new String[]{"TLSv1.2"}
                 )
         );
 
@@ -58,8 +62,8 @@ class SSLSocketUtilsShould {
     void createSslServerSocketFactory() throws NoSuchAlgorithmException {
         SSLParameters sslParameters = spy(
                 new SSLParameters(
-                        new String[] {"TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384"},
-                        new String[] {"TLSv1.2"}
+                        new String[]{"TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384"},
+                        new String[]{"TLSv1.2"}
                 )
         );
 
@@ -70,6 +74,15 @@ class SSLSocketUtilsShould {
 
         assertThat(defaultCipherSuites).containsExactly("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384");
         verify(sslParameters, times(1)).getCipherSuites();
+    }
+
+    @Test
+    void createUnsafeSslSocketFactoryWithUnsafeX509ExtendedTrustManager() {
+        try (MockedStatic<UnsafeX509ExtendedTrustManager> mockedStatic = Mockito.mockStatic(UnsafeX509ExtendedTrustManager.class, InvocationOnMock::callRealMethod)) {
+            SSLSocketFactory socketFactory = SSLSocketUtils.createUnsafeSslSocketFactory();
+            assertThat(socketFactory).isNotNull();
+            mockedStatic.verify(UnsafeX509ExtendedTrustManager::getInstance, times(1));
+        }
     }
 
 }

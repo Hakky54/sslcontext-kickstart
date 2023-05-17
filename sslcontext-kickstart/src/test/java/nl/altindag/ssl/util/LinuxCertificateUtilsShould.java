@@ -181,6 +181,33 @@ class LinuxCertificateUtilsShould {
     }
 
     @Test
+    void getCertificatesReturnsEmptyListWhenFileExistButIsNotARegularFileAndAlsoNotADirectory() {
+        System.setProperty("os.name", "linux");
+
+        try (MockedStatic<Files> filesMockedStatic = mockStatic(Files.class, invocation -> {
+            Method method = invocation.getMethod();
+            String methodName = method.getName();
+            if ("exists".equals(methodName)) {
+                return true;
+            } else if ("isRegularFile".equals(methodName)) {
+                return false;
+            } else if ("isDirectory".equals(methodName)) {
+                return false;
+            } else if ("walk".equals(methodName)) {
+                return Stream.of(Paths.get("/etc/ssl/certs/some-certificate.pem"));
+            } else {
+                return invocation.callRealMethod();
+            }
+        })) {
+
+            List<Certificate> certificates = LinuxCertificateUtils.getCertificates();
+            assertThat(certificates).isEmpty();
+        }
+
+        resetOsName();
+    }
+
+    @Test
     void getCertificatesReturnsCertificatesWhenFileExistWithinDirectory() {
         System.setProperty("os.name", "linux");
 
