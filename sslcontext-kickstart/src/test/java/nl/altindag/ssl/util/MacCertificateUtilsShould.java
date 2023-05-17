@@ -16,7 +16,6 @@
 package nl.altindag.ssl.util;
 
 
-import nl.altindag.ssl.exception.GenericException;
 import nl.altindag.ssl.exception.GenericIOException;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -26,10 +25,6 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.security.cert.Certificate;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -78,16 +73,6 @@ class MacCertificateUtilsShould {
         }
 
         resetOsName();
-    }
-
-    @Test
-    void waitAtMostTillTimeoutThrowsExceptionWhenSomethingWentWrong() throws ExecutionException, InterruptedException, TimeoutException {
-        Future<?> future = mock(Future.class);
-        when(future.get(10, TimeUnit.SECONDS)).thenThrow(new TimeoutException("KABOOM!"));
-
-        assertThatThrownBy(() -> MacCertificateUtils.waitAtMostTillTimeout(future))
-                .isInstanceOf(GenericException.class)
-                .hasMessageContaining("KABOOM!");
     }
 
     @Test

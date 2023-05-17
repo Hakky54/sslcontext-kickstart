@@ -15,11 +15,9 @@
  */
 package nl.altindag.ssl.util;
 
-import nl.altindag.ssl.exception.GenericException;
 import nl.altindag.ssl.exception.GenericIOException;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.cert.Certificate;
@@ -27,16 +25,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static nl.altindag.ssl.util.CollectorsUtils.toUnmodifiableList;
 
 /**
  * @author Hakan Altindag
@@ -55,36 +45,28 @@ final class MacCertificateUtils {
             return Collections.emptyList();
         }
 
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
-        StringBuilder stringBuilder = new StringBuilder();
-        getKeychainFiles(executorService).stream()
+        String certificateContent = getKeychainFiles().stream()
                 .distinct()
                 .map(MacCertificateUtils::createProcessForGettingCertificates)
-                .map(process -> new StringInputStreamRunnable(process.getInputStream(), content -> stringBuilder.append(content).append(System.lineSeparator())))
-                .map(executorService::submit)
-                .forEach(MacCertificateUtils::waitAtMostTillTimeout);
+                .map(Process::getInputStream)
+                .map(IOUtils::getContent)
+                .collect(Collectors.joining(System.lineSeparator()));
 
-        executorService.shutdownNow();
-
-        String certificateContent = stringBuilder.toString();
-        return CertificateUtils.parsePemCertificate(certificateContent).stream()
-                .distinct()
-                .collect(toUnmodifiableList());
+        return CertificateUtils.parsePemCertificate(certificateContent);
     }
 
-    private static List<String> getKeychainFiles(ExecutorService executorService) {
+    private static List<String> getKeychainFiles() {
         List<String> keychainFiles = new ArrayList<>();
         keychainFiles.add(SYSTEM_ROOT_KEYCHAIN_FILE);
 
         KEYCHAIN_LOOKUP_COMMANDS.stream()
                 .map(MacCertificateUtils::createProcessForGettingKeychainFile)
-                .map(process -> new StringInputStreamRunnable(process.getInputStream(), content ->
-                        Stream.of(content.split(System.lineSeparator()))
-                                .map(line -> line.replace("\"", ""))
-                                .map(String::trim)
-                                .forEach(keychainFiles::add)))
-                .map(executorService::submit)
-                .forEach(MacCertificateUtils::waitAtMostTillTimeout);
+                .map(Process::getInputStream)
+                .map(IOUtils::getContent)
+                .flatMap(content -> Stream.of(content.split(System.lineSeparator()))
+                        .map(line -> line.replace("\"", ""))
+                        .map(String::trim))
+                .forEach(keychainFiles::add);
 
         return keychainFiles;
     }
@@ -122,32 +104,6 @@ final class MacCertificateUtils {
      */
     static ProcessBuilder createProcess() {
         return new ProcessBuilder();
-    }
-
-    static void waitAtMostTillTimeout(Future<?> future) {
-        try {
-            future.get(10, TimeUnit.SECONDS);
-        } catch (ExecutionException | InterruptedException | TimeoutException e) {
-            Thread.currentThread().interrupt();
-            throw new GenericException(e);
-        }
-    }
-
-    private static class StringInputStreamRunnable implements Runnable {
-        private final InputStream inputStream;
-        private final Consumer<String> consumer;
-
-        public StringInputStreamRunnable(InputStream inputStream, Consumer<String> consumer) {
-            this.inputStream = inputStream;
-            this.consumer = consumer;
-        }
-
-        @Override
-        public void run() {
-            String content = IOUtils.getContent(inputStream);
-            consumer.accept(content);
-        }
-
     }
 
 }
