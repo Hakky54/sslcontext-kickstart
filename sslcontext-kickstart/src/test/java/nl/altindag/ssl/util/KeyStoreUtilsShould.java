@@ -262,6 +262,20 @@ class KeyStoreUtilsShould {
     }
 
     @Test
+    void notLoadSystemKeyStoreForUnknownOs() {
+        System.setProperty("os.name", "Banana OS");
+        LogCaptor logCaptor = LogCaptor.forClass(KeyStoreUtils.class);
+
+        List<KeyStore> keyStores = KeyStoreUtils.loadSystemKeyStores();
+
+        assertThat(keyStores).isEmpty();
+        assertThat(logCaptor.getWarnLogs()).contains("No system KeyStores available for [banana os]");
+
+        logCaptor.close();
+        resetOsName();
+    }
+
+    @Test
     void createTrustStoreFromX509CertificatesAsList() throws KeyStoreException {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
