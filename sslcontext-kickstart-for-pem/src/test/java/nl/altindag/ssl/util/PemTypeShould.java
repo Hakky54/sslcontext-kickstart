@@ -26,7 +26,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class PemTypeShould {
 
     @Test
-    void banana() {
+    void throwExceptionForUnknownPemType() {
         assertThatThrownBy(() -> PemType.from(new Object()))
                 .isInstanceOf(PemParseException.class)
                 .hasMessage("The provided [java.lang.Object] pem type is not (yet) supported");
