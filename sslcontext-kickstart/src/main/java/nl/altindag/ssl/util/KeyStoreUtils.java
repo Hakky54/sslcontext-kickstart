@@ -228,7 +228,7 @@ public final class KeyStoreUtils {
                 keyStores.add(windowsMyKeyStore);
                 break;
             }
-            case UNKNOWN: {
+            default: {
                 String resolvedOsName = OperatingSystem.UNKNOWN.getResolvedOsName();
                 LOGGER.warn("No system KeyStores available for [{}]", resolvedOsName);
                 return Collections.emptyList();
