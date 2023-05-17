@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 /**
  * @author Hakan Altindag
  */
-public class PemTypeShould {
+class PemTypeShould {
 
     @Test
     void banana() {

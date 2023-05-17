@@ -359,7 +359,7 @@ public final class KeyManagerUtils {
             return withIdentities(Arrays.asList(identities));
         }
 
-        public KeyManagerBuilder withIdentities(List<? extends KeyStoreHolder> identities) {
+        public KeyManagerBuilder withIdentities(List<KeyStoreHolder> identities) {
             for (KeyStoreHolder identity : identities) {
                 this.keyManagers.add(KeyManagerUtils.createKeyManager(identity.getKeyStore(), identity.getKeyPassword()));
             }
