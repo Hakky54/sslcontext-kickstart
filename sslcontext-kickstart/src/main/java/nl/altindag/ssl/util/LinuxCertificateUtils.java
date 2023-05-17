@@ -28,8 +28,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static nl.altindag.ssl.util.CollectorsUtils.toUnmodifiableList;
-
 /**
  * @author Hakan Altindag
  */
@@ -74,9 +72,7 @@ final class LinuxCertificateUtils {
                     }
                 }
             }
-            return certificates.stream()
-                    .distinct()
-                    .collect(toUnmodifiableList());
+            return Collections.unmodifiableList(certificates);
         } catch (IOException e) {
             throw new GenericIOException(e);
         }

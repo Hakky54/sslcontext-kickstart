@@ -63,7 +63,6 @@ public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustMa
         this.acceptedIssuers = trustManagers.stream()
                 .map(X509ExtendedTrustManager::getAcceptedIssuers)
                 .flatMap(Arrays::stream)
-                .distinct()
                 .toArray(X509Certificate[]::new);
     }
 

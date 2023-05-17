@@ -113,7 +113,6 @@ class CertificateExtractorUtils {
                 List<X509Certificate> rootCa = getRootCaFromChainIfPossible(certificatesCollector);
                 return Stream.of(certificatesCollector, rootCa)
                         .flatMap(Collection::stream)
-                        .distinct()
                         .collect(toUnmodifiableList());
             } else {
                 return Collections.emptyList();

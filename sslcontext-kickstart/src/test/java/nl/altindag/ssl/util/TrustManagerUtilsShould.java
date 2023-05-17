@@ -95,7 +95,7 @@ class TrustManagerUtilsShould {
         assertThat(trustStoreOne.size()).isEqualTo(1);
         assertThat(trustStoreTwo.size()).isEqualTo(1);
         assertThat(combinedTrustManager.getAcceptedIssuers()).hasSize(2);
-        assertThat(combinedCombinedTrustManager.getAcceptedIssuers()).hasSize(2);
+        assertThat(combinedCombinedTrustManager.getAcceptedIssuers()).hasSize(4);
 
         assertThat(combinedTrustManager).isInstanceOf(CompositeX509ExtendedTrustManager.class);
         assertThat(combinedCombinedTrustManager).isInstanceOf(CompositeX509ExtendedTrustManager.class);
@@ -114,16 +114,6 @@ class TrustManagerUtilsShould {
         assertThat(trustStoreOne.size()).isEqualTo(1);
         assertThat(trustStoreTwo.size()).isEqualTo(1);
         assertThat(trustManager.getAcceptedIssuers()).hasSize(2);
-    }
-
-    @Test
-    void combineTrustManagersWhileFilteringDuplicateCertificates() throws KeyStoreException {
-        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
-        X509ExtendedTrustManager trustManager = TrustManagerUtils
-                .combine(TrustManagerUtils.createTrustManager(trustStore), TrustManagerUtils.createTrustManager(trustStore));
-
-        assertThat(trustStore.size()).isEqualTo(1);
-        assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
     }
 
     @Test

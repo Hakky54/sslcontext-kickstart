@@ -182,16 +182,6 @@ class CompositeX509ExtendedTrustManagerShould {
     }
 
     @Test
-    void combineTrustManagersWhileFilteringDuplicateCertificates() throws KeyStoreException {
-        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
-        X509ExtendedTrustManager trustManager = new CompositeX509ExtendedTrustManager(Arrays.asList(
-                TrustManagerUtils.createTrustManager(trustStore), TrustManagerUtils.createTrustManager(trustStore)));
-
-        assertThat(trustStore.size()).isEqualTo(1);
-        assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
-    }
-
-    @Test
     void throwsExceptionWhenCheckClientTrustedDoesNotTrustTheSuppliedCertificate() throws KeyStoreException {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
