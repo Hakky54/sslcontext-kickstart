@@ -58,10 +58,12 @@ import static nl.altindag.ssl.TestConstants.TRUSTSTORE_FILE_NAME;
 import static nl.altindag.ssl.TestConstants.TRUSTSTORE_PASSWORD;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
 /**
@@ -223,6 +225,23 @@ class CertificateUtilsShould {
 
             CertificateExtractorUtils certificateExtractorUtils = constructed.get(0);
             assertThat(constructorArgs.get(certificateExtractorUtils)).containsExactly(proxy, passwordAuthentication);
+        }
+    }
+
+    @Test
+    void useExistingInstanceOfCertificateExtractorUtilsWhenOnlyUsingUrl() {
+        CertificateExtractorUtils certificateExtractorUtils = mock(CertificateExtractorUtils.class);
+        when(certificateExtractorUtils.getCertificateFromExternalSource(anyString())).thenReturn(Collections.emptyList());
+
+        try (MockedStatic<CertificateExtractorUtils> mockedStatic = Mockito.mockStatic(CertificateExtractorUtils.class, invocationOnMock -> {
+            if ("getInstance".equals(invocationOnMock.getMethod().getName())) {
+                return certificateExtractorUtils;
+            } else {
+                return invocationOnMock.callRealMethod();
+            }
+        })) {
+            CertificateUtils.getCertificatesFromExternalSourceAsPem("https://github.com");
+            mockedStatic.verify(CertificateExtractorUtils::getInstance, times(1));
         }
     }
 
