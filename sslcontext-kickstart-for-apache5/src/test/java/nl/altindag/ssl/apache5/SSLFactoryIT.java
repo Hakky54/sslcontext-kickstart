@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.altindag.ssl;
+package nl.altindag.ssl.apache5;
 
 import com.sun.net.httpserver.HttpsServer;
-import nl.altindag.ssl.util.Apache5SslUtils;
+import nl.altindag.ssl.SSLFactory;
+import nl.altindag.ssl.apache5.util.Apache5SslUtils;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleResponseConsumer;
 import org.apache.hc.client5.http.classic.HttpClient;

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.altindag.ssl.util;
+package nl.altindag.ssl.apache5.util;
 
 import nl.altindag.ssl.SSLFactory;
 import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
