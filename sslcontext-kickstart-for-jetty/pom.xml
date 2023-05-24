@@ -38,6 +38,7 @@
     <properties>
         <version.jetty-util>9.4.51.v20230217</version.jetty-util>
         <version.jetty-reactive-httpclient>1.1.14</version.jetty-reactive-httpclient>
+        <version.netty>4.1.92.Final</version.netty>
     </properties>
 
     <dependencies>
@@ -48,10 +49,8 @@
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-util</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-reactive-httpclient</artifactId>
+            <version>${version.jetty-util}</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -71,27 +70,18 @@
             <artifactId>slf4j-simple</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.javalin</groupId>
-            <artifactId>javalin</artifactId>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-reactive-httpclient</artifactId>
+            <version>${version.jetty-reactive-httpclient}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>${version.netty}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-util</artifactId>
-                <version>${version.jetty-util}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-reactive-httpclient</artifactId>
-                <version>${version.jetty-reactive-httpclient}</version>
-                <scope>test</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 
     <build>
         <plugins>
