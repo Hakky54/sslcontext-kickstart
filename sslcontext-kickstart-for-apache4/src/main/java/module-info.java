@@ -17,6 +17,7 @@ module nl.altindag.ssl.apache4 {
 
     requires transitive nl.altindag.ssl;
     requires org.apache.httpcomponents.httpclient;
+    requires org.apache.httpcomponents.httpcore;
 
     exports nl.altindag.ssl.apache4.util;
 
