@@ -62,7 +62,6 @@ class SSLFactoryIT {
                 .build();
 
         server = ServerUtils.createServer(sslFactoryForServer);
-        server.start();
     }
 
     @AfterAll

@@ -152,7 +152,6 @@ class CertificateUtilsIT {
                 .build();
 
         Javalin server = ServerUtils.createServer(sslFactoryForServerOne);
-        server.start();
 
         Map<String, List<X509Certificate>> certificatesFromRemote = CertificateUtils.getCertificate("https://localhost:8443");
 
@@ -172,7 +171,6 @@ class CertificateUtilsIT {
                 .build();
 
         Javalin server = ServerUtils.createServer(sslFactoryForServerOne);
-        server.start();
 
         Map<String, List<X509Certificate>> certificatesFromRemote = CertificateUtils.getCertificate("https://localhost:8443");
 

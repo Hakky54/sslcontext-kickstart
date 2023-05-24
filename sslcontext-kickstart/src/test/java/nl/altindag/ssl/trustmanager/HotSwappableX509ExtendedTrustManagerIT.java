@@ -75,7 +75,6 @@ class HotSwappableX509ExtendedTrustManagerIT {
                 .build();
 
         server = ServerUtils.createServer(sslFactoryForServer);
-        server.start();
     }
 
     @AfterEach
