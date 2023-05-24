@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.altindag.ssl;
+package nl.altindag.ssl.netty;
 
 import com.sun.net.httpserver.HttpsServer;
 import io.netty.handler.ssl.SslContext;
-import nl.altindag.ssl.util.NettySslUtils;
+import nl.altindag.ssl.SSLFactory;
+import nl.altindag.ssl.netty.util.NettySslUtils;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
