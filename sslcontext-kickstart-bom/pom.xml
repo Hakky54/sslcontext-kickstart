@@ -50,7 +50,7 @@
     </distributionManagement>
 
     <properties>
-        <version.java>11</version.java>
+        <version.java>1.8</version.java>
         <version.maven-compiler-plugin>3.11.0</version.maven-compiler-plugin>
         <version.maven-gpg-plugin>3.1.0</version.maven-gpg-plugin>
         <version.maven-release-plugin>3.0.0</version.maven-release-plugin>
@@ -102,6 +102,9 @@
                 <configuration>
                     <source>${version.java}</source>
                     <target>${version.java}</target>
+                    <excludes>
+                        <exclude>module-info.java</exclude>
+                    </excludes>
                 </configuration>
             </plugin>
 
