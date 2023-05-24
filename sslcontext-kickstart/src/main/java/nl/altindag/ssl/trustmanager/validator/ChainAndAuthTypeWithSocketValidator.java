@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.altindag.ssl.trustmanager;
+package nl.altindag.ssl.trustmanager.validator;
 
+import java.net.Socket;
 import java.security.cert.X509Certificate;
 import java.util.Objects;
 
@@ -22,18 +23,18 @@ import java.util.Objects;
  * @author Hakan Altindag
  */
 @FunctionalInterface
-public interface ChainAndAuthTypeValidator {
+public interface ChainAndAuthTypeWithSocketValidator {
 
-    boolean test(X509Certificate[] certificateChain, String authType);
+    boolean test(X509Certificate[] certificateChain, String authType, Socket socket);
 
-    default ChainAndAuthTypeValidator and(ChainAndAuthTypeValidator other) {
+    default ChainAndAuthTypeWithSocketValidator and(ChainAndAuthTypeWithSocketValidator other) {
         Objects.requireNonNull(other);
-        return (certificateChain, authType) -> test(certificateChain, authType) && other.test(certificateChain, authType);
+        return (certificateChain, authType, socket) -> test(certificateChain, authType, socket) && other.test(certificateChain, authType, socket);
     }
 
-    default ChainAndAuthTypeValidator or(ChainAndAuthTypeValidator other) {
+    default ChainAndAuthTypeWithSocketValidator or(ChainAndAuthTypeWithSocketValidator other) {
         Objects.requireNonNull(other);
-        return (certificateChain, authType) -> test(certificateChain, authType) || other.test(certificateChain, authType);
+        return (certificateChain, authType, socket) -> test(certificateChain, authType, socket) || other.test(certificateChain, authType, socket);
     }
 
 }

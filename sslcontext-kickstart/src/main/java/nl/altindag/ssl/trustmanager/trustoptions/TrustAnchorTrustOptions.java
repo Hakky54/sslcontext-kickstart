@@ -13,18 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.altindag.ssl.trustmanager;
+package nl.altindag.ssl.trustmanager.trustoptions;
 
 import javax.net.ssl.CertPathTrustManagerParameters;
-import java.security.KeyStore;
+import java.security.cert.TrustAnchor;
+import java.util.Set;
 
 /**
  * @author Hakan Altindag
  */
 @FunctionalInterface
-public interface TrustStoreTrustOptions<R extends CertPathTrustManagerParameters> extends TrustOptions<KeyStore, R> {
+public interface TrustAnchorTrustOptions<R extends CertPathTrustManagerParameters> extends TrustOptions<Set<TrustAnchor>, R> {
 
     @Override
-    R apply(KeyStore trustStore) throws Exception;
+    R apply(Set<TrustAnchor> trustAnchors) throws Exception;
 
 }

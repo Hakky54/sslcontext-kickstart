@@ -13,16 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.altindag.ssl.trustmanager;
+package nl.altindag.ssl.trustmanager.trustoptions;
 
-import javax.net.ssl.ManagerFactoryParameters;
+import javax.net.ssl.CertPathTrustManagerParameters;
+import java.security.KeyStore;
 
 /**
  * @author Hakan Altindag
  */
 @FunctionalInterface
-public interface TrustOptions<T, R extends ManagerFactoryParameters> {
+public interface TrustStoreTrustOptions<R extends CertPathTrustManagerParameters> extends TrustOptions<KeyStore, R> {
 
-    R apply(T input) throws Exception;
+    @Override
+    R apply(KeyStore trustStore) throws Exception;
 
 }

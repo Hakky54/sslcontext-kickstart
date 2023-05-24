@@ -13,19 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.altindag.ssl.trustmanager;
+package nl.altindag.ssl.trustmanager.trustoptions;
 
-import javax.net.ssl.CertPathTrustManagerParameters;
-import java.security.cert.TrustAnchor;
-import java.util.Set;
+import javax.net.ssl.ManagerFactoryParameters;
 
 /**
  * @author Hakan Altindag
  */
 @FunctionalInterface
-public interface TrustAnchorTrustOptions<R extends CertPathTrustManagerParameters> extends TrustOptions<Set<TrustAnchor>, R> {
+public interface TrustOptions<T, R extends ManagerFactoryParameters> {
 
-    @Override
-    R apply(Set<TrustAnchor> trustAnchors) throws Exception;
+    R apply(T input) throws Exception;
 
 }

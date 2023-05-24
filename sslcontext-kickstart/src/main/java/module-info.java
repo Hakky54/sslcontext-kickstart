@@ -21,6 +21,8 @@ module nl.altindag.ssl {
     exports nl.altindag.ssl;
     exports nl.altindag.ssl.exception;
     exports nl.altindag.ssl.model;
+    exports nl.altindag.ssl.trustmanager.validator;
+    exports nl.altindag.ssl.trustmanager.trustoptions;
     exports nl.altindag.ssl.util;
     exports nl.altindag.ssl.util.internal to nl.altindag.ssl.pem;
 
