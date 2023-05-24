@@ -16,7 +16,6 @@
 module nl.altindag.ssl {
 
     requires transitive org.slf4j;
-    requires jdk.httpserver;
 
     exports nl.altindag.ssl;
     exports nl.altindag.ssl.exception;

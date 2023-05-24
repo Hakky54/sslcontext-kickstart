@@ -18,7 +18,6 @@ module nl.altindag.ssl.pem {
     requires transitive nl.altindag.ssl;
     requires transitive org.bouncycastle.provider;
     requires transitive org.bouncycastle.pkix;
-    requires jdk.httpserver;
 
     exports nl.altindag.ssl.pem.exception;
     exports nl.altindag.ssl.pem.util;
