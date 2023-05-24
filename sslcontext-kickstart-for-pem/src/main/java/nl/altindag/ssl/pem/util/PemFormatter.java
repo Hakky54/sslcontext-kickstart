@@ -24,7 +24,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import static nl.altindag.ssl.util.CollectorsUtils.toModifiableList;
+import static nl.altindag.ssl.util.internal.CollectorsUtils.toModifiableList;
 
 final class PemFormatter {
 

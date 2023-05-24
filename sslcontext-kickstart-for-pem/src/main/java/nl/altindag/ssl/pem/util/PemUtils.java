@@ -22,10 +22,10 @@ import nl.altindag.ssl.pem.decryptor.Pkcs8Decryptor;
 import nl.altindag.ssl.pem.exception.CertificateParseException;
 import nl.altindag.ssl.pem.exception.PemParseException;
 import nl.altindag.ssl.pem.exception.PrivateKeyParseException;
-import nl.altindag.ssl.util.IOUtils;
 import nl.altindag.ssl.util.KeyManagerUtils;
 import nl.altindag.ssl.util.TrustManagerUtils;
-import nl.altindag.ssl.util.ValidationUtils;
+import nl.altindag.ssl.util.internal.IOUtils;
+import nl.altindag.ssl.util.internal.ValidationUtils;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
@@ -63,10 +63,10 @@ import java.util.function.UnaryOperator;
 
 import static nl.altindag.ssl.pem.util.PemType.CERTIFICATE;
 import static nl.altindag.ssl.pem.util.PemType.KEY;
-import static nl.altindag.ssl.util.CollectorsUtils.toListAndThen;
-import static nl.altindag.ssl.util.CollectorsUtils.toUnmodifiableList;
-import static nl.altindag.ssl.util.ValidationUtils.requireNotEmpty;
-import static nl.altindag.ssl.util.ValidationUtils.requireNotNull;
+import static nl.altindag.ssl.util.internal.CollectorsUtils.toListAndThen;
+import static nl.altindag.ssl.util.internal.CollectorsUtils.toUnmodifiableList;
+import static nl.altindag.ssl.util.internal.ValidationUtils.requireNotEmpty;
+import static nl.altindag.ssl.util.internal.ValidationUtils.requireNotNull;
 
 /**
  * Reads PEM formatted private keys and certificates

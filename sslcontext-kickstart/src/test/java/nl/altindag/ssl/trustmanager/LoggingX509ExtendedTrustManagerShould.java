@@ -16,8 +16,8 @@
 package nl.altindag.ssl.trustmanager;
 
 import nl.altindag.log.LogCaptor;
-import nl.altindag.ssl.util.HostUtils;
 import nl.altindag.ssl.util.KeyStoreUtils;
+import nl.altindag.ssl.util.internal.HostUtils;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 

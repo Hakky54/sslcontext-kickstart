@@ -22,8 +22,8 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 
-import static nl.altindag.ssl.util.ValidationUtils.GENERIC_EXCEPTION_MESSAGE;
-import static nl.altindag.ssl.util.ValidationUtils.requireNotNull;
+import static nl.altindag.ssl.util.internal.ValidationUtils.GENERIC_EXCEPTION_MESSAGE;
+import static nl.altindag.ssl.util.internal.ValidationUtils.requireNotNull;
 
 /**
  * <strong>NOTE:</strong>

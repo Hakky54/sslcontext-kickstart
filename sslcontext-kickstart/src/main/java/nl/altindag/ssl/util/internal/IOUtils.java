@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.altindag.ssl.util;
+package nl.altindag.ssl.util.internal;
 
 import nl.altindag.ssl.exception.GenericIOException;
 
@@ -29,8 +29,8 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.stream.Collectors;
 
-import static nl.altindag.ssl.util.ValidationUtils.GENERIC_EXCEPTION_MESSAGE;
-import static nl.altindag.ssl.util.ValidationUtils.requireNotNull;
+import static nl.altindag.ssl.util.internal.ValidationUtils.GENERIC_EXCEPTION_MESSAGE;
+import static nl.altindag.ssl.util.internal.ValidationUtils.requireNotNull;
 
 /**
  * <strong>NOTE:</strong>
@@ -53,7 +53,7 @@ public final class IOUtils {
         }
     }
 
-    static byte[] copyToByteArray(InputStream inputStream) {
+    public static byte[] copyToByteArray(InputStream inputStream) {
         try(ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             byte[] buffer = new byte[1024];
             int length;
@@ -67,7 +67,7 @@ public final class IOUtils {
         }
     }
 
-    static void closeSilently(AutoCloseable autoCloseable) {
+    public static void closeSilently(AutoCloseable autoCloseable) {
         try {
             autoCloseable.close();
         } catch (Exception ignored) {
@@ -87,7 +87,7 @@ public final class IOUtils {
         }
     }
 
-    static void write(Path path, byte[] data) {
+    public static void write(Path path, byte[] data) {
         try {
             Files.write(path, data, StandardOpenOption.CREATE);
         } catch (IOException e) {
@@ -95,7 +95,7 @@ public final class IOUtils {
         }
     }
 
-    static void write(Path path, Consumer<OutputStream> consumer) {
+    public static void write(Path path, Consumer<OutputStream> consumer) {
         try (OutputStream outputStream = Files.newOutputStream(path, StandardOpenOption.CREATE)) {
             consumer.accept(outputStream);
         } catch (Exception e) {
@@ -104,7 +104,7 @@ public final class IOUtils {
     }
 
     @FunctionalInterface
-    interface Consumer<T> {
+    public interface Consumer<T> {
         void accept(T t) throws Exception;
     }
 

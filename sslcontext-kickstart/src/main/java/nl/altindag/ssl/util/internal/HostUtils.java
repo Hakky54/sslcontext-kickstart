@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.altindag.ssl.util;
+package nl.altindag.ssl.util.internal;
 
 import javax.net.ssl.SSLEngine;
 import java.net.InetSocketAddress;

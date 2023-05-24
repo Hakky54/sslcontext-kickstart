@@ -28,6 +28,7 @@ import nl.altindag.ssl.trustmanager.LoggingX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.TrustManagerFactoryWrapper;
 import nl.altindag.ssl.trustmanager.UnsafeX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.X509TrustManagerWrapper;
+import nl.altindag.ssl.util.internal.ValidationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,8 +52,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static nl.altindag.ssl.util.CollectorsUtils.toListAndThen;
-import static nl.altindag.ssl.util.ValidationUtils.requireNotEmpty;
+import static nl.altindag.ssl.util.internal.CollectorsUtils.toListAndThen;
+import static nl.altindag.ssl.util.internal.ValidationUtils.requireNotEmpty;
 
 /**
  * @author Hakan Altindag
