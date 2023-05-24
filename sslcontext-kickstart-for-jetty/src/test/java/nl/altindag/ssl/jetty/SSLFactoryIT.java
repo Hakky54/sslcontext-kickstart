@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.altindag.ssl;
+package nl.altindag.ssl.jetty;
 
 import com.sun.net.httpserver.HttpsServer;
-import nl.altindag.ssl.util.JettySslUtils;
+import nl.altindag.ssl.SSLFactory;
+import nl.altindag.ssl.jetty.util.JettySslUtils;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.http.HttpMethod;

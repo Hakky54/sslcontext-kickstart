@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.altindag.ssl.util;
+package nl.altindag.ssl.jetty.util;
 
 import nl.altindag.ssl.SSLFactory;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
