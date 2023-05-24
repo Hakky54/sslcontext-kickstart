@@ -15,7 +15,7 @@
  */
 package nl.altindag.ssl.netty;
 
-import com.sun.net.httpserver.HttpsServer;
+import io.javalin.Javalin;
 import io.netty.handler.ssl.SslContext;
 import nl.altindag.ssl.SSLFactory;
 import nl.altindag.ssl.netty.util.NettySslUtils;
@@ -25,8 +25,6 @@ import reactor.netty.http.client.HttpClient;
 import reactor.util.function.Tuple2;
 
 import java.io.IOException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -37,16 +35,13 @@ class SSLFactoryIT {
 
     @Test
     void executeHttpsRequestWithMutualAuthentication() throws IOException {
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
-
         SSLFactory sslFactoryForServer = SSLFactory.builder()
                 .withIdentityMaterial("keystore/client-server/server-one/identity.jks", "secret".toCharArray())
                 .withTrustMaterial("keystore/client-server/server-one/truststore.jks", "secret".toCharArray())
                 .withNeedClientAuthentication()
                 .build();
 
-        HttpsServer server = ServerUtils.createServer(8443, sslFactoryForServer, executorService, "Hello from server");
-        server.start();
+        Javalin server = ServerUtils.createServer(sslFactoryForServer);
 
         SSLFactory sslFactoryForClient = SSLFactory.builder()
                 .withIdentityMaterial("keystore/client-server/client-one/identity.jks", "secret".toCharArray())
@@ -64,8 +59,7 @@ class SSLFactoryIT {
 
         assertThat(statusCode).isEqualTo(200);
 
-        server.stop(0);
-        executorService.shutdownNow();
+        server.stop();
     }
 
 }

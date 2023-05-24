@@ -59,6 +59,7 @@
         <version.assertj-core>3.24.2</version.assertj-core>
         <version.logcaptor>2.9.0</version.logcaptor>
         <version.mockito>4.11.0</version.mockito>
+        <version.javalin>5.5.0</version.javalin>
         <version.jacoco-maven-plugin>0.8.10</version.jacoco-maven-plugin>
         <version.maven-surefire-plugin>3.1.0</version.maven-surefire-plugin>
         <version.maven-fail-safe>3.1.0</version.maven-fail-safe>
@@ -113,6 +114,12 @@
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-simple</artifactId>
                 <version>${version.slf4j}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.javalin</groupId>
+                <artifactId>javalin</artifactId>
+                <version>${version.javalin}</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>

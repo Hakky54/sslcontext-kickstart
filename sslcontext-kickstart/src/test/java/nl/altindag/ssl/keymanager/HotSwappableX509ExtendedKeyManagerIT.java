@@ -15,7 +15,7 @@
  */
 package nl.altindag.ssl.keymanager;
 
-import com.sun.net.httpserver.HttpsServer;
+import io.javalin.Javalin;
 import nl.altindag.ssl.SSLFactory;
 import nl.altindag.ssl.ServerUtils;
 import nl.altindag.ssl.util.KeyManagerUtils;
@@ -36,8 +36,6 @@ import javax.net.ssl.X509ExtendedKeyManager;
 import java.io.IOException;
 import java.net.URL;
 import java.security.KeyStore;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -51,8 +49,7 @@ class HotSwappableX509ExtendedKeyManagerIT {
     private static SSLSocketFactory sslSocketFactory;
     private static SSLSessionContext sslSessionContext;
     private static X509ExtendedKeyManager keyManager;
-    private ExecutorService executorService;
-    private HttpsServer server;
+    private Javalin server;
 
     @BeforeAll
     static void setUpClientSSLSocketFactory() {
@@ -70,22 +67,19 @@ class HotSwappableX509ExtendedKeyManagerIT {
     }
 
     @BeforeEach
-    void startServer() throws IOException {
-        executorService = Executors.newSingleThreadExecutor();
+    void startServer() {
         SSLFactory sslFactoryForServer = SSLFactory.builder()
                 .withIdentityMaterial("keystore/client-server/server-one/identity.jks", "secret".toCharArray())
                 .withTrustMaterial("keystore/client-server/server-one/truststore.jks", "secret".toCharArray())
                 .withNeedClientAuthentication()
                 .build();
 
-        server = ServerUtils.createServer(8443, sslFactoryForServer, executorService, "Hello from server");
-        server.start();
+        server = ServerUtils.createServer(sslFactoryForServer);
     }
 
     @AfterEach
     void stopServer() {
-        server.stop(0);
-        executorService.shutdownNow();
+        server.stop();
     }
 
     @Test

@@ -15,7 +15,7 @@
  */
 package nl.altindag.ssl.apache5;
 
-import com.sun.net.httpserver.HttpsServer;
+import io.javalin.Javalin;
 import nl.altindag.ssl.SSLFactory;
 import nl.altindag.ssl.apache5.util.Apache5SslUtils;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
@@ -41,8 +41,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -53,27 +51,23 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class SSLFactoryIT {
 
-    private static ExecutorService executorService;
-    private static HttpsServer server;
+    private static Javalin server;
 
     @BeforeAll
-    static void startServer() throws IOException {
-        executorService = Executors.newSingleThreadExecutor();
-
+    static void startServer() {
         SSLFactory sslFactoryForServer = SSLFactory.builder()
                 .withIdentityMaterial("keystore/client-server/server-one/identity.jks", "secret".toCharArray())
                 .withTrustMaterial("keystore/client-server/server-one/truststore.jks", "secret".toCharArray())
                 .withNeedClientAuthentication()
                 .build();
 
-        server = ServerUtils.createServer(8443, sslFactoryForServer, executorService, "Hello from server");
+        server = ServerUtils.createServer(sslFactoryForServer);
         server.start();
     }
 
     @AfterAll
     static void stopServer() {
-        server.stop(0);
-        executorService.shutdownNow();
+        server.stop();
     }
 
     @Test
@@ -117,8 +111,8 @@ class SSLFactoryIT {
         httpAsyncClient.start();
 
         SimpleHttpResponse response = httpAsyncClient.execute(
-                new BasicRequestProducer(Method.GET, new URI("https://localhost:8443/api/hello")),
-                SimpleResponseConsumer.create(), null, null, null)
+                        new BasicRequestProducer(Method.GET, new URI("https://localhost:8443/api/hello")),
+                        SimpleResponseConsumer.create(), null, null, null)
                 .get(10, TimeUnit.SECONDS);
 
         int statusCode = response.getCode();

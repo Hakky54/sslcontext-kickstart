@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.altindag.ssl.apache4.util;
+package nl.altindag.ssl.apache4;
 
-import com.sun.net.httpserver.HttpsServer;
+import io.javalin.Javalin;
 import nl.altindag.ssl.SSLFactory;
+import nl.altindag.ssl.apache4.util.Apache4SslUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -25,8 +26,6 @@ import org.apache.http.impl.client.HttpClients;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -37,16 +36,13 @@ class SSLFactoryIT {
 
     @Test
     void executeHttpsRequestWithMutualAuthentication() throws IOException {
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
-
         SSLFactory sslFactoryForServer = SSLFactory.builder()
                 .withIdentityMaterial("keystore/client-server/server-one/identity.jks", "secret".toCharArray())
                 .withTrustMaterial("keystore/client-server/server-one/truststore.jks", "secret".toCharArray())
                 .withNeedClientAuthentication()
                 .build();
 
-        HttpsServer server = ServerUtils.createServer(8443, sslFactoryForServer, executorService, "Hello from server");
-        server.start();
+        Javalin server = ServerUtils.createServer(sslFactoryForServer);
 
         SSLFactory sslFactoryForClient = SSLFactory.builder()
                 .withIdentityMaterial("keystore/client-server/client-one/identity.jks", "secret".toCharArray())
@@ -65,8 +61,7 @@ class SSLFactoryIT {
         int statusCode = response.getStatusLine().getStatusCode();
         assertThat(statusCode).isEqualTo(200);
 
-        server.stop(0);
-        executorService.shutdownNow();
+        server.stop();
     }
 
 }

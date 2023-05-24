@@ -15,51 +15,36 @@
  */
 package nl.altindag.ssl.jetty;
 
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
-import com.sun.net.httpserver.HttpsConfigurator;
-import com.sun.net.httpserver.HttpsParameters;
-import com.sun.net.httpserver.HttpsServer;
+import io.javalin.Javalin;
 import nl.altindag.ssl.SSLFactory;
-
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.InetSocketAddress;
-import java.nio.charset.StandardCharsets;
-import java.util.concurrent.Executor;
+import org.eclipse.jetty.server.Connector;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 
 /**
  * @author Hakan Altindag
  */
 public final class ServerUtils {
 
-    private ServerUtils() {}
+    private ServerUtils() {
+    }
 
-    public static HttpsServer createServer(int port, SSLFactory sslFactory, Executor executor, String payload) throws IOException {
-        InetSocketAddress socketAddress = new InetSocketAddress(port);
-        HttpsServer server = HttpsServer.create(socketAddress, 0);
-        server.setExecutor(executor);
-        server.setHttpsConfigurator(new HttpsConfigurator(sslFactory.getSslContext()) {
-            @Override
-            public void configure(HttpsParameters params) {
-                params.setSSLParameters(sslFactory.getSslParameters());
-            }
-        });
+    public static Javalin createServer(SSLFactory sslFactory) {
+        SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
+        sslContextFactory.setSslContext(sslFactory.getSslContext());
+        sslContextFactory.setNeedClientAuth(true);
 
-        class HelloWorldController implements HttpHandler {
-            @Override
-            public void handle(HttpExchange exchange) throws IOException {
-                try (OutputStream responseBody = exchange.getResponseBody()) {
+        Javalin app = Javalin.create(config -> config.jetty.server(() -> {
+            Server server = new Server();
+            ServerConnector sslConnector = new ServerConnector(server, sslContextFactory);
+            sslConnector.setPort(8443);
+            server.setConnectors(new Connector[]{sslConnector});
+            return server;
+        })).start();
 
-                    exchange.getResponseHeaders().set("Content-Type", "text/plain");
-
-                    exchange.sendResponseHeaders(200, payload.length());
-                    responseBody.write(payload.getBytes(StandardCharsets.UTF_8));
-                }
-            }
-        }
-        server.createContext("/api/hello", new HelloWorldController());
-        return server;
+        app.get("/api/hello", ctx -> ctx.result("Hello World"));
+        return app;
     }
 
 }

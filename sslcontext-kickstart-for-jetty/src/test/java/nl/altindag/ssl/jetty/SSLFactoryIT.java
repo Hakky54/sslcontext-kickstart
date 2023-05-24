@@ -15,7 +15,7 @@
  */
 package nl.altindag.ssl.jetty;
 
-import com.sun.net.httpserver.HttpsServer;
+import io.javalin.Javalin;
 import nl.altindag.ssl.SSLFactory;
 import nl.altindag.ssl.jetty.util.JettySslUtils;
 import org.eclipse.jetty.client.HttpClient;
@@ -23,9 +23,6 @@ import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.junit.jupiter.api.Test;
-
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -36,16 +33,13 @@ class SSLFactoryIT {
 
     @Test
     void executeHttpsRequestWithMutualAuthentication() throws Exception {
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
-
         SSLFactory sslFactoryForServer = SSLFactory.builder()
                 .withIdentityMaterial("keystore/client-server/server-one/identity.jks", "secret".toCharArray())
                 .withTrustMaterial("keystore/client-server/server-one/truststore.jks", "secret".toCharArray())
                 .withNeedClientAuthentication()
                 .build();
 
-        HttpsServer server = ServerUtils.createServer(8443, sslFactoryForServer, executorService, "Hello from server");
-        server.start();
+        Javalin server = ServerUtils.createServer(sslFactoryForServer);
 
         SSLFactory sslFactoryForClient = SSLFactory.builder()
                 .withIdentityMaterial("keystore/client-server/client-one/identity.jks", "secret".toCharArray())
@@ -66,8 +60,7 @@ class SSLFactoryIT {
         int statusCode = contentResponse.getStatus();
         assertThat(statusCode).isEqualTo(200);
 
-        server.stop(0);
-        executorService.shutdownNow();
+        server.stop();
     }
 
 }

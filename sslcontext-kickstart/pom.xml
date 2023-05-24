@@ -68,6 +68,10 @@
             <groupId>io.github.hakky54</groupId>
             <artifactId>logcaptor</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.javalin</groupId>
+            <artifactId>javalin</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

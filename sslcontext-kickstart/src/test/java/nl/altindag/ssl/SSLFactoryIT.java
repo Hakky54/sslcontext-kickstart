@@ -15,7 +15,7 @@
  */
 package nl.altindag.ssl;
 
-import com.sun.net.httpserver.HttpsServer;
+import io.javalin.Javalin;
 import nl.altindag.ssl.util.SSLFactoryUtils;
 import nl.altindag.ssl.util.SSLSessionUtils;
 import org.junit.jupiter.api.Test;
@@ -55,8 +55,7 @@ class SSLFactoryIT {
                 .withNeedClientAuthentication()
                 .build();
 
-        HttpsServer server = ServerUtils.createServer(8443, sslFactoryForServer, executorService, "Hello from server");
-        server.start();
+        Javalin server = ServerUtils.createServer(sslFactoryForServer);
 
         SSLFactory sslFactoryForClient = SSLFactory.builder()
                 .withIdentityMaterial("keystore/client-server/client-one/identity.jks", "secret".toCharArray())
@@ -71,7 +70,7 @@ class SSLFactoryIT {
         int statusCode = connection.getResponseCode();
         assertThat(statusCode).isEqualTo(200);
 
-        server.stop(0);
+        server.stop();
         executorService.shutdownNow();
     }
 
@@ -94,11 +93,8 @@ class SSLFactoryIT {
                 .withProtocols("TLSv1.2")
                 .build();
 
-        HttpsServer serverOne = ServerUtils.createServer(8443, sslFactoryForServerOne, executorService, "Hello from server one");
-        HttpsServer serverTwo = ServerUtils.createServer(8444, sslFactoryForServerTwo, executorService, "Hello from server two");
-
-        serverOne.start();
-        serverTwo.start();
+        Javalin serverOne = ServerUtils.createServer(sslFactoryForServerOne, 8443, "Hello from server one");
+        Javalin serverTwo = ServerUtils.createServer(sslFactoryForServerTwo, 8444, "Hello from server two");
 
         SSLFactory sslFactoryForClient = SSLFactory.builder()
                 .withIdentityMaterial("keystore/client-server/client-one/identity.jks", keyStorePassword)
@@ -118,8 +114,8 @@ class SSLFactoryIT {
         assertThat(response.getStatusCode()).isEqualTo(200);
         assertThat(response.getBody()).contains("Hello from server two");
 
-        serverOne.stop(0);
-        serverTwo.stop(0);
+        serverOne.stop();
+        serverTwo.stop();
         executorService.shutdownNow();
     }
 
@@ -144,11 +140,8 @@ class SSLFactoryIT {
                 .withProtocols("TLSv1.2")
                 .build();
 
-        HttpsServer serverOne = ServerUtils.createServer(8443, sslFactoryForServerOne, executorService, "Hello from server one");
-        HttpsServer serverTwo = ServerUtils.createServer(8444, sslFactoryForServerTwo, executorService, "Hello from server two");
-
-        serverOne.start();
-        serverTwo.start();
+        Javalin serverOne = ServerUtils.createServer(sslFactoryForServerOne, 8443, "Hello from server one");
+        Javalin serverTwo = ServerUtils.createServer(sslFactoryForServerTwo, 8444, "Hello from server two");
 
         Map<String, List<String>> clientAliasesToHosts = new HashMap<>();
         clientAliasesToHosts.put("client-one", Collections.singletonList("https://localhost:8443/api/hello"));
@@ -189,8 +182,8 @@ class SSLFactoryIT {
         assertThatThrownBy(() -> executeRequest("https://localhost:8444/api/hello", sslSocketFactoryWithIncorrectClientRoutes))
                 .isInstanceOfAny(SocketException.class, SSLException.class);
 
-        serverOne.stop(0);
-        serverTwo.stop(0);
+        serverOne.stop();
+        serverTwo.stop();
         executorService.shutdownNow();
     }
 
@@ -214,11 +207,8 @@ class SSLFactoryIT {
                 .withProtocols("TLSv1.2")
                 .build();
 
-        HttpsServer serverOne = ServerUtils.createServer(8443, sslFactoryForServerOne, executorService, "Hello from server one");
-        HttpsServer serverTwo = ServerUtils.createServer(8444, sslFactoryForServerTwo, executorService, "Hello from server two");
-
-        serverOne.start();
-        serverTwo.start();
+        Javalin serverOne = ServerUtils.createServer(sslFactoryForServerOne, 8443, "Hello from server one");
+        Javalin serverTwo = ServerUtils.createServer(sslFactoryForServerTwo, 8444, "Hello from server two");
 
         SSLFactory sslFactoryForClient = SSLFactory.builder()
                 .withIdentityMaterial("keystore/client-server/client-one/identity.jks", keyStorePassword)
@@ -250,8 +240,8 @@ class SSLFactoryIT {
         assertThat(response.getStatusCode()).isEqualTo(200);
         assertThat(response.getBody()).contains("Hello from server two");
 
-        serverOne.stop(0);
-        serverTwo.stop(0);
+        serverOne.stop();
+        serverTwo.stop();
         executorService.shutdownNow();
     }
 
@@ -275,11 +265,8 @@ class SSLFactoryIT {
                 .withProtocols("TLSv1.2")
                 .build();
 
-        HttpsServer serverOne = ServerUtils.createServer(8443, sslFactoryForServerOne, executorService, "Hello from server one");
-        HttpsServer serverTwo = ServerUtils.createServer(8444, sslFactoryForServerTwo, executorService, "Hello from server two");
-
-        serverOne.start();
-        serverTwo.start();
+        Javalin serverOne = ServerUtils.createServer(sslFactoryForServerOne, 8443, "Hello from server one");
+        Javalin serverTwo = ServerUtils.createServer(sslFactoryForServerTwo, 8444, "Hello from server two");
 
         SSLFactory sslFactoryForClient = SSLFactory.builder()
                 .withIdentityMaterial("keystore/client-server/client-one/identity.jks", keyStorePassword)
@@ -317,8 +304,8 @@ class SSLFactoryIT {
         assertThat(response.getStatusCode()).isEqualTo(200);
         assertThat(response.getBody()).contains("Hello from server two");
 
-        serverOne.stop(0);
-        serverTwo.stop(0);
+        serverOne.stop();
+        serverTwo.stop();
         executorService.shutdownNow();
     }
 
