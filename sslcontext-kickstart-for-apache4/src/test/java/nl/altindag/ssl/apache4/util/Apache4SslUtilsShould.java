@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.altindag.ssl.util;
+package nl.altindag.ssl.apache4.util;
 
 import nl.altindag.ssl.SSLFactory;
+import nl.altindag.ssl.util.KeyStoreUtils;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.junit.jupiter.api.Test;
 

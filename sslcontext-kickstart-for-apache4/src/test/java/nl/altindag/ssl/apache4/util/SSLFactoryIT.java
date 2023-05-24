@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.altindag.ssl;
+package nl.altindag.ssl.apache4.util;
 
 import com.sun.net.httpserver.HttpsServer;
-import nl.altindag.ssl.util.Apache4SslUtils;
+import nl.altindag.ssl.SSLFactory;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
