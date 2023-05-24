@@ -42,7 +42,7 @@ public final class IOUtils {
 
     private IOUtils() {}
 
-    static String getContent(InputStream inputStream) {
+    public static String getContent(InputStream inputStream) {
         try (InputStreamReader inputStreamReader = new InputStreamReader(requireNotNull(inputStream, GENERIC_EXCEPTION_MESSAGE.apply("InputStream")), StandardCharsets.UTF_8);
              BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
 
@@ -75,11 +75,11 @@ public final class IOUtils {
         }
     }
 
-    static InputStream getResourceAsStream(String name) {
+    public static InputStream getResourceAsStream(String name) {
         return IOUtils.class.getClassLoader().getResourceAsStream(name);
     }
 
-    static InputStream getFileAsStream(Path path) {
+    public static InputStream getFileAsStream(Path path) {
         try {
             return Files.newInputStream(path, StandardOpenOption.READ);
         } catch (IOException e) {

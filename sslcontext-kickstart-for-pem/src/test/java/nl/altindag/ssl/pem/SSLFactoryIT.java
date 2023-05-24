@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.altindag.ssl;
+package nl.altindag.ssl.pem;
 
 import com.sun.net.httpserver.HttpsServer;
-import nl.altindag.ssl.util.PemUtils;
+import nl.altindag.ssl.SSLFactory;
+import nl.altindag.ssl.pem.util.PemUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -180,7 +181,6 @@ class SSLFactoryIT {
         connection.setHostnameVerifier(sslFactory.getHostnameVerifier());
         connection.setRequestMethod("GET");
 
-        int statusCode = connection.getResponseCode();
         assertThat(connection.getResponseCode()).isEqualTo(200);
     }
 }

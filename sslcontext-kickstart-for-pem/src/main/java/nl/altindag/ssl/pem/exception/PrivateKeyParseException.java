@@ -13,14 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.altindag.ssl.exception;
+package nl.altindag.ssl.pem.exception;
 
 /**
  * @author Hakan Altindag
  */
-public final class PublicKeyParseException extends PemParseException {
+public final class PrivateKeyParseException extends PemParseException {
 
-    public PublicKeyParseException(String message) {
+    public PrivateKeyParseException(Throwable cause) {
+        super(cause);
+    }
+
+    public PrivateKeyParseException(String message) {
         super(message);
     }
 

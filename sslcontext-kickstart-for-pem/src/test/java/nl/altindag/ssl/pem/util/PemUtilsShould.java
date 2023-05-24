@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.altindag.ssl.util;
+package nl.altindag.ssl.pem.util;
 
-import nl.altindag.ssl.exception.CertificateParseException;
 import nl.altindag.ssl.exception.GenericIOException;
-import nl.altindag.ssl.exception.PemParseException;
-import nl.altindag.ssl.exception.PrivateKeyParseException;
+import nl.altindag.ssl.pem.exception.CertificateParseException;
+import nl.altindag.ssl.pem.exception.PemParseException;
+import nl.altindag.ssl.pem.exception.PrivateKeyParseException;
+import nl.altindag.ssl.util.IOUtils;
+import nl.altindag.ssl.util.KeyStoreUtils;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;

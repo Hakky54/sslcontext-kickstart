@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.altindag.ssl.decryptor;
+package nl.altindag.ssl.pem.decryptor;
 
+import nl.altindag.ssl.pem.util.PemUtils;
 import org.bouncycastle.openssl.PEMDecryptorProvider;
 import org.bouncycastle.openssl.jcajce.JcePEMDecryptorProviderBuilder;
 
@@ -23,7 +24,7 @@ import static nl.altindag.ssl.util.ValidationUtils.requireNotNull;
 /**
  * <strong>NOTE:</strong>
  * Please don't use this class directly as it is part of the internal API. Class name and methods can be changed any time.
- * Instead use the {@link nl.altindag.ssl.util.PemUtils PemUtils} which provides the same functionality
+ * Instead use the {@link PemUtils PemUtils} which provides the same functionality
  * while it has a stable API because it is part of the public API.
  *
  * @author Hakan Altindag

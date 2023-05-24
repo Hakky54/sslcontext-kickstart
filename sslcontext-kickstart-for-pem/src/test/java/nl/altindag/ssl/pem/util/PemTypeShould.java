@@ -13,19 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.altindag.ssl.exception;
+package nl.altindag.ssl.pem.util;
+
+import nl.altindag.ssl.pem.exception.PemParseException;
+import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @author Hakan Altindag
  */
-public final class CertificateParseException extends PemParseException {
+class PemTypeShould {
 
-    public CertificateParseException(Throwable cause) {
-        super(cause);
-    }
-
-    public CertificateParseException(String message) {
-        super(message);
+    @Test
+    void throwExceptionForUnknownPemType() {
+        assertThatThrownBy(() -> PemType.from(new Object()))
+                .isInstanceOf(PemParseException.class)
+                .hasMessage("The provided [java.lang.Object] pem type is not (yet) supported");
     }
 
 }
