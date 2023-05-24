@@ -15,9 +15,9 @@
  */
 package nl.altindag.ssl.trustmanager;
 
-import io.javalin.Javalin;
 import nl.altindag.ssl.SSLFactory;
 import nl.altindag.ssl.ServerUtils;
+import nl.altindag.ssl.ServerUtils.Server;
 import nl.altindag.ssl.util.KeyStoreUtils;
 import nl.altindag.ssl.util.SSLSessionUtils;
 import nl.altindag.ssl.util.TrustManagerUtils;
@@ -49,7 +49,7 @@ class HotSwappableX509ExtendedTrustManagerIT {
     private static SSLSocketFactory sslSocketFactory;
     private static SSLSessionContext sslSessionContext;
     private static X509ExtendedTrustManager trustManager;
-    private Javalin server;
+    private Server server;
 
     @BeforeAll
     static void setUpSSLSocketFactory() {

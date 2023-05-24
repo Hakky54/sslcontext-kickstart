@@ -15,9 +15,9 @@
  */
 package nl.altindag.ssl.netty;
 
-import io.javalin.Javalin;
 import io.netty.handler.ssl.SslContext;
 import nl.altindag.ssl.SSLFactory;
+import nl.altindag.ssl.netty.ServerUtils.Server;
 import nl.altindag.ssl.netty.util.NettySslUtils;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
@@ -41,7 +41,7 @@ class SSLFactoryIT {
                 .withNeedClientAuthentication()
                 .build();
 
-        Javalin server = ServerUtils.createServer(sslFactoryForServer);
+        Server server = ServerUtils.createServer(sslFactoryForServer);
 
         SSLFactory sslFactoryForClient = SSLFactory.builder()
                 .withIdentityMaterial("keystore/client-server/client-one/identity.jks", "secret".toCharArray())

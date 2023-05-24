@@ -15,8 +15,8 @@
  */
 package nl.altindag.ssl.pem;
 
-import io.javalin.Javalin;
 import nl.altindag.ssl.SSLFactory;
+import nl.altindag.ssl.pem.ServerUtils.Server;
 import nl.altindag.ssl.pem.util.PemUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -35,7 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class SSLFactoryIT {
 
-    private static Javalin server;
+    private static Server server;
 
     @BeforeAll
     static void startServer() {

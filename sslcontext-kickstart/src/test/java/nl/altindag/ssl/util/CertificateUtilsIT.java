@@ -15,9 +15,9 @@
  */
 package nl.altindag.ssl.util;
 
-import io.javalin.Javalin;
 import nl.altindag.ssl.SSLFactory;
 import nl.altindag.ssl.ServerUtils;
+import nl.altindag.ssl.ServerUtils.Server;
 import nl.altindag.ssl.exception.GenericCertificateException;
 import org.junit.jupiter.api.Test;
 
@@ -51,7 +51,8 @@ class CertificateUtilsIT {
             try {
                 certificatesFromRemote = certificateSupplier.get();
                 amountOfRetries++;
-            } catch (GenericCertificateException ignored) {}
+            } catch (GenericCertificateException ignored) {
+            }
         }
 
         assertThat(certificatesFromRemote)
@@ -86,7 +87,8 @@ class CertificateUtilsIT {
             try {
                 certificatesFromRemote = certificateSupplier.get();
                 amountOfRetries++;
-            } catch (GenericCertificateException ignored) {}
+            } catch (GenericCertificateException ignored) {
+            }
         }
 
         assertThat(certificatesFromRemote)
@@ -151,7 +153,7 @@ class CertificateUtilsIT {
                 .withProtocols("TLSv1.2")
                 .build();
 
-        Javalin server = ServerUtils.createServer(sslFactoryForServerOne);
+        Server server = ServerUtils.createServer(sslFactoryForServerOne);
 
         Map<String, List<X509Certificate>> certificatesFromRemote = CertificateUtils.getCertificate("https://localhost:8443");
 
@@ -170,7 +172,7 @@ class CertificateUtilsIT {
                 .withProtocols("TLSv1.2")
                 .build();
 
-        Javalin server = ServerUtils.createServer(sslFactoryForServerOne);
+        Server server = ServerUtils.createServer(sslFactoryForServerOne);
 
         Map<String, List<X509Certificate>> certificatesFromRemote = CertificateUtils.getCertificate("https://localhost:8443");
 

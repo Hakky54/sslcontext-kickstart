@@ -15,8 +15,8 @@
  */
 package nl.altindag.ssl.apache4;
 
-import io.javalin.Javalin;
 import nl.altindag.ssl.SSLFactory;
+import nl.altindag.ssl.apache4.ServerUtils.Server;
 import nl.altindag.ssl.apache4.util.Apache4SslUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -42,7 +42,7 @@ class SSLFactoryIT {
                 .withNeedClientAuthentication()
                 .build();
 
-        Javalin server = ServerUtils.createServer(sslFactoryForServer);
+        Server server = ServerUtils.createServer(sslFactoryForServer);
 
         SSLFactory sslFactoryForClient = SSLFactory.builder()
                 .withIdentityMaterial("keystore/client-server/client-one/identity.jks", "secret".toCharArray())

@@ -15,8 +15,8 @@
  */
 package nl.altindag.ssl.apache5;
 
-import io.javalin.Javalin;
 import nl.altindag.ssl.SSLFactory;
+import nl.altindag.ssl.apache5.ServerUtils.Server;
 import nl.altindag.ssl.apache5.util.Apache5SslUtils;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleResponseConsumer;
@@ -51,7 +51,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class SSLFactoryIT {
 
-    private static Javalin server;
+    private static Server server;
 
     @BeforeAll
     static void startServer() {

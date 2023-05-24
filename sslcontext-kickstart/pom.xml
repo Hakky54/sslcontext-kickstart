@@ -69,8 +69,8 @@
             <artifactId>logcaptor</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.javalin</groupId>
-            <artifactId>javalin</artifactId>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
         </dependency>
     </dependencies>
 
