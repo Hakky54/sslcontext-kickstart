@@ -27,7 +27,6 @@ import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMException;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
@@ -745,34 +744,6 @@ class PemUtilsShould {
     void throwPublicKeyParseExceptionWhenPublicKeyIsMissing() {
         assertThatThrownBy(() -> PemUtils.loadIdentityMaterial(PEM_LOCATION + "splitted-unencrypted-identity-containing-private-key.pem"))
                 .hasMessageContaining("Received an unsupported certificate type");
-    }
-
-    @Test
-    @Disabled
-    void throwGenericIOExceptionWhenStreamCannotBeClosedForAnotherAnotherMethod() throws IOException {
-        String certificatePath = PEM_LOCATION + "splitted-unencrypted-identity-containing-certificate.pem";
-        String privateKeyPath = PEM_LOCATION + "splitted-unencrypted-identity-containing-private-key.pem";
-
-        InputStream certificateStream = spy(getResource(certificatePath));
-        InputStream privateKeyStream = spy(getResource(privateKeyPath));
-
-        try (MockedStatic<IOUtils> pemUtilsMockedStatic = mockStatic(IOUtils.class, invocation -> {
-            Method method = invocation.getMethod();
-            if ("getResourceAsStream".equals(method.getName()) && method.getParameterCount() == 0) {
-                return invocation.getMock();
-            } else {
-                return invocation.callRealMethod();
-            }
-        })) {
-
-            doThrow(new IOException("Could not close the stream")).when(certificateStream).close();
-            doThrow(new IOException("Could not close the stream")).when(privateKeyStream).close();
-            pemUtilsMockedStatic.when(() -> IOUtils.getResourceAsStream(certificatePath)).thenReturn(certificateStream);
-
-            assertThatThrownBy(() -> PemUtils.loadIdentityMaterial(certificatePath, privateKeyPath))
-                    .isInstanceOf(GenericIOException.class)
-                    .hasRootCauseMessage("Could not close the stream");
-        }
     }
 
     @Test
