@@ -18,6 +18,9 @@ package nl.altindag.ssl.util;
 import javax.net.ssl.SSLParameters;
 import java.util.Optional;
 
+/**
+ * @author Hakan Altindag
+ */
 public final class SSLParametersUtils {
 
     private SSLParametersUtils() {

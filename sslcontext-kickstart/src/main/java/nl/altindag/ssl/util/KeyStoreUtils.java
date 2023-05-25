@@ -16,14 +16,12 @@
 package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.exception.GenericKeyStoreException;
+import nl.altindag.ssl.util.internal.IOUtils;
+import nl.altindag.ssl.util.internal.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.X509TrustManager;
-
-import static nl.altindag.ssl.util.ValidationUtils.requireNotEmpty;
-import static nl.altindag.ssl.util.ValidationUtils.requireNotNull;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -42,6 +40,9 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.function.UnaryOperator;
+
+import static nl.altindag.ssl.util.internal.ValidationUtils.requireNotEmpty;
+import static nl.altindag.ssl.util.internal.ValidationUtils.requireNotNull;
 
 /**
  * @author Hakan Altindag

@@ -18,12 +18,12 @@ package nl.altindag.ssl;
 import nl.altindag.ssl.exception.GenericKeyStoreException;
 import nl.altindag.ssl.exception.GenericSecurityException;
 import nl.altindag.ssl.model.KeyStoreHolder;
-import nl.altindag.ssl.model.SSLMaterial;
-import nl.altindag.ssl.trustmanager.ChainAndAuthTypeValidator;
-import nl.altindag.ssl.trustmanager.ChainAndAuthTypeWithSSLEngineValidator;
-import nl.altindag.ssl.trustmanager.ChainAndAuthTypeWithSocketValidator;
-import nl.altindag.ssl.trustmanager.TrustAnchorTrustOptions;
-import nl.altindag.ssl.trustmanager.TrustStoreTrustOptions;
+import nl.altindag.ssl.model.internal.SSLMaterial;
+import nl.altindag.ssl.trustmanager.trustoptions.TrustAnchorTrustOptions;
+import nl.altindag.ssl.trustmanager.trustoptions.TrustStoreTrustOptions;
+import nl.altindag.ssl.trustmanager.validator.ChainAndAuthTypeValidator;
+import nl.altindag.ssl.trustmanager.validator.ChainAndAuthTypeWithSSLEngineValidator;
+import nl.altindag.ssl.trustmanager.validator.ChainAndAuthTypeWithSocketValidator;
 import nl.altindag.ssl.util.HostnameVerifierUtils;
 import nl.altindag.ssl.util.KeyManagerUtils;
 import nl.altindag.ssl.util.KeyStoreUtils;
@@ -31,9 +31,9 @@ import nl.altindag.ssl.util.SSLContextUtils;
 import nl.altindag.ssl.util.SSLParametersUtils;
 import nl.altindag.ssl.util.SSLSessionUtils;
 import nl.altindag.ssl.util.SSLSocketUtils;
-import nl.altindag.ssl.util.StringUtils;
 import nl.altindag.ssl.util.TrustManagerUtils;
-import nl.altindag.ssl.util.UriUtils;
+import nl.altindag.ssl.util.internal.StringUtils;
+import nl.altindag.ssl.util.internal.UriUtils;
 
 import javax.net.ssl.CertPathTrustManagerParameters;
 import javax.net.ssl.HostnameVerifier;
@@ -73,8 +73,8 @@ import java.util.stream.Collectors;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
-import static nl.altindag.ssl.util.ValidationUtils.requireNotBlank;
-import static nl.altindag.ssl.util.ValidationUtils.requireNotEmpty;
+import static nl.altindag.ssl.util.internal.ValidationUtils.requireNotBlank;
+import static nl.altindag.ssl.util.internal.ValidationUtils.requireNotEmpty;
 
 /**
  * @author Hakan Altindag

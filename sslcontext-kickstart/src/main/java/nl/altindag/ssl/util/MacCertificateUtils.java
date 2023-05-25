@@ -16,6 +16,7 @@
 package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.exception.GenericIOException;
+import nl.altindag.ssl.util.internal.IOUtils;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -42,7 +43,7 @@ final class MacCertificateUtils {
     private MacCertificateUtils() {
     }
 
-    public static List<Certificate> getCertificates() {
+    static List<Certificate> getCertificates() {
         if (OperatingSystem.get() != MAC) {
             return Collections.emptyList();
         }

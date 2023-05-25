@@ -29,7 +29,7 @@ import java.util.Objects;
 import java.util.function.LongFunction;
 import java.util.function.Predicate;
 
-import static nl.altindag.ssl.util.CollectorsUtils.toUnmodifiableList;
+import static nl.altindag.ssl.util.internal.CollectorsUtils.toUnmodifiableList;
 
 /**
  * @author Hakan Altindag

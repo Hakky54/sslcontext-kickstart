@@ -51,7 +51,7 @@ final class LinuxCertificateUtils {
     private LinuxCertificateUtils() {
     }
 
-    public static List<Certificate> getCertificates() {
+    static List<Certificate> getCertificates() {
         if (OperatingSystem.get() != LINUX) {
             return Collections.emptyList();
         }

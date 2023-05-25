@@ -44,7 +44,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import static nl.altindag.ssl.util.CollectorsUtils.toUnmodifiableList;
+import static nl.altindag.ssl.util.internal.CollectorsUtils.toUnmodifiableList;
 
 /**
  * @author Hakan Altindag

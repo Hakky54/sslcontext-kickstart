@@ -15,50 +15,178 @@
  */
 package nl.altindag.ssl;
 
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
-import com.sun.net.httpserver.HttpsConfigurator;
-import com.sun.net.httpserver.HttpsParameters;
-import com.sun.net.httpserver.HttpsServer;
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpServerCodec;
+import io.netty.handler.codec.http.HttpUtil;
+import io.netty.handler.ssl.ClientAuth;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.SslHandler;
+import io.netty.handler.ssl.SupportedCipherSuiteFilter;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.InetSocketAddress;
-import java.nio.charset.StandardCharsets;
-import java.util.concurrent.Executor;
+import javax.net.ssl.SSLParameters;
+import javax.net.ssl.X509ExtendedKeyManager;
+
+import static io.netty.channel.ChannelFutureListener.CLOSE;
+import static io.netty.handler.codec.http.HttpHeaderNames.CONNECTION;
+import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
+import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
+import static io.netty.handler.codec.http.HttpHeaderValues.KEEP_ALIVE;
+import static io.netty.handler.codec.http.HttpResponseStatus.CONTINUE;
+import static io.netty.handler.codec.http.HttpResponseStatus.OK;
+import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * @author Hakan Altindag
  */
 public final class ServerUtils {
 
-    private ServerUtils() {}
+    private ServerUtils() {
+    }
 
-    public static HttpsServer createServer(int port, SSLFactory sslFactory, Executor executor, String payload) throws IOException {
-        InetSocketAddress socketAddress = new InetSocketAddress(port);
-        HttpsServer server = HttpsServer.create(socketAddress, 0);
-        server.setExecutor(executor);
-        server.setHttpsConfigurator(new HttpsConfigurator(sslFactory.getSslContext()) {
-            @Override
-            public void configure(HttpsParameters params) {
-                params.setSSLParameters(sslFactory.getSslParameters());
+    public static Server createServer(SSLFactory sslFactory) {
+        return createServer(sslFactory, 8443, "Hello World!");
+    }
+
+    public static Server createServer(SSLFactory sslFactory, int port, String responseBody) {
+        X509ExtendedKeyManager keyManager = sslFactory.getKeyManager()
+                .orElseThrow(NullPointerException::new);
+
+        SslContextBuilder sslContextBuilder = SslContextBuilder.forServer(keyManager)
+                .ciphers(sslFactory.getCiphers(), SupportedCipherSuiteFilter.INSTANCE)
+                .protocols(sslFactory.getProtocols())
+                .clientAuth(getClientAuth(sslFactory.getSslParameters()));
+
+        sslFactory.getTrustManager().ifPresent(sslContextBuilder::trustManager);
+
+        try {
+            SslContext sslContext = sslContextBuilder.build();
+
+            NioEventLoopGroup bossGroup = new NioEventLoopGroup(1);
+            NioEventLoopGroup workerGroup = new NioEventLoopGroup();
+
+            ServerBootstrap serverBootstrap = new ServerBootstrap();
+            serverBootstrap.option(ChannelOption.SO_BACKLOG, 1024);
+            serverBootstrap.group(bossGroup, workerGroup)
+
+                    .channelFactory(NioServerSocketChannel::new)
+                    .childHandler(new ServerInitializer(sslContext, responseBody));
+
+            ChannelFuture httpChannel = serverBootstrap.bind(port).sync();
+            return new Server(httpChannel, bossGroup, workerGroup);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static class Server {
+
+        private final ChannelFuture httpChannel;
+        private final NioEventLoopGroup bossGroup;
+        private final NioEventLoopGroup workerGroup;
+
+        public Server(ChannelFuture httpChannel, NioEventLoopGroup bossGroup, NioEventLoopGroup workerGroup) {
+            this.httpChannel = httpChannel;
+            this.bossGroup = bossGroup;
+            this.workerGroup = workerGroup;
+        }
+
+        public void stop() {
+            try {
+                httpChannel.channel().close();
+                bossGroup.shutdownGracefully();
+                workerGroup.shutdownGracefully();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
-        });
+        }
+    }
 
-        class HelloWorldController implements HttpHandler {
-            @Override
-            public void handle(HttpExchange exchange) throws IOException {
-                try (OutputStream responseBody = exchange.getResponseBody()) {
+    private static class ServerInitializer extends ChannelInitializer<Channel> {
 
-                    exchange.getResponseHeaders().set("Content-Type", "text/plain");
+        private final SslContext sslContext;
+        private final String responseBody;
 
-                    exchange.sendResponseHeaders(200, payload.length());
-                    responseBody.write(payload.getBytes(StandardCharsets.UTF_8));
+        public ServerInitializer(SslContext sslContext, String responseBody) {
+            this.sslContext = sslContext;
+            this.responseBody = responseBody;
+        }
+
+        @Override
+        protected void initChannel(Channel channel) {
+            channel.pipeline()
+                    .addFirst("ssl", new SslHandler(sslContext.newEngine(channel.alloc())))
+                    .addLast(new HttpServerCodec())
+                    .addLast(new ServerHandler(responseBody));
+        }
+
+    }
+
+    private static class ServerHandler extends ChannelInboundHandlerAdapter {
+
+        private final String responseBody;
+
+        public ServerHandler(String responseBody) {
+
+            this.responseBody = responseBody;
+        }
+
+        @Override
+        public void channelReadComplete(ChannelHandlerContext channelHandlerContext) {
+            channelHandlerContext.flush();
+        }
+
+        @Override
+        public void channelRead(ChannelHandlerContext channelHandlerContext, Object message) {
+            if (message instanceof HttpRequest) {
+                HttpRequest req = (HttpRequest) message;
+
+                if (HttpUtil.is100ContinueExpected(req)) {
+                    channelHandlerContext.write(new DefaultFullHttpResponse(HTTP_1_1, CONTINUE));
+                }
+                boolean keepAlive = HttpUtil.isKeepAlive(req);
+                FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, OK, Unpooled.wrappedBuffer(responseBody.getBytes(UTF_8)));
+                response.headers().set(CONTENT_TYPE, "text/plain");
+                response.headers().set(CONTENT_LENGTH, response.content().readableBytes());
+
+                if (!keepAlive) {
+                    channelHandlerContext.write(response).addListener(CLOSE);
+                } else {
+                    response.headers().set(CONNECTION, KEEP_ALIVE);
+                    channelHandlerContext.write(response);
                 }
             }
         }
-        server.createContext("/api/hello", new HelloWorldController());
-        return server;
+
+        @Override
+        public void exceptionCaught(ChannelHandlerContext channelHandlerContext, Throwable throwable) {
+            throwable.printStackTrace();
+            channelHandlerContext.close();
+        }
+
+    }
+
+    private static ClientAuth getClientAuth(SSLParameters sslParameters) {
+        if (sslParameters.getNeedClientAuth()) {
+            return ClientAuth.REQUIRE;
+        } else if (sslParameters.getWantClientAuth()) {
+            return ClientAuth.OPTIONAL;
+        } else {
+            return ClientAuth.NONE;
+        }
     }
 
 }

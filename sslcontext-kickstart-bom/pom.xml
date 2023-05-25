@@ -50,7 +50,6 @@
     </distributionManagement>
 
     <properties>
-        <version.java>1.8</version.java>
         <version.maven-compiler-plugin>3.11.0</version.maven-compiler-plugin>
         <version.maven-gpg-plugin>3.1.0</version.maven-gpg-plugin>
         <version.maven-release-plugin>3.0.0</version.maven-release-plugin>
@@ -99,9 +98,28 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${version.maven-compiler-plugin}</version>
+                <executions>
+                    <execution>
+                        <id>default-compile</id>
+                    </execution>
+                    <execution>
+                        <id>java8-compile</id>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                        <!-- recompile everything with Java 8 except the module-info.java -->
+                        <configuration>
+                            <release>8</release>
+                            <excludes>
+                                <exclude>module-info.java</exclude>
+                            </excludes>
+                        </configuration>
+                    </execution>
+                </executions>
                 <configuration>
-                    <source>${version.java}</source>
-                    <target>${version.java}</target>
+                    <release>11</release>
+                    <source>11</source>
+                    <target>11</target>
                 </configuration>
             </plugin>
 

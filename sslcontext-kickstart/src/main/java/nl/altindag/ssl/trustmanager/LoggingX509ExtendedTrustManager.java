@@ -15,7 +15,7 @@
  */
 package nl.altindag.ssl.trustmanager;
 
-import nl.altindag.ssl.util.HostUtils;
+import nl.altindag.ssl.util.internal.HostUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

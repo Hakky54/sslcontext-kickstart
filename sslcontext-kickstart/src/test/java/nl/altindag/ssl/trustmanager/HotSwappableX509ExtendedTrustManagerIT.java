@@ -15,9 +15,9 @@
  */
 package nl.altindag.ssl.trustmanager;
 
-import com.sun.net.httpserver.HttpsServer;
 import nl.altindag.ssl.SSLFactory;
 import nl.altindag.ssl.ServerUtils;
+import nl.altindag.ssl.ServerUtils.Server;
 import nl.altindag.ssl.util.KeyStoreUtils;
 import nl.altindag.ssl.util.SSLSessionUtils;
 import nl.altindag.ssl.util.TrustManagerUtils;
@@ -26,7 +26,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
@@ -37,13 +36,9 @@ import javax.net.ssl.X509ExtendedTrustManager;
 import java.io.IOException;
 import java.net.URL;
 import java.security.KeyStore;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
-import static nl.altindag.ssl.TestConstants.KEYSTORE_LOCATION;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.fail;
 
 /**
  * @author Hakan Altindag
@@ -54,8 +49,7 @@ class HotSwappableX509ExtendedTrustManagerIT {
     private static SSLSocketFactory sslSocketFactory;
     private static SSLSessionContext sslSessionContext;
     private static X509ExtendedTrustManager trustManager;
-    private ExecutorService executorService;
-    private HttpsServer server;
+    private Server server;
 
     @BeforeAll
     static void setUpSSLSocketFactory() {
@@ -73,22 +67,19 @@ class HotSwappableX509ExtendedTrustManagerIT {
     }
 
     @BeforeEach
-    void startServer() throws IOException {
-        executorService = Executors.newSingleThreadExecutor();
+    void startServer() {
         SSLFactory sslFactoryForServer = SSLFactory.builder()
                 .withIdentityMaterial("keystore/client-server/server-one/identity.jks", "secret".toCharArray())
                 .withTrustMaterial("keystore/client-server/server-one/truststore.jks", "secret".toCharArray())
                 .withNeedClientAuthentication()
                 .build();
 
-        server = ServerUtils.createServer(8443, sslFactoryForServer, executorService, "Hello from server");
-        server.start();
+        server = ServerUtils.createServer(sslFactoryForServer);
     }
 
     @AfterEach
     void stopServer() {
-        server.stop(0);
-        executorService.shutdownNow();
+        server.stop();
     }
 
     @Test

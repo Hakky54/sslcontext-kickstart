@@ -15,6 +15,10 @@
  */
 package nl.altindag.ssl.trustmanager;
 
+import nl.altindag.ssl.trustmanager.validator.ChainAndAuthTypeValidator;
+import nl.altindag.ssl.trustmanager.validator.ChainAndAuthTypeWithSSLEngineValidator;
+import nl.altindag.ssl.trustmanager.validator.ChainAndAuthTypeWithSocketValidator;
+
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedTrustManager;
 import java.net.Socket;

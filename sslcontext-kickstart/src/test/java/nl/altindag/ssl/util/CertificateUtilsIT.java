@@ -15,19 +15,16 @@
  */
 package nl.altindag.ssl.util;
 
-import com.sun.net.httpserver.HttpsServer;
 import nl.altindag.ssl.SSLFactory;
 import nl.altindag.ssl.ServerUtils;
+import nl.altindag.ssl.ServerUtils.Server;
 import nl.altindag.ssl.exception.GenericCertificateException;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -54,7 +51,8 @@ class CertificateUtilsIT {
             try {
                 certificatesFromRemote = certificateSupplier.get();
                 amountOfRetries++;
-            } catch (GenericCertificateException ignored) {}
+            } catch (GenericCertificateException ignored) {
+            }
         }
 
         assertThat(certificatesFromRemote)
@@ -89,7 +87,8 @@ class CertificateUtilsIT {
             try {
                 certificatesFromRemote = certificateSupplier.get();
                 amountOfRetries++;
-            } catch (GenericCertificateException ignored) {}
+            } catch (GenericCertificateException ignored) {
+            }
         }
 
         assertThat(certificatesFromRemote)
@@ -146,9 +145,7 @@ class CertificateUtilsIT {
     }
 
     @Test
-    void getRemoteSelfSignedCertificate() throws IOException {
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
-
+    void getRemoteSelfSignedCertificate() {
         char[] keyStorePassword = "secret".toCharArray();
         SSLFactory sslFactoryForServerOne = SSLFactory.builder()
                 .withIdentityMaterial("keystore/client-server/server-one/identity.jks", keyStorePassword)
@@ -156,22 +153,18 @@ class CertificateUtilsIT {
                 .withProtocols("TLSv1.2")
                 .build();
 
-        HttpsServer server = ServerUtils.createServer(8443, sslFactoryForServerOne, executorService, "");
-        server.start();
+        Server server = ServerUtils.createServer(sslFactoryForServerOne);
 
         Map<String, List<X509Certificate>> certificatesFromRemote = CertificateUtils.getCertificate("https://localhost:8443");
 
-        server.stop(0);
-        executorService.shutdownNow();
+        server.stop();
 
         assertThat(certificatesFromRemote).containsKeys("https://localhost:8443");
         assertThat(certificatesFromRemote.get("https://localhost:8443")).hasSizeGreaterThan(0);
     }
 
     @Test
-    void getRemoteCustomRootCaSignedCertificate() throws IOException {
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
-
+    void getRemoteCustomRootCaSignedCertificate() {
         char[] keyStorePassword = "secret".toCharArray();
         SSLFactory sslFactoryForServerOne = SSLFactory.builder()
                 .withIdentityMaterial("keystore/client-server/server-three/identity.jks", keyStorePassword)
@@ -179,13 +172,11 @@ class CertificateUtilsIT {
                 .withProtocols("TLSv1.2")
                 .build();
 
-        HttpsServer server = ServerUtils.createServer(8443, sslFactoryForServerOne, executorService, "");
-        server.start();
+        Server server = ServerUtils.createServer(sslFactoryForServerOne);
 
         Map<String, List<X509Certificate>> certificatesFromRemote = CertificateUtils.getCertificate("https://localhost:8443");
 
-        server.stop(0);
-        executorService.shutdownNow();
+        server.stop();
 
         assertThat(certificatesFromRemote).containsKeys("https://localhost:8443");
         assertThat(certificatesFromRemote.get("https://localhost:8443")).hasSizeGreaterThan(0);

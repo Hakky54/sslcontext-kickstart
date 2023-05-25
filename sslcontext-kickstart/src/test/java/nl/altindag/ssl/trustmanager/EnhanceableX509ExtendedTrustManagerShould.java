@@ -15,6 +15,9 @@
  */
 package nl.altindag.ssl.trustmanager;
 
+import nl.altindag.ssl.trustmanager.validator.ChainAndAuthTypeValidator;
+import nl.altindag.ssl.trustmanager.validator.ChainAndAuthTypeWithSSLEngineValidator;
+import nl.altindag.ssl.trustmanager.validator.ChainAndAuthTypeWithSocketValidator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;

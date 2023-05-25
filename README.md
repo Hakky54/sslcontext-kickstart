@@ -122,7 +122,7 @@ The library also provides other utilities such as:
 - [KeyStoreUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/KeyStoreUtils.java)
 - [KeyManagerUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/KeyManagerUtils.java)
 - [TrustManagerUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/TrustManagerUtils.java)
-- [PemUtils](sslcontext-kickstart-for-pem/src/main/java/nl/altindag/ssl/util/PemUtils.java)
+- [PemUtils](sslcontext-kickstart-for-pem/src/main/java/nl/altindag/ssl/pem/util/PemUtils.java)
 - [SSLContextUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/SSLContextUtils.java)
 - [SSLFactoryUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/SSLFactoryUtils.java)
 - [SSLSessionUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/SSLSessionUtils.java)
@@ -662,7 +662,10 @@ SSLFactory.builder()
 ```
 
 #### Using PEM Files
-Support for using pem formatted private key and certificates from classpath, any directory or as an InputStream. See [PemUtilsShould](sslcontext-kickstart-for-pem/src/test/java/nl/altindag/ssl/util/PemUtilsShould.java) for detailed usages.
+
+Support for using pem formatted private key and certificates from classpath, any directory or as an InputStream.
+See [PemUtilsShould](sslcontext-kickstart-for-pem/src/test/java/nl/altindag/ssl/pem/util/PemUtilsShould.java) for
+detailed usages.
 Add the dependency below to use this feature, it also includes the core features from the library such as SSLFactory.
 ```xml
 <dependency>
@@ -1030,7 +1033,7 @@ Example setup for Spring WebClient with Netty:
 ```java
 import io.netty.handler.ssl.SslContext;
 import nl.altindag.ssl.SSLFactory;
-import nl.altindag.ssl.util.NettySslUtils;
+import nl.altindag.ssl.netty.util.NettySslUtils;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
@@ -1067,7 +1070,7 @@ public class App {
 Example setup for [Spring WebFlux WebClient Jetty](https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html):
 ```java
 import nl.altindag.ssl.SSLFactory;
-import nl.altindag.ssl.util.JettySslUtils;
+import nl.altindag.ssl.jetty.util.JettySslUtils;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.springframework.http.client.reactive.JettyClientHttpConnector;
@@ -1104,7 +1107,7 @@ However it is still possible to configure the http client with their custom conf
 ```
 ```java
 import nl.altindag.ssl.SSLFactory;
-import nl.altindag.ssl.util.Apache4SslUtils;
+import nl.altindag.ssl.apache4.util.Apache4SslUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.impl.client.HttpClients;
@@ -1144,7 +1147,7 @@ import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuil
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
-import nl.altindag.ssl.util.Apache5SslUtils;
+import nl.altindag.ssl.apache5.util.Apache5SslUtils;
 
 class App {
 

@@ -36,7 +36,7 @@
     </developers>
 
     <properties>
-        <version.httpcomponents.httpcore>4.5.14</version.httpcomponents.httpcore>
+        <version.httpcomponents.httpclient>4.5.14</version.httpcomponents.httpclient>
     </properties>
 
     <dependencies>
@@ -47,6 +47,8 @@
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
+            <version>${version.httpcomponents.httpclient}</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -65,33 +67,10 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+        </dependency>
     </dependencies>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.apache.httpcomponents</groupId>
-                <artifactId>httpclient</artifactId>
-                <version>${version.httpcomponents.httpcore}</version>
-                <scope>provided</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <configuration>
-                    <archive>
-                        <manifestEntries>
-                            <Automatic-Module-Name>io.github.hakky54.apache4.sslcontext.kickstart</Automatic-Module-Name>
-                        </manifestEntries>
-                    </archive>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-    
 </project>

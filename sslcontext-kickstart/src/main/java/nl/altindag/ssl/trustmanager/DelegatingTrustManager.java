@@ -23,8 +23,8 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 
-import static nl.altindag.ssl.util.ValidationUtils.GENERIC_EXCEPTION_MESSAGE;
-import static nl.altindag.ssl.util.ValidationUtils.requireNotNull;
+import static nl.altindag.ssl.util.internal.ValidationUtils.GENERIC_EXCEPTION_MESSAGE;
+import static nl.altindag.ssl.util.internal.ValidationUtils.requireNotNull;
 
 /**
  * <strong>NOTE:</strong>
