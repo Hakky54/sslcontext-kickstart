@@ -502,10 +502,9 @@ class CertificateUtilsShould {
 
     @Test
     void getCertificatesReturnsEmptyWhenNonHttpsUrlIsProvided() {
-        Map<String, List<X509Certificate>> certificates = CertificateUtils.getCertificate("http://www.google.com/");
+        List<X509Certificate> certificates = CertificateUtils.getCertificatesFromExternalSource("http://www.google.com/");
 
-        assertThat(certificates).containsKey("http://www.google.com/");
-        assertThat(certificates.get("http://www.google.com/")).isEmpty();
+        assertThat(certificates).isEmpty();
     }
 
     @Test
@@ -554,7 +553,7 @@ class CertificateUtilsShould {
 
     @Test
     void throwsUncheckedIOExceptionWhenUrlIsUnreachable() {
-        assertThatThrownBy(() -> CertificateUtils.getCertificate("https://localhost:1234/"))
+        assertThatThrownBy(() -> CertificateUtils.getCertificatesFromExternalSource("https://localhost:1234/"))
                 .isInstanceOf(GenericIOException.class);
     }
 

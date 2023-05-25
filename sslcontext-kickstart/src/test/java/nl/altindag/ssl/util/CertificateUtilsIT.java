@@ -36,7 +36,7 @@ class CertificateUtilsIT {
 
     @Test
     void getRemoteCertificates() {
-        Supplier<Map<String, List<X509Certificate>>> certificateSupplier = () -> CertificateUtils.getCertificate(
+        Supplier<Map<String, List<X509Certificate>>> certificateSupplier = () -> CertificateUtils.getCertificatesFromExternalSources(
                 "https://stackoverflow.com/",
                 "https://github.com/",
                 "https://www.linkedin.com/"
@@ -76,7 +76,7 @@ class CertificateUtilsIT {
                 "https://www.linkedin.com/"
         );
 
-        Supplier<Map<String, List<X509Certificate>>> certificateSupplier = () -> CertificateUtils.getCertificate(urls);
+        Supplier<Map<String, List<X509Certificate>>> certificateSupplier = () -> CertificateUtils.getCertificatesFromExternalSources(urls);
 
         int amountOfRetries = 0;
         int maxAmountOfRetries = 10;
@@ -106,7 +106,7 @@ class CertificateUtilsIT {
 
     @Test
     void getRemoteCertificatesAsPem() {
-        Map<String, List<String>> certificatesFromRemote = CertificateUtils.getCertificateAsPem(
+        Map<String, List<String>> certificatesFromRemote = CertificateUtils.getCertificatesFromExternalSourcesAsPem(
                 "https://stackoverflow.com/",
                 "https://github.com/",
                 "https://www.linkedin.com/"
@@ -131,7 +131,7 @@ class CertificateUtilsIT {
                 "https://www.linkedin.com/"
         );
 
-        Map<String, List<String>> certificatesFromRemote = CertificateUtils.getCertificateAsPem(urls);
+        Map<String, List<String>> certificatesFromRemote = CertificateUtils.getCertificatesFromExternalSourcesAsPem(urls);
 
         assertThat(certificatesFromRemote).containsKeys(
                 "https://stackoverflow.com/",
@@ -155,7 +155,7 @@ class CertificateUtilsIT {
 
         Server server = ServerUtils.createServer(sslFactoryForServerOne);
 
-        Map<String, List<X509Certificate>> certificatesFromRemote = CertificateUtils.getCertificate("https://localhost:8443");
+        Map<String, List<X509Certificate>> certificatesFromRemote = CertificateUtils.getCertificatesFromExternalSources("https://localhost:8443");
 
         server.stop();
 
@@ -174,7 +174,7 @@ class CertificateUtilsIT {
 
         Server server = ServerUtils.createServer(sslFactoryForServerOne);
 
-        Map<String, List<X509Certificate>> certificatesFromRemote = CertificateUtils.getCertificate("https://localhost:8443");
+        Map<String, List<X509Certificate>> certificatesFromRemote = CertificateUtils.getCertificatesFromExternalSources("https://localhost:8443");
 
         server.stop();
 

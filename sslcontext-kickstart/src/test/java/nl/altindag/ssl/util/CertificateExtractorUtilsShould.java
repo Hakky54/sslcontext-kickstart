@@ -62,8 +62,7 @@ class CertificateExtractorUtilsShould {
 
     @Test
     void getRootCaIfPossibleReturnsJdkTrustedCaCertificateWhenNoAuthorityInfoAccessExtensionIsPresent() {
-        List<X509Certificate> certificates = CertificateUtils.getCertificate("https://www.reddit.com/")
-                .get("https://www.reddit.com/");
+        List<X509Certificate> certificates = CertificateUtils.getCertificatesFromExternalSource("https://www.reddit.com/");
 
         try (MockedStatic<CertificateExtractorUtils> mockedStatic = mockStatic(CertificateExtractorUtils.class, invocation -> {
             Method method = invocation.getMethod();
@@ -85,8 +84,7 @@ class CertificateExtractorUtilsShould {
 
     @Test
     void getRootCaIfPossibleReturnsEmptyListWhenNoAuthorityInfoAccessExtensionIsPresentAndNoMatching() {
-        List<X509Certificate> certificates = CertificateUtils.getCertificate("https://www.reddit.com/")
-                .get("https://www.reddit.com/");
+        List<X509Certificate> certificates = CertificateUtils.getCertificatesFromExternalSource("https://www.reddit.com/");
 
         try (MockedStatic<CertificateExtractorUtils> mockedStatic = mockStatic(CertificateExtractorUtils.class, invocation -> {
             Method method = invocation.getMethod();
