@@ -371,26 +371,6 @@ public final class CertificateUtils {
         return Collections.unmodifiableMap(certificates);
     }
 
-    @Deprecated
-    public static Map<String, List<String>> getCertificateAsPem(String... urls) {
-        return getCertificatesFromExternalSourcesAsPem(urls);
-    }
-
-    @Deprecated
-    public static Map<String, List<String>> getCertificateAsPem(List<String> urls) {
-        return getCertificatesFromExternalSourcesAsPem(urls);
-    }
-
-    @Deprecated
-    public static Map<String, List<X509Certificate>> getCertificate(String... urls) {
-        return getCertificatesFromExternalSources(urls);
-    }
-
-    @Deprecated
-    public static Map<String, List<X509Certificate>> getCertificate(List<String> urls) {
-        return getCertificatesFromExternalSources(urls);
-    }
-
     public static List<String> convertToPem(List<X509Certificate> certificates) {
         return certificates.stream()
                 .map(CertificateUtils::convertToPem)
