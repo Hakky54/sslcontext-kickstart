@@ -120,6 +120,12 @@
                 <artifactId>ssl-server</artifactId>
                 <version>${version.ssl-server}</version>
                 <scope>test</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>io.github.hakky54</groupId>
+                        <artifactId>sslcontext-kickstart</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
         </dependencies>
     </dependencyManagement>
