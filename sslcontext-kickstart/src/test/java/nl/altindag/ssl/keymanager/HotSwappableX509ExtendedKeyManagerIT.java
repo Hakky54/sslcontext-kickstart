@@ -16,8 +16,7 @@
 package nl.altindag.ssl.keymanager;
 
 import nl.altindag.ssl.SSLFactory;
-import nl.altindag.ssl.ServerUtils;
-import nl.altindag.ssl.ServerUtils.Server;
+import nl.altindag.ssl.server.service.Server;
 import nl.altindag.ssl.util.KeyManagerUtils;
 import nl.altindag.ssl.util.KeyStoreUtils;
 import nl.altindag.ssl.util.SSLSessionUtils;
@@ -74,7 +73,7 @@ class HotSwappableX509ExtendedKeyManagerIT {
                 .withNeedClientAuthentication()
                 .build();
 
-        server = ServerUtils.createServer(sslFactoryForServer);
+        server = Server.createDefault(sslFactoryForServer);
     }
 
     @AfterEach

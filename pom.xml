@@ -59,7 +59,7 @@
         <version.assertj-core>3.24.2</version.assertj-core>
         <version.logcaptor>2.9.0</version.logcaptor>
         <version.mockito>4.11.0</version.mockito>
-        <version.netty>4.1.92.Final</version.netty>
+        <version.ssl-server>1.0.0</version.ssl-server>
         <version.jacoco-maven-plugin>0.8.10</version.jacoco-maven-plugin>
         <version.maven-surefire-plugin>3.1.0</version.maven-surefire-plugin>
         <version.maven-fail-safe>3.1.0</version.maven-fail-safe>
@@ -116,9 +116,9 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>io.netty</groupId>
-                <artifactId>netty-all</artifactId>
-                <version>${version.netty}</version>
+                <groupId>io.github.hakky54</groupId>
+                <artifactId>ssl-server</artifactId>
+                <version>${version.ssl-server}</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>

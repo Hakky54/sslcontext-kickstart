@@ -69,8 +69,8 @@
             <artifactId>logcaptor</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-all</artifactId>
+            <groupId>io.github.hakky54</groupId>
+            <artifactId>ssl-server</artifactId>
         </dependency>
     </dependencies>
 

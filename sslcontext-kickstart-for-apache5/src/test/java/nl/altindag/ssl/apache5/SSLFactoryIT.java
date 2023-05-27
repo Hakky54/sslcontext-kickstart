@@ -16,8 +16,8 @@
 package nl.altindag.ssl.apache5;
 
 import nl.altindag.ssl.SSLFactory;
-import nl.altindag.ssl.apache5.ServerUtils.Server;
 import nl.altindag.ssl.apache5.util.Apache5SslUtils;
+import nl.altindag.ssl.server.service.Server;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleResponseConsumer;
 import org.apache.hc.client5.http.classic.HttpClient;
@@ -61,7 +61,7 @@ class SSLFactoryIT {
                 .withNeedClientAuthentication()
                 .build();
 
-        server = ServerUtils.createServer(sslFactoryForServer);
+        server = Server.createDefault(sslFactoryForServer);
     }
 
     @AfterAll

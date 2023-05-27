@@ -16,8 +16,8 @@
 package nl.altindag.ssl.pem;
 
 import nl.altindag.ssl.SSLFactory;
-import nl.altindag.ssl.pem.ServerUtils.Server;
 import nl.altindag.ssl.pem.util.PemUtils;
+import nl.altindag.ssl.server.service.Server;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -45,7 +45,7 @@ class SSLFactoryIT {
                 .withNeedClientAuthentication()
                 .build();
 
-        server = ServerUtils.createServer(sslFactoryForServer);
+        server = Server.createDefault(sslFactoryForServer);
     }
 
     @AfterAll

@@ -15,7 +15,7 @@
  */
 package nl.altindag.ssl;
 
-import nl.altindag.ssl.ServerUtils.Server;
+import nl.altindag.ssl.server.service.Server;
 import nl.altindag.ssl.util.SSLFactoryUtils;
 import nl.altindag.ssl.util.SSLSessionUtils;
 import org.junit.jupiter.api.Test;
@@ -33,8 +33,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,15 +45,13 @@ class SSLFactoryIT {
 
     @Test
     void executeHttpsRequestWithMutualAuthentication() throws IOException {
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
-
         SSLFactory sslFactoryForServer = SSLFactory.builder()
                 .withIdentityMaterial("keystore/client-server/server-one/identity.jks", "secret".toCharArray())
                 .withTrustMaterial("keystore/client-server/server-one/truststore.jks", "secret".toCharArray())
                 .withNeedClientAuthentication()
                 .build();
 
-        Server server = ServerUtils.createServer(sslFactoryForServer);
+        Server server = Server.createDefault(sslFactoryForServer);
 
         SSLFactory sslFactoryForClient = SSLFactory.builder()
                 .withIdentityMaterial("keystore/client-server/client-one/identity.jks", "secret".toCharArray())
@@ -71,13 +67,10 @@ class SSLFactoryIT {
         assertThat(statusCode).isEqualTo(200);
 
         server.stop();
-        executorService.shutdownNow();
     }
 
     @Test
     void executeRequestToTwoServersWithMutualAuthenticationWithSingleHttpClientAndSingleSslConfiguration() throws IOException {
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
-
         char[] keyStorePassword = "secret".toCharArray();
         SSLFactory sslFactoryForServerOne = SSLFactory.builder()
                 .withIdentityMaterial("keystore/client-server/server-one/identity.jks", keyStorePassword)
@@ -93,8 +86,8 @@ class SSLFactoryIT {
                 .withProtocols("TLSv1.2")
                 .build();
 
-        Server serverOne = ServerUtils.createServer(sslFactoryForServerOne, 8443, "Hello from server one");
-        Server serverTwo = ServerUtils.createServer(sslFactoryForServerTwo, 8444, "Hello from server two");
+        Server serverOne = Server.createDefault(sslFactoryForServerOne, 8443, "Hello from server one");
+        Server serverTwo = Server.createDefault(sslFactoryForServerTwo, 8444, "Hello from server two");
 
         SSLFactory sslFactoryForClient = SSLFactory.builder()
                 .withIdentityMaterial("keystore/client-server/client-one/identity.jks", keyStorePassword)
@@ -116,13 +109,10 @@ class SSLFactoryIT {
 
         serverOne.stop();
         serverTwo.stop();
-        executorService.shutdownNow();
     }
 
     @Test
     void executeRequestToTwoServersWithMutualAuthenticationWithReroutingClientCertificates() throws IOException {
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
-
         char[] keyStorePassword = "secret".toCharArray();
         SSLFactory sslFactoryForServerOne = SSLFactory.builder()
                 .withIdentityMaterial("keystore/client-server/server-one/identity.jks", keyStorePassword)
@@ -140,8 +130,8 @@ class SSLFactoryIT {
                 .withProtocols("TLSv1.2")
                 .build();
 
-        Server serverOne = ServerUtils.createServer(sslFactoryForServerOne, 8443, "Hello from server one");
-        Server serverTwo = ServerUtils.createServer(sslFactoryForServerTwo, 8444, "Hello from server two");
+        Server serverOne = Server.createDefault(sslFactoryForServerOne, 8443, "Hello from server one");
+        Server serverTwo = Server.createDefault(sslFactoryForServerTwo, 8444, "Hello from server two");
 
         Map<String, List<String>> clientAliasesToHosts = new HashMap<>();
         clientAliasesToHosts.put("client-one", Collections.singletonList("https://localhost:8443/api/hello"));
@@ -184,13 +174,10 @@ class SSLFactoryIT {
 
         serverOne.stop();
         serverTwo.stop();
-        executorService.shutdownNow();
     }
 
     @Test
     void executeRequestToTwoServersWithMutualAuthenticationWithSwappingClientIdentityAndTrustMaterial() throws IOException {
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
-
         char[] keyStorePassword = "secret".toCharArray();
 
         SSLFactory sslFactoryForServerOne = SSLFactory.builder()
@@ -207,8 +194,8 @@ class SSLFactoryIT {
                 .withProtocols("TLSv1.2")
                 .build();
 
-        Server serverOne = ServerUtils.createServer(sslFactoryForServerOne, 8443, "Hello from server one");
-        Server serverTwo = ServerUtils.createServer(sslFactoryForServerTwo, 8444, "Hello from server two");
+        Server serverOne = Server.createDefault(sslFactoryForServerOne, 8443, "Hello from server one");
+        Server serverTwo = Server.createDefault(sslFactoryForServerTwo, 8444, "Hello from server two");
 
         SSLFactory sslFactoryForClient = SSLFactory.builder()
                 .withIdentityMaterial("keystore/client-server/client-one/identity.jks", keyStorePassword)
@@ -242,13 +229,10 @@ class SSLFactoryIT {
 
         serverOne.stop();
         serverTwo.stop();
-        executorService.shutdownNow();
     }
 
     @Test
     void executeRequestToTwoServersWithMutualAuthenticationWithSwappingClientIdentityAndTrustMaterialWhileDisablingInstantlyInvalidatingSslCaches() throws IOException {
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
-
         char[] keyStorePassword = "secret".toCharArray();
 
         SSLFactory sslFactoryForServerOne = SSLFactory.builder()
@@ -265,8 +249,8 @@ class SSLFactoryIT {
                 .withProtocols("TLSv1.2")
                 .build();
 
-        Server serverOne = ServerUtils.createServer(sslFactoryForServerOne, 8443, "Hello from server one");
-        Server serverTwo = ServerUtils.createServer(sslFactoryForServerTwo, 8444, "Hello from server two");
+        Server serverOne = Server.createDefault(sslFactoryForServerOne, 8443, "Hello from server one");
+        Server serverTwo = Server.createDefault(sslFactoryForServerTwo, 8444, "Hello from server two");
 
         SSLFactory sslFactoryForClient = SSLFactory.builder()
                 .withIdentityMaterial("keystore/client-server/client-one/identity.jks", keyStorePassword)
@@ -306,7 +290,6 @@ class SSLFactoryIT {
 
         serverOne.stop();
         serverTwo.stop();
-        executorService.shutdownNow();
     }
 
     private Response executeRequest(String url, SSLSocketFactory sslSocketFactory) throws IOException {

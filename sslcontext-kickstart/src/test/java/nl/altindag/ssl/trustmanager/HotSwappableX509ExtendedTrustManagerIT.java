@@ -16,8 +16,7 @@
 package nl.altindag.ssl.trustmanager;
 
 import nl.altindag.ssl.SSLFactory;
-import nl.altindag.ssl.ServerUtils;
-import nl.altindag.ssl.ServerUtils.Server;
+import nl.altindag.ssl.server.service.Server;
 import nl.altindag.ssl.util.KeyStoreUtils;
 import nl.altindag.ssl.util.SSLSessionUtils;
 import nl.altindag.ssl.util.TrustManagerUtils;
@@ -74,7 +73,7 @@ class HotSwappableX509ExtendedTrustManagerIT {
                 .withNeedClientAuthentication()
                 .build();
 
-        server = ServerUtils.createServer(sslFactoryForServer);
+        server = Server.createDefault(sslFactoryForServer);
     }
 
     @AfterEach
