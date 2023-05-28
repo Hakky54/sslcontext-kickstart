@@ -16,9 +16,8 @@
 package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.SSLFactory;
-import nl.altindag.ssl.ServerUtils;
-import nl.altindag.ssl.ServerUtils.Server;
 import nl.altindag.ssl.exception.GenericCertificateException;
+import nl.altindag.ssl.server.service.Server;
 import org.junit.jupiter.api.Test;
 
 import java.security.cert.X509Certificate;
@@ -153,7 +152,7 @@ class CertificateUtilsIT {
                 .withProtocols("TLSv1.2")
                 .build();
 
-        Server server = ServerUtils.createServer(sslFactoryForServerOne);
+        Server server = Server.createDefault(sslFactoryForServerOne);
 
         Map<String, List<X509Certificate>> certificatesFromRemote = CertificateUtils.getCertificatesFromExternalSources("https://localhost:8443");
 
@@ -172,7 +171,7 @@ class CertificateUtilsIT {
                 .withProtocols("TLSv1.2")
                 .build();
 
-        Server server = ServerUtils.createServer(sslFactoryForServerOne);
+        Server server = Server.createDefault(sslFactoryForServerOne);
 
         Map<String, List<X509Certificate>> certificatesFromRemote = CertificateUtils.getCertificatesFromExternalSources("https://localhost:8443");
 

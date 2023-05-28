@@ -16,8 +16,8 @@
 package nl.altindag.ssl.jetty;
 
 import nl.altindag.ssl.SSLFactory;
-import nl.altindag.ssl.jetty.ServerUtils.Server;
 import nl.altindag.ssl.jetty.util.JettySslUtils;
+import nl.altindag.ssl.server.service.Server;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.http.HttpMethod;
@@ -39,7 +39,7 @@ class SSLFactoryIT {
                 .withNeedClientAuthentication()
                 .build();
 
-        Server server = ServerUtils.createServer(sslFactoryForServer);
+        Server server = Server.createDefault(sslFactoryForServer);
 
         SSLFactory sslFactoryForClient = SSLFactory.builder()
                 .withIdentityMaterial("keystore/client-server/client-one/identity.jks", "secret".toCharArray())
