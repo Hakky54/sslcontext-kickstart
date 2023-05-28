@@ -1,17 +1,29 @@
 <h2 class="github">Changelog</h2>
 
-This list is not intended to be all-encompassing - it will document major and breaking API 
+This list is not intended to be all-encompassing - it will document major and breaking API
 changes with their rationale when appropriate:
 
+### v8.0.0
+
+- Added support for Java Modules
+- Removed code duplication
+- Disabled filtering duplicate trusted certificates
+- Improved test coverage
+- Fetch Mac OS X trusted certificates without concurrency
+- Removed deprecated methods in CertificateUtils
+- Improved dependency management
+
 ### v7.5.0
- - Enhanced loading system trusted certificates
- - Added option to disable invalidating caches in SSLFactoryUtils
- - Replaced https://badssl.com integration test with local server
- - Added verbose logging as debug for TrustManager
- - Added verbose logging as debug for KeyManager
- - Renamed internal method names and class names
- - Refactored KeyStoreUtils, PemUtils and CertificateExtractorUtils to make it more readable
- - Bumped dependencies
+
+- Enhanced loading system trusted certificates
+- Added option to disable invalidating caches in SSLFactoryUtils
+- Replaced https://badssl.com integration test with local server
+- Added verbose logging as debug for TrustManager
+- Added verbose logging as debug for KeyManager
+- Renamed internal method names and class names
+- Refactored KeyStoreUtils, PemUtils and CertificateExtractorUtils to make it more readable
+- Bumped dependencies
+
 ### v7.4.11
  - Fixed releasing BOM (Bill of Materials)
 ### v7.4.10
