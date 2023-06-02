@@ -214,7 +214,7 @@ public final class FenixHostnameVerifier implements HostnameVerifier {
      *    sub.test.example.com.
      * 3. Wildcard patterns for single-label domain names are not permitted.
      */
-//    @SuppressWarnings("RedundantIfStatement")
+    @SuppressWarnings("RedundantIfStatement")
     private boolean verifyWildcardPattern(String hostname, String domainNamePattern) {
         if (!domainNamePattern.startsWith("*.") || domainNamePattern.indexOf("*", 1) != -1) {
             // Asterisk (*) is only permitted in the left-most domain name label and must be the only
