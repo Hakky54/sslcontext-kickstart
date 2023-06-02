@@ -37,97 +37,97 @@ import static nl.altindag.ssl.util.internal.ValidationUtils.requireNotNull;
  */
 public class HotSwappableX509ExtendedTrustManager extends DelegatingX509ExtendedTrustManager {
 
-    protected final ReadWriteLock myLock = new ReentrantReadWriteLock();
-    protected final Lock myReadLock = myLock.readLock();
-    protected final Lock myWriteLock = myLock.writeLock();
+    private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+    protected final Lock readLock = readWriteLock.readLock();
+    protected final Lock writeLock = readWriteLock.writeLock();
 
     public HotSwappableX509ExtendedTrustManager(X509ExtendedTrustManager trustManager) {
         super(trustManager);
     }
 
     public void setTrustManager(X509ExtendedTrustManager trustManager) {
-        myWriteLock.lock();
+        writeLock.lock();
         this.trustManager = requireNotNull(trustManager, GENERIC_EXCEPTION_MESSAGE.apply("TrustManager"));
-        myWriteLock.unlock();
+        writeLock.unlock();
     }
 
     @Override
     public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-        myReadLock.lock();
+        readLock.lock();
         try {
             super.checkClientTrusted(chain, authType);
         } finally {
-            myReadLock.unlock();
+            readLock.unlock();
         }
     }
 
     @Override
     public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-        myReadLock.lock();
+        readLock.lock();
         try {
             super.checkServerTrusted(chain, authType);
         } finally {
-            myReadLock.unlock();
+            readLock.unlock();
         }
     }
 
     @Override
     public X509Certificate[] getAcceptedIssuers() {
-        myReadLock.lock();
+        readLock.lock();
         try {
             return super.getAcceptedIssuers();
         } finally {
-            myReadLock.unlock();
+            readLock.unlock();
         }
     }
 
     @Override
     public X509ExtendedTrustManager getInnerTrustManager() {
-        myReadLock.lock();
+        readLock.lock();
         try {
             return super.getInnerTrustManager();
         } finally {
-            myReadLock.unlock();
+            readLock.unlock();
         }
     }
 
     @Override
     public void checkClientTrusted(X509Certificate[] chain, String authType, Socket socket) throws CertificateException {
-        myReadLock.lock();
+        readLock.lock();
         try {
             super.checkClientTrusted(chain, authType, socket);
         } finally {
-            myReadLock.unlock();
+            readLock.unlock();
         }
     }
 
     @Override
     public void checkClientTrusted(X509Certificate[] chain, String authType, SSLEngine sslEngine) throws CertificateException {
-        myReadLock.lock();
+        readLock.lock();
         try {
             super.checkClientTrusted(chain, authType, sslEngine);
         } finally {
-            myReadLock.unlock();
+            readLock.unlock();
         }
     }
 
     @Override
     public void checkServerTrusted(X509Certificate[] chain, String authType, Socket socket) throws CertificateException {
-        myReadLock.lock();
+        readLock.lock();
         try {
             super.checkServerTrusted(chain, authType, socket);
         } finally {
-            myReadLock.unlock();
+            readLock.unlock();
         }
     }
 
     @Override
     public void checkServerTrusted(X509Certificate[] chain, String authType, SSLEngine sslEngine) throws CertificateException {
-        myReadLock.lock();
+        readLock.lock();
         try {
             super.checkServerTrusted(chain, authType, sslEngine);
         } finally {
-            myReadLock.unlock();
+            readLock.unlock();
         }
     }
 }

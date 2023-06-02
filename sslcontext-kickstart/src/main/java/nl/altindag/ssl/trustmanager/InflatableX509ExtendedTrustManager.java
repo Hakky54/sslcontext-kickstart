@@ -51,7 +51,7 @@ public class InflatableX509ExtendedTrustManager extends HotSwappableX509Extended
         this.trustStorePath = trustStorePath;
         this.trustStorePassword = trustStorePassword;
 
-        myWriteLock.lock();
+        writeLock.lock();
 
         try {
             if (Files.exists(trustStorePath)) {
@@ -61,7 +61,7 @@ public class InflatableX509ExtendedTrustManager extends HotSwappableX509Extended
                 KeyStoreUtils.write(trustStorePath, trustStore, trustStorePassword);
             }
         } finally {
-            myWriteLock.unlock();
+            writeLock.unlock();
         }
     }
 
@@ -75,7 +75,7 @@ public class InflatableX509ExtendedTrustManager extends HotSwappableX509Extended
     }
 
     public void addCertificates(List<? extends Certificate> certificates) {
-        myWriteLock.lock();
+        writeLock.lock();
 
         try {
             List<String> aliases = new ArrayList<>();
@@ -91,7 +91,7 @@ public class InflatableX509ExtendedTrustManager extends HotSwappableX509Extended
         } catch (Exception e) {
             LOGGER.error("Cannot add certificate", e);
         } finally {
-            myWriteLock.unlock();
+            writeLock.unlock();
         }
     }
 
