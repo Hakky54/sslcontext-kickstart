@@ -27,7 +27,6 @@ import java.nio.file.Path;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -63,15 +62,6 @@ public class InflatableX509ExtendedTrustManager extends HotSwappableX509Extended
         } finally {
             writeLock.unlock();
         }
-    }
-
-    private void addCertificates(Path... certificatePaths) {
-        List<Certificate> certificates = CertificateUtils.loadCertificate(certificatePaths);
-        addCertificates(certificates);
-    }
-
-    public void addCertificates(Certificate... certificates) {
-        addCertificates(Arrays.asList(certificates));
     }
 
     public void addCertificates(List<? extends Certificate> certificates) {
