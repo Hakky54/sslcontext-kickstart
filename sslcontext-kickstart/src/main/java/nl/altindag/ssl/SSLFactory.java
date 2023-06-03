@@ -18,7 +18,6 @@ package nl.altindag.ssl;
 import nl.altindag.ssl.exception.GenericKeyStoreException;
 import nl.altindag.ssl.exception.GenericSecurityException;
 import nl.altindag.ssl.model.KeyStoreHolder;
-import nl.altindag.ssl.model.internal.KeyStoreReference;
 import nl.altindag.ssl.model.internal.SSLMaterial;
 import nl.altindag.ssl.trustmanager.trustoptions.TrustAnchorTrustOptions;
 import nl.altindag.ssl.trustmanager.trustoptions.TrustStoreTrustOptions;
@@ -188,6 +187,7 @@ public final class SSLFactory {
         private boolean swappableTrustManagerEnabled = false;
         private boolean loggingKeyManagerEnabled = false;
         private boolean loggingTrustManagerEnabled = false;
+        private boolean inflatableTrustManagerEnabled = false;
 
         private int sessionTimeoutInSeconds = -1;
         private int sessionCacheSizeInBytes = -1;
@@ -195,8 +195,6 @@ public final class SSLFactory {
         private ChainAndAuthTypeValidator chainAndAuthTypeValidator = null;
         private ChainAndAuthTypeWithSocketValidator chainAndAuthTypeWithSocketValidator = null;
         private ChainAndAuthTypeWithSSLEngineValidator chainAndAuthTypeWithSSLEngineValidator = null;
-
-        private KeyStoreReference inflatableKeyStoreReference = null;
 
         private Builder() {
         }
@@ -593,8 +591,8 @@ public final class SSLFactory {
             return this;
         }
 
-        public Builder withInflatableTrustMaterial(Path trustStorePath, char[] trustStorePassword, String trustStoreType) {
-            inflatableKeyStoreReference = new KeyStoreReference(trustStorePath, trustStorePassword, trustStoreType);
+        public Builder withInflatableTrustMaterial() {
+            inflatableTrustManagerEnabled = true;
             return this;
         }
 
@@ -850,24 +848,15 @@ public final class SSLFactory {
         }
 
         private X509ExtendedTrustManager createTrustManager() {
-            TrustManagerUtils.TrustManagerBuilder trustManagerBuilder = TrustManagerUtils.trustManagerBuilder()
+            return TrustManagerUtils.trustManagerBuilder()
                     .withTrustManagers(trustManagers)
                     .withTrustStores(trustStores)
                     .withSwappableTrustManager(swappableTrustManagerEnabled)
                     .withLoggingTrustManager(loggingTrustManagerEnabled)
+                    .withInflatableTrustManager(inflatableTrustManagerEnabled)
                     .withTrustEnhancer(chainAndAuthTypeValidator)
                     .withTrustEnhancer(chainAndAuthTypeWithSocketValidator)
-                    .withTrustEnhancer(chainAndAuthTypeWithSSLEngineValidator);
-
-            if (inflatableKeyStoreReference != null) {
-                trustManagerBuilder.withInflatableTrustManager(
-                        inflatableKeyStoreReference.getKeystorePath(),
-                        inflatableKeyStoreReference.getKeystorePassword(),
-                        inflatableKeyStoreReference.getKeystoreType()
-                );
-            }
-
-            return trustManagerBuilder
+                    .withTrustEnhancer(chainAndAuthTypeWithSSLEngineValidator)
                     .build();
         }
 

@@ -38,7 +38,6 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509ExtendedTrustManager;
 import javax.net.ssl.X509TrustManager;
-import java.nio.file.Path;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -230,8 +229,8 @@ public final class TrustManagerUtils {
                 .collect(Collectors.collectingAndThen(Collectors.toList(), TrustManagerUtils::combine));
     }
 
-    public static X509ExtendedTrustManager createInflatableTrustManager(Path trustStorePath, char[] trustStorePassword, String trustStoreType) {
-        return new InflatableX509ExtendedTrustManager(trustStorePath, trustStorePassword, trustStoreType);
+    public static X509ExtendedTrustManager createInflatableTrustManager() {
+        return new InflatableX509ExtendedTrustManager();
     }
 
     public static void addCertificate(X509ExtendedTrustManager trustManager, List<X509Certificate> certificates) {
@@ -342,6 +341,7 @@ public final class TrustManagerUtils {
         private final List<X509ExtendedTrustManager> trustManagers = new ArrayList<>();
         private boolean swappableTrustManagerEnabled = false;
         private boolean loggingTrustManagerEnabled = false;
+        private boolean inflatableTrustManagerEnabled = false;
 
         private ChainAndAuthTypeValidator chainAndAuthTypeValidator;
         private ChainAndAuthTypeWithSocketValidator chainAndAuthTypeWithSocketValidator;
@@ -399,6 +399,11 @@ public final class TrustManagerUtils {
             return this;
         }
 
+        public TrustManagerBuilder withInflatableTrustManager(boolean inflatableTrustManagerEnabled) {
+            this.inflatableTrustManagerEnabled = inflatableTrustManagerEnabled;
+            return this;
+        }
+
         public TrustManagerBuilder withTrustEnhancer(ChainAndAuthTypeValidator validator) {
             this.chainAndAuthTypeValidator = validator;
             return this;
@@ -414,11 +419,6 @@ public final class TrustManagerUtils {
             return this;
         }
 
-        public TrustManagerBuilder withInflatableTrustManager(Path trustStorePath, char[] trustStorePassword, String trustStoreType) {
-            this.inflatableTrustManager = TrustManagerUtils.createInflatableTrustManager(trustStorePath, trustStorePassword, trustStoreType);
-            return this;
-        }
-
         public X509ExtendedTrustManager build() {
             requireNotEmpty(trustManagers, () -> new GenericTrustManagerException(EMPTY_TRUST_MANAGER_EXCEPTION));
 
@@ -427,8 +427,8 @@ public final class TrustManagerUtils {
             if (unsafeOrDummyTrustManager.isPresent()) {
                 baseTrustManager = unsafeOrDummyTrustManager.get();
             } else {
-                if (inflatableTrustManager != null) {
-                    trustManagers.add(inflatableTrustManager);
+                if (inflatableTrustManagerEnabled) {
+                    trustManagers.add(TrustManagerUtils.createInflatableTrustManager());
                 }
 
                 baseTrustManager = combine(trustManagers);

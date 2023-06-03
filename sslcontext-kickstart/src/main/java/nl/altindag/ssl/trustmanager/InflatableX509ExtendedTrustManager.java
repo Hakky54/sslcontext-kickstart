@@ -22,11 +22,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.X509ExtendedTrustManager;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
-import java.util.ArrayList;
+import java.security.cert.X509Certificate;
 import java.util.List;
 
 /**
@@ -41,41 +39,29 @@ public class InflatableX509ExtendedTrustManager extends HotSwappableX509Extended
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InflatableX509ExtendedTrustManager.class);
 
-    private final Path trustStorePath;
-    private final char[] trustStorePassword;
     private final KeyStore trustStore;
 
-    public InflatableX509ExtendedTrustManager(Path trustStorePath, char[] trustStorePassword, String trustStoreType) {
+    public InflatableX509ExtendedTrustManager() {
         super(TrustManagerUtils.createDummyTrustManager());
-        this.trustStorePath = trustStorePath;
-        this.trustStorePassword = trustStorePassword;
 
         writeLock.lock();
 
         try {
-            if (Files.exists(trustStorePath)) {
-                trustStore = KeyStoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType);
-            } else {
-                trustStore = KeyStoreUtils.createKeyStore(trustStoreType, trustStorePassword);
-                KeyStoreUtils.write(trustStorePath, trustStore, trustStorePassword);
-            }
+            trustStore = KeyStoreUtils.createKeyStore();
         } finally {
             writeLock.unlock();
         }
     }
 
-    public void addCertificates(List<? extends Certificate> certificates) {
+    public void addCertificates(List<X509Certificate> certificates) {
         writeLock.lock();
 
         try {
-            List<String> aliases = new ArrayList<>();
             for (Certificate certificate : certificates) {
                 String alias = CertificateUtils.generateAlias(certificate);
-                aliases.add(alias);
                 trustStore.setCertificateEntry(alias, certificate);
+                LOGGER.info("Added certificate for {}", alias);
             }
-            KeyStoreUtils.write(trustStorePath, trustStore, trustStorePassword);
-            aliases.forEach(alias -> LOGGER.info("Added certificate for {} to {}", alias, trustStorePath));
             X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
             setTrustManager(trustManager);
         } catch (Exception e) {
