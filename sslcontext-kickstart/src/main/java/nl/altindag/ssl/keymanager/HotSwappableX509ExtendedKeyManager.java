@@ -15,7 +15,15 @@
  */
 package nl.altindag.ssl.keymanager;
 
+import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedKeyManager;
+import java.net.Socket;
+import java.security.Principal;
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static nl.altindag.ssl.util.internal.ValidationUtils.GENERIC_EXCEPTION_MESSAGE;
 import static nl.altindag.ssl.util.internal.ValidationUtils.requireNotNull;
@@ -30,12 +38,121 @@ import static nl.altindag.ssl.util.internal.ValidationUtils.requireNotNull;
  */
 public final class HotSwappableX509ExtendedKeyManager extends DelegatingX509ExtendedKeyManager {
 
+    private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+    private final Lock readLock = readWriteLock.readLock();
+    private final Lock writeLock = readWriteLock.writeLock();
+
     public HotSwappableX509ExtendedKeyManager(X509ExtendedKeyManager keyManager) {
         super(keyManager);
     }
 
     public void setKeyManager(X509ExtendedKeyManager keyManager) {
-        this.keyManager = requireNotNull(keyManager, GENERIC_EXCEPTION_MESSAGE.apply("KeyManager"));
+        writeLock.lock();
+
+        try {
+            this.keyManager = requireNotNull(keyManager, GENERIC_EXCEPTION_MESSAGE.apply("KeyManager"));
+        } finally {
+            writeLock.unlock();
+        }
+    }
+
+    @Override
+    public String chooseClientAlias(String[] keyType, Principal[] issuers, Socket socket) {
+        readLock.lock();
+
+        try {
+            return super.chooseClientAlias(keyType, issuers, socket);
+        } finally {
+            readLock.unlock();
+        }
+    }
+
+    @Override
+    public String chooseServerAlias(String keyType, Principal[] issuers, Socket socket) {
+        readLock.lock();
+
+        try {
+            return super.chooseServerAlias(keyType, issuers, socket);
+        } finally {
+            readLock.unlock();
+        }
+    }
+
+    @Override
+    public PrivateKey getPrivateKey(String alias) {
+        readLock.lock();
+
+        try {
+            return super.getPrivateKey(alias);
+        } finally {
+            readLock.unlock();
+        }
+    }
+
+    @Override
+    public X509Certificate[] getCertificateChain(String alias) {
+        readLock.lock();
+
+        try {
+            return super.getCertificateChain(alias);
+        } finally {
+            readLock.unlock();
+        }
+    }
+
+    @Override
+    public String[] getClientAliases(String keyType, Principal[] issuers) {
+        readLock.lock();
+
+        try {
+            return super.getClientAliases(keyType, issuers);
+        } finally {
+            readLock.unlock();
+        }
+    }
+
+    @Override
+    public String[] getServerAliases(String keyType, Principal[] issuers) {
+        readLock.lock();
+
+        try {
+            return super.getServerAliases(keyType, issuers);
+        } finally {
+            readLock.unlock();
+        }
+    }
+
+    @Override
+    public X509ExtendedKeyManager getInnerKeyManager() {
+        readLock.lock();
+
+        try {
+            return super.getInnerKeyManager();
+        } finally {
+            readLock.unlock();
+        }
+    }
+
+    @Override
+    public String chooseEngineClientAlias(String[] keyTypes, Principal[] issuers, SSLEngine sslEngine) {
+        readLock.lock();
+
+        try {
+            return super.chooseEngineClientAlias(keyTypes, issuers, sslEngine);
+        } finally {
+            readLock.unlock();
+        }
+    }
+
+    @Override
+    public String chooseEngineServerAlias(String keyType, Principal[] issuers, SSLEngine sslEngine) {
+        readLock.lock();
+
+        try {
+            return super.chooseEngineServerAlias(keyType, issuers, sslEngine);
+        } finally {
+            readLock.unlock();
+        }
     }
 
 }
