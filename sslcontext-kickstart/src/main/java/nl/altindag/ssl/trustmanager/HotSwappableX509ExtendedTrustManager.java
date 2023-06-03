@@ -47,8 +47,12 @@ public class HotSwappableX509ExtendedTrustManager extends DelegatingX509Extended
 
     public void setTrustManager(X509ExtendedTrustManager trustManager) {
         writeLock.lock();
-        this.trustManager = requireNotNull(trustManager, GENERIC_EXCEPTION_MESSAGE.apply("TrustManager"));
-        writeLock.unlock();
+
+        try {
+            this.trustManager = requireNotNull(trustManager, GENERIC_EXCEPTION_MESSAGE.apply("TrustManager"));
+        } finally {
+            writeLock.unlock();
+        }
     }
 
     @Override
