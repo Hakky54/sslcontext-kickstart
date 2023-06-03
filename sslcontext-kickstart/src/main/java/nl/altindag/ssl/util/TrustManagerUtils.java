@@ -290,7 +290,8 @@ public final class TrustManagerUtils {
             );
         }
 
-        if (newTrustManager instanceof HotSwappableX509ExtendedTrustManager) {
+        if (newTrustManager instanceof HotSwappableX509ExtendedTrustManager
+                && !(newTrustManager instanceof InflatableX509ExtendedTrustManager)) {
             throw new GenericTrustManagerException(
                     String.format("The newTrustManager should not be an instance of [%s]", HotSwappableX509ExtendedTrustManager.class.getName())
             );
