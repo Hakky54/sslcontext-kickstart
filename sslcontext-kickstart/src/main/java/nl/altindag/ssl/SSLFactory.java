@@ -187,7 +187,6 @@ public final class SSLFactory {
         private boolean swappableTrustManagerEnabled = false;
         private boolean loggingKeyManagerEnabled = false;
         private boolean loggingTrustManagerEnabled = false;
-        private boolean inflatableTrustManagerEnabled = false;
 
         private int sessionTimeoutInSeconds = -1;
         private int sessionCacheSizeInBytes = -1;
@@ -592,7 +591,7 @@ public final class SSLFactory {
         }
 
         public Builder withInflatableTrustMaterial() {
-            inflatableTrustManagerEnabled = true;
+            trustManagers.add(TrustManagerUtils.createInflatableTrustManager());
             return this;
         }
 
@@ -853,7 +852,6 @@ public final class SSLFactory {
                     .withTrustStores(trustStores)
                     .withSwappableTrustManager(swappableTrustManagerEnabled)
                     .withLoggingTrustManager(loggingTrustManagerEnabled)
-                    .withInflatableTrustManager(inflatableTrustManagerEnabled)
                     .withTrustEnhancer(chainAndAuthTypeValidator)
                     .withTrustEnhancer(chainAndAuthTypeWithSocketValidator)
                     .withTrustEnhancer(chainAndAuthTypeWithSSLEngineValidator)

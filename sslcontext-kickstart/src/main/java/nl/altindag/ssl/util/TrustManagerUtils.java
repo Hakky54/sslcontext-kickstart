@@ -236,15 +236,31 @@ public final class TrustManagerUtils {
     public static void addCertificate(X509ExtendedTrustManager trustManager, List<X509Certificate> certificates) {
         if (trustManager instanceof InflatableX509ExtendedTrustManager) {
             ((InflatableX509ExtendedTrustManager) trustManager).addCertificates(certificates);
-        } else if (trustManager instanceof HotSwappableX509ExtendedTrustManager
+            return;
+        }
+
+        if (trustManager instanceof HotSwappableX509ExtendedTrustManager
                 && ((HotSwappableX509ExtendedTrustManager) trustManager).getInnerTrustManager() instanceof InflatableX509ExtendedTrustManager) {
             ((InflatableX509ExtendedTrustManager) ((HotSwappableX509ExtendedTrustManager) trustManager)
                     .getInnerTrustManager()).addCertificates(certificates);
-        } else {
-            throw new GenericTrustManagerException(
-                    String.format("The provided trustManager should be an instance of [%s]", InflatableX509ExtendedTrustManager.class.getName())
-            );
+            return;
         }
+
+        if (trustManager instanceof CompositeX509ExtendedTrustManager) {
+            Optional<InflatableX509ExtendedTrustManager> inflatableX509ExtendedTrustManager = ((CompositeX509ExtendedTrustManager) trustManager).getInnerTrustManagers().stream()
+                    .filter(InflatableX509ExtendedTrustManager.class::isInstance)
+                    .map(InflatableX509ExtendedTrustManager.class::cast)
+                    .findFirst();
+
+            if (inflatableX509ExtendedTrustManager.isPresent()) {
+                inflatableX509ExtendedTrustManager.get().addCertificates(certificates);
+                return;
+            }
+        }
+
+        throw new GenericTrustManagerException(
+                String.format("The provided trustManager should be an instance of [%s]", InflatableX509ExtendedTrustManager.class.getName())
+        );
     }
 
     /**
@@ -263,8 +279,8 @@ public final class TrustManagerUtils {
      * The baseTrustManager should be an instance of {@link HotSwappableX509ExtendedTrustManager}
      * and can be created with {@link TrustManagerUtils#createSwappableTrustManager(X509TrustManager)}
      *
-     * @param baseTrustManager              an instance of {@link HotSwappableX509ExtendedTrustManager}
-     * @param newTrustManager               to be injected instance of a TrustManager
+     * @param baseTrustManager an instance of {@link HotSwappableX509ExtendedTrustManager}
+     * @param newTrustManager  to be injected instance of a TrustManager
      * @throws GenericTrustManagerException if {@code baseTrustManager} is not instance of {@link HotSwappableX509ExtendedTrustManager}
      */
     public static void swapTrustManager(X509TrustManager baseTrustManager, X509TrustManager newTrustManager) {
@@ -341,13 +357,10 @@ public final class TrustManagerUtils {
         private final List<X509ExtendedTrustManager> trustManagers = new ArrayList<>();
         private boolean swappableTrustManagerEnabled = false;
         private boolean loggingTrustManagerEnabled = false;
-        private boolean inflatableTrustManagerEnabled = false;
 
         private ChainAndAuthTypeValidator chainAndAuthTypeValidator;
         private ChainAndAuthTypeWithSocketValidator chainAndAuthTypeWithSocketValidator;
         private ChainAndAuthTypeWithSSLEngineValidator chainAndAuthTypeWithSSLEngineValidator;
-
-        private X509ExtendedTrustManager inflatableTrustManager;
 
         public <T extends X509TrustManager> TrustManagerBuilder withTrustManagers(T... trustManagers) {
             for (T trustManager : trustManagers) {
@@ -399,11 +412,6 @@ public final class TrustManagerUtils {
             return this;
         }
 
-        public TrustManagerBuilder withInflatableTrustManager(boolean inflatableTrustManagerEnabled) {
-            this.inflatableTrustManagerEnabled = inflatableTrustManagerEnabled;
-            return this;
-        }
-
         public TrustManagerBuilder withTrustEnhancer(ChainAndAuthTypeValidator validator) {
             this.chainAndAuthTypeValidator = validator;
             return this;
@@ -427,10 +435,6 @@ public final class TrustManagerUtils {
             if (unsafeOrDummyTrustManager.isPresent()) {
                 baseTrustManager = unsafeOrDummyTrustManager.get();
             } else {
-                if (inflatableTrustManagerEnabled) {
-                    trustManagers.add(TrustManagerUtils.createInflatableTrustManager());
-                }
-
                 baseTrustManager = combine(trustManagers);
                 baseTrustManager = createEnhanceableTrustManagerIfEnabled(baseTrustManager)
                         .orElse(baseTrustManager);
