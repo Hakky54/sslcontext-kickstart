@@ -480,20 +480,6 @@ class TrustManagerUtilsShould {
     }
 
     @Test
-    void notIncludeTrustManagerWhichDoesNotContainTrustedCertificates() {
-        KeyStore trustStoreOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
-        KeyStore trustStoreTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD);
-        KeyStore emptyTrustStore = KeyStoreUtils.createKeyStore();
-
-        X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(trustStoreOne, trustStoreTwo, emptyTrustStore);
-
-        assertThat(trustManager).isInstanceOf(CompositeX509ExtendedTrustManager.class);
-
-        CompositeX509ExtendedTrustManager compositeX509ExtendedTrustManager = (CompositeX509ExtendedTrustManager) trustManager;
-        assertThat(compositeX509ExtendedTrustManager.getInnerTrustManagers()).hasSize(2);
-    }
-
-    @Test
     void ignoreOtherTrustMaterialIfDummyTrustManagerIsPresent() {
         LogCaptor logCaptor = LogCaptor.forRoot();
 
@@ -523,16 +509,6 @@ class TrustManagerUtilsShould {
         assertThat(logCaptor.getLogs()).isEmpty();
     }
 
-    @Test
-    void notCombineIfOnlyOneTrustManagerContainsTrustedCertificates() {
-        X509ExtendedTrustManager emptyTrustManager = TrustManagerUtils.createTrustManager(KeyStoreUtils.createKeyStore());
-        X509ExtendedTrustManager filledTrustManager = TrustManagerUtils.createTrustManager(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD));
-
-        X509ExtendedTrustManager trustManager = TrustManagerUtils.combine(emptyTrustManager, filledTrustManager);
-
-        assertThat(trustManager).isNotInstanceOf(CompositeX509ExtendedTrustManager.class);
-    }
-
     private CertPathTrustManagerParameters createTrustManagerParameters(KeyStore trustStore) throws NoSuchAlgorithmException, KeyStoreException, InvalidAlgorithmParameterException {
         CertPathBuilder certPathBuilder = CertPathBuilder.getInstance("PKIX");
         PKIXRevocationChecker revocationChecker = (PKIXRevocationChecker) certPathBuilder.getRevocationChecker();
@@ -540,15 +516,6 @@ class TrustManagerUtilsShould {
         PKIXBuilderParameters pkixParams = new PKIXBuilderParameters(trustStore, new X509CertSelector());
         pkixParams.addCertPathChecker(revocationChecker);
         return new CertPathTrustManagerParameters(pkixParams);
-    }
-
-    @Test
-    void throwExceptionWhenMultipleTrustManagersCombinedDontHaveTrustedCertificates() {
-        X509ExtendedTrustManager trustManagerOne = TrustManagerUtils.createTrustManager(KeyStoreUtils.createKeyStore());
-        X509ExtendedTrustManager trustManagerTwo = TrustManagerUtils.createTrustManager(KeyStoreUtils.createKeyStore());
-
-        assertThatThrownBy(() -> TrustManagerUtils.combine(trustManagerOne, trustManagerTwo))
-                .hasMessageContaining("The provided trust material does not contain any trusted certificate.");
     }
 
     @Test

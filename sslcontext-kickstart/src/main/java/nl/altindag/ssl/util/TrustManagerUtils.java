@@ -29,7 +29,7 @@ import nl.altindag.ssl.trustmanager.X509TrustManagerWrapper;
 import nl.altindag.ssl.trustmanager.validator.ChainAndAuthTypeValidator;
 import nl.altindag.ssl.trustmanager.validator.ChainAndAuthTypeWithSSLEngineValidator;
 import nl.altindag.ssl.trustmanager.validator.ChainAndAuthTypeWithSocketValidator;
-import nl.altindag.ssl.util.internal.ValidationUtils;
+import nl.altindag.ssl.util.internal.CollectorsUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -350,7 +350,6 @@ public final class TrustManagerUtils {
 
         private static final Logger LOGGER = LoggerFactory.getLogger(TrustManagerBuilder.class);
         private static final String EMPTY_TRUST_MANAGER_EXCEPTION = "Input does not contain TrustManager";
-        private static final String NO_TRUSTED_CERTIFICATES_EXCEPTION = "The provided trust material does not contain any trusted certificate.";
 
         private TrustManagerBuilder() {
         }
@@ -485,18 +484,10 @@ public final class TrustManagerUtils {
                 return trustManagers.get(0);
             }
 
-            List<X509ExtendedTrustManager> trustManagersContainingTrustedCertificates = trustManagers.stream()
+            return trustManagers.stream()
                     .map(TrustManagerUtils::unwrapIfPossible)
                     .flatMap(Collection::stream)
-                    .filter(trustManager -> trustManager.getAcceptedIssuers().length > 0)
-                    .collect(Collectors.toList());
-
-            ValidationUtils.requireNotEmpty(trustManagersContainingTrustedCertificates, NO_TRUSTED_CERTIFICATES_EXCEPTION);
-            if (trustManagersContainingTrustedCertificates.size() == 1) {
-                return trustManagersContainingTrustedCertificates.get(0);
-            } else {
-                return new CompositeX509ExtendedTrustManager(trustManagersContainingTrustedCertificates);
-            }
+                    .collect(CollectorsUtils.toListAndThen(CompositeX509ExtendedTrustManager::new));
         }
 
         private Optional<X509ExtendedTrustManager> createEnhanceableTrustManagerIfEnabled(X509ExtendedTrustManager baseTrustManager) {
