@@ -60,7 +60,7 @@ public class InflatableX509ExtendedTrustManager extends HotSwappableX509Extended
             for (Certificate certificate : certificates) {
                 String alias = CertificateUtils.generateAlias(certificate);
                 trustStore.setCertificateEntry(alias, certificate);
-                LOGGER.info("Added certificate for {}", alias);
+                LOGGER.info("Added certificate for [{}]", alias);
             }
             X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
             setTrustManager(trustManager);
