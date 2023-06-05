@@ -124,21 +124,30 @@ public class InflatableX509ExtendedTrustManager extends HotSwappableX509Extended
     }
 
     private void checkTrusted(TrustManagerConsumer trustManagerConsumer, X509Certificate[] chain, String authType) throws CertificateException {
-        readLock.lock();
 
         try {
-            trustManagerConsumer.checkTrusted(this);
+            // Use a read lock first in order to be more efficient
+            readLock.lock();
+            try {
+                trustManagerConsumer.checkTrusted(this);
+            } finally {
+                readLock.unlock();
+            }
         } catch (CertificateException e) {
-            synchronized (this) {
+            writeLock.lock();
+            // Recheck in a write lock, in case of a concurrent update (kind of double-checked locking)
+            try {
+                trustManagerConsumer.checkTrusted(this);
+            } catch (CertificateException e2) {
                 boolean shouldBeTrusted = certificateAndAuthTypeTrustPredicate.test(chain, authType);
                 if (shouldBeTrusted) {
                     addCertificates(Collections.singletonList(chain[0]));
                 } else {
-                    throw e;
+                    throw e2;
                 }
+            } finally {
+                writeLock.unlock();
             }
-        } finally {
-            readLock.unlock();
         }
     }
 
