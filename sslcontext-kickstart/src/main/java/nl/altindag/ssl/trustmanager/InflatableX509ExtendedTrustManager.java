@@ -129,13 +129,14 @@ public class InflatableX509ExtendedTrustManager extends HotSwappableX509Extended
         try {
             trustManagerConsumer.checkTrusted(this);
         } catch (CertificateException e) {
-            boolean shouldBeTrusted = certificateAndAuthTypeTrustPredicate.test(chain, authType);
-            if (shouldBeTrusted) {
-                addCertificates(Collections.singletonList(chain[0]));
-                return;
+            synchronized (this) {
+                boolean shouldBeTrusted = certificateAndAuthTypeTrustPredicate.test(chain, authType);
+                if (shouldBeTrusted) {
+                    addCertificates(Collections.singletonList(chain[0]));
+                } else {
+                    throw e;
+                }
             }
-
-            throw e;
         } finally {
             readLock.unlock();
         }
