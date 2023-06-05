@@ -17,9 +17,10 @@ package nl.altindag.ssl.apache5.util;
 
 import nl.altindag.ssl.SSLFactory;
 import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
-import org.apache.hc.core5.http.nio.ssl.BasicClientTlsStrategy;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
+import org.apache.hc.core5.reactor.ssl.SSLBufferMode;
 
 /**
  * @author Hakan Altindag
@@ -38,7 +39,13 @@ public final class Apache5SslUtils {
     }
 
     public static TlsStrategy toTlsStrategy(SSLFactory sslFactory) {
-        return new BasicClientTlsStrategy(sslFactory.getSslContext());
+        return new DefaultClientTlsStrategy(
+                sslFactory.getSslContext(),
+                sslFactory.getSslParameters().getProtocols(),
+                sslFactory.getSslParameters().getCipherSuites(),
+                SSLBufferMode.STATIC,
+                sslFactory.getHostnameVerifier()
+        );
     }
 
 }
