@@ -38,8 +38,8 @@ import static nl.altindag.ssl.util.internal.ValidationUtils.requireNotNull;
 public class HotSwappableX509ExtendedTrustManager extends DelegatingX509ExtendedTrustManager {
 
     private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
-    protected final Lock readLock = readWriteLock.readLock();
-    protected final Lock writeLock = readWriteLock.writeLock();
+    private final Lock readLock = readWriteLock.readLock();
+    private final Lock writeLock = readWriteLock.writeLock();
 
     public HotSwappableX509ExtendedTrustManager(X509ExtendedTrustManager trustManager) {
         super(trustManager);

@@ -38,6 +38,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509ExtendedTrustManager;
 import javax.net.ssl.X509TrustManager;
+import java.nio.file.Path;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -51,6 +52,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
 
 import static nl.altindag.ssl.util.internal.CollectorsUtils.toListAndThen;
@@ -230,9 +232,21 @@ public final class TrustManagerUtils {
     }
 
     public static X509ExtendedTrustManager createInflatableTrustManager() {
-        return new InflatableX509ExtendedTrustManager();
+        return createInflatableTrustManager(null, null, null, null);
     }
 
+    public static X509ExtendedTrustManager createInflatableTrustManager(Path trustStorePath,
+                                                                        char[] trustStorePassword,
+                                                                        String trustStoreType,
+                                                                        BiPredicate<X509Certificate[], String> certificateAndAuthTypeTrustPredicate) {
+        return new InflatableX509ExtendedTrustManager(trustStorePath, trustStorePassword, trustStoreType, certificateAndAuthTypeTrustPredicate);
+    }
+
+    /**
+     * Adds a new to be trusted certificate to the existing TrustManager.
+     * The provided TrustManager should be an instance of {@link InflatableX509ExtendedTrustManager}
+     * and it is allowed that it is wrapped in a {@link CompositeX509ExtendedTrustManager}
+     */
     public static void addCertificate(X509ExtendedTrustManager trustManager, List<X509Certificate> certificates) {
         if (trustManager instanceof InflatableX509ExtendedTrustManager) {
             ((InflatableX509ExtendedTrustManager) trustManager).addCertificates(certificates);

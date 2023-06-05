@@ -18,14 +18,27 @@ package nl.altindag.ssl.trustmanager;
 import nl.altindag.ssl.util.CertificateUtils;
 import nl.altindag.ssl.util.KeyStoreUtils;
 import nl.altindag.ssl.util.TrustManagerUtils;
+import nl.altindag.ssl.util.internal.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedTrustManager;
+import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.BiPredicate;
 
 /**
  * <strong>NOTE:</strong>
@@ -39,17 +52,92 @@ public class InflatableX509ExtendedTrustManager extends HotSwappableX509Extended
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InflatableX509ExtendedTrustManager.class);
 
-    private final KeyStore trustStore;
+    private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+    private final Lock readLock = readWriteLock.readLock();
+    private final Lock writeLock = readWriteLock.writeLock();
 
-    public InflatableX509ExtendedTrustManager() {
+    private final KeyStore trustStore;
+    private final Path trustStorePath;
+    private final char[] trustStorePassword;
+    private final String trustStoreType;
+    private final BiPredicate<X509Certificate[], String> certificateAndAuthTypeTrustPredicate;
+
+    public InflatableX509ExtendedTrustManager(Path trustStorePath,
+                                              char[] trustStorePassword,
+                                              String trustStoreType,
+                                              BiPredicate<X509Certificate[], String> certificateAndAuthTypeTrustPredicate) {
+
         super(TrustManagerUtils.createDummyTrustManager());
 
         writeLock.lock();
 
         try {
-            trustStore = KeyStoreUtils.createKeyStore();
+            this.trustStorePath = trustStorePath;
+            this.trustStorePassword = trustStorePassword;
+            this.trustStoreType = trustStoreType;
+
+            this.certificateAndAuthTypeTrustPredicate = Optional.ofNullable(certificateAndAuthTypeTrustPredicate)
+                    .orElse((chain, authType) -> false);
+
+            if (trustStorePath != null && trustStorePassword != null && StringUtils.isNotBlank(trustStoreType)) {
+                if (Files.exists(trustStorePath)) {
+                    trustStore = KeyStoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType);
+                } else {
+                    trustStore = KeyStoreUtils.createKeyStore(trustStoreType, trustStorePassword);
+                }
+            } else {
+                trustStore = KeyStoreUtils.createKeyStore();
+            }
         } finally {
             writeLock.unlock();
+        }
+    }
+
+    @Override
+    public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+        checkTrusted(trustManager -> super.checkServerTrusted(chain, authType), chain, authType);
+    }
+
+    @Override
+    public void checkServerTrusted(X509Certificate[] chain, String authType, Socket socket) throws CertificateException {
+        checkTrusted(trustManager -> super.checkServerTrusted(chain, authType, socket), chain, authType);
+    }
+
+    @Override
+    public void checkServerTrusted(X509Certificate[] chain, String authType, SSLEngine sslEngine) throws CertificateException {
+        checkTrusted(trustManager -> super.checkServerTrusted(chain, authType, sslEngine), chain, authType);
+    }
+
+    @Override
+    public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+        checkTrusted(trustManager -> super.checkClientTrusted(chain, authType), chain, authType);
+    }
+
+    @Override
+    public void checkClientTrusted(X509Certificate[] chain, String authType, Socket socket) throws CertificateException {
+        checkTrusted(trustManager -> super.checkClientTrusted(chain, authType, socket), chain, authType);
+    }
+
+    @Override
+    public void checkClientTrusted(X509Certificate[] chain, String authType, SSLEngine sslEngine) throws CertificateException {
+        checkTrusted(trustManager -> super.checkClientTrusted(chain, authType, sslEngine), chain, authType);
+    }
+
+    private void checkTrusted(TrustManagerConsumer trustManagerConsumer, X509Certificate[] chain, String authType) throws CertificateException {
+        readLock.lock();
+
+        try {
+            trustManagerConsumer.checkTrusted(this);
+        } catch (CertificateException e) {
+            boolean shouldBeTrusted = certificateAndAuthTypeTrustPredicate.test(chain, authType);
+            if (shouldBeTrusted) {
+                addCertificates(Collections.singletonList(chain[0]));
+                return;
+            }
+
+            throw e;
+        } finally {
+            readLock.unlock();
         }
     }
 
@@ -64,7 +152,11 @@ public class InflatableX509ExtendedTrustManager extends HotSwappableX509Extended
             }
             X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
             setTrustManager(trustManager);
-        } catch (Exception e) {
+
+            if (trustStorePath != null && trustStoreType != null) {
+                KeyStoreUtils.write(trustStorePath, trustStore, trustStorePassword);
+            }
+        } catch (KeyStoreException e) {
             LOGGER.error("Cannot add certificate", e);
         } finally {
             writeLock.unlock();

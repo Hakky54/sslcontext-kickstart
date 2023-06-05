@@ -16,10 +16,15 @@
 package nl.altindag.ssl.trustmanager;
 
 import nl.altindag.log.LogCaptor;
+import nl.altindag.ssl.TestConstants;
 import nl.altindag.ssl.util.KeyStoreUtils;
 import org.junit.jupiter.api.Test;
 
 import javax.net.ssl.X509ExtendedTrustManager;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.cert.X509Certificate;
@@ -38,7 +43,7 @@ class InflatableX509ExtendedTrustManagerShould {
 
     @Test
     void initiallyBeEmpty() {
-        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager();
+        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager(null, null, null, null);
 
         X509Certificate[] acceptedIssuers = trustManager.getAcceptedIssuers();
         assertThat(acceptedIssuers).isEmpty();
@@ -46,7 +51,7 @@ class InflatableX509ExtendedTrustManagerShould {
 
     @Test
     void initiallyContainDummyTrustManager() {
-        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager();
+        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager(null, null, null, null);
 
         X509ExtendedTrustManager innerTrustManager = trustManager.getInnerTrustManager();
         assertThat(innerTrustManager).isInstanceOf(DummyX509ExtendedTrustManager.class);
@@ -60,11 +65,35 @@ class InflatableX509ExtendedTrustManagerShould {
 
         assertThat(trustedCerts).hasSizeGreaterThan(0);
 
-        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager();
+        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager(null, null, null, null);
         trustManager.addCertificates(Arrays.asList(trustedCerts));
 
         assertThat(trustManager.getAcceptedIssuers()).containsExactly(trustedCerts);
         assertThat(logCaptor.getInfoLogs()).containsExactly("Added certificate for [cn=googlecom_o=google-llc_l=mountain-view_st=california_c=us]");
+    }
+
+    @Test
+    void addNewlyTrustedCertificatesWhileAlsoWritingToAKeyStoreOnTheFileSystem() throws KeyStoreException, IOException {
+        LogCaptor logCaptor = LogCaptor.forClass(InflatableX509ExtendedTrustManager.class);
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+        X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
+
+        assertThat(trustedCerts).hasSizeGreaterThan(0);
+
+        Path trustStoreDestination = Paths.get(TestConstants.HOME_DIRECTORY, "inflatable-truststore.p12");
+        assertThat(Files.exists(trustStoreDestination)).isFalse();
+
+        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager(trustStoreDestination, "secret".toCharArray(), "PKCS12", (chain, authType) -> true);
+        trustManager.addCertificates(Arrays.asList(trustedCerts));
+
+        assertThat(trustManager.getAcceptedIssuers()).containsExactly(trustedCerts);
+        assertThat(logCaptor.getInfoLogs()).containsExactly("Added certificate for [cn=googlecom_o=google-llc_l=mountain-view_st=california_c=us]");
+
+        assertThat(Files.exists(trustStoreDestination)).isTrue();
+        KeyStore inflatedTrustStore = KeyStoreUtils.loadKeyStore(trustStoreDestination, "secret".toCharArray(), "PKCS12");
+        assertThat(KeyStoreTestUtils.getTrustedX509Certificates(inflatedTrustStore)).containsExactly(trustedCerts);
+
+        Files.delete(trustStoreDestination);
     }
 
 }
