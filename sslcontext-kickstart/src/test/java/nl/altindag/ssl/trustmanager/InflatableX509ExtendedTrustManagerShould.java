@@ -18,7 +18,6 @@ package nl.altindag.ssl.trustmanager;
 import nl.altindag.log.LogCaptor;
 import nl.altindag.ssl.TestConstants;
 import nl.altindag.ssl.util.KeyStoreUtils;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import javax.net.ssl.X509ExtendedTrustManager;
@@ -41,6 +40,7 @@ import java.util.function.BiPredicate;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @author Hakan Altindag
@@ -119,7 +119,7 @@ class InflatableX509ExtendedTrustManagerShould {
         BiPredicate<X509Certificate[], String> predicate = (chain, authType) -> shouldTrust.get();
         InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager(trustStoreDestination, "secret".toCharArray(), "PKCS12", predicate);
 
-        Assertions.assertThrows(CertificateException.class, () -> trustManager.checkServerTrusted(new X509Certificate[] {notYetTrustedCert}, "RSA"));
+        assertThatThrownBy(() -> trustManager.checkServerTrusted(new X509Certificate[]{notYetTrustedCert}, "RSA")).isInstanceOf(CertificateException.class);
         assertThat(trustManager.getAcceptedIssuers()).isEmpty();
 
         shouldTrust.set(true);
