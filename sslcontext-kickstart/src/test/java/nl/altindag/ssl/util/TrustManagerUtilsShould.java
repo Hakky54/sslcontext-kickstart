@@ -693,6 +693,32 @@ class TrustManagerUtilsShould {
     }
 
     @Test
+    void throwExceptionWhenAddingCertificateToANonInflatableX509ExtendedTrustManagerEvenThoughItIsWrappedInAHotSwappableX509ExtendedTrustManager() {
+        X509Certificate certificate = mock(X509Certificate.class);
+        List<X509Certificate> certificates = Collections.singletonList(certificate);
+        X509ExtendedTrustManager trustManager = mock(X509ExtendedTrustManager.class);
+        HotSwappableX509ExtendedTrustManager hotSwappableX509ExtendedTrustManager = mock(HotSwappableX509ExtendedTrustManager.class);
+        when(hotSwappableX509ExtendedTrustManager.getInnerTrustManager()).thenReturn(trustManager);
+
+        assertThatThrownBy(() -> TrustManagerUtils.addCertificate(hotSwappableX509ExtendedTrustManager, certificates))
+                .isInstanceOf(GenericTrustManagerException.class)
+                .hasMessage("The provided trustManager should be an instance of [nl.altindag.ssl.trustmanager.InflatableX509ExtendedTrustManager]");
+    }
+
+    @Test
+    void throwExceptionWhenAddingCertificateToANonInflatableX509ExtendedTrustManagerEvenThoughItIsWrappedInACompositeX509ExtendedTrustManager() {
+        X509Certificate certificate = mock(X509Certificate.class);
+        List<X509Certificate> certificates = Collections.singletonList(certificate);
+        X509ExtendedTrustManager trustManager = mock(X509ExtendedTrustManager.class);
+        CompositeX509ExtendedTrustManager compositeX509ExtendedTrustManager = mock(CompositeX509ExtendedTrustManager.class);
+        when(compositeX509ExtendedTrustManager.getInnerTrustManagers()).thenReturn(Collections.singletonList(trustManager));
+
+        assertThatThrownBy(() -> TrustManagerUtils.addCertificate(compositeX509ExtendedTrustManager, certificates))
+                .isInstanceOf(GenericTrustManagerException.class)
+                .hasMessage("The provided trustManager should be an instance of [nl.altindag.ssl.trustmanager.InflatableX509ExtendedTrustManager]");
+    }
+
+    @Test
     void throwExceptionWhenUnsupportedTrustManagerIsProvidedWhenSwappingTrustManagerWithANewTrustManager() {
         KeyStore trustStoreOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         KeyStore trustStoreTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD);
