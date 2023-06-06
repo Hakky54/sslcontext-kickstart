@@ -35,9 +35,6 @@ import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BiPredicate;
 
 /**
@@ -51,10 +48,6 @@ import java.util.function.BiPredicate;
 public class InflatableX509ExtendedTrustManager extends HotSwappableX509ExtendedTrustManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InflatableX509ExtendedTrustManager.class);
-
-    private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
-    private final Lock readLock = readWriteLock.readLock();
-    private final Lock writeLock = readWriteLock.writeLock();
 
     private final KeyStore trustStore;
     private final Path trustStorePath;
@@ -124,7 +117,6 @@ public class InflatableX509ExtendedTrustManager extends HotSwappableX509Extended
     }
 
     private void checkTrusted(TrustManagerConsumer trustManagerConsumer, X509Certificate[] chain, String authType) throws CertificateException {
-
         try {
             // Use a read lock first in order to be more efficient
             readLock.lock();
