@@ -273,6 +273,39 @@ class InflatableX509ExtendedTrustManagerShould {
     }
 
     @Test
+    void onlyCallPredicateOnce() throws KeyStoreException, IOException, InterruptedException, ExecutionException, CertificateException {
+        LogCaptor logCaptor = LogCaptor.forClass(InflatableX509ExtendedTrustManager.class);
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+        X509Certificate notYetTrustedCert = KeyStoreTestUtils.getTrustedX509Certificates(trustStore)[0];
+
+        Path trustStoreDestination = Paths.get(HOME_DIRECTORY, "inflatable-truststore.p12");
+        assertThat(Files.exists(trustStoreDestination)).isFalse();
+
+        AtomicBoolean shouldTrust = new AtomicBoolean(true);
+        BiPredicate<X509Certificate[], String> predicate = (chain, authType) -> {
+            // Only the first call to the predicate will return true
+            if (shouldTrust.getAndSet(false)) {
+                return true;
+            }
+            // Following calls (if any, but we only expect one) will throw
+            throw new IllegalStateException("Predicate should only be called once");
+        };
+        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager(trustStoreDestination, "secret".toCharArray(), "PKCS12", predicate);
+
+        trustManager.checkServerTrusted(new X509Certificate[]{notYetTrustedCert}, "RSA");
+        trustManager.checkServerTrusted(new X509Certificate[]{notYetTrustedCert}, "RSA");
+
+        assertThat(trustManager.getAcceptedIssuers()).containsExactly(notYetTrustedCert);
+        assertThat(logCaptor.getInfoLogs()).containsExactly("Added certificate for [cn=googlecom_o=google-llc_l=mountain-view_st=california_c=us]");
+
+        assertThat(Files.exists(trustStoreDestination)).isTrue();
+        KeyStore inflatedTrustStore = KeyStoreUtils.loadKeyStore(trustStoreDestination, "secret".toCharArray(), "PKCS12");
+        assertThat(KeyStoreTestUtils.getTrustedX509Certificates(inflatedTrustStore)).containsExactly(notYetTrustedCert);
+
+        Files.delete(trustStoreDestination);
+    }
+
+    @Test
     void checkServerTrusted() throws CertificateException {
         X509ExtendedTrustManager innerTrustManager = mock(X509ExtendedTrustManager.class);
         X509Certificate[] chain = new X509Certificate[]{mock(X509Certificate.class)};
