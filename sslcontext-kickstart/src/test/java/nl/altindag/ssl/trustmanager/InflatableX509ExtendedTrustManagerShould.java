@@ -148,6 +148,26 @@ class InflatableX509ExtendedTrustManagerShould {
     }
 
     @Test
+    void notUseExistingProvidedTrustStorePathIfTrustStoreTypeIsMissing() throws KeyStoreException, IOException {
+        Path trustStoreDestination = Paths.get(HOME_DIRECTORY, "inflatable-truststore.p12");
+        assertThat(Files.exists(trustStoreDestination)).isFalse();
+
+        LogCaptor logCaptor = LogCaptor.forClass(InflatableX509ExtendedTrustManager.class);
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+        X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
+
+        assertThat(trustedCerts).hasSizeGreaterThan(0);
+
+        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager(trustStoreDestination, TRUSTSTORE_PASSWORD, null, null);
+        trustManager.addCertificates(Arrays.asList(trustedCerts));
+
+        assertThat(logCaptor.getInfoLogs()).containsExactly("Added certificate for [cn=googlecom_o=google-llc_l=mountain-view_st=california_c=us]");
+        assertThat(Files.exists(trustStoreDestination)).isTrue();
+
+        Files.delete(trustStoreDestination);
+    }
+
+    @Test
     void addNewlyTrustedCertificatesWhileAlsoWritingToAKeyStoreOnTheFileSystem() throws KeyStoreException, IOException {
         LogCaptor logCaptor = LogCaptor.forClass(InflatableX509ExtendedTrustManager.class);
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
