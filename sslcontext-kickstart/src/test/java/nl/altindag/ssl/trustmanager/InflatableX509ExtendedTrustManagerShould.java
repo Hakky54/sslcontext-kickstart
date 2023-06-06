@@ -22,9 +22,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
+import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedTrustManager;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -51,6 +53,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * @author Hakan Altindag
@@ -265,6 +270,94 @@ class InflatableX509ExtendedTrustManagerShould {
 
         Files.delete(trustStoreDestination);
         exec.shutdownNow();
+    }
+
+    @Test
+    void checkServerTrusted() throws CertificateException {
+        X509ExtendedTrustManager innerTrustManager = mock(X509ExtendedTrustManager.class);
+        X509Certificate[] chain = new X509Certificate[]{mock(X509Certificate.class)};
+        String authType = "RSA";
+
+        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager(null, null, null, null);
+        trustManager.setTrustManager(innerTrustManager);
+
+        trustManager.checkServerTrusted(chain, authType);
+
+        verify(innerTrustManager, times(1)).checkServerTrusted(chain, authType);
+    }
+
+    @Test
+    void checkServerTrustedWithSocket() throws CertificateException {
+        X509ExtendedTrustManager innerTrustManager = mock(X509ExtendedTrustManager.class);
+        X509Certificate[] chain = new X509Certificate[]{mock(X509Certificate.class)};
+        String authType = "RSA";
+        Socket socket = mock(Socket.class);
+
+        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager(null, null, null, null);
+        trustManager.setTrustManager(innerTrustManager);
+
+        trustManager.checkServerTrusted(chain, authType, socket);
+
+        verify(innerTrustManager, times(1)).checkServerTrusted(chain, authType, socket);
+    }
+
+    @Test
+    void checkServerTrustedWithSSLEngine() throws CertificateException {
+        X509ExtendedTrustManager innerTrustManager = mock(X509ExtendedTrustManager.class);
+        X509Certificate[] chain = new X509Certificate[]{mock(X509Certificate.class)};
+        String authType = "RSA";
+        SSLEngine sslEngine = mock(SSLEngine.class);
+
+        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager(null, null, null, null);
+        trustManager.setTrustManager(innerTrustManager);
+
+        trustManager.checkServerTrusted(chain, authType, sslEngine);
+
+        verify(innerTrustManager, times(1)).checkServerTrusted(chain, authType, sslEngine);
+    }
+
+    @Test
+    void checkClientTrusted() throws CertificateException {
+        X509ExtendedTrustManager innerTrustManager = mock(X509ExtendedTrustManager.class);
+        X509Certificate[] chain = new X509Certificate[]{mock(X509Certificate.class)};
+        String authType = "RSA";
+
+        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager(null, null, null, null);
+        trustManager.setTrustManager(innerTrustManager);
+
+        trustManager.checkClientTrusted(chain, authType);
+
+        verify(innerTrustManager, times(1)).checkClientTrusted(chain, authType);
+    }
+
+    @Test
+    void checkClientTrustedWithSocket() throws CertificateException {
+        X509ExtendedTrustManager innerTrustManager = mock(X509ExtendedTrustManager.class);
+        X509Certificate[] chain = new X509Certificate[]{mock(X509Certificate.class)};
+        String authType = "RSA";
+        Socket socket = mock(Socket.class);
+
+        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager(null, null, null, null);
+        trustManager.setTrustManager(innerTrustManager);
+
+        trustManager.checkClientTrusted(chain, authType, socket);
+
+        verify(innerTrustManager, times(1)).checkClientTrusted(chain, authType, socket);
+    }
+
+    @Test
+    void checkClientTrustedWithSSLEngine() throws CertificateException {
+        X509ExtendedTrustManager innerTrustManager = mock(X509ExtendedTrustManager.class);
+        X509Certificate[] chain = new X509Certificate[]{mock(X509Certificate.class)};
+        String authType = "RSA";
+        SSLEngine sslEngine = mock(SSLEngine.class);
+
+        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager(null, null, null, null);
+        trustManager.setTrustManager(innerTrustManager);
+
+        trustManager.checkClientTrusted(chain, authType, sslEngine);
+
+        verify(innerTrustManager, times(1)).checkClientTrusted(chain, authType, sslEngine);
     }
 
 }
