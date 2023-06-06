@@ -277,6 +277,22 @@ class TrustManagerUtilsShould {
     }
 
     @Test
+    void trustManagerShouldSwapEvenThoughTheNewTrustManagerIsInflatableTrustManager() {
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.trustManagerBuilder()
+                .withTrustStores(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD))
+                .withSwappableTrustManager(true)
+                .build();
+
+        assertThat(trustManager).isInstanceOf(HotSwappableX509ExtendedTrustManager.class);
+        assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
+
+        X509ExtendedTrustManager newTrustManager = TrustManagerUtils.createInflatableTrustManager();
+
+        TrustManagerUtils.swapTrustManager(trustManager, newTrustManager);
+        assertThat(trustManager.getAcceptedIssuers()).isEmpty();
+    }
+
+    @Test
     void trustManagerShouldNotSwapWhenLoggingTrustManagerDoesNotContainSwappableTrustManager() {
         X509ExtendedTrustManager trustManager = TrustManagerUtils.trustManagerBuilder()
                 .withTrustManager(TrustManagerUtils.createUnsafeTrustManager())
@@ -684,6 +700,29 @@ class TrustManagerUtilsShould {
     @Test
     void throwExceptionWhenNewTrustManagerIsHotSwappableX509ExtendedTrustManager() {
         assertThatThrownBy(() -> TrustManagerUtils.swapTrustManager(mock(HotSwappableX509ExtendedTrustManager.class), mock(HotSwappableX509ExtendedTrustManager.class)))
+                .isInstanceOf(GenericTrustManagerException.class)
+                .hasMessage("The newTrustManager should not be an instance of [nl.altindag.ssl.trustmanager.HotSwappableX509ExtendedTrustManager]");
+    }
+
+    @Test
+    void throwExceptionWhenNewTrustManagerIsSubClassOfHotSwappableX509ExtendedTrustManager() {
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.trustManagerBuilder()
+                .withTrustStores(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD))
+                .withSwappableTrustManager(true)
+                .build();
+
+        assertThat(trustManager).isInstanceOf(HotSwappableX509ExtendedTrustManager.class);
+        assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
+
+        class TempTrustManager extends HotSwappableX509ExtendedTrustManager {
+            public TempTrustManager(X509ExtendedTrustManager trustManager) {
+                super(trustManager);
+            }
+        }
+
+        X509ExtendedTrustManager newTrustManager = new TempTrustManager(TrustManagerUtils.createTrustManagerWithJdkTrustedCertificates());
+
+        assertThatThrownBy(() -> TrustManagerUtils.swapTrustManager(trustManager, newTrustManager))
                 .isInstanceOf(GenericTrustManagerException.class)
                 .hasMessage("The newTrustManager should not be an instance of [nl.altindag.ssl.trustmanager.HotSwappableX509ExtendedTrustManager]");
     }
