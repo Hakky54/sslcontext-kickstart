@@ -42,6 +42,13 @@ import java.util.function.BiPredicate;
  * Please don't use this class directly as it is part of the internal API. Class name and methods can be changed any time.
  * Instead use the {@link nl.altindag.ssl.util.TrustManagerUtils TrustManagerUtils} which provides the same functionality
  * while it has a stable API because it is part of the public API.
+ * <p>
+ * The Inflatable TrustManager has the capability to grow with newly trusted certificates at any moment in time.
+ * It can be either added manually with {@link TrustManagerUtils#addCertificate(X509ExtendedTrustManager, List)} or by providing
+ * a predicate in the constructor of this class so it can evaluate every certificate whether it should be trusted or not.
+ * Next to that it will write the trusted certificates to the file system as a keystore file if the properties are provided in the
+ * constructor. If this is not the case it will still use an in-memory keystore to maintain the newly added certificates, however
+ * the state will get lost when the application has been restarted.
  *
  * @author Hakan Altindag
  */
