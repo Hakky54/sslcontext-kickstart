@@ -300,7 +300,9 @@ public final class TrustManagerUtils {
     public static void swapTrustManager(X509TrustManager baseTrustManager, X509TrustManager newTrustManager) {
         if (baseTrustManager instanceof InflatableX509ExtendedTrustManager) {
             throw new GenericTrustManagerException(
-                    String.format("The baseTrustManager should not be an instance of [%s]", InflatableX509ExtendedTrustManager.class.getName())
+                    String.format("The baseTrustManager is from the instance of [%s] and should be an instance of [%s].",
+                            baseTrustManager.getClass().getName(),
+                            HotSwappableX509ExtendedTrustManager.class.getName())
             );
         }
 
