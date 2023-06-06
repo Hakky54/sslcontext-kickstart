@@ -59,7 +59,6 @@ public class InflatableX509ExtendedTrustManager extends HotSwappableX509Extended
     private final KeyStore trustStore;
     private final Path trustStorePath;
     private final char[] trustStorePassword;
-    private final String trustStoreType;
     private final BiPredicate<X509Certificate[], String> certificateAndAuthTypeTrustPredicate;
 
     public InflatableX509ExtendedTrustManager(Path trustStorePath,
@@ -74,7 +73,6 @@ public class InflatableX509ExtendedTrustManager extends HotSwappableX509Extended
         try {
             this.trustStorePath = trustStorePath;
             this.trustStorePassword = trustStorePassword;
-            this.trustStoreType = trustStoreType;
 
             this.certificateAndAuthTypeTrustPredicate = Optional.ofNullable(certificateAndAuthTypeTrustPredicate)
                     .orElse((chain, authType) -> false);
