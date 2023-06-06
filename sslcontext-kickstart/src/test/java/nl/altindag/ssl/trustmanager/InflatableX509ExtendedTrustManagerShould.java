@@ -16,21 +16,26 @@
 package nl.altindag.ssl.trustmanager;
 
 import nl.altindag.log.LogCaptor;
-import nl.altindag.ssl.TestConstants;
+import nl.altindag.log.model.LogEvent;
 import nl.altindag.ssl.util.KeyStoreUtils;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
 import javax.net.ssl.X509ExtendedTrustManager;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -38,9 +43,14 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiPredicate;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
+import static nl.altindag.ssl.TestConstants.HOME_DIRECTORY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
 
 /**
  * @author Hakan Altindag
@@ -83,6 +93,61 @@ class InflatableX509ExtendedTrustManagerShould {
     }
 
     @Test
+    void errorLogIfItCanNotSaveNewlyAddedTrustedCertificatesToTheInMemoryTrustStore() throws KeyStoreException {
+        LogCaptor logCaptor = LogCaptor.forClass(InflatableX509ExtendedTrustManager.class);
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+        X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
+
+        assertThat(trustedCerts).hasSizeGreaterThan(0);
+
+        KeyStore mockedTrustStore = Mockito.mock(KeyStore.class);
+        doThrow(new KeyStoreException()).when(mockedTrustStore).setCertificateEntry(anyString(), any(Certificate.class));
+
+        try (MockedStatic<KeyStoreUtils> mockedStatic = Mockito.mockStatic(KeyStoreUtils.class, invocationOnMock -> {
+            Method method = invocationOnMock.getMethod();
+            if (method.getName().equals("createKeyStore") && method.getParameters().length == 0) {
+                return mockedTrustStore;
+            } else {
+                return invocationOnMock.callRealMethod();
+            }
+        })) {
+            InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager(null, null, null, null);
+            trustManager.addCertificates(Arrays.asList(trustedCerts));
+
+            List<LogEvent> logEvents = logCaptor.getLogEvents();
+            assertThat(logEvents).hasSize(1);
+            assertThat(logEvents.get(0).getLevel()).isEqualTo("ERROR");
+            assertThat(logEvents.get(0).getFormattedMessage()).contains("Cannot add certificate");
+        }
+    }
+
+    @Test
+    void addNewlyTrustedCertificatesToExistingTrustStore() throws KeyStoreException, IOException {
+        Path trustStoreDestination = Paths.get(HOME_DIRECTORY, "inflatable-truststore.p12");
+        KeyStore existingTrustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD);
+        KeyStoreUtils.write(trustStoreDestination, existingTrustStore, TRUSTSTORE_PASSWORD);
+
+        assertThat(Files.exists(trustStoreDestination)).isTrue();
+        X509Certificate[] existingTrustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(existingTrustStore);
+        assertThat(existingTrustedCerts).hasSize(1);
+
+        LogCaptor logCaptor = LogCaptor.forClass(InflatableX509ExtendedTrustManager.class);
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+        X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
+
+        assertThat(trustedCerts).hasSizeGreaterThan(0);
+
+        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager(trustStoreDestination, TRUSTSTORE_PASSWORD, "PKCS12", null);
+        trustManager.addCertificates(Arrays.asList(trustedCerts));
+
+        X509Certificate[] combinedTrustedCertificates = Stream.concat(Arrays.stream(existingTrustedCerts), Arrays.stream(trustedCerts)).toArray(X509Certificate[]::new);
+        assertThat(trustManager.getAcceptedIssuers()).containsExactlyInAnyOrder(combinedTrustedCertificates);
+        assertThat(logCaptor.getInfoLogs()).containsExactly("Added certificate for [cn=googlecom_o=google-llc_l=mountain-view_st=california_c=us]");
+
+        Files.delete(trustStoreDestination);
+    }
+
+    @Test
     void addNewlyTrustedCertificatesWhileAlsoWritingToAKeyStoreOnTheFileSystem() throws KeyStoreException, IOException {
         LogCaptor logCaptor = LogCaptor.forClass(InflatableX509ExtendedTrustManager.class);
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
@@ -90,7 +155,7 @@ class InflatableX509ExtendedTrustManagerShould {
 
         assertThat(trustedCerts).hasSizeGreaterThan(0);
 
-        Path trustStoreDestination = Paths.get(TestConstants.HOME_DIRECTORY, "inflatable-truststore.p12");
+        Path trustStoreDestination = Paths.get(HOME_DIRECTORY, "inflatable-truststore.p12");
         assertThat(Files.exists(trustStoreDestination)).isFalse();
 
         InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager(trustStoreDestination, "secret".toCharArray(), "PKCS12", (chain, authType) -> true);
@@ -112,7 +177,7 @@ class InflatableX509ExtendedTrustManagerShould {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         X509Certificate notYetTrustedCert = KeyStoreTestUtils.getTrustedX509Certificates(trustStore)[0];
 
-        Path trustStoreDestination = Paths.get(TestConstants.HOME_DIRECTORY, "inflatable-truststore.p12");
+        Path trustStoreDestination = Paths.get(HOME_DIRECTORY, "inflatable-truststore.p12");
         assertThat(Files.exists(trustStoreDestination)).isFalse();
 
         AtomicBoolean shouldTrust = new AtomicBoolean(false);
@@ -141,7 +206,7 @@ class InflatableX509ExtendedTrustManagerShould {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         X509Certificate notYetTrustedCert = KeyStoreTestUtils.getTrustedX509Certificates(trustStore)[0];
 
-        Path trustStoreDestination = Paths.get(TestConstants.HOME_DIRECTORY, "inflatable-truststore.p12");
+        Path trustStoreDestination = Paths.get(HOME_DIRECTORY, "inflatable-truststore.p12");
         assertThat(Files.exists(trustStoreDestination)).isFalse();
 
         AtomicBoolean shouldTrust = new AtomicBoolean(true);
