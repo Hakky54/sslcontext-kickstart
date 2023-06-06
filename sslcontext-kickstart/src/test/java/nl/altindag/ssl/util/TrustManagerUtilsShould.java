@@ -682,6 +682,13 @@ class TrustManagerUtilsShould {
     }
 
     @Test
+    void throwExceptionWhenNewTrustManagerIsHotSwappableX509ExtendedTrustManager() {
+        assertThatThrownBy(() -> TrustManagerUtils.swapTrustManager(mock(HotSwappableX509ExtendedTrustManager.class), mock(HotSwappableX509ExtendedTrustManager.class)))
+                .isInstanceOf(GenericTrustManagerException.class)
+                .hasMessage("The newTrustManager should not be an instance of [nl.altindag.ssl.trustmanager.HotSwappableX509ExtendedTrustManager]");
+    }
+
+    @Test
     void throwExceptionWhenAddingCertificateToANonInflatableX509ExtendedTrustManager() {
         X509Certificate certificate = mock(X509Certificate.class);
         List<X509Certificate> certificates = Collections.singletonList(certificate);
