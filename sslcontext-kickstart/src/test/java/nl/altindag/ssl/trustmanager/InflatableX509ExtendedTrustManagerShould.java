@@ -244,6 +244,7 @@ class InflatableX509ExtendedTrustManagerShould {
         assertThat(KeyStoreTestUtils.getTrustedX509Certificates(inflatedTrustStore)).containsExactly(notYetTrustedCert);
 
         Files.delete(trustStoreDestination);
+        exec.shutdownNow();
     }
 
 }
