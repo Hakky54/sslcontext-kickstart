@@ -16,6 +16,11 @@
  */
 package nl.altindag.ssl.hostnameverifier;
 
+import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.stream.IntStream;
 import nl.altindag.ssl.util.CertificateUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -528,6 +533,20 @@ class FenixHostnameVerifierShould {
         assertThat(HostnameCommon.canParseAsIpAddress("localhost")).isFalse();
         assertThat(HostnameCommon.canParseAsIpAddress("squareup.com")).isFalse();
         assertThat(HostnameCommon.canParseAsIpAddress("www.nintendo.co.jp")).isFalse();
+    }
+
+    @Test
+    void beConcurrentFriendly() throws Exception {
+        int cores = Runtime.getRuntime().availableProcessors();
+        var executor = Executors.newFixedThreadPool(cores);
+        var futures = new ArrayList<Future<?>>();
+        IntStream.range(1, cores).forEach(i -> {
+            futures.add(executor.submit(() -> hostnameVerifier.verify("���.com", null)));
+        });
+        executor.shutdown();
+        for (Future<?> future : futures) {
+            future.get();
+        }
     }
 
     private SSLSession createSslSession(List<Certificate> certificates) throws SSLPeerUnverifiedException {
