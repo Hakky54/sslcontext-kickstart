@@ -84,6 +84,7 @@ public final class CertificateUtils {
                     .getName(X500Principal.CANONICAL)
                     .replace(" ", "-")
                     .replace(",", "_")
+                    .replace("'", "")
                     .replaceAll("[.*\\\\]+", "");
         } else {
             return UUID.randomUUID().toString().toLowerCase(Locale.US);
