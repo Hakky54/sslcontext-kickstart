@@ -73,7 +73,7 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "8.0.0"
      - [Using custom PrivateKey and Certificates](#support-for-using-privatekey-and-certificates)
      - [Reloading SSL at runtime](#support-for-reloading-ssl-at-runtime)
      - [Hot swap KeyManager and TrustManager at runtime](#support-for-swapping-keymanager-and-trustmanager-at-runtime)
-     - [Trust additional new certificates at runtime]()
+     - [Trust additional new certificates at runtime](#trust-additional-new-certificates-at-runtime)
      - [Routing client identity to specific host](#routing-identity-material-to-specific-host)
      - [Updating client identity routes at runtime](#updating-identity-routes-at-runtime) 
      - [Managing ssl session](#managing-ssl-session)
