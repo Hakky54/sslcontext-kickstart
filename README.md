@@ -73,7 +73,8 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "8.0.0"
      - [Using custom PrivateKey and Certificates](#support-for-using-privatekey-and-certificates)
      - [Reloading SSL at runtime](#support-for-reloading-ssl-at-runtime)
      - [Hot swap KeyManager and TrustManager at runtime](#support-for-swapping-keymanager-and-trustmanager-at-runtime)
-     - [Routing client identity to specific host](#routing-identity-material-to-specific-host) 
+     - [Trust additional new certificates at runtime]()
+     - [Routing client identity to specific host](#routing-identity-material-to-specific-host)
      - [Updating client identity routes at runtime](#updating-identity-routes-at-runtime) 
      - [Managing ssl session](#managing-ssl-session)
      - [Extracting server certificates](#extracting-server-certificates)
@@ -516,10 +517,61 @@ SSLSessionUtils.invalidateCaches(baseSslFactory.getSslContext());
 
 HttpResponse<String> response = httpClient.send(aRequest, HttpResponse.BodyHandlers.ofString());
 ```
-See here for a basic reference implementation for a server: [GitHub - Instant SSL Reloading](https://github.com/Hakky54/java-tutorials/tree/main/instant-server-ssl-reloading)
+
+See here for a basic reference implementation for a
+server: [GitHub - Instant SSL Reloading](https://github.com/Hakky54/java-tutorials/tree/main/instant-server-ssl-reloading)
+
+##### Trust additional new certificates at runtime
+
+Although it is possible to reload the complete trust material as shown before
+in [Reloading SSL at runtime](#support-for-reloading-ssl-at-runtime)
+and [Hot swap KeyManager and TrustManager at runtime](#support-for-swapping-keymanager-and-trustmanager-at-runtime), in
+some occasions you might want the trust additional new certificates without reloading all the trust material as it
+might be redundant. Especially if you want to keep other trust material intact which is already loaded to your
+SSLFactory and you don't want it to be reloaded. An example use case would be using the JDK and OS trusted Certificates
+Authorities
+and your custom truststore which can grow over time. See below for two examples:
+
+##### Option 1
+
+```text
+SSLFactory sslFactory = SSLFactory.builder()
+        .withDefaultTrustMaterial()
+        .withSystemTrustMaterial()
+        .withInflatableTrustMaterial()
+        .build();
+
+List<X509Certificate> certificates = ... ; // after some point in time you have a couple of new CA which you want to trust
+
+TrustManagerUtils.addCertificate(sslFactory.getTrustManager().get(), certificates);
+```
+
+With the option below your newly trusted certificates will be also stored on the file-system.
+If the file exists then it will first read and append to it. The predicate is thread-safe and can be used for example
+prompting the user to trust the certificate if integrated in a GUI.
+
+##### Option 2
+
+```text
+SSLFactory sslFactory = SSLFactory.builder()
+        .withDefaultTrustMaterial()
+        .withSystemTrustMaterial()
+        .withInflatableTrustMaterial(Paths.get("/path/to/truststore.p12"), "password".toCharArray(), "PKCS12", (X509Certificate[] chain, String authType) -> {
+            // do some validation to decide whether to trust this certificate
+            return true;
+        })
+        .build();
+```
+
 ##### Routing identity material to specific host
-It may occur that the client is sending the wrong certificate to the server when using multiple identities. This will happen when the client certificate has insufficient information for the underlying ssl engine (the KeyManager) and therefore it cannot select the right certificate.
-Recreating the certificates can resolve this issue. However, if that is not possible you can provide an option to the engine to use a specific certificate for a given server. Below is an example setup for correctly routing the client identity based on the alias which can be found within the KeyStore file.
+
+It may occur that the client is sending the wrong certificate to the server when using multiple identities. This will
+happen when the client certificate has insufficient information for the underlying ssl engine (the KeyManager) and
+therefore it cannot select the right certificate.
+Recreating the certificates can resolve this issue. However, if that is not possible you can provide an option to the
+engine to use a specific certificate for a given server. Below is an example setup for correctly routing the client
+identity based on the alias which can be found within the KeyStore file.
+
 ```text
 SSLFactory.builder()
           .withIdentityMaterial("identity-1.jks", password)
