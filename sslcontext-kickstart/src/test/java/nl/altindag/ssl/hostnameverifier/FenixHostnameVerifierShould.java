@@ -543,6 +543,7 @@ class FenixHostnameVerifierShould {
         IntStream.range(1, cores).forEach(i -> {
             futures.add(executor.submit(() -> hostnameVerifier.verify("���.com", null)));
         });
+        executor.shutdown();
         for (Future<?> future : futures) {
             future.get();
         }
