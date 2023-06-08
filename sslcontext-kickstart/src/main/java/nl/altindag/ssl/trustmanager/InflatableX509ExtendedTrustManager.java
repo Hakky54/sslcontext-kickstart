@@ -61,6 +61,10 @@ public class InflatableX509ExtendedTrustManager extends HotSwappableX509Extended
     private final char[] trustStorePassword;
     private final BiPredicate<X509Certificate[], String> certificateAndAuthTypeTrustPredicate;
 
+    public InflatableX509ExtendedTrustManager() {
+        this(null, null, null, null);
+    }
+
     public InflatableX509ExtendedTrustManager(Path trustStorePath,
                                               char[] trustStorePassword,
                                               String trustStoreType,

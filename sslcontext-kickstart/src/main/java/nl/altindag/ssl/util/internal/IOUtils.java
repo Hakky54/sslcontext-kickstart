@@ -89,6 +89,7 @@ public final class IOUtils {
 
     public static void write(Path path, byte[] data) {
         try {
+            createDirectoriesIfAbsent(path);
             Files.write(path, data, StandardOpenOption.CREATE);
         } catch (IOException e) {
             throw new GenericIOException(e);
@@ -96,10 +97,20 @@ public final class IOUtils {
     }
 
     public static void write(Path path, Consumer<OutputStream> consumer) {
-        try (OutputStream outputStream = Files.newOutputStream(path, StandardOpenOption.CREATE)) {
-            consumer.accept(outputStream);
+        try {
+            createDirectoriesIfAbsent(path);
+            try (OutputStream outputStream = Files.newOutputStream(path, StandardOpenOption.CREATE)) {
+                consumer.accept(outputStream);
+            }
         } catch (Exception e) {
             throw new GenericIOException(e);
+        }
+    }
+
+    private static void createDirectoriesIfAbsent(Path absoluteFilePath) throws IOException {
+        Path parentDirectories = absoluteFilePath.getParent();
+        if (Files.notExists(parentDirectories)) {
+            Files.createDirectories(parentDirectories);
         }
     }
 

@@ -232,7 +232,7 @@ public final class TrustManagerUtils {
     }
 
     public static X509ExtendedTrustManager createInflatableTrustManager() {
-        return createInflatableTrustManager(null, null, null, null);
+        return new InflatableX509ExtendedTrustManager();
     }
 
     public static X509ExtendedTrustManager createInflatableTrustManager(Path trustStorePath,

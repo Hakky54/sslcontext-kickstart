@@ -68,7 +68,7 @@ class InflatableX509ExtendedTrustManagerShould {
 
     @Test
     void initiallyBeEmpty() {
-        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager(null, null, null, null);
+        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager();
 
         X509Certificate[] acceptedIssuers = trustManager.getAcceptedIssuers();
         assertThat(acceptedIssuers).isEmpty();
@@ -76,7 +76,7 @@ class InflatableX509ExtendedTrustManagerShould {
 
     @Test
     void initiallyContainDummyTrustManager() {
-        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager(null, null, null, null);
+        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager();
 
         X509ExtendedTrustManager innerTrustManager = trustManager.getInnerTrustManager();
         assertThat(innerTrustManager).isInstanceOf(DummyX509ExtendedTrustManager.class);
@@ -90,7 +90,7 @@ class InflatableX509ExtendedTrustManagerShould {
 
         assertThat(trustedCerts).hasSizeGreaterThan(0);
 
-        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager(null, null, null, null);
+        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager();
         trustManager.addCertificates(Arrays.asList(trustedCerts));
 
         assertThat(trustManager.getAcceptedIssuers()).containsExactly(trustedCerts);
@@ -116,7 +116,7 @@ class InflatableX509ExtendedTrustManagerShould {
                 return invocationOnMock.callRealMethod();
             }
         })) {
-            InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager(null, null, null, null);
+            InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager();
             trustManager.addCertificates(Arrays.asList(trustedCerts));
 
             List<LogEvent> logEvents = logCaptor.getLogEvents();
@@ -128,7 +128,7 @@ class InflatableX509ExtendedTrustManagerShould {
 
     @Test
     void addNewlyTrustedCertificatesToExistingTrustStore() throws KeyStoreException, IOException {
-        Path trustStoreDestination = Paths.get(HOME_DIRECTORY, "inflatable-truststore.p12");
+        Path trustStoreDestination = Paths.get(HOME_DIRECTORY, "tmp", "inflatable-truststore.p12");
         KeyStore existingTrustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD);
         KeyStoreUtils.write(trustStoreDestination, existingTrustStore, TRUSTSTORE_PASSWORD);
 
@@ -150,6 +150,33 @@ class InflatableX509ExtendedTrustManagerShould {
         assertThat(logCaptor.getInfoLogs()).containsExactly("Added certificate for [cn=googlecom_o=google-llc_l=mountain-view_st=california_c=us]");
 
         Files.delete(trustStoreDestination);
+    }
+
+
+    @Test
+    void addNewlyTrustedCertificatesToANewTrustStoreInANonExistingDirectory() throws KeyStoreException, IOException {
+        Path destinationDirectory = Paths.get(HOME_DIRECTORY, "tmp");
+        assertThat(Files.notExists(destinationDirectory)).isTrue();
+        Path trustStoreDestination = destinationDirectory.resolve("inflatable-truststore.p12");
+
+        LogCaptor logCaptor = LogCaptor.forClass(InflatableX509ExtendedTrustManager.class);
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+        X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
+
+        assertThat(trustedCerts).hasSizeGreaterThan(0);
+
+        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager(trustStoreDestination, TRUSTSTORE_PASSWORD, "PKCS12", (chain, authType) -> true);
+        trustManager.addCertificates(Arrays.asList(trustedCerts));
+
+        X509Certificate[] combinedTrustedCertificates = Arrays.stream(trustedCerts).toArray(X509Certificate[]::new);
+        assertThat(trustManager.getAcceptedIssuers()).containsExactlyInAnyOrder(combinedTrustedCertificates);
+        assertThat(logCaptor.getInfoLogs()).containsExactly("Added certificate for [cn=googlecom_o=google-llc_l=mountain-view_st=california_c=us]");
+
+        assertThat(Files.exists(destinationDirectory)).isTrue();
+        assertThat(Files.exists(trustStoreDestination)).isTrue();
+
+        Files.delete(trustStoreDestination);
+        Files.delete(destinationDirectory);
     }
 
     @Test
@@ -311,7 +338,7 @@ class InflatableX509ExtendedTrustManagerShould {
         X509Certificate[] chain = new X509Certificate[]{mock(X509Certificate.class)};
         String authType = "RSA";
 
-        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager(null, null, null, null);
+        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager();
         trustManager.setTrustManager(innerTrustManager);
 
         trustManager.checkServerTrusted(chain, authType);
@@ -326,7 +353,7 @@ class InflatableX509ExtendedTrustManagerShould {
         String authType = "RSA";
         Socket socket = mock(Socket.class);
 
-        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager(null, null, null, null);
+        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager();
         trustManager.setTrustManager(innerTrustManager);
 
         trustManager.checkServerTrusted(chain, authType, socket);
@@ -341,7 +368,7 @@ class InflatableX509ExtendedTrustManagerShould {
         String authType = "RSA";
         SSLEngine sslEngine = mock(SSLEngine.class);
 
-        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager(null, null, null, null);
+        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager();
         trustManager.setTrustManager(innerTrustManager);
 
         trustManager.checkServerTrusted(chain, authType, sslEngine);
@@ -355,7 +382,7 @@ class InflatableX509ExtendedTrustManagerShould {
         X509Certificate[] chain = new X509Certificate[]{mock(X509Certificate.class)};
         String authType = "RSA";
 
-        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager(null, null, null, null);
+        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager();
         trustManager.setTrustManager(innerTrustManager);
 
         trustManager.checkClientTrusted(chain, authType);
@@ -370,7 +397,7 @@ class InflatableX509ExtendedTrustManagerShould {
         String authType = "RSA";
         Socket socket = mock(Socket.class);
 
-        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager(null, null, null, null);
+        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager();
         trustManager.setTrustManager(innerTrustManager);
 
         trustManager.checkClientTrusted(chain, authType, socket);
@@ -385,7 +412,7 @@ class InflatableX509ExtendedTrustManagerShould {
         String authType = "RSA";
         SSLEngine sslEngine = mock(SSLEngine.class);
 
-        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager(null, null, null, null);
+        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager();
         trustManager.setTrustManager(innerTrustManager);
 
         trustManager.checkClientTrusted(chain, authType, sslEngine);
