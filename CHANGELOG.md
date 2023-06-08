@@ -3,6 +3,13 @@
 This list is not intended to be all-encompassing - it will document major and breaking API
 changes with their rationale when appropriate:
 
+### v8.1.0
+
+- Add support for trusting additional certificates at runtime
+- Bugfix concurrency issue FenixHostnameVerifier
+- Improved generating aliases for certificates
+- Use DefaultClientTlsStrategy with Apache for security purpose
+
 ### v8.0.0
 
 - Added support for Java Modules
