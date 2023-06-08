@@ -1340,6 +1340,10 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/EugenMayer"><img src="https://avatars.githubusercontent.com/u/136934?v=4?s=100" width="100px;" alt=""/><br /><sub><b>EugenMayer</b></sub></a><br /> <a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3AEugenMayer" title="Ideas, Planning, & Feedback">🤔</a></td>
     <td align="center"><a href="https://github.com/bjorndarri"><img src="https://avatars.githubusercontent.com/u/2327926?v=4?s=100" width="100px;" alt=""/><br /><sub><b>bjorndarri</b></sub></a><br /> <a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=bjorndarri" title="Code and Ideas, Planning, & Feedback">🤔 💻</a></td>
   </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/henryju"><img src="https://avatars.githubusercontent.com/u/281596?v=4?s=100" width="100px;" alt=""/><br /><sub><b>henryju</b></sub></a><br /> <a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Ahenryju" title="Code and Ideas, Planning, & Feedback">🤔 💻</a></td>
+    <td align="center"><a href="https://github.com/nquinquenel"><img src="https://avatars.githubusercontent.com/u/14952624?v=4?s=100" width="100px;" alt=""/><br /><sub><b>nquinquenel</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Anquinquenel" title="Code and Bug reports">🐛 💻</a></td>
+  </tr>
 </table>
 
 <!-- markdownlint-restore -->
