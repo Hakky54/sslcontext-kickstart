@@ -128,9 +128,14 @@ class InflatableX509ExtendedTrustManagerShould {
 
     @Test
     void addNewlyTrustedCertificatesToExistingTrustStore() throws KeyStoreException, IOException {
-        Path trustStoreDestination = Paths.get(HOME_DIRECTORY, "tmp", "inflatable-truststore.p12");
+        Path destinationDirectory = Paths.get(HOME_DIRECTORY, "hakky54-ssl");
+        Path trustStoreDestination = destinationDirectory.resolve("inflatable-truststore.p12");
+        Files.createDirectories(destinationDirectory);
+        assertThat(Files.exists(destinationDirectory)).isTrue();
+
         KeyStore existingTrustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD);
         KeyStoreUtils.write(trustStoreDestination, existingTrustStore, TRUSTSTORE_PASSWORD);
+        assertThat(Files.exists(trustStoreDestination)).isTrue();
 
         assertThat(Files.exists(trustStoreDestination)).isTrue();
         X509Certificate[] existingTrustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(existingTrustStore);
@@ -149,15 +154,16 @@ class InflatableX509ExtendedTrustManagerShould {
         assertThat(trustManager.getAcceptedIssuers()).containsExactlyInAnyOrder(combinedTrustedCertificates);
         assertThat(logCaptor.getInfoLogs()).containsExactly("Added certificate for [cn=googlecom_o=google-llc_l=mountain-view_st=california_c=us]");
 
-        Files.delete(trustStoreDestination);
+        Files.deleteIfExists(trustStoreDestination);
+        Files.deleteIfExists(destinationDirectory);
     }
 
 
     @Test
     void addNewlyTrustedCertificatesToANewTrustStoreInANonExistingDirectory() throws KeyStoreException, IOException {
-        Path destinationDirectory = Paths.get(HOME_DIRECTORY, "tmp");
-        assertThat(Files.notExists(destinationDirectory)).isTrue();
+        Path destinationDirectory = Paths.get(HOME_DIRECTORY, "hakky54-ssl");
         Path trustStoreDestination = destinationDirectory.resolve("inflatable-truststore.p12");
+        assertThat(Files.notExists(destinationDirectory)).isTrue();
 
         LogCaptor logCaptor = LogCaptor.forClass(InflatableX509ExtendedTrustManager.class);
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
@@ -175,8 +181,8 @@ class InflatableX509ExtendedTrustManagerShould {
         assertThat(Files.exists(destinationDirectory)).isTrue();
         assertThat(Files.exists(trustStoreDestination)).isTrue();
 
-        Files.delete(trustStoreDestination);
-        Files.delete(destinationDirectory);
+        Files.deleteIfExists(trustStoreDestination);
+        Files.deleteIfExists(destinationDirectory);
     }
 
     @Test
