@@ -21,6 +21,7 @@ import nl.altindag.ssl.trustmanager.CompositeX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.DummyX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.EnhanceableX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.HotSwappableX509ExtendedTrustManager;
+import nl.altindag.ssl.trustmanager.InflatableX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.LoggingX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.TrustManagerFactoryWrapper;
 import nl.altindag.ssl.trustmanager.UnsafeX509ExtendedTrustManager;
@@ -28,7 +29,7 @@ import nl.altindag.ssl.trustmanager.X509TrustManagerWrapper;
 import nl.altindag.ssl.trustmanager.validator.ChainAndAuthTypeValidator;
 import nl.altindag.ssl.trustmanager.validator.ChainAndAuthTypeWithSSLEngineValidator;
 import nl.altindag.ssl.trustmanager.validator.ChainAndAuthTypeWithSocketValidator;
-import nl.altindag.ssl.util.internal.ValidationUtils;
+import nl.altindag.ssl.util.internal.CollectorsUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +38,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509ExtendedTrustManager;
 import javax.net.ssl.X509TrustManager;
+import java.nio.file.Path;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -50,6 +52,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
 
 import static nl.altindag.ssl.util.internal.CollectorsUtils.toListAndThen;
@@ -228,12 +231,58 @@ public final class TrustManagerUtils {
                 .collect(Collectors.collectingAndThen(Collectors.toList(), TrustManagerUtils::combine));
     }
 
+    public static X509ExtendedTrustManager createInflatableTrustManager() {
+        return new InflatableX509ExtendedTrustManager();
+    }
+
+    public static X509ExtendedTrustManager createInflatableTrustManager(Path trustStorePath,
+                                                                        char[] trustStorePassword,
+                                                                        String trustStoreType,
+                                                                        BiPredicate<X509Certificate[], String> certificateAndAuthTypeTrustPredicate) {
+        return new InflatableX509ExtendedTrustManager(trustStorePath, trustStorePassword, trustStoreType, certificateAndAuthTypeTrustPredicate);
+    }
+
+    /**
+     * Adds a new to be trusted certificate to the existing TrustManager.
+     * The provided TrustManager should be an instance of {@link InflatableX509ExtendedTrustManager}
+     * and it is allowed that it is wrapped in a {@link CompositeX509ExtendedTrustManager}
+     */
+    public static void addCertificate(X509ExtendedTrustManager trustManager, List<X509Certificate> certificates) {
+        if (trustManager instanceof InflatableX509ExtendedTrustManager) {
+            ((InflatableX509ExtendedTrustManager) trustManager).addCertificates(certificates);
+            return;
+        }
+
+        if (trustManager instanceof HotSwappableX509ExtendedTrustManager
+                && ((HotSwappableX509ExtendedTrustManager) trustManager).getInnerTrustManager() instanceof InflatableX509ExtendedTrustManager) {
+            ((InflatableX509ExtendedTrustManager) ((HotSwappableX509ExtendedTrustManager) trustManager)
+                    .getInnerTrustManager()).addCertificates(certificates);
+            return;
+        }
+
+        if (trustManager instanceof CompositeX509ExtendedTrustManager) {
+            Optional<InflatableX509ExtendedTrustManager> inflatableX509ExtendedTrustManager = ((CompositeX509ExtendedTrustManager) trustManager).getInnerTrustManagers().stream()
+                    .filter(InflatableX509ExtendedTrustManager.class::isInstance)
+                    .map(InflatableX509ExtendedTrustManager.class::cast)
+                    .findFirst();
+
+            if (inflatableX509ExtendedTrustManager.isPresent()) {
+                inflatableX509ExtendedTrustManager.get().addCertificates(certificates);
+                return;
+            }
+        }
+
+        throw new GenericTrustManagerException(
+                String.format("The provided trustManager should be an instance of [%s]", InflatableX509ExtendedTrustManager.class.getName())
+        );
+    }
+
     /**
      * Wraps the given TrustManager into an instance of a Hot Swappable TrustManager.
      * This type of TrustManager has the capability of swapping in and out different TrustManagers at runtime.
      *
-     * @param trustManager  To be wrapped TrustManager
-     * @return              Swappable TrustManager
+     * @param trustManager To be wrapped TrustManager
+     * @return Swappable TrustManager
      */
     public static X509ExtendedTrustManager createSwappableTrustManager(X509TrustManager trustManager) {
         return new HotSwappableX509ExtendedTrustManager(TrustManagerUtils.wrapIfNeeded(trustManager));
@@ -244,12 +293,21 @@ public final class TrustManagerUtils {
      * The baseTrustManager should be an instance of {@link HotSwappableX509ExtendedTrustManager}
      * and can be created with {@link TrustManagerUtils#createSwappableTrustManager(X509TrustManager)}
      *
-     * @param baseTrustManager              an instance of {@link HotSwappableX509ExtendedTrustManager}
-     * @param newTrustManager               to be injected instance of a TrustManager
+     * @param baseTrustManager an instance of {@link HotSwappableX509ExtendedTrustManager}
+     * @param newTrustManager  to be injected instance of a TrustManager
      * @throws GenericTrustManagerException if {@code baseTrustManager} is not instance of {@link HotSwappableX509ExtendedTrustManager}
      */
     public static void swapTrustManager(X509TrustManager baseTrustManager, X509TrustManager newTrustManager) {
-        if (newTrustManager instanceof HotSwappableX509ExtendedTrustManager) {
+        if (baseTrustManager instanceof InflatableX509ExtendedTrustManager) {
+            throw new GenericTrustManagerException(
+                    String.format("The baseTrustManager is from the instance of [%s] and should be an instance of [%s].",
+                            baseTrustManager.getClass().getName(),
+                            HotSwappableX509ExtendedTrustManager.class.getName())
+            );
+        }
+
+        if (newTrustManager instanceof HotSwappableX509ExtendedTrustManager
+                && !(newTrustManager instanceof InflatableX509ExtendedTrustManager)) {
             throw new GenericTrustManagerException(
                     String.format("The newTrustManager should not be an instance of [%s]", HotSwappableX509ExtendedTrustManager.class.getName())
             );
@@ -308,9 +366,9 @@ public final class TrustManagerUtils {
 
         private static final Logger LOGGER = LoggerFactory.getLogger(TrustManagerBuilder.class);
         private static final String EMPTY_TRUST_MANAGER_EXCEPTION = "Input does not contain TrustManager";
-        private static final String NO_TRUSTED_CERTIFICATES_EXCEPTION = "The provided trust material does not contain any trusted certificate.";
 
-        private TrustManagerBuilder() {}
+        private TrustManagerBuilder() {
+        }
 
         private final List<X509ExtendedTrustManager> trustManagers = new ArrayList<>();
         private boolean swappableTrustManagerEnabled = false;
@@ -442,18 +500,10 @@ public final class TrustManagerUtils {
                 return trustManagers.get(0);
             }
 
-            List<X509ExtendedTrustManager> trustManagersContainingTrustedCertificates = trustManagers.stream()
+            return trustManagers.stream()
                     .map(TrustManagerUtils::unwrapIfPossible)
                     .flatMap(Collection::stream)
-                    .filter(trustManager -> trustManager.getAcceptedIssuers().length > 0)
-                    .collect(Collectors.toList());
-
-            ValidationUtils.requireNotEmpty(trustManagersContainingTrustedCertificates, NO_TRUSTED_CERTIFICATES_EXCEPTION);
-            if (trustManagersContainingTrustedCertificates.size() == 1) {
-                return trustManagersContainingTrustedCertificates.get(0);
-            } else {
-                return new CompositeX509ExtendedTrustManager(trustManagersContainingTrustedCertificates);
-            }
+                    .collect(CollectorsUtils.toListAndThen(CompositeX509ExtendedTrustManager::new));
         }
 
         private Optional<X509ExtendedTrustManager> createEnhanceableTrustManagerIfEnabled(X509ExtendedTrustManager baseTrustManager) {

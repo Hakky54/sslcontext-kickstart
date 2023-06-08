@@ -69,6 +69,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.isNull;
@@ -195,7 +196,8 @@ public final class SSLFactory {
         private ChainAndAuthTypeWithSocketValidator chainAndAuthTypeWithSocketValidator = null;
         private ChainAndAuthTypeWithSSLEngineValidator chainAndAuthTypeWithSSLEngineValidator = null;
 
-        private Builder() {}
+        private Builder() {
+        }
 
         public Builder withSystemTrustMaterial() {
             TrustManagerUtils.createTrustManagerWithSystemTrustedCertificates().ifPresent(trustManagers::add);
@@ -586,6 +588,19 @@ public final class SSLFactory {
 
         public Builder withLoggingIdentityMaterial() {
             loggingKeyManagerEnabled = true;
+            return this;
+        }
+
+        public Builder withInflatableTrustMaterial() {
+            trustManagers.add(TrustManagerUtils.createInflatableTrustManager());
+            return this;
+        }
+
+        public Builder withInflatableTrustMaterial(Path trustStorePath,
+                                                   char[] trustStorePassword,
+                                                   String trustStoreType,
+                                                   BiPredicate<X509Certificate[], String> certificateAndAuthTypeTrustPredicate) {
+            trustManagers.add(TrustManagerUtils.createInflatableTrustManager(trustStorePath, trustStorePassword, trustStoreType, certificateAndAuthTypeTrustPredicate));
             return this;
         }
 

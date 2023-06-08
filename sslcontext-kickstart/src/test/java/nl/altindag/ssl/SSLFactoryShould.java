@@ -28,6 +28,7 @@ import nl.altindag.ssl.keymanager.LoggingX509ExtendedKeyManager;
 import nl.altindag.ssl.trustmanager.DummyX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.EnhanceableX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.HotSwappableX509ExtendedTrustManager;
+import nl.altindag.ssl.trustmanager.InflatableX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.LoggingX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.UnsafeX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.trustoptions.TrustAnchorTrustOptions;
@@ -59,6 +60,7 @@ import java.net.Socket;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -85,6 +87,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static nl.altindag.ssl.TestConstants.EMPTY;
+import static nl.altindag.ssl.TestConstants.HOME_DIRECTORY;
 import static nl.altindag.ssl.TestConstants.IDENTITY_FILE_NAME;
 import static nl.altindag.ssl.TestConstants.IDENTITY_PASSWORD;
 import static nl.altindag.ssl.TestConstants.KEYSTORE_LOCATION;
@@ -186,6 +189,41 @@ class SSLFactoryShould {
         assertThat(sslFactory.getTrustManager().get()).isInstanceOf(LoggingX509ExtendedTrustManager.class);
         assertThat(sslFactory.getTrustManagerFactory()).isPresent();
         assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
+        assertThat(sslFactory.getHostnameVerifier()).isNotNull();
+        assertThat(sslFactory.getKeyManager()).isNotPresent();
+        assertThat(sslFactory.getKeyManagerFactory()).isNotPresent();
+    }
+
+    @Test
+    void buildSSLFactoryWithInflatableTrustMaterial() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withInflatableTrustMaterial()
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+
+        assertThat(sslFactory.getTrustManager()).isPresent();
+        assertThat(sslFactory.getTrustManager().get()).isInstanceOf(InflatableX509ExtendedTrustManager.class);
+        assertThat(sslFactory.getTrustManagerFactory()).isPresent();
+        assertThat(sslFactory.getTrustedCertificates()).isEmpty();
+        assertThat(sslFactory.getHostnameVerifier()).isNotNull();
+        assertThat(sslFactory.getKeyManager()).isNotPresent();
+        assertThat(sslFactory.getKeyManagerFactory()).isNotPresent();
+    }
+
+    @Test
+    void buildSSLFactoryWithInflatableTrustMaterialWithAdditionalOptions() throws IOException {
+        Path trustStoreDestination = Paths.get(HOME_DIRECTORY, "inflatable-truststore.p12");
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withInflatableTrustMaterial(trustStoreDestination, null, "PKCS12", (chain, authType) -> true)
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+
+        assertThat(sslFactory.getTrustManager()).isPresent();
+        assertThat(sslFactory.getTrustManager().get()).isInstanceOf(InflatableX509ExtendedTrustManager.class);
+        assertThat(sslFactory.getTrustManagerFactory()).isPresent();
+        assertThat(sslFactory.getTrustedCertificates()).isEmpty();
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
         assertThat(sslFactory.getKeyManager()).isNotPresent();
         assertThat(sslFactory.getKeyManagerFactory()).isNotPresent();

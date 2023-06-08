@@ -21,6 +21,7 @@ import nl.altindag.ssl.exception.GenericTrustManagerException;
 import nl.altindag.ssl.trustmanager.CompositeX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.DummyX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.HotSwappableX509ExtendedTrustManager;
+import nl.altindag.ssl.trustmanager.InflatableX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.LoggingX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.UnsafeX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.X509TrustManagerWrapper;
@@ -45,6 +46,7 @@ import java.security.cert.CertPathBuilder;
 import java.security.cert.PKIXBuilderParameters;
 import java.security.cert.PKIXRevocationChecker;
 import java.security.cert.X509CertSelector;
+import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -57,6 +59,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Hakan Altindag
@@ -272,6 +277,22 @@ class TrustManagerUtilsShould {
     }
 
     @Test
+    void trustManagerShouldSwapEvenThoughTheNewTrustManagerIsInflatableTrustManager() {
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.trustManagerBuilder()
+                .withTrustStores(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD))
+                .withSwappableTrustManager(true)
+                .build();
+
+        assertThat(trustManager).isInstanceOf(HotSwappableX509ExtendedTrustManager.class);
+        assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
+
+        X509ExtendedTrustManager newTrustManager = TrustManagerUtils.createInflatableTrustManager();
+
+        TrustManagerUtils.swapTrustManager(trustManager, newTrustManager);
+        assertThat(trustManager.getAcceptedIssuers()).isEmpty();
+    }
+
+    @Test
     void trustManagerShouldNotSwapWhenLoggingTrustManagerDoesNotContainSwappableTrustManager() {
         X509ExtendedTrustManager trustManager = TrustManagerUtils.trustManagerBuilder()
                 .withTrustManager(TrustManagerUtils.createUnsafeTrustManager())
@@ -480,20 +501,6 @@ class TrustManagerUtilsShould {
     }
 
     @Test
-    void notIncludeTrustManagerWhichDoesNotContainTrustedCertificates() {
-        KeyStore trustStoreOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
-        KeyStore trustStoreTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD);
-        KeyStore emptyTrustStore = KeyStoreUtils.createKeyStore();
-
-        X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(trustStoreOne, trustStoreTwo, emptyTrustStore);
-
-        assertThat(trustManager).isInstanceOf(CompositeX509ExtendedTrustManager.class);
-
-        CompositeX509ExtendedTrustManager compositeX509ExtendedTrustManager = (CompositeX509ExtendedTrustManager) trustManager;
-        assertThat(compositeX509ExtendedTrustManager.getInnerTrustManagers()).hasSize(2);
-    }
-
-    @Test
     void ignoreOtherTrustMaterialIfDummyTrustManagerIsPresent() {
         LogCaptor logCaptor = LogCaptor.forRoot();
 
@@ -524,13 +531,42 @@ class TrustManagerUtilsShould {
     }
 
     @Test
-    void notCombineIfOnlyOneTrustManagerContainsTrustedCertificates() {
-        X509ExtendedTrustManager emptyTrustManager = TrustManagerUtils.createTrustManager(KeyStoreUtils.createKeyStore());
-        X509ExtendedTrustManager filledTrustManager = TrustManagerUtils.createTrustManager(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD));
+    void addCertificateToInflatableX509ExtendedTrustManager() {
+        X509Certificate certificate = mock(X509Certificate.class);
+        List<X509Certificate> certificates = Collections.singletonList(certificate);
 
-        X509ExtendedTrustManager trustManager = TrustManagerUtils.combine(emptyTrustManager, filledTrustManager);
+        InflatableX509ExtendedTrustManager trustManager = mock(InflatableX509ExtendedTrustManager.class);
+        TrustManagerUtils.addCertificate(trustManager, certificates);
 
-        assertThat(trustManager).isNotInstanceOf(CompositeX509ExtendedTrustManager.class);
+        verify(trustManager, times(1)).addCertificates(certificates);
+    }
+
+    @Test
+    void addCertificateToInflatableX509ExtendedTrustManagerEvenThoughItIsWrappedInAHotSwappableX509ExtendedTrustManager() {
+        X509Certificate certificate = mock(X509Certificate.class);
+        List<X509Certificate> certificates = Collections.singletonList(certificate);
+
+        InflatableX509ExtendedTrustManager inflatableX509ExtendedTrustManager = mock(InflatableX509ExtendedTrustManager.class);
+        HotSwappableX509ExtendedTrustManager hotSwappableX509ExtendedTrustManager = mock(HotSwappableX509ExtendedTrustManager.class);
+        when(hotSwappableX509ExtendedTrustManager.getInnerTrustManager()).thenReturn(inflatableX509ExtendedTrustManager);
+
+        TrustManagerUtils.addCertificate(hotSwappableX509ExtendedTrustManager, certificates);
+
+        verify(inflatableX509ExtendedTrustManager, times(1)).addCertificates(certificates);
+    }
+
+    @Test
+    void addCertificateToInflatableX509ExtendedTrustManagerEvenThoughItIsWrappedInACompositeX509ExtendedTrustManager() {
+        X509Certificate certificate = mock(X509Certificate.class);
+        List<X509Certificate> certificates = Collections.singletonList(certificate);
+
+        InflatableX509ExtendedTrustManager inflatableX509ExtendedTrustManager = mock(InflatableX509ExtendedTrustManager.class);
+        CompositeX509ExtendedTrustManager compositeX509ExtendedTrustManager = mock(CompositeX509ExtendedTrustManager.class);
+        when(compositeX509ExtendedTrustManager.getInnerTrustManagers()).thenReturn(Collections.singletonList(inflatableX509ExtendedTrustManager));
+
+        TrustManagerUtils.addCertificate(compositeX509ExtendedTrustManager, certificates);
+
+        verify(inflatableX509ExtendedTrustManager, times(1)).addCertificates(certificates);
     }
 
     private CertPathTrustManagerParameters createTrustManagerParameters(KeyStore trustStore) throws NoSuchAlgorithmException, KeyStoreException, InvalidAlgorithmParameterException {
@@ -540,15 +576,6 @@ class TrustManagerUtilsShould {
         PKIXBuilderParameters pkixParams = new PKIXBuilderParameters(trustStore, new X509CertSelector());
         pkixParams.addCertPathChecker(revocationChecker);
         return new CertPathTrustManagerParameters(pkixParams);
-    }
-
-    @Test
-    void throwExceptionWhenMultipleTrustManagersCombinedDontHaveTrustedCertificates() {
-        X509ExtendedTrustManager trustManagerOne = TrustManagerUtils.createTrustManager(KeyStoreUtils.createKeyStore());
-        X509ExtendedTrustManager trustManagerTwo = TrustManagerUtils.createTrustManager(KeyStoreUtils.createKeyStore());
-
-        assertThatThrownBy(() -> TrustManagerUtils.combine(trustManagerOne, trustManagerTwo))
-                .hasMessageContaining("The provided trust material does not contain any trusted certificate.");
     }
 
     @Test
@@ -660,6 +687,81 @@ class TrustManagerUtilsShould {
                 .isInstanceOf(GenericTrustManagerException.class)
                 .hasMessage("The baseTrustManager is from the instance of [sun.security.ssl.X509TrustManagerImpl] " +
                         "and should be an instance of [nl.altindag.ssl.trustmanager.HotSwappableX509ExtendedTrustManager].");
+    }
+
+    @Test
+    void throwExceptionWhenInflatableX509ExtendedTrustManagerIsProvidedWhenSwappingTrustManager() {
+        assertThatThrownBy(() -> TrustManagerUtils.swapTrustManager(mock(InflatableX509ExtendedTrustManager.class), null))
+                .isInstanceOf(GenericTrustManagerException.class)
+                .hasMessage("The baseTrustManager is from the instance of [nl.altindag.ssl.trustmanager.InflatableX509ExtendedTrustManager] " +
+                        "and should be an instance of [nl.altindag.ssl.trustmanager.HotSwappableX509ExtendedTrustManager].");
+    }
+
+    @Test
+    void throwExceptionWhenNewTrustManagerIsHotSwappableX509ExtendedTrustManager() {
+        assertThatThrownBy(() -> TrustManagerUtils.swapTrustManager(mock(HotSwappableX509ExtendedTrustManager.class), mock(HotSwappableX509ExtendedTrustManager.class)))
+                .isInstanceOf(GenericTrustManagerException.class)
+                .hasMessage("The newTrustManager should not be an instance of [nl.altindag.ssl.trustmanager.HotSwappableX509ExtendedTrustManager]");
+    }
+
+    @Test
+    void throwExceptionWhenNewTrustManagerIsSubClassOfHotSwappableX509ExtendedTrustManager() {
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.trustManagerBuilder()
+                .withTrustStores(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD))
+                .withSwappableTrustManager(true)
+                .build();
+
+        assertThat(trustManager).isInstanceOf(HotSwappableX509ExtendedTrustManager.class);
+        assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
+
+        class TempTrustManager extends HotSwappableX509ExtendedTrustManager {
+            public TempTrustManager(X509ExtendedTrustManager trustManager) {
+                super(trustManager);
+            }
+        }
+
+        X509ExtendedTrustManager newTrustManager = new TempTrustManager(TrustManagerUtils.createTrustManagerWithJdkTrustedCertificates());
+
+        assertThatThrownBy(() -> TrustManagerUtils.swapTrustManager(trustManager, newTrustManager))
+                .isInstanceOf(GenericTrustManagerException.class)
+                .hasMessage("The newTrustManager should not be an instance of [nl.altindag.ssl.trustmanager.HotSwappableX509ExtendedTrustManager]");
+    }
+
+    @Test
+    void throwExceptionWhenAddingCertificateToANonInflatableX509ExtendedTrustManager() {
+        X509Certificate certificate = mock(X509Certificate.class);
+        List<X509Certificate> certificates = Collections.singletonList(certificate);
+        X509ExtendedTrustManager trustManager = mock(X509ExtendedTrustManager.class);
+
+        assertThatThrownBy(() -> TrustManagerUtils.addCertificate(trustManager, certificates))
+                .isInstanceOf(GenericTrustManagerException.class)
+                .hasMessage("The provided trustManager should be an instance of [nl.altindag.ssl.trustmanager.InflatableX509ExtendedTrustManager]");
+    }
+
+    @Test
+    void throwExceptionWhenAddingCertificateToANonInflatableX509ExtendedTrustManagerEvenThoughItIsWrappedInAHotSwappableX509ExtendedTrustManager() {
+        X509Certificate certificate = mock(X509Certificate.class);
+        List<X509Certificate> certificates = Collections.singletonList(certificate);
+        X509ExtendedTrustManager trustManager = mock(X509ExtendedTrustManager.class);
+        HotSwappableX509ExtendedTrustManager hotSwappableX509ExtendedTrustManager = mock(HotSwappableX509ExtendedTrustManager.class);
+        when(hotSwappableX509ExtendedTrustManager.getInnerTrustManager()).thenReturn(trustManager);
+
+        assertThatThrownBy(() -> TrustManagerUtils.addCertificate(hotSwappableX509ExtendedTrustManager, certificates))
+                .isInstanceOf(GenericTrustManagerException.class)
+                .hasMessage("The provided trustManager should be an instance of [nl.altindag.ssl.trustmanager.InflatableX509ExtendedTrustManager]");
+    }
+
+    @Test
+    void throwExceptionWhenAddingCertificateToANonInflatableX509ExtendedTrustManagerEvenThoughItIsWrappedInACompositeX509ExtendedTrustManager() {
+        X509Certificate certificate = mock(X509Certificate.class);
+        List<X509Certificate> certificates = Collections.singletonList(certificate);
+        X509ExtendedTrustManager trustManager = mock(X509ExtendedTrustManager.class);
+        CompositeX509ExtendedTrustManager compositeX509ExtendedTrustManager = mock(CompositeX509ExtendedTrustManager.class);
+        when(compositeX509ExtendedTrustManager.getInnerTrustManagers()).thenReturn(Collections.singletonList(trustManager));
+
+        assertThatThrownBy(() -> TrustManagerUtils.addCertificate(compositeX509ExtendedTrustManager, certificates))
+                .isInstanceOf(GenericTrustManagerException.class)
+                .hasMessage("The provided trustManager should be an instance of [nl.altindag.ssl.trustmanager.InflatableX509ExtendedTrustManager]");
     }
 
     @Test

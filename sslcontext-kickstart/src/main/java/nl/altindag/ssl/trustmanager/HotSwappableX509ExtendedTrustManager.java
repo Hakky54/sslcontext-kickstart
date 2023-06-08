@@ -15,7 +15,14 @@
  */
 package nl.altindag.ssl.trustmanager;
 
+import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedTrustManager;
+import java.net.Socket;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static nl.altindag.ssl.util.internal.ValidationUtils.GENERIC_EXCEPTION_MESSAGE;
 import static nl.altindag.ssl.util.internal.ValidationUtils.requireNotNull;
@@ -30,12 +37,101 @@ import static nl.altindag.ssl.util.internal.ValidationUtils.requireNotNull;
  */
 public class HotSwappableX509ExtendedTrustManager extends DelegatingX509ExtendedTrustManager {
 
+    private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+    protected final Lock readLock = readWriteLock.readLock();
+    protected final Lock writeLock = readWriteLock.writeLock();
+
     public HotSwappableX509ExtendedTrustManager(X509ExtendedTrustManager trustManager) {
         super(trustManager);
     }
 
     public void setTrustManager(X509ExtendedTrustManager trustManager) {
-        this.trustManager = requireNotNull(trustManager, GENERIC_EXCEPTION_MESSAGE.apply("TrustManager"));
+        writeLock.lock();
+
+        try {
+            this.trustManager = requireNotNull(trustManager, GENERIC_EXCEPTION_MESSAGE.apply("TrustManager"));
+        } finally {
+            writeLock.unlock();
+        }
     }
 
+    @Override
+    public X509ExtendedTrustManager getInnerTrustManager() {
+        readLock.lock();
+        try {
+            return super.getInnerTrustManager();
+        } finally {
+            readLock.unlock();
+        }
+    }
+
+    @Override
+    public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+        readLock.lock();
+        try {
+            super.checkServerTrusted(chain, authType);
+        } finally {
+            readLock.unlock();
+        }
+    }
+
+    @Override
+    public void checkServerTrusted(X509Certificate[] chain, String authType, Socket socket) throws CertificateException {
+        readLock.lock();
+        try {
+            super.checkServerTrusted(chain, authType, socket);
+        } finally {
+            readLock.unlock();
+        }
+    }
+
+    @Override
+    public void checkServerTrusted(X509Certificate[] chain, String authType, SSLEngine sslEngine) throws CertificateException {
+        readLock.lock();
+        try {
+            super.checkServerTrusted(chain, authType, sslEngine);
+        } finally {
+            readLock.unlock();
+        }
+    }
+
+    @Override
+    public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+        readLock.lock();
+        try {
+            super.checkClientTrusted(chain, authType);
+        } finally {
+            readLock.unlock();
+        }
+    }
+
+    @Override
+    public void checkClientTrusted(X509Certificate[] chain, String authType, Socket socket) throws CertificateException {
+        readLock.lock();
+        try {
+            super.checkClientTrusted(chain, authType, socket);
+        } finally {
+            readLock.unlock();
+        }
+    }
+
+    @Override
+    public void checkClientTrusted(X509Certificate[] chain, String authType, SSLEngine sslEngine) throws CertificateException {
+        readLock.lock();
+        try {
+            super.checkClientTrusted(chain, authType, sslEngine);
+        } finally {
+            readLock.unlock();
+        }
+    }
+
+    @Override
+    public X509Certificate[] getAcceptedIssuers() {
+        readLock.lock();
+        try {
+            return super.getAcceptedIssuers();
+        } finally {
+            readLock.unlock();
+        }
+    }
 }

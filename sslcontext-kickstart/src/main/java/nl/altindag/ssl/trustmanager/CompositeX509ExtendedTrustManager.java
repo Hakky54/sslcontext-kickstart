@@ -56,14 +56,9 @@ import java.util.List;
 public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustManager implements CombinableX509TrustManager {
 
     private final List<X509ExtendedTrustManager> trustManagers;
-    private final X509Certificate[] acceptedIssuers;
 
     public CompositeX509ExtendedTrustManager(List<? extends X509ExtendedTrustManager> trustManagers) {
         this.trustManagers = Collections.unmodifiableList(trustManagers);
-        this.acceptedIssuers = trustManagers.stream()
-                .map(X509ExtendedTrustManager::getAcceptedIssuers)
-                .flatMap(Arrays::stream)
-                .toArray(X509Certificate[]::new);
     }
 
     @Override
@@ -98,7 +93,10 @@ public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustMa
 
     @Override
     public X509Certificate[] getAcceptedIssuers() {
-        return Arrays.copyOf(acceptedIssuers, acceptedIssuers.length);
+        return trustManagers.stream()
+                .map(X509ExtendedTrustManager::getAcceptedIssuers)
+                .flatMap(Arrays::stream)
+                .toArray(X509Certificate[]::new);
     }
 
     @Override
