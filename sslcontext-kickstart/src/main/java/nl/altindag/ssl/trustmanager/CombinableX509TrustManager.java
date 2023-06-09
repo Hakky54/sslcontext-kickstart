@@ -17,6 +17,7 @@ package nl.altindag.ssl.trustmanager;
 
 import javax.net.ssl.X509ExtendedTrustManager;
 import javax.net.ssl.X509TrustManager;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +42,18 @@ interface CombinableX509TrustManager extends X509TrustManager {
                 return;
             } catch (CertificateException e) {
                 certificateExceptions.add(e);
+            } catch (RuntimeException e) {
+                if (e.getCause() instanceof InvalidAlgorithmParameterException) {
+                    // Handling of [InvalidAlgorithmParameterException: the trustAnchors parameter must be non-empty]
+                    //
+                    // This is most likely a result of using a TrustManager created from an empty KeyStore.
+                    // The exception will be thrown during the SSL Handshake. It is safe to suppress
+                    // and can be bundle with the other exceptions to proceed validating the counterparty with
+                    // the remaining TrustManagers.
+                    certificateExceptions.add(new CertificateException(e));
+                } else {
+                    throw e;
+                }
             }
         }
 
