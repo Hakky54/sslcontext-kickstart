@@ -84,7 +84,9 @@ public class InflatableX509ExtendedTrustManager extends HotSwappableX509Extended
             if (trustStorePath != null && StringUtils.isNotBlank(trustStoreType)) {
                 if (Files.exists(trustStorePath)) {
                     trustStore = KeyStoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType);
-                    setTrustManager(TrustManagerUtils.createTrustManager(trustStore));
+                    if (KeyStoreUtils.containsTrustMaterial(trustStore)) {
+                        setTrustManager(TrustManagerUtils.createTrustManager(trustStore));
+                    }
                 } else {
                     trustStore = KeyStoreUtils.createKeyStore(trustStoreType, trustStorePassword);
                 }

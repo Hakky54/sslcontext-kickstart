@@ -112,6 +112,8 @@ class InflatableX509ExtendedTrustManagerShould {
             Method method = invocationOnMock.getMethod();
             if (method.getName().equals("createKeyStore") && method.getParameters().length == 0) {
                 return mockedTrustStore;
+            } else if (method.getName().equals("containsTrustMaterial") && method.getParameters().length == 1) {
+                return false;
             } else {
                 return invocationOnMock.callRealMethod();
             }
