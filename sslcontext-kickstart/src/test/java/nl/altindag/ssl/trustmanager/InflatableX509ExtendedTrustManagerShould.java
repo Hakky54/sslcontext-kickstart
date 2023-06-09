@@ -112,8 +112,6 @@ class InflatableX509ExtendedTrustManagerShould {
             Method method = invocationOnMock.getMethod();
             if (method.getName().equals("createKeyStore") && method.getParameters().length == 0) {
                 return mockedTrustStore;
-            } else if (method.getName().equals("containsTrustMaterial") && method.getParameters().length == 1) {
-                return false;
             } else {
                 return invocationOnMock.callRealMethod();
             }
@@ -150,6 +148,7 @@ class InflatableX509ExtendedTrustManagerShould {
         assertThat(trustedCerts).hasSizeGreaterThan(0);
 
         InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager(trustStoreDestination, TRUSTSTORE_PASSWORD, "PKCS12", null);
+        assertThat(trustManager.getInnerTrustManager()).isNotInstanceOf(DummyX509ExtendedTrustManager.class);
         trustManager.addCertificates(Arrays.asList(trustedCerts));
 
         X509Certificate[] combinedTrustedCertificates = Stream.concat(Arrays.stream(existingTrustedCerts), Arrays.stream(trustedCerts)).toArray(X509Certificate[]::new);
@@ -160,6 +159,27 @@ class InflatableX509ExtendedTrustManagerShould {
         Files.deleteIfExists(destinationDirectory);
     }
 
+    @Test
+    void notCreateTrustManagerIfExistingTrustStoreDoesNotContainTrustedCertificates() throws KeyStoreException, IOException {
+        Path destinationDirectory = Paths.get(HOME_DIRECTORY, "hakky54-ssl");
+        Path trustStoreDestination = destinationDirectory.resolve("inflatable-truststore.p12");
+        Files.createDirectories(destinationDirectory);
+        assertThat(Files.exists(destinationDirectory)).isTrue();
+
+        KeyStore existingTrustStore = KeyStoreUtils.createKeyStore("PKCS12", TRUSTSTORE_PASSWORD);
+        KeyStoreUtils.write(trustStoreDestination, existingTrustStore, TRUSTSTORE_PASSWORD);
+        assertThat(Files.exists(trustStoreDestination)).isTrue();
+
+        assertThat(Files.exists(trustStoreDestination)).isTrue();
+        X509Certificate[] existingTrustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(existingTrustStore);
+        assertThat(existingTrustedCerts).isEmpty();
+
+        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager(trustStoreDestination, TRUSTSTORE_PASSWORD, "PKCS12", null);
+        assertThat(trustManager.getInnerTrustManager()).isInstanceOf(DummyX509ExtendedTrustManager.class);
+
+        Files.deleteIfExists(trustStoreDestination);
+        Files.deleteIfExists(destinationDirectory);
+    }
 
     @Test
     void addNewlyTrustedCertificatesToANewTrustStoreInANonExistingDirectory() throws KeyStoreException, IOException {
