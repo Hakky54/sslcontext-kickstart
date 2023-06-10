@@ -43,14 +43,15 @@ interface CombinableX509TrustManager extends X509TrustManager {
             } catch (CertificateException e) {
                 certificateExceptions.add(e);
             } catch (RuntimeException e) {
-                if (e.getCause() instanceof InvalidAlgorithmParameterException) {
+                Throwable cause = e.getCause();
+                if (cause instanceof InvalidAlgorithmParameterException) {
                     // Handling of [InvalidAlgorithmParameterException: the trustAnchors parameter must be non-empty]
                     //
                     // This is most likely a result of using a TrustManager created from an empty KeyStore.
                     // The exception will be thrown during the SSL Handshake. It is safe to suppress
                     // and can be bundle with the other exceptions to proceed validating the counterparty with
                     // the remaining TrustManagers.
-                    certificateExceptions.add(new CertificateException(e));
+                    certificateExceptions.add(new CertificateException(cause));
                 } else {
                     throw e;
                 }

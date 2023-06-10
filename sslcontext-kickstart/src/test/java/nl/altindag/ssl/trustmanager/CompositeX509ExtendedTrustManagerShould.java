@@ -233,7 +233,7 @@ class CompositeX509ExtendedTrustManagerShould {
     }
 
     @Test
-    void wrapRuntimeExceptionContainingInvalidAlgorithmParameterExceptionIntoSuppressedCertificateException() throws KeyStoreException {
+    void wrapCauseOfRuntimeExceptionContainingInvalidAlgorithmParameterExceptionIntoSuppressedCertificateException() throws KeyStoreException {
         KeyStore emptyTrustStore = KeyStoreUtils.createKeyStore();
         X509ExtendedTrustManager emptyTrustManager = TrustManagerUtils.createTrustManager(emptyTrustStore);
 
@@ -251,9 +251,8 @@ class CompositeX509ExtendedTrustManagerShould {
         assertThat(certificateException.getSuppressed()).hasSize(1);
         Throwable suppressedException = certificateException.getSuppressed()[0];
 
-        assertThat(suppressedException.getCause()).isInstanceOf(RuntimeException.class);
-        assertThat(suppressedException.getCause().getCause()).isInstanceOf(InvalidAlgorithmParameterException.class);
-        assertThat(suppressedException.getCause().getCause().getMessage()).isEqualTo("the trustAnchors parameter must be non-empty");
+        assertThat(suppressedException.getCause()).isInstanceOf(InvalidAlgorithmParameterException.class);
+        assertThat(suppressedException.getCause().getMessage()).isEqualTo("the trustAnchors parameter must be non-empty");
     }
 
     @Test

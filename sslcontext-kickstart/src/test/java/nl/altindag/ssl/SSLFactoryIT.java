@@ -32,6 +32,7 @@ import java.io.InputStreamReader;
 import java.net.SocketException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyStore;
 import java.security.cert.CertificateException;
 import java.util.Collections;
@@ -310,9 +311,14 @@ class SSLFactoryIT {
                 .withTrustMaterial(emptyTrustManager)
                 .build();
 
-        assertThatThrownBy(() -> executeRequest("https://localhost:8443/api/hello", sslFactoryForClient.getSslSocketFactory()))
-                .isInstanceOf(SSLException.class)
-                .hasMessageContaining("the trustAnchors parameter must be non-empty");
+        SSLException sslException = catchThrowableOfType(() -> executeRequest("https://localhost:8443/api/hello", sslFactoryForClient.getSslSocketFactory()), SSLException.class);
+
+        Throwable cause = sslException.getCause();
+        assertThat(cause).isInstanceOf(RuntimeException.class);
+
+        Throwable innerCause = cause.getCause();
+        assertThat(innerCause).isInstanceOf(InvalidAlgorithmParameterException.class);
+        assertThat(innerCause.getMessage()).contains("the trustAnchors parameter must be non-empty");
 
         server.stop();
     }
@@ -345,6 +351,7 @@ class SSLFactoryIT {
 
         for (Throwable throwable : suppressed) {
             assertThat(throwable).isInstanceOf(CertificateException.class);
+            assertThat(throwable.getCause()).isInstanceOf(InvalidAlgorithmParameterException.class);
             assertThat(throwable.getMessage()).contains("the trustAnchors parameter must be non-empty");
         }
 
