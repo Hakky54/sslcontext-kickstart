@@ -37,6 +37,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -98,6 +99,34 @@ class InflatableX509ExtendedTrustManagerShould {
     }
 
     @Test
+    void trustManagerWillNotBeReloadedIfNullIsProvidedAsNewCertificate() {
+        LogCaptor logCaptor = LogCaptor.forClass(InflatableX509ExtendedTrustManager.class);
+
+        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager();
+        assertThat(trustManager.getInnerTrustManager()).isInstanceOf(DummyX509ExtendedTrustManager.class);
+
+        trustManager.addCertificates(null);
+        assertThat(trustManager.getInnerTrustManager()).isInstanceOf(DummyX509ExtendedTrustManager.class);
+
+        assertThat(trustManager.getAcceptedIssuers()).isEmpty();
+        assertThat(logCaptor.getLogs()).isEmpty();
+    }
+
+    @Test
+    void trustManagerWillNotBeReloadedIfEmptyListIsProvidedAsNewCertificate() {
+        LogCaptor logCaptor = LogCaptor.forClass(InflatableX509ExtendedTrustManager.class);
+
+        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager();
+        assertThat(trustManager.getInnerTrustManager()).isInstanceOf(DummyX509ExtendedTrustManager.class);
+
+        trustManager.addCertificates(Collections.emptyList());
+        assertThat(trustManager.getInnerTrustManager()).isInstanceOf(DummyX509ExtendedTrustManager.class);
+
+        assertThat(trustManager.getAcceptedIssuers()).isEmpty();
+        assertThat(logCaptor.getLogs()).isEmpty();
+    }
+
+    @Test
     void errorLogIfItCanNotSaveNewlyAddedTrustedCertificatesToTheInMemoryTrustStore() throws KeyStoreException {
         LogCaptor logCaptor = LogCaptor.forClass(InflatableX509ExtendedTrustManager.class);
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
@@ -148,6 +177,7 @@ class InflatableX509ExtendedTrustManagerShould {
         assertThat(trustedCerts).hasSizeGreaterThan(0);
 
         InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager(trustStoreDestination, TRUSTSTORE_PASSWORD, "PKCS12", null);
+        assertThat(trustManager.getInnerTrustManager()).isNotInstanceOf(DummyX509ExtendedTrustManager.class);
         trustManager.addCertificates(Arrays.asList(trustedCerts));
 
         X509Certificate[] combinedTrustedCertificates = Stream.concat(Arrays.stream(existingTrustedCerts), Arrays.stream(trustedCerts)).toArray(X509Certificate[]::new);
@@ -158,6 +188,27 @@ class InflatableX509ExtendedTrustManagerShould {
         Files.deleteIfExists(destinationDirectory);
     }
 
+    @Test
+    void notCreateTrustManagerIfExistingTrustStoreDoesNotContainTrustedCertificates() throws KeyStoreException, IOException {
+        Path destinationDirectory = Paths.get(HOME_DIRECTORY, "hakky54-ssl");
+        Path trustStoreDestination = destinationDirectory.resolve("inflatable-truststore.p12");
+        Files.createDirectories(destinationDirectory);
+        assertThat(Files.exists(destinationDirectory)).isTrue();
+
+        KeyStore existingTrustStore = KeyStoreUtils.createKeyStore("PKCS12", TRUSTSTORE_PASSWORD);
+        KeyStoreUtils.write(trustStoreDestination, existingTrustStore, TRUSTSTORE_PASSWORD);
+        assertThat(Files.exists(trustStoreDestination)).isTrue();
+
+        assertThat(Files.exists(trustStoreDestination)).isTrue();
+        X509Certificate[] existingTrustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(existingTrustStore);
+        assertThat(existingTrustedCerts).isEmpty();
+
+        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager(trustStoreDestination, TRUSTSTORE_PASSWORD, "PKCS12", null);
+        assertThat(trustManager.getInnerTrustManager()).isInstanceOf(DummyX509ExtendedTrustManager.class);
+
+        Files.deleteIfExists(trustStoreDestination);
+        Files.deleteIfExists(destinationDirectory);
+    }
 
     @Test
     void addNewlyTrustedCertificatesToANewTrustStoreInANonExistingDirectory() throws KeyStoreException, IOException {

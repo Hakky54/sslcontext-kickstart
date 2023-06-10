@@ -26,18 +26,21 @@ import javax.net.ssl.SSLSessionContext;
 import javax.net.ssl.X509ExtendedTrustManager;
 import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.Principal;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
 import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.catchThrowableOfType;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Hakan Altindag
@@ -227,6 +230,47 @@ class CompositeX509ExtendedTrustManagerShould {
         assertThatThrownBy(() -> compositeX509ExtendedTrustManager.checkClientTrusted(trustedCerts, "RSA", SOCKET))
                 .isInstanceOf(CertificateException.class)
                 .hasMessage("None of the TrustManagers trust this certificate chain");
+    }
+
+    @Test
+    void wrapCauseOfRuntimeExceptionContainingInvalidAlgorithmParameterExceptionIntoSuppressedCertificateException() throws KeyStoreException {
+        KeyStore emptyTrustStore = KeyStoreUtils.createKeyStore();
+        X509ExtendedTrustManager emptyTrustManager = TrustManagerUtils.createTrustManager(emptyTrustStore);
+
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+        X509Certificate[] certificateChain = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
+
+        CompositeX509ExtendedTrustManager compositeX509ExtendedTrustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(emptyTrustManager));
+        assertThat(emptyTrustManager).isNotNull();
+        assertThat(emptyTrustManager.getAcceptedIssuers()).isEmpty();
+        assertThat(certificateChain).hasSize(1);
+        int amountOfTrustManagers = compositeX509ExtendedTrustManager.getInnerTrustManagers().size();
+        assertThat(amountOfTrustManagers).isEqualTo(1);
+
+        CertificateException certificateException = catchThrowableOfType(() -> compositeX509ExtendedTrustManager.checkClientTrusted(certificateChain, "RSA"), CertificateException.class);
+        assertThat(certificateException.getSuppressed()).hasSize(1);
+        Throwable suppressedException = certificateException.getSuppressed()[0];
+
+        assertThat(suppressedException.getCause()).isInstanceOf(InvalidAlgorithmParameterException.class);
+        assertThat(suppressedException.getCause().getMessage()).isEqualTo("the trustAnchors parameter must be non-empty");
+    }
+
+    @Test
+    void notWrapRuntimeExceptionWhichDoesNotContainACauseOfInvalidAlgorithmParameterExceptionIntoSuppressedCertificateExceptionAndJustRethrow() throws KeyStoreException, CertificateException {
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+        X509Certificate[] certificateChain = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
+
+        X509ExtendedTrustManager shadyTrustManager = mock(X509ExtendedTrustManager.class);
+        doThrow(new RuntimeException("KABOOM!!!")).when(shadyTrustManager).checkClientTrusted(certificateChain, "RSA");
+
+        CompositeX509ExtendedTrustManager compositeX509ExtendedTrustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(shadyTrustManager));
+        assertThat(certificateChain).hasSize(1);
+        int amountOfTrustManagers = compositeX509ExtendedTrustManager.getInnerTrustManagers().size();
+        assertThat(amountOfTrustManagers).isEqualTo(1);
+
+        assertThatThrownBy(() -> compositeX509ExtendedTrustManager.checkClientTrusted(certificateChain, "RSA"))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("KABOOM!!!");
     }
 
     static class MockedSSLEngine extends SSLEngine {

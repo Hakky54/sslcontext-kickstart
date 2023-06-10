@@ -247,6 +247,15 @@ public final class TrustManagerUtils {
      * The provided TrustManager should be an instance of {@link InflatableX509ExtendedTrustManager}
      * and it is allowed that it is wrapped in a {@link CompositeX509ExtendedTrustManager}
      */
+    public static void addCertificate(X509ExtendedTrustManager trustManager, X509Certificate certificate) {
+        addCertificate(trustManager, Collections.singletonList(certificate));
+    }
+
+    /**
+     * Adds a new to be trusted certificate to the existing TrustManager.
+     * The provided TrustManager should be an instance of {@link InflatableX509ExtendedTrustManager}
+     * and it is allowed that it is wrapped in a {@link CompositeX509ExtendedTrustManager}
+     */
     public static void addCertificate(X509ExtendedTrustManager trustManager, List<X509Certificate> certificates) {
         if (trustManager instanceof InflatableX509ExtendedTrustManager) {
             ((InflatableX509ExtendedTrustManager) trustManager).addCertificates(certificates);
