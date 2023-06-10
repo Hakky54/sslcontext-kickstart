@@ -16,19 +16,24 @@
 package nl.altindag.ssl;
 
 import nl.altindag.ssl.server.service.Server;
+import nl.altindag.ssl.util.KeyStoreUtils;
 import nl.altindag.ssl.util.SSLFactoryUtils;
 import nl.altindag.ssl.util.SSLSessionUtils;
+import nl.altindag.ssl.util.TrustManagerUtils;
 import org.junit.jupiter.api.Test;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.X509ExtendedTrustManager;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.SocketException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyStore;
+import java.security.cert.CertificateException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -37,6 +42,7 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.catchThrowableOfType;
 
 /**
  * @author Hakan Altindag
@@ -58,13 +64,8 @@ class SSLFactoryIT {
                 .withTrustMaterial("keystore/client-server/client-one/truststore.jks", "secret".toCharArray())
                 .build();
 
-        HttpsURLConnection connection = (HttpsURLConnection) new URL("https://localhost:8443/api/hello").openConnection();
-        connection.setSSLSocketFactory(sslFactoryForClient.getSslSocketFactory());
-        connection.setHostnameVerifier(sslFactoryForClient.getHostnameVerifier());
-        connection.setRequestMethod("GET");
-
-        int statusCode = connection.getResponseCode();
-        assertThat(statusCode).isEqualTo(200);
+        Response response = executeRequest("https://localhost:8443/api/hello", sslFactoryForClient.getSslSocketFactory());
+        assertThat(response.getStatusCode()).isEqualTo(200);
 
         server.stop();
     }
@@ -290,6 +291,64 @@ class SSLFactoryIT {
 
         serverOne.stop();
         serverTwo.stop();
+    }
+
+    @Test
+    void throwInvalidAlgorithmParameterExceptionWhenUsingSingleTrustManagerWhichIsConstructedFromAnEmptyKeyStore() {
+        SSLFactory sslFactoryForServer = SSLFactory.builder()
+                .withIdentityMaterial("keystore/client-server/server-one/identity.jks", "secret".toCharArray())
+                .withTrustMaterial("keystore/client-server/server-one/truststore.jks", "secret".toCharArray())
+                .withNeedClientAuthentication()
+                .build();
+
+        Server server = Server.createDefault(sslFactoryForServer);
+
+        KeyStore emptyKeyStore = KeyStoreUtils.createKeyStore();
+        X509ExtendedTrustManager emptyTrustManager = TrustManagerUtils.createTrustManager(emptyKeyStore);
+
+        SSLFactory sslFactoryForClient = SSLFactory.builder()
+                .withTrustMaterial(emptyTrustManager)
+                .build();
+
+        assertThatThrownBy(() -> executeRequest("https://localhost:8443/api/hello", sslFactoryForClient.getSslSocketFactory()))
+                .isInstanceOf(SSLException.class)
+                .hasMessageContaining("the trustAnchors parameter must be non-empty");
+
+        server.stop();
+    }
+
+    @Test
+    void throwCertificateExceptionWhenUsingMultipleTrustManagersWhichIsConstructedFromAnEmptyKeyStore() {
+        SSLFactory sslFactoryForServer = SSLFactory.builder()
+                .withIdentityMaterial("keystore/client-server/server-one/identity.jks", "secret".toCharArray())
+                .withTrustMaterial("keystore/client-server/server-one/truststore.jks", "secret".toCharArray())
+                .withNeedClientAuthentication()
+                .build();
+
+        Server server = Server.createDefault(sslFactoryForServer);
+
+        KeyStore emptyKeyStore = KeyStoreUtils.createKeyStore();
+        X509ExtendedTrustManager emptyTrustManager = TrustManagerUtils.createTrustManager(emptyKeyStore);
+
+        SSLFactory sslFactoryForClient = SSLFactory.builder()
+                .withTrustMaterial(emptyTrustManager)
+                .withTrustMaterial(emptyTrustManager)
+                .build();
+
+        SSLException sslException = catchThrowableOfType(() -> executeRequest("https://localhost:8443/api/hello", sslFactoryForClient.getSslSocketFactory()), SSLException.class);
+
+        Throwable cause = sslException.getCause();
+        assertThat(cause).isInstanceOf(CertificateException.class);
+
+        Throwable[] suppressed = cause.getSuppressed();
+        assertThat(suppressed).hasSize(2);
+
+        for (Throwable throwable : suppressed) {
+            assertThat(throwable).isInstanceOf(CertificateException.class);
+            assertThat(throwable.getMessage()).contains("the trustAnchors parameter must be non-empty");
+        }
+
+        server.stop();
     }
 
     private Response executeRequest(String url, SSLSocketFactory sslSocketFactory) throws IOException {
