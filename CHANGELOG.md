@@ -3,6 +3,11 @@
 This list is not intended to be all-encompassing - it will document major and breaking API
 changes with their rationale when appropriate:
 
+### v8.1.1
+
+- Bug fix InvalidAlgorithmParameterException: trustAnchors parameter must be non empty for InflatableTrustManager
+- Bug fix InvalidAlgorithmParameterException: trustAnchors parameter must be non empty for CombinableTrustManager
+
 ### v8.1.0
 
 - Add support for trusting additional certificates at runtime
