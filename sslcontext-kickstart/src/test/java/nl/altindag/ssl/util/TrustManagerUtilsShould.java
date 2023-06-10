@@ -531,7 +531,7 @@ class TrustManagerUtilsShould {
     }
 
     @Test
-    void addCertificateToInflatableX509ExtendedTrustManager() {
+    void addCertificatesToInflatableX509ExtendedTrustManager() {
         X509Certificate certificate = mock(X509Certificate.class);
         List<X509Certificate> certificates = Collections.singletonList(certificate);
 
@@ -539,6 +539,16 @@ class TrustManagerUtilsShould {
         TrustManagerUtils.addCertificate(trustManager, certificates);
 
         verify(trustManager, times(1)).addCertificates(certificates);
+    }
+
+    @Test
+    void addCertificateToInflatableX509ExtendedTrustManager() {
+        X509Certificate certificate = mock(X509Certificate.class);
+
+        InflatableX509ExtendedTrustManager trustManager = mock(InflatableX509ExtendedTrustManager.class);
+        TrustManagerUtils.addCertificate(trustManager, certificate);
+
+        verify(trustManager, times(1)).addCertificates(Collections.singletonList(certificate));
     }
 
     @Test
