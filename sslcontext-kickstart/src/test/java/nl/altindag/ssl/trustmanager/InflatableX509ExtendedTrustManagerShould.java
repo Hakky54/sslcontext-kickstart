@@ -37,6 +37,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -95,6 +96,34 @@ class InflatableX509ExtendedTrustManagerShould {
 
         assertThat(trustManager.getAcceptedIssuers()).containsExactly(trustedCerts);
         assertThat(logCaptor.getInfoLogs()).containsExactly("Added certificate for [cn=googlecom_o=google-llc_l=mountain-view_st=california_c=us]");
+    }
+
+    @Test
+    void trustManagerWillNotBeReloadedIfNullIsProvidedAsNewCertificate() {
+        LogCaptor logCaptor = LogCaptor.forClass(InflatableX509ExtendedTrustManager.class);
+
+        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager();
+        assertThat(trustManager.getInnerTrustManager()).isInstanceOf(DummyX509ExtendedTrustManager.class);
+
+        trustManager.addCertificates(null);
+        assertThat(trustManager.getInnerTrustManager()).isInstanceOf(DummyX509ExtendedTrustManager.class);
+
+        assertThat(trustManager.getAcceptedIssuers()).isEmpty();
+        assertThat(logCaptor.getLogs()).isEmpty();
+    }
+
+    @Test
+    void trustManagerWillNotBeReloadedIfEmptyListIsProvidedAsNewCertificate() {
+        LogCaptor logCaptor = LogCaptor.forClass(InflatableX509ExtendedTrustManager.class);
+
+        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager();
+        assertThat(trustManager.getInnerTrustManager()).isInstanceOf(DummyX509ExtendedTrustManager.class);
+
+        trustManager.addCertificates(Collections.emptyList());
+        assertThat(trustManager.getInnerTrustManager()).isInstanceOf(DummyX509ExtendedTrustManager.class);
+
+        assertThat(trustManager.getAcceptedIssuers()).isEmpty();
+        assertThat(logCaptor.getLogs()).isEmpty();
     }
 
     @Test

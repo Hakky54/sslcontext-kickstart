@@ -159,6 +159,10 @@ public class InflatableX509ExtendedTrustManager extends HotSwappableX509Extended
         writeLock.lock();
 
         try {
+            if (certificates == null || certificates.isEmpty()) {
+                return;
+            }
+
             for (Certificate certificate : certificates) {
                 String alias = CertificateUtils.generateAlias(certificate);
                 trustStore.setCertificateEntry(alias, certificate);
