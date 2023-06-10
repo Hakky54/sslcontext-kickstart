@@ -21,7 +21,6 @@ import nl.altindag.ssl.util.internal.StringUtils;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
-import java.nio.charset.CharsetEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
@@ -54,7 +53,6 @@ import static nl.altindag.ssl.hostnameverifier.Hostnames.toCanonicalHost;
 public final class FenixHostnameVerifier implements HostnameVerifier {
 
     private static final HostnameVerifier INSTANCE = new FenixHostnameVerifier();
-    private static final ThreadLocal<CharsetEncoder> ASCII_ENCODER = ThreadLocal.withInitial(StandardCharsets.US_ASCII::newEncoder);
     private static final int ALT_DNS_NAME = 2;
     private static final int ALT_IPA_NAME = 7;
 
@@ -78,7 +76,7 @@ public final class FenixHostnameVerifier implements HostnameVerifier {
      * Returns true if the [String] is ASCII encoded.
      */
     private boolean isAscii(String value) {
-        return ASCII_ENCODER.get().canEncode(value);
+        return StandardCharsets.US_ASCII.newEncoder().canEncode(value);
     }
 
     /**
