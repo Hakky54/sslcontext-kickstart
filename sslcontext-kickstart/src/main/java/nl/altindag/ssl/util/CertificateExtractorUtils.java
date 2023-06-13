@@ -36,10 +36,10 @@ import java.security.NoSuchProviderException;
 import java.security.SignatureException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -64,7 +64,7 @@ class CertificateExtractorUtils {
     private Proxy proxy;
 
     private CertificateExtractorUtils() {
-        certificatesCollector = new ArrayList<>();
+        certificatesCollector = new CopyOnWriteArrayList<>();
 
         X509ExtendedTrustManager certificateCapturingTrustManager = TrustManagerUtils.createCertificateCapturingTrustManager(certificatesCollector);
 
