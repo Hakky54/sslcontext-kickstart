@@ -212,10 +212,10 @@ class SSLFactoryShould {
     }
 
     @Test
-    void buildSSLFactoryWithInflatableTrustMaterialWithAdditionalOptions() throws IOException {
+    void buildSSLFactoryWithInflatableTrustMaterialWithAdditionalOptions() {
         Path trustStoreDestination = Paths.get(HOME_DIRECTORY, "inflatable-truststore.p12");
         SSLFactory sslFactory = SSLFactory.builder()
-                .withInflatableTrustMaterial(trustStoreDestination, null, "PKCS12", (chain, authType) -> true)
+                .withInflatableTrustMaterial(trustStoreDestination, null, "PKCS12", trustManagerParameters -> true)
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();

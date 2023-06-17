@@ -15,15 +15,15 @@
  */
 package nl.altindag.ssl.trustmanager;
 
-import nl.altindag.ssl.trustmanager.validator.ChainAndAuthTypeValidator;
-import nl.altindag.ssl.trustmanager.validator.ChainAndAuthTypeWithSSLEngineValidator;
-import nl.altindag.ssl.trustmanager.validator.ChainAndAuthTypeWithSocketValidator;
+import nl.altindag.ssl.model.TrustManagerParameters;
 
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedTrustManager;
 import java.net.Socket;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.Optional;
+import java.util.function.Predicate;
 
 /**
  * <strong>NOTE:</strong>
@@ -33,68 +33,54 @@ import java.security.cert.X509Certificate;
  */
 public final class EnhanceableX509ExtendedTrustManager extends DelegatingX509ExtendedTrustManager {
 
-    private final ChainAndAuthTypeValidator chainAndAuthTypeValidator;
-    private final ChainAndAuthTypeWithSocketValidator chainAndAuthTypeWithSocketValidator;
-    private final ChainAndAuthTypeWithSSLEngineValidator chainAndAuthTypeWithSSLEngineValidator;
+    private final Predicate<TrustManagerParameters> trustManagerParametersValidator;
 
     public EnhanceableX509ExtendedTrustManager(
             X509ExtendedTrustManager trustManager,
-            ChainAndAuthTypeValidator chainAndAuthTypeValidator,
-            ChainAndAuthTypeWithSocketValidator chainAndAuthTypeWithSocketValidator,
-            ChainAndAuthTypeWithSSLEngineValidator chainAndAuthTypeWithSSLEngineValidator) {
+            Predicate<TrustManagerParameters> trustManagerParametersValidator) {
 
         super(trustManager);
-        this.chainAndAuthTypeValidator = chainAndAuthTypeValidator;
-        this.chainAndAuthTypeWithSocketValidator = chainAndAuthTypeWithSocketValidator;
-        this.chainAndAuthTypeWithSSLEngineValidator = chainAndAuthTypeWithSSLEngineValidator;
+        this.trustManagerParametersValidator = Optional.ofNullable(trustManagerParametersValidator)
+                .orElse(trustManagerParameters -> false);
     }
 
     @Override
     public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-        if (chainAndAuthTypeValidator != null && chainAndAuthTypeValidator.test(chain, authType)) {
-            return;
-        }
-        super.checkClientTrusted(chain, authType);
+        checkTrusted(trustManager -> trustManager.checkClientTrusted(chain, authType), chain, authType, null, null);
     }
 
     @Override
     public void checkClientTrusted(X509Certificate[] chain, String authType, Socket socket) throws CertificateException {
-        if (chainAndAuthTypeWithSocketValidator != null && chainAndAuthTypeWithSocketValidator.test(chain, authType, socket)) {
-            return;
-        }
-        super.checkClientTrusted(chain, authType, socket);
+        checkTrusted(trustManager -> trustManager.checkClientTrusted(chain, authType, socket), chain, authType, socket, null);
     }
 
     @Override
     public void checkClientTrusted(X509Certificate[] chain, String authType, SSLEngine sslEngine) throws CertificateException {
-        if (chainAndAuthTypeWithSSLEngineValidator != null && chainAndAuthTypeWithSSLEngineValidator.test(chain, authType, sslEngine)) {
-            return;
-        }
-        super.checkClientTrusted(chain, authType, sslEngine);
+        checkTrusted(trustManager -> trustManager.checkClientTrusted(chain, authType, sslEngine), chain, authType, null, sslEngine);
     }
 
     @Override
     public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-        if (chainAndAuthTypeValidator != null && chainAndAuthTypeValidator.test(chain, authType)) {
-            return;
-        }
-        super.checkServerTrusted(chain, authType);
+        checkTrusted(trustManager -> trustManager.checkServerTrusted(chain, authType), chain, authType, null, null);
     }
 
     @Override
     public void checkServerTrusted(X509Certificate[] chain, String authType, Socket socket) throws CertificateException {
-        if (chainAndAuthTypeWithSocketValidator != null && chainAndAuthTypeWithSocketValidator.test(chain, authType, socket)) {
-            return;
-        }
-        super.checkServerTrusted(chain, authType, socket);
+        checkTrusted(trustManager -> trustManager.checkServerTrusted(chain, authType, socket), chain, authType, socket, null);
     }
 
     @Override
     public void checkServerTrusted(X509Certificate[] chain, String authType, SSLEngine sslEngine) throws CertificateException {
-        if (chainAndAuthTypeWithSSLEngineValidator != null && chainAndAuthTypeWithSSLEngineValidator.test(chain, authType, sslEngine)) {
+        checkTrusted(trustManager -> trustManager.checkServerTrusted(chain, authType, sslEngine), chain, authType, null, sslEngine);
+    }
+
+    private void checkTrusted(TrustManagerConsumer trustManagerConsumer, X509Certificate[] chain, String authType, Socket socket, SSLEngine sslEngine) throws CertificateException {
+        TrustManagerParameters trustManagerParameters = new TrustManagerParameters(chain, authType, socket, sslEngine);
+        if (trustManagerParametersValidator.test(trustManagerParameters)) {
             return;
         }
-        super.checkServerTrusted(chain, authType, sslEngine);
+
+        trustManagerConsumer.checkTrusted(trustManager);
     }
 
 }

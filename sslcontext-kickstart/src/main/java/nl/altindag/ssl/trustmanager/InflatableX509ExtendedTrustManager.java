@@ -15,6 +15,7 @@
  */
 package nl.altindag.ssl.trustmanager;
 
+import nl.altindag.ssl.model.TrustManagerParameters;
 import nl.altindag.ssl.util.CertificateUtils;
 import nl.altindag.ssl.util.KeyStoreUtils;
 import nl.altindag.ssl.util.TrustManagerUtils;
@@ -35,7 +36,7 @@ import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 
 /**
  * <strong>NOTE:</strong>
@@ -59,7 +60,7 @@ public class InflatableX509ExtendedTrustManager extends HotSwappableX509Extended
     private final KeyStore trustStore;
     private final Path trustStorePath;
     private final char[] trustStorePassword;
-    private final BiPredicate<X509Certificate[], String> certificateAndAuthTypeTrustPredicate;
+    private final Predicate<TrustManagerParameters> trustManagerParametersPredicate;
 
     public InflatableX509ExtendedTrustManager() {
         this(null, null, null, null);
@@ -68,7 +69,7 @@ public class InflatableX509ExtendedTrustManager extends HotSwappableX509Extended
     public InflatableX509ExtendedTrustManager(Path trustStorePath,
                                               char[] trustStorePassword,
                                               String trustStoreType,
-                                              BiPredicate<X509Certificate[], String> certificateAndAuthTypeTrustPredicate) {
+                                              Predicate<TrustManagerParameters> trustManagerParametersPredicate) {
 
         super(TrustManagerUtils.createDummyTrustManager());
 
@@ -78,8 +79,8 @@ public class InflatableX509ExtendedTrustManager extends HotSwappableX509Extended
             this.trustStorePath = trustStorePath;
             this.trustStorePassword = trustStorePassword;
 
-            this.certificateAndAuthTypeTrustPredicate = Optional.ofNullable(certificateAndAuthTypeTrustPredicate)
-                    .orElse((chain, authType) -> false);
+            this.trustManagerParametersPredicate = Optional.ofNullable(trustManagerParametersPredicate)
+                    .orElse((trustManagerParameters) -> false);
 
             if (trustStorePath != null && StringUtils.isNotBlank(trustStoreType)) {
                 if (Files.exists(trustStorePath)) {
@@ -100,35 +101,35 @@ public class InflatableX509ExtendedTrustManager extends HotSwappableX509Extended
 
     @Override
     public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-        checkTrusted(trustManager -> super.checkServerTrusted(chain, authType), chain, authType);
+        checkTrusted(trustManager -> super.checkServerTrusted(chain, authType), chain, authType, null, null);
     }
 
     @Override
     public void checkServerTrusted(X509Certificate[] chain, String authType, Socket socket) throws CertificateException {
-        checkTrusted(trustManager -> super.checkServerTrusted(chain, authType, socket), chain, authType);
+        checkTrusted(trustManager -> super.checkServerTrusted(chain, authType, socket), chain, authType, socket, null);
     }
 
     @Override
     public void checkServerTrusted(X509Certificate[] chain, String authType, SSLEngine sslEngine) throws CertificateException {
-        checkTrusted(trustManager -> super.checkServerTrusted(chain, authType, sslEngine), chain, authType);
+        checkTrusted(trustManager -> super.checkServerTrusted(chain, authType, sslEngine), chain, authType, null, sslEngine);
     }
 
     @Override
     public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-        checkTrusted(trustManager -> super.checkClientTrusted(chain, authType), chain, authType);
+        checkTrusted(trustManager -> super.checkClientTrusted(chain, authType), chain, authType, null, null);
     }
 
     @Override
     public void checkClientTrusted(X509Certificate[] chain, String authType, Socket socket) throws CertificateException {
-        checkTrusted(trustManager -> super.checkClientTrusted(chain, authType, socket), chain, authType);
+        checkTrusted(trustManager -> super.checkClientTrusted(chain, authType, socket), chain, authType, socket, null);
     }
 
     @Override
     public void checkClientTrusted(X509Certificate[] chain, String authType, SSLEngine sslEngine) throws CertificateException {
-        checkTrusted(trustManager -> super.checkClientTrusted(chain, authType, sslEngine), chain, authType);
+        checkTrusted(trustManager -> super.checkClientTrusted(chain, authType, sslEngine), chain, authType, null, sslEngine);
     }
 
-    private void checkTrusted(TrustManagerConsumer trustManagerConsumer, X509Certificate[] chain, String authType) throws CertificateException {
+    private void checkTrusted(TrustManagerConsumer trustManagerConsumer, X509Certificate[] chain, String authType, Socket socket, SSLEngine sslEngine) throws CertificateException {
         try {
             // Use a read lock first in order to be more efficient
             readLock.lock();
@@ -143,7 +144,8 @@ public class InflatableX509ExtendedTrustManager extends HotSwappableX509Extended
             try {
                 trustManagerConsumer.checkTrusted(this);
             } catch (CertificateException e2) {
-                boolean shouldBeTrusted = certificateAndAuthTypeTrustPredicate.test(chain, authType);
+                TrustManagerParameters trustManagerParameters = new TrustManagerParameters(chain, authType, socket, sslEngine);
+                boolean shouldBeTrusted = trustManagerParametersPredicate.test(trustManagerParameters);
                 if (shouldBeTrusted) {
                     addCertificates(Collections.singletonList(chain[0]));
                 } else {

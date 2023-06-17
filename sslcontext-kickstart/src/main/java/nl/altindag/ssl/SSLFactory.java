@@ -18,6 +18,7 @@ package nl.altindag.ssl;
 import nl.altindag.ssl.exception.GenericKeyStoreException;
 import nl.altindag.ssl.exception.GenericSecurityException;
 import nl.altindag.ssl.model.KeyStoreHolder;
+import nl.altindag.ssl.model.TrustManagerParameters;
 import nl.altindag.ssl.model.internal.SSLMaterial;
 import nl.altindag.ssl.trustmanager.trustoptions.TrustAnchorTrustOptions;
 import nl.altindag.ssl.trustmanager.trustoptions.TrustStoreTrustOptions;
@@ -70,6 +71,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.isNull;
@@ -195,6 +197,7 @@ public final class SSLFactory {
         private ChainAndAuthTypeValidator chainAndAuthTypeValidator = null;
         private ChainAndAuthTypeWithSocketValidator chainAndAuthTypeWithSocketValidator = null;
         private ChainAndAuthTypeWithSSLEngineValidator chainAndAuthTypeWithSSLEngineValidator = null;
+        private Predicate<TrustManagerParameters> trustManagerParametersValidator = null;
 
         private Builder() {
         }
@@ -596,11 +599,20 @@ public final class SSLFactory {
             return this;
         }
 
+        @Deprecated
         public Builder withInflatableTrustMaterial(Path trustStorePath,
                                                    char[] trustStorePassword,
                                                    String trustStoreType,
                                                    BiPredicate<X509Certificate[], String> certificateAndAuthTypeTrustPredicate) {
             trustManagers.add(TrustManagerUtils.createInflatableTrustManager(trustStorePath, trustStorePassword, trustStoreType, certificateAndAuthTypeTrustPredicate));
+            return this;
+        }
+
+        public Builder withInflatableTrustMaterial(Path trustStorePath,
+                                                   char[] trustStorePassword,
+                                                   String trustStoreType,
+                                                   Predicate<TrustManagerParameters> trustManagerParametersPredicate) {
+            trustManagers.add(TrustManagerUtils.createInflatableTrustManager(trustStorePath, trustStorePassword, trustStoreType, trustManagerParametersPredicate));
             return this;
         }
 
@@ -743,18 +755,27 @@ public final class SSLFactory {
             return this;
         }
 
+        @Deprecated
         public Builder withTrustEnhancer(ChainAndAuthTypeValidator validator) {
             this.chainAndAuthTypeValidator = validator;
             return this;
         }
 
+        @Deprecated
         public Builder withTrustEnhancer(ChainAndAuthTypeWithSocketValidator validator) {
             this.chainAndAuthTypeWithSocketValidator = validator;
             return this;
         }
 
+        @Deprecated
         public Builder withTrustEnhancer(ChainAndAuthTypeWithSSLEngineValidator validator) {
             this.chainAndAuthTypeWithSSLEngineValidator = validator;
+            return this;
+        }
+
+        @Deprecated
+        public Builder withTrustEnhancer(Predicate<TrustManagerParameters> validator) {
+            this.trustManagerParametersValidator = validator;
             return this;
         }
 
@@ -861,6 +882,7 @@ public final class SSLFactory {
                     .withTrustStores(trustStores)
                     .withSwappableTrustManager(swappableTrustManagerEnabled)
                     .withLoggingTrustManager(loggingTrustManagerEnabled)
+                    .withTrustEnhancer(trustManagerParametersValidator)
                     .withTrustEnhancer(chainAndAuthTypeValidator)
                     .withTrustEnhancer(chainAndAuthTypeWithSocketValidator)
                     .withTrustEnhancer(chainAndAuthTypeWithSSLEngineValidator)
