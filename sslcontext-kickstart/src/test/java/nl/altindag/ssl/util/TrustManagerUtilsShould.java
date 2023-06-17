@@ -22,6 +22,7 @@ import nl.altindag.ssl.trustmanager.CompositeX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.DummyX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.HotSwappableX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.InflatableX509ExtendedTrustManager;
+import nl.altindag.ssl.trustmanager.KeyStoreTestUtils;
 import nl.altindag.ssl.trustmanager.LoggingX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.UnsafeX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.X509TrustManagerWrapper;
@@ -43,6 +44,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.Provider;
 import java.security.Security;
 import java.security.cert.CertPathBuilder;
+import java.security.cert.CertificateException;
 import java.security.cert.PKIXBuilderParameters;
 import java.security.cert.PKIXRevocationChecker;
 import java.security.cert.X509CertSelector;
@@ -54,6 +56,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
@@ -528,6 +531,30 @@ class TrustManagerUtilsShould {
         assertThat(trustManager).isInstanceOf(DummyX509ExtendedTrustManager.class);
 
         assertThat(logCaptor.getLogs()).isEmpty();
+    }
+
+    @Test
+    void createInflatableTrustManagerWithOldMethodWhichWillAcceptAnyCertificate() throws KeyStoreException {
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+        X509Certificate[] certificates = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
+
+        X509ExtendedTrustManager inflatableTrustManager = TrustManagerUtils.createInflatableTrustManager(null, null, null, (chain, authType) -> true);
+        assertThat(inflatableTrustManager).isInstanceOf(InflatableX509ExtendedTrustManager.class);
+
+        assertThatCode(() -> inflatableTrustManager.checkServerTrusted(new X509Certificate[]{certificates[0]}, "RSA"))
+                .doesNotThrowAnyException();
+    }
+
+    @Test
+    void createInflatableTrustManagerWithOldMethodWhichWillNotAcceptAnyCertificate() throws KeyStoreException {
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+        X509Certificate[] certificates = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
+
+        X509ExtendedTrustManager inflatableTrustManager = TrustManagerUtils.createInflatableTrustManager(null, null, null, (chain, authType) -> false);
+        assertThat(inflatableTrustManager).isInstanceOf(InflatableX509ExtendedTrustManager.class);
+
+        assertThatThrownBy(() -> inflatableTrustManager.checkServerTrusted(new X509Certificate[]{certificates[0]}, "RSA"))
+                .isInstanceOf(CertificateException.class);
     }
 
     @Test

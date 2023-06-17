@@ -558,14 +558,14 @@ public final class TrustManagerUtils {
                 return Optional.empty();
             }
 
-            X509ExtendedTrustManager enhanceableTrustManager = null;
+            X509ExtendedTrustManager enhanceableTrustManager;
             if (trustManagerParametersValidator != null) {
                 enhanceableTrustManager = TrustManagerUtils.createEnhanceableTrustManager(baseTrustManager, trustManagerParametersValidator);
             } else if (chainAndAuthTypeValidator != null) {
                 enhanceableTrustManager = TrustManagerUtils.createEnhanceableTrustManager(baseTrustManager, trustManagerParameters -> chainAndAuthTypeValidator.test(trustManagerParameters.getChain(), trustManagerParameters.getAuthType()));
             } else if (chainAndAuthTypeWithSocketValidator != null) {
                 enhanceableTrustManager = TrustManagerUtils.createEnhanceableTrustManager(baseTrustManager, trustManagerParameters -> chainAndAuthTypeWithSocketValidator.test(trustManagerParameters.getChain(), trustManagerParameters.getAuthType(), trustManagerParameters.getSocket().orElse(null)));
-            } else if (chainAndAuthTypeWithSSLEngineValidator != null) {
+            } else {
                 enhanceableTrustManager = TrustManagerUtils.createEnhanceableTrustManager(baseTrustManager, trustManagerParameters -> chainAndAuthTypeWithSSLEngineValidator.test(trustManagerParameters.getChain(), trustManagerParameters.getAuthType(), trustManagerParameters.getSslEngine().orElse(null)));
             }
 

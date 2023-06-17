@@ -18,12 +18,7 @@ package nl.altindag.ssl.model;
 import javax.net.ssl.SSLEngine;
 import java.net.Socket;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
 import java.util.Optional;
-
-import static nl.altindag.ssl.util.internal.ValidationUtils.GENERIC_EXCEPTION_MESSAGE;
-import static nl.altindag.ssl.util.internal.ValidationUtils.requireNotBlank;
-import static nl.altindag.ssl.util.internal.ValidationUtils.requireNotEmpty;
 
 /**
  * @author Hakan Altindag
@@ -36,10 +31,7 @@ public class TrustManagerParameters {
     private final SSLEngine sslEngine;
 
     public TrustManagerParameters(X509Certificate[] chain, String authType, Socket socket, SSLEngine sslEngine) {
-        requireNotEmpty(chain, GENERIC_EXCEPTION_MESSAGE.apply("chain"));
-        requireNotBlank(authType, GENERIC_EXCEPTION_MESSAGE.apply("authType"));
-
-        this.chain = Arrays.copyOf(chain, chain.length);
+        this.chain = chain;
         this.authType = authType;
         this.socket = socket;
         this.sslEngine = sslEngine;
