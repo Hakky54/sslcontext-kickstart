@@ -67,59 +67,38 @@ public class HotSwappableX509ExtendedTrustManager extends DelegatingX509Extended
 
     @Override
     public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-        readLock.lock();
-        try {
-            super.checkServerTrusted(chain, authType);
-        } finally {
-            readLock.unlock();
-        }
+        checkTrusted(() -> super.checkServerTrusted(chain, authType));
     }
 
     @Override
     public void checkServerTrusted(X509Certificate[] chain, String authType, Socket socket) throws CertificateException {
-        readLock.lock();
-        try {
-            super.checkServerTrusted(chain, authType, socket);
-        } finally {
-            readLock.unlock();
-        }
+        checkTrusted(() -> super.checkServerTrusted(chain, authType, socket));
     }
 
     @Override
     public void checkServerTrusted(X509Certificate[] chain, String authType, SSLEngine sslEngine) throws CertificateException {
-        readLock.lock();
-        try {
-            super.checkServerTrusted(chain, authType, sslEngine);
-        } finally {
-            readLock.unlock();
-        }
+        checkTrusted(() -> super.checkServerTrusted(chain, authType, sslEngine));
     }
 
     @Override
     public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-        readLock.lock();
-        try {
-            super.checkClientTrusted(chain, authType);
-        } finally {
-            readLock.unlock();
-        }
+        checkTrusted(() -> super.checkClientTrusted(chain, authType));
     }
 
     @Override
     public void checkClientTrusted(X509Certificate[] chain, String authType, Socket socket) throws CertificateException {
-        readLock.lock();
-        try {
-            super.checkClientTrusted(chain, authType, socket);
-        } finally {
-            readLock.unlock();
-        }
+        checkTrusted(() -> super.checkClientTrusted(chain, authType, socket));
     }
 
     @Override
     public void checkClientTrusted(X509Certificate[] chain, String authType, SSLEngine sslEngine) throws CertificateException {
+        checkTrusted(() -> super.checkClientTrusted(chain, authType, sslEngine));
+    }
+
+    private void checkTrusted(TrustManagerRunnable trustManagerRunnable) throws CertificateException {
         readLock.lock();
         try {
-            super.checkClientTrusted(chain, authType, sslEngine);
+            trustManagerRunnable.checkTrusted();
         } finally {
             readLock.unlock();
         }
