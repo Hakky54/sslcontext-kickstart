@@ -361,13 +361,26 @@ public final class TrustManagerUtils {
             ChainAndAuthTypeWithSocketValidator chainAndAuthTypeWithSocketValidator,
             ChainAndAuthTypeWithSSLEngineValidator chainAndAuthTypeWithSSLEngineValidator) {
 
-        Predicate<TrustManagerParameters> trustManagerParametersValidator = null;
-        if (chainAndAuthTypeValidator != null) {
-            trustManagerParametersValidator = trustManagerParameters -> chainAndAuthTypeValidator.test(trustManagerParameters.getChain(), trustManagerParameters.getAuthType());
-        } else if (chainAndAuthTypeWithSocketValidator != null) {
-            trustManagerParametersValidator = trustManagerParameters -> chainAndAuthTypeWithSocketValidator.test(trustManagerParameters.getChain(), trustManagerParameters.getAuthType(), trustManagerParameters.getSocket().orElse(null));
-        } else if (chainAndAuthTypeWithSSLEngineValidator != null) {
-            trustManagerParametersValidator = trustManagerParameters -> chainAndAuthTypeWithSSLEngineValidator.test(trustManagerParameters.getChain(), trustManagerParameters.getAuthType(), trustManagerParameters.getSslEngine().orElse(null));
+        Predicate<TrustManagerParameters> trustManagerParametersValidator;
+        if (chainAndAuthTypeValidator == null && chainAndAuthTypeWithSocketValidator == null && chainAndAuthTypeWithSSLEngineValidator == null) {
+            trustManagerParametersValidator = null;
+        } else {
+            trustManagerParametersValidator = trustManagerParameters -> {
+                boolean result = false;
+                if (chainAndAuthTypeValidator != null && !trustManagerParameters.getSocket().isPresent() && !trustManagerParameters.getSslEngine().isPresent()) {
+                    result = chainAndAuthTypeValidator.test(trustManagerParameters.getChain(), trustManagerParameters.getAuthType());
+                }
+
+                if (chainAndAuthTypeWithSocketValidator != null && trustManagerParameters.getSocket().isPresent() && !trustManagerParameters.getSslEngine().isPresent()) {
+                    result = chainAndAuthTypeWithSocketValidator.test(trustManagerParameters.getChain(), trustManagerParameters.getAuthType(), trustManagerParameters.getSocket().get());
+                }
+
+                if (chainAndAuthTypeWithSSLEngineValidator != null && !trustManagerParameters.getSocket().isPresent() && trustManagerParameters.getSslEngine().isPresent()) {
+                    result = chainAndAuthTypeWithSSLEngineValidator.test(trustManagerParameters.getChain(), trustManagerParameters.getAuthType(), trustManagerParameters.getSslEngine().get());
+                }
+
+                return result;
+            };
         }
 
         return new EnhanceableX509ExtendedTrustManager(trustManager, trustManagerParametersValidator);

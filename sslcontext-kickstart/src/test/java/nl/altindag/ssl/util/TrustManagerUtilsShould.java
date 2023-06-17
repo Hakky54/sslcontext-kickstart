@@ -33,10 +33,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.net.ssl.CertPathTrustManagerParameters;
 import javax.net.ssl.ManagerFactoryParameters;
+import javax.net.ssl.SSLEngine;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509ExtendedTrustManager;
 import javax.net.ssl.X509TrustManager;
 import java.lang.reflect.Method;
+import java.net.Socket;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -604,6 +606,48 @@ class TrustManagerUtilsShould {
         TrustManagerUtils.addCertificate(compositeX509ExtendedTrustManager, certificates);
 
         verify(inflatableX509ExtendedTrustManager, times(1)).addCertificates(certificates);
+    }
+
+    @Test
+    void createEnhanceableTrustManagerWithOldMethodWhileNotHavingValidators() throws CertificateException {
+        X509ExtendedTrustManager baseTrustManager = mock(X509ExtendedTrustManager.class);
+
+        X509ExtendedTrustManager enhanceableTrustManager = TrustManagerUtils.createEnhanceableTrustManager(baseTrustManager, null, null, null);
+
+        enhanceableTrustManager.checkServerTrusted(null, null);
+        verify(baseTrustManager, times(1)).checkServerTrusted(null, null);
+    }
+
+    @Test
+    void createEnhanceableTrustManagerWithOldMethodWhileHavingChainAndAuthTypeValidator() throws CertificateException {
+        X509ExtendedTrustManager baseTrustManager = mock(X509ExtendedTrustManager.class);
+
+        X509ExtendedTrustManager enhanceableTrustManager = TrustManagerUtils.createEnhanceableTrustManager(baseTrustManager, ((certificateChain, authType) -> true), null, null);
+
+        assertThatCode(() -> enhanceableTrustManager.checkServerTrusted(null, null)).doesNotThrowAnyException();
+        verify(baseTrustManager, times(0)).checkServerTrusted(null, null);
+    }
+
+    @Test
+    void createEnhanceableTrustManagerWithOldMethodWhileHavingChainAndAuthTypeAndSocketValidator() throws CertificateException {
+        Socket socket = mock(Socket.class);
+        X509ExtendedTrustManager baseTrustManager = mock(X509ExtendedTrustManager.class);
+
+        X509ExtendedTrustManager enhanceableTrustManager = TrustManagerUtils.createEnhanceableTrustManager(baseTrustManager, null, ((certificateChain, authType, aSocket) -> true), null);
+
+        assertThatCode(() -> enhanceableTrustManager.checkServerTrusted(null, null, socket)).doesNotThrowAnyException();
+        verify(baseTrustManager, times(0)).checkServerTrusted(null, null, socket);
+    }
+
+    @Test
+    void createEnhanceableTrustManagerWithOldMethodWhileHavingChainAndAuthTypeAndSSLEngineValidator() throws CertificateException {
+        SSLEngine sslEngine = mock(SSLEngine.class);
+        X509ExtendedTrustManager baseTrustManager = mock(X509ExtendedTrustManager.class);
+
+        X509ExtendedTrustManager enhanceableTrustManager = TrustManagerUtils.createEnhanceableTrustManager(baseTrustManager, null, null, ((certificateChain, authType, aSslEngine) -> true));
+
+        assertThatCode(() -> enhanceableTrustManager.checkServerTrusted(null, null, sslEngine)).doesNotThrowAnyException();
+        verify(baseTrustManager, times(0)).checkServerTrusted(null, null, sslEngine);
     }
 
     private CertPathTrustManagerParameters createTrustManagerParameters(KeyStore trustStore) throws NoSuchAlgorithmException, KeyStoreException, InvalidAlgorithmParameterException {
