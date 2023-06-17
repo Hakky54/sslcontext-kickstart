@@ -371,11 +371,11 @@ public final class TrustManagerUtils {
                     result = chainAndAuthTypeValidator.test(trustManagerParameters.getChain(), trustManagerParameters.getAuthType());
                 }
 
-                if (chainAndAuthTypeWithSocketValidator != null && trustManagerParameters.getSocket().isPresent() && !trustManagerParameters.getSslEngine().isPresent()) {
+                if (chainAndAuthTypeWithSocketValidator != null && trustManagerParameters.getSocket().isPresent()) {
                     result = chainAndAuthTypeWithSocketValidator.test(trustManagerParameters.getChain(), trustManagerParameters.getAuthType(), trustManagerParameters.getSocket().get());
                 }
 
-                if (chainAndAuthTypeWithSSLEngineValidator != null && !trustManagerParameters.getSocket().isPresent() && trustManagerParameters.getSslEngine().isPresent()) {
+                if (chainAndAuthTypeWithSSLEngineValidator != null && trustManagerParameters.getSslEngine().isPresent()) {
                     result = chainAndAuthTypeWithSSLEngineValidator.test(trustManagerParameters.getChain(), trustManagerParameters.getAuthType(), trustManagerParameters.getSslEngine().get());
                 }
 
