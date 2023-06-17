@@ -23,6 +23,7 @@ import java.security.cert.X509Certificate;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Supplier;
 
 import static nl.altindag.ssl.util.internal.ValidationUtils.GENERIC_EXCEPTION_MESSAGE;
 import static nl.altindag.ssl.util.internal.ValidationUtils.requireNotNull;
@@ -52,16 +53,6 @@ public class HotSwappableX509ExtendedTrustManager extends DelegatingX509Extended
             this.trustManager = requireNotNull(trustManager, GENERIC_EXCEPTION_MESSAGE.apply("TrustManager"));
         } finally {
             writeLock.unlock();
-        }
-    }
-
-    @Override
-    public X509ExtendedTrustManager getInnerTrustManager() {
-        readLock.lock();
-        try {
-            return super.getInnerTrustManager();
-        } finally {
-            readLock.unlock();
         }
     }
 
@@ -106,9 +97,18 @@ public class HotSwappableX509ExtendedTrustManager extends DelegatingX509Extended
 
     @Override
     public X509Certificate[] getAcceptedIssuers() {
+        return retrieveObject(super::getAcceptedIssuers);
+    }
+
+    @Override
+    public X509ExtendedTrustManager getInnerTrustManager() {
+        return retrieveObject(super::getInnerTrustManager);
+    }
+
+    private <T> T retrieveObject(Supplier<T> supplier) {
         readLock.lock();
         try {
-            return super.getAcceptedIssuers();
+            return supplier.get();
         } finally {
             readLock.unlock();
         }
