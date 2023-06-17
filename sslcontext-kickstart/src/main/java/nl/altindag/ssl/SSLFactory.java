@@ -773,7 +773,6 @@ public final class SSLFactory {
             return this;
         }
 
-        @Deprecated
         public Builder withTrustEnhancer(Predicate<TrustManagerParameters> validator) {
             this.trustManagerParametersValidator = validator;
             return this;
