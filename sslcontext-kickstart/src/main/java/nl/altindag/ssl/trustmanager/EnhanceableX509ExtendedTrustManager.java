@@ -46,41 +46,41 @@ public final class EnhanceableX509ExtendedTrustManager extends DelegatingX509Ext
 
     @Override
     public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-        checkTrusted(trustManager -> trustManager.checkClientTrusted(chain, authType), chain, authType, null, null);
+        checkTrusted(() -> super.checkClientTrusted(chain, authType), chain, authType, null, null);
     }
 
     @Override
     public void checkClientTrusted(X509Certificate[] chain, String authType, Socket socket) throws CertificateException {
-        checkTrusted(trustManager -> trustManager.checkClientTrusted(chain, authType, socket), chain, authType, socket, null);
+        checkTrusted(() -> super.checkClientTrusted(chain, authType, socket), chain, authType, socket, null);
     }
 
     @Override
     public void checkClientTrusted(X509Certificate[] chain, String authType, SSLEngine sslEngine) throws CertificateException {
-        checkTrusted(trustManager -> trustManager.checkClientTrusted(chain, authType, sslEngine), chain, authType, null, sslEngine);
+        checkTrusted(() -> super.checkClientTrusted(chain, authType, sslEngine), chain, authType, null, sslEngine);
     }
 
     @Override
     public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-        checkTrusted(trustManager -> trustManager.checkServerTrusted(chain, authType), chain, authType, null, null);
+        checkTrusted(() -> super.checkServerTrusted(chain, authType), chain, authType, null, null);
     }
 
     @Override
     public void checkServerTrusted(X509Certificate[] chain, String authType, Socket socket) throws CertificateException {
-        checkTrusted(trustManager -> trustManager.checkServerTrusted(chain, authType, socket), chain, authType, socket, null);
+        checkTrusted(() -> super.checkServerTrusted(chain, authType, socket), chain, authType, socket, null);
     }
 
     @Override
     public void checkServerTrusted(X509Certificate[] chain, String authType, SSLEngine sslEngine) throws CertificateException {
-        checkTrusted(trustManager -> trustManager.checkServerTrusted(chain, authType, sslEngine), chain, authType, null, sslEngine);
+        checkTrusted(() -> super.checkServerTrusted(chain, authType, sslEngine), chain, authType, null, sslEngine);
     }
 
-    private void checkTrusted(TrustManagerConsumer trustManagerConsumer, X509Certificate[] chain, String authType, Socket socket, SSLEngine sslEngine) throws CertificateException {
+    private void checkTrusted(TrustManagerRunnable trustManagerRunnable, X509Certificate[] chain, String authType, Socket socket, SSLEngine sslEngine) throws CertificateException {
         TrustManagerParameters trustManagerParameters = new TrustManagerParameters(chain, authType, socket, sslEngine);
         if (trustManagerParametersValidator.test(trustManagerParameters)) {
             return;
         }
 
-        trustManagerConsumer.checkTrusted(trustManager);
+        trustManagerRunnable.checkTrusted();
     }
 
 }

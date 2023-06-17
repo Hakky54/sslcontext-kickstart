@@ -101,40 +101,40 @@ public class InflatableX509ExtendedTrustManager extends HotSwappableX509Extended
 
     @Override
     public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-        checkTrusted(trustManager -> super.checkServerTrusted(chain, authType), chain, authType, null, null);
+        checkTrusted(() -> super.checkServerTrusted(chain, authType), chain, authType, null, null);
     }
 
     @Override
     public void checkServerTrusted(X509Certificate[] chain, String authType, Socket socket) throws CertificateException {
-        checkTrusted(trustManager -> super.checkServerTrusted(chain, authType, socket), chain, authType, socket, null);
+        checkTrusted(() -> super.checkServerTrusted(chain, authType, socket), chain, authType, socket, null);
     }
 
     @Override
     public void checkServerTrusted(X509Certificate[] chain, String authType, SSLEngine sslEngine) throws CertificateException {
-        checkTrusted(trustManager -> super.checkServerTrusted(chain, authType, sslEngine), chain, authType, null, sslEngine);
+        checkTrusted(() -> super.checkServerTrusted(chain, authType, sslEngine), chain, authType, null, sslEngine);
     }
 
     @Override
     public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-        checkTrusted(trustManager -> super.checkClientTrusted(chain, authType), chain, authType, null, null);
+        checkTrusted(() -> super.checkClientTrusted(chain, authType), chain, authType, null, null);
     }
 
     @Override
     public void checkClientTrusted(X509Certificate[] chain, String authType, Socket socket) throws CertificateException {
-        checkTrusted(trustManager -> super.checkClientTrusted(chain, authType, socket), chain, authType, socket, null);
+        checkTrusted(() -> super.checkClientTrusted(chain, authType, socket), chain, authType, socket, null);
     }
 
     @Override
     public void checkClientTrusted(X509Certificate[] chain, String authType, SSLEngine sslEngine) throws CertificateException {
-        checkTrusted(trustManager -> super.checkClientTrusted(chain, authType, sslEngine), chain, authType, null, sslEngine);
+        checkTrusted(() -> super.checkClientTrusted(chain, authType, sslEngine), chain, authType, null, sslEngine);
     }
 
-    private void checkTrusted(TrustManagerConsumer trustManagerConsumer, X509Certificate[] chain, String authType, Socket socket, SSLEngine sslEngine) throws CertificateException {
+    private void checkTrusted(TrustManagerRunnable trustManagerRunnable, X509Certificate[] chain, String authType, Socket socket, SSLEngine sslEngine) throws CertificateException {
         try {
             // Use a read lock first in order to be more efficient
             readLock.lock();
             try {
-                trustManagerConsumer.checkTrusted(this);
+                trustManagerRunnable.checkTrusted();
             } finally {
                 readLock.unlock();
             }
@@ -142,7 +142,7 @@ public class InflatableX509ExtendedTrustManager extends HotSwappableX509Extended
             writeLock.lock();
             // Recheck in a write lock, in case of a concurrent update (kind of double-checked locking)
             try {
-                trustManagerConsumer.checkTrusted(this);
+                trustManagerRunnable.checkTrusted();
             } catch (CertificateException e2) {
                 TrustManagerParameters trustManagerParameters = new TrustManagerParameters(chain, authType, socket, sslEngine);
                 boolean shouldBeTrusted = trustManagerParametersPredicate.test(trustManagerParameters);
