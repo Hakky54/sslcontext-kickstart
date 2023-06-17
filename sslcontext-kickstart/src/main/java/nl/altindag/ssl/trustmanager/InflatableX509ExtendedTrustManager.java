@@ -80,7 +80,7 @@ public class InflatableX509ExtendedTrustManager extends HotSwappableX509Extended
             this.trustStorePassword = trustStorePassword;
 
             this.trustManagerParametersPredicate = Optional.ofNullable(trustManagerParametersPredicate)
-                    .orElse((trustManagerParameters) -> false);
+                    .orElse(trustManagerParameters -> false);
 
             if (trustStorePath != null && StringUtils.isNotBlank(trustStoreType)) {
                 if (Files.exists(trustStorePath)) {
