@@ -46,6 +46,61 @@ public final class HotSwappableX509ExtendedKeyManager extends DelegatingX509Exte
         super(keyManager);
     }
 
+    @Override
+    public String chooseClientAlias(String[] keyType, Principal[] issuers, Socket socket) {
+        return getObjectSafely(() -> super.chooseClientAlias(keyType, issuers, socket));
+    }
+
+    @Override
+    public String chooseServerAlias(String keyType, Principal[] issuers, Socket socket) {
+        return getObjectSafely(() -> super.chooseServerAlias(keyType, issuers, socket));
+    }
+
+    @Override
+    public PrivateKey getPrivateKey(String alias) {
+        return getObjectSafely(() -> super.getPrivateKey(alias));
+    }
+
+    @Override
+    public X509Certificate[] getCertificateChain(String alias) {
+        return getObjectSafely(() -> super.getCertificateChain(alias));
+    }
+
+    @Override
+    public String[] getClientAliases(String keyType, Principal[] issuers) {
+        return getObjectSafely(() -> super.getClientAliases(keyType, issuers));
+    }
+
+    @Override
+    public String[] getServerAliases(String keyType, Principal[] issuers) {
+        return getObjectSafely(() -> super.getServerAliases(keyType, issuers));
+    }
+
+    @Override
+    public X509ExtendedKeyManager getInnerKeyManager() {
+        return getObjectSafely(super::getInnerKeyManager);
+    }
+
+    @Override
+    public String chooseEngineClientAlias(String[] keyTypes, Principal[] issuers, SSLEngine sslEngine) {
+        return getObjectSafely(() -> super.chooseEngineClientAlias(keyTypes, issuers, sslEngine));
+    }
+
+    @Override
+    public String chooseEngineServerAlias(String keyType, Principal[] issuers, SSLEngine sslEngine) {
+        return getObjectSafely(() -> super.chooseEngineServerAlias(keyType, issuers, sslEngine));
+    }
+
+    private <T> T getObjectSafely(KeyManagerCallable<T> keyManagerCallable) {
+        readLock.lock();
+
+        try {
+            return keyManagerCallable.call();
+        } finally {
+            readLock.unlock();
+        }
+    }
+
     public void setKeyManager(X509ExtendedKeyManager keyManager) {
         writeLock.lock();
 
@@ -53,105 +108,6 @@ public final class HotSwappableX509ExtendedKeyManager extends DelegatingX509Exte
             this.keyManager = requireNotNull(keyManager, GENERIC_EXCEPTION_MESSAGE.apply("KeyManager"));
         } finally {
             writeLock.unlock();
-        }
-    }
-
-    @Override
-    public String chooseClientAlias(String[] keyType, Principal[] issuers, Socket socket) {
-        readLock.lock();
-
-        try {
-            return super.chooseClientAlias(keyType, issuers, socket);
-        } finally {
-            readLock.unlock();
-        }
-    }
-
-    @Override
-    public String chooseServerAlias(String keyType, Principal[] issuers, Socket socket) {
-        readLock.lock();
-
-        try {
-            return super.chooseServerAlias(keyType, issuers, socket);
-        } finally {
-            readLock.unlock();
-        }
-    }
-
-    @Override
-    public PrivateKey getPrivateKey(String alias) {
-        readLock.lock();
-
-        try {
-            return super.getPrivateKey(alias);
-        } finally {
-            readLock.unlock();
-        }
-    }
-
-    @Override
-    public X509Certificate[] getCertificateChain(String alias) {
-        readLock.lock();
-
-        try {
-            return super.getCertificateChain(alias);
-        } finally {
-            readLock.unlock();
-        }
-    }
-
-    @Override
-    public String[] getClientAliases(String keyType, Principal[] issuers) {
-        readLock.lock();
-
-        try {
-            return super.getClientAliases(keyType, issuers);
-        } finally {
-            readLock.unlock();
-        }
-    }
-
-    @Override
-    public String[] getServerAliases(String keyType, Principal[] issuers) {
-        readLock.lock();
-
-        try {
-            return super.getServerAliases(keyType, issuers);
-        } finally {
-            readLock.unlock();
-        }
-    }
-
-    @Override
-    public X509ExtendedKeyManager getInnerKeyManager() {
-        readLock.lock();
-
-        try {
-            return super.getInnerKeyManager();
-        } finally {
-            readLock.unlock();
-        }
-    }
-
-    @Override
-    public String chooseEngineClientAlias(String[] keyTypes, Principal[] issuers, SSLEngine sslEngine) {
-        readLock.lock();
-
-        try {
-            return super.chooseEngineClientAlias(keyTypes, issuers, sslEngine);
-        } finally {
-            readLock.unlock();
-        }
-    }
-
-    @Override
-    public String chooseEngineServerAlias(String keyType, Principal[] issuers, SSLEngine sslEngine) {
-        readLock.lock();
-
-        try {
-            return super.chooseEngineServerAlias(keyType, issuers, sslEngine);
-        } finally {
-            readLock.unlock();
         }
     }
 
