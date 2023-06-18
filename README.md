@@ -62,7 +62,7 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "8.1.1"
          - [TrustManager](#loading-trust-material-with-trustmanager-and-ocsp-options)
          - [Certificates](#loading-trust-material-with-certificates-and-ocsp-options)
      - [Enhanceable trust validations](#enhanceable-trust-validations)
-     - [Skip certificate validation](#trusting-all-certificates-without-validation-not-recommended-to-use-at-production)
+     - [Skip certificate validation](#trusting-all-certificates-without-validation-not-recommended-to-use-at-production-)
      - [Skip hostname validation](#skip-hostname-validation)
      - [Loading JDK and OS trusted certificates](#loading-jdk-and-os-trusted-certificates)
      - [Using specific protocols and ciphers with custom secure-random and hostname-verifier](#using-specific-protocols-ciphers-with-custom-secure-random-and-hostname-verifier)
@@ -294,34 +294,12 @@ If a custom validator is specified and if the condition evaluates to true, then 
 ```text
 SSLFactory.builder()
           .withDefaultTrustMaterial()
-          .withTrustEnhancer((X509Certificate[] certificateChain, String authType) ->
-                  certificateChain[0].getIssuerX500Principal().getName().equals("Foo")
-                      && certificateChain[0].getSubjectX500Principal().getName().equals("Bar"))
+          .withTrustEnhancer(trustManagerParameters -> {
+              X509Certificate[] chain = trustManagerParameters.getChain();
+              return chain[0].getIssuerX500Principal().getName().equals("Foo")
+                      && chain[0].getSubjectX500Principal().getName().equals("Bar");
+          })
           .build();
-```
-
-Chaining of multiple validators is possible with the following snippet:
-```text
-ChainAndAuthTypeValidator validator = ((ChainAndAuthTypeValidator) 
-        (certificateChain, authType) -> certificateChain[0].getIssuerX500Principal().getName().equals("Foo"))
-        .and((certificateChain, authType) -> certificateChain[0].getSubjectX500Principal().getName().equals("Bar"))
-        .and((certificateChain, authType) -> certificateChain[0].getIssuerX500Principal().getName().equals("MyCompany"))
-        .or((certificateChain, authType) -> certificateChain[0].getIssuerX500Principal().getName().equals("TheirCompany"));
-
-SSLFactory sslFactory = SSLFactory.builder()
-        .withDefaultTrustMaterial()
-        .withTrustEnhancer(validator)
-        .build();
-```
-
-The method has overloaded methods, and it is recommended to apply similar validators to the overloaded methods. The signature of the methods are:
-```text
-SSLFactory sslFactory = SSLFactory.builder()
-        .withDefaultTrustMaterial()
-        .withTrustEnhancer(((X509Certificate[] certificateChain, String authType) -> myConditionWhichReturnsBoolean))
-        .withTrustEnhancer(((X509Certificate[] certificateChain, String authType, Socket socket) -> myConditionWhichReturnsBoolean))
-        .withTrustEnhancer(((X509Certificate[] certificateChain, String authType, SSLEngine sslEngine) -> myConditionWhichReturnsBoolean))
-        .build();
 ```
 
 ##### Trusting all certificates without validation, not recommended to use at production!
