@@ -17,6 +17,7 @@ package nl.altindag.ssl.trustmanager;
 
 import nl.altindag.log.LogCaptor;
 import nl.altindag.log.model.LogEvent;
+import nl.altindag.ssl.model.TrustManagerParameters;
 import nl.altindag.ssl.util.KeyStoreUtils;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -44,7 +45,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -222,7 +223,7 @@ class InflatableX509ExtendedTrustManagerShould {
 
         assertThat(trustedCerts).hasSizeGreaterThan(0);
 
-        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager(trustStoreDestination, TRUSTSTORE_PASSWORD, "PKCS12", (chain, authType) -> true);
+        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager(trustStoreDestination, TRUSTSTORE_PASSWORD, "PKCS12", trustManagerParameters -> true);
         trustManager.addCertificates(Arrays.asList(trustedCerts));
 
         X509Certificate[] combinedTrustedCertificates = Arrays.stream(trustedCerts).toArray(X509Certificate[]::new);
@@ -267,7 +268,7 @@ class InflatableX509ExtendedTrustManagerShould {
         Path trustStoreDestination = Paths.get(HOME_DIRECTORY, "inflatable-truststore.p12");
         assertThat(Files.exists(trustStoreDestination)).isFalse();
 
-        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager(trustStoreDestination, "secret".toCharArray(), "PKCS12", (chain, authType) -> true);
+        InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager(trustStoreDestination, "secret".toCharArray(), "PKCS12", trustManagerParameters -> true);
         trustManager.addCertificates(Arrays.asList(trustedCerts));
 
         assertThat(trustManager.getAcceptedIssuers()).containsExactly(trustedCerts);
@@ -290,14 +291,14 @@ class InflatableX509ExtendedTrustManagerShould {
         assertThat(Files.exists(trustStoreDestination)).isFalse();
 
         AtomicBoolean shouldTrust = new AtomicBoolean(false);
-        BiPredicate<X509Certificate[], String> predicate = (chain, authType) -> shouldTrust.get();
+        Predicate<TrustManagerParameters> predicate = trustManagerParameters -> shouldTrust.get();
         InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager(trustStoreDestination, "secret".toCharArray(), "PKCS12", predicate);
 
         assertThatThrownBy(() -> trustManager.checkServerTrusted(new X509Certificate[]{notYetTrustedCert}, "RSA")).isInstanceOf(CertificateException.class);
         assertThat(trustManager.getAcceptedIssuers()).isEmpty();
 
         shouldTrust.set(true);
-        trustManager.checkServerTrusted(new X509Certificate[] {notYetTrustedCert}, null);
+        trustManager.checkServerTrusted(new X509Certificate[] {notYetTrustedCert}, "RSA");
 
         assertThat(trustManager.getAcceptedIssuers()).containsExactly(notYetTrustedCert);
         assertThat(logCaptor.getInfoLogs()).containsExactly("Added certificate for [cn=googlecom_o=google-llc_l=mountain-view_st=california_c=us]");
@@ -319,7 +320,7 @@ class InflatableX509ExtendedTrustManagerShould {
         assertThat(Files.exists(trustStoreDestination)).isFalse();
 
         AtomicBoolean shouldTrust = new AtomicBoolean(true);
-        BiPredicate<X509Certificate[], String> predicate = (chain, authType) -> {
+        Predicate<TrustManagerParameters> predicate = trustManagerParameters -> {
             // Only the first call to the predicate will return true
             if (shouldTrust.getAndSet(false)) {
                 return true;
@@ -366,7 +367,7 @@ class InflatableX509ExtendedTrustManagerShould {
         assertThat(Files.exists(trustStoreDestination)).isFalse();
 
         AtomicBoolean shouldTrust = new AtomicBoolean(true);
-        BiPredicate<X509Certificate[], String> predicate = (chain, authType) -> {
+        Predicate<TrustManagerParameters> predicate = trustManagerParameters -> {
             // Only the first call to the predicate will return true
             if (shouldTrust.getAndSet(false)) {
                 return true;

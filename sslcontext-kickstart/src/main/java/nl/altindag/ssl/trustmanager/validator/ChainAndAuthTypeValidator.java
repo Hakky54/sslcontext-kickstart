@@ -21,6 +21,7 @@ import java.util.Objects;
 /**
  * @author Hakan Altindag
  */
+@Deprecated
 @FunctionalInterface
 public interface ChainAndAuthTypeValidator {
 
