@@ -80,7 +80,7 @@ public final class EnhanceableX509ExtendedTrustManager extends DelegatingX509Ext
             return;
         }
 
-        trustManagerRunnable.checkTrusted();
+        trustManagerRunnable.run();
     }
 
 }

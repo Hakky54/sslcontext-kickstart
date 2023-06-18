@@ -24,6 +24,7 @@ import java.security.cert.X509Certificate;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Supplier;
 
 import static nl.altindag.ssl.util.internal.ValidationUtils.GENERIC_EXCEPTION_MESSAGE;
 import static nl.altindag.ssl.util.internal.ValidationUtils.requireNotNull;
@@ -91,11 +92,11 @@ public final class HotSwappableX509ExtendedKeyManager extends DelegatingX509Exte
         return getObjectSafely(() -> super.chooseEngineServerAlias(keyType, issuers, sslEngine));
     }
 
-    private <T> T getObjectSafely(KeyManagerCallable<T> keyManagerCallable) {
+    private <T> T getObjectSafely(Supplier<T> supplier) {
         readLock.lock();
 
         try {
-            return keyManagerCallable.call();
+            return supplier.get();
         } finally {
             readLock.unlock();
         }

@@ -89,7 +89,7 @@ public class HotSwappableX509ExtendedTrustManager extends DelegatingX509Extended
     private void checkTrusted(TrustManagerRunnable trustManagerRunnable) throws CertificateException {
         readLock.lock();
         try {
-            trustManagerRunnable.checkTrusted();
+            trustManagerRunnable.run();
         } finally {
             readLock.unlock();
         }
@@ -97,15 +97,15 @@ public class HotSwappableX509ExtendedTrustManager extends DelegatingX509Extended
 
     @Override
     public X509Certificate[] getAcceptedIssuers() {
-        return retrieveObject(super::getAcceptedIssuers);
+        return getObjectSafely(super::getAcceptedIssuers);
     }
 
     @Override
     public X509ExtendedTrustManager getInnerTrustManager() {
-        return retrieveObject(super::getInnerTrustManager);
+        return getObjectSafely(super::getInnerTrustManager);
     }
 
-    private <T> T retrieveObject(Supplier<T> supplier) {
+    private <T> T getObjectSafely(Supplier<T> supplier) {
         readLock.lock();
         try {
             return supplier.get();

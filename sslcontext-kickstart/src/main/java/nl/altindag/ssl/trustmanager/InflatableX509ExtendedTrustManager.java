@@ -134,7 +134,7 @@ public class InflatableX509ExtendedTrustManager extends HotSwappableX509Extended
             // Use a read lock first in order to be more efficient
             readLock.lock();
             try {
-                trustManagerRunnable.checkTrusted();
+                trustManagerRunnable.run();
             } finally {
                 readLock.unlock();
             }
@@ -142,7 +142,7 @@ public class InflatableX509ExtendedTrustManager extends HotSwappableX509Extended
             writeLock.lock();
             // Recheck in a write lock, in case of a concurrent update (kind of double-checked locking)
             try {
-                trustManagerRunnable.checkTrusted();
+                trustManagerRunnable.run();
             } catch (CertificateException e2) {
                 TrustManagerParameters trustManagerParameters = new TrustManagerParameters(chain, authType, socket, sslEngine);
                 boolean shouldBeTrusted = trustManagerParametersPredicate.test(trustManagerParameters);

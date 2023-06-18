@@ -26,6 +26,6 @@ import java.security.cert.CertificateException;
 @FunctionalInterface
 interface TrustManagerRunnable {
 
-    void checkTrusted() throws CertificateException;
+    void run() throws CertificateException;
 
 }
