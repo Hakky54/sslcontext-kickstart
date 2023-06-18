@@ -28,7 +28,7 @@ import java.util.List;
  */
 public class KeyStoreTestUtils {
 
-    static X509Certificate[] getTrustedX509Certificates(KeyStore trustStore) throws KeyStoreException {
+    public static X509Certificate[] getTrustedX509Certificates(KeyStore trustStore) throws KeyStoreException {
         List<X509Certificate> certificates = new ArrayList<>();
         Enumeration<String> aliases = trustStore.aliases();
         while (aliases.hasMoreElements()) {

@@ -15,9 +15,7 @@
  */
 package nl.altindag.ssl.trustmanager;
 
-import nl.altindag.ssl.trustmanager.validator.ChainAndAuthTypeValidator;
-import nl.altindag.ssl.trustmanager.validator.ChainAndAuthTypeWithSSLEngineValidator;
-import nl.altindag.ssl.trustmanager.validator.ChainAndAuthTypeWithSocketValidator;
+import nl.altindag.ssl.model.TrustManagerParameters;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -27,6 +25,7 @@ import javax.net.ssl.X509ExtendedTrustManager;
 import java.net.Socket;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.function.Predicate;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -35,25 +34,19 @@ import static org.mockito.Mockito.verify;
 /**
  * @author Hakan Altindag
  */
+@SuppressWarnings("ConstantValue")
 @ExtendWith(MockitoExtension.class)
 class EnhanceableX509ExtendedTrustManagerShould {
 
     @Test
     void callChainAndAuthTypeValidatorWhenPresentAndNotTheBaseTrustManagerWhenCallingCheckClientTrusted() throws CertificateException {
         X509ExtendedTrustManager baseTrustManager = mock(X509ExtendedTrustManager.class);
-        ChainAndAuthTypeValidator chainAndAuthTypeValidator = (certificateChain, authType) -> true;
-        ChainAndAuthTypeWithSocketValidator chainAndAuthTypeWithSocketValidator = mock(ChainAndAuthTypeWithSocketValidator.class);
-        ChainAndAuthTypeWithSSLEngineValidator chainAndAuthTypeWithSSLEngineValidator = mock(ChainAndAuthTypeWithSSLEngineValidator.class);
+        Predicate<TrustManagerParameters> trustManagerParametersPredicate = trustManagerParameters -> true;
 
-        X509Certificate[] certificateChain = new X509Certificate[]{};
+        X509Certificate[] certificateChain = new X509Certificate[]{mock(X509Certificate.class)};
         String authType = "RSA";
 
-        EnhanceableX509ExtendedTrustManager trustManager = new EnhanceableX509ExtendedTrustManager(
-                baseTrustManager,
-                chainAndAuthTypeValidator,
-                chainAndAuthTypeWithSocketValidator,
-                chainAndAuthTypeWithSSLEngineValidator
-        );
+        EnhanceableX509ExtendedTrustManager trustManager = new EnhanceableX509ExtendedTrustManager(baseTrustManager, trustManagerParametersPredicate);
 
         trustManager.checkClientTrusted(certificateChain, authType);
 
@@ -63,19 +56,12 @@ class EnhanceableX509ExtendedTrustManagerShould {
     @Test
     void notCallChainAndAuthTypeValidatorWhenAbsentAndShouldCallTheBaseTrustManagerWhenCallingCheckClientTrusted() throws CertificateException {
         X509ExtendedTrustManager baseTrustManager = mock(X509ExtendedTrustManager.class);
-        ChainAndAuthTypeValidator chainAndAuthTypeValidator = null;
-        ChainAndAuthTypeWithSocketValidator chainAndAuthTypeWithSocketValidator = mock(ChainAndAuthTypeWithSocketValidator.class);
-        ChainAndAuthTypeWithSSLEngineValidator chainAndAuthTypeWithSSLEngineValidator = mock(ChainAndAuthTypeWithSSLEngineValidator.class);
+        Predicate<TrustManagerParameters> trustManagerParametersPredicate = null;
 
-        X509Certificate[] certificateChain = new X509Certificate[]{};
+        X509Certificate[] certificateChain = new X509Certificate[]{mock(X509Certificate.class)};
         String authType = "RSA";
 
-        EnhanceableX509ExtendedTrustManager trustManager = new EnhanceableX509ExtendedTrustManager(
-                baseTrustManager,
-                chainAndAuthTypeValidator,
-                chainAndAuthTypeWithSocketValidator,
-                chainAndAuthTypeWithSSLEngineValidator
-        );
+        EnhanceableX509ExtendedTrustManager trustManager = new EnhanceableX509ExtendedTrustManager(baseTrustManager, trustManagerParametersPredicate);
 
         trustManager.checkClientTrusted(certificateChain, authType);
 
@@ -85,19 +71,12 @@ class EnhanceableX509ExtendedTrustManagerShould {
     @Test
     void callBaseTrustManagerWhenChainAndAuthTypeValidatorEvaluatesToFalseWhenCallingCheckClientTrusted() throws CertificateException {
         X509ExtendedTrustManager baseTrustManager = mock(X509ExtendedTrustManager.class);
-        ChainAndAuthTypeValidator chainAndAuthTypeValidator = (certificateChain, authType) -> false;
-        ChainAndAuthTypeWithSocketValidator chainAndAuthTypeWithSocketValidator = mock(ChainAndAuthTypeWithSocketValidator.class);
-        ChainAndAuthTypeWithSSLEngineValidator chainAndAuthTypeWithSSLEngineValidator = mock(ChainAndAuthTypeWithSSLEngineValidator.class);
+        Predicate<TrustManagerParameters> trustManagerParametersPredicate = trustManagerParameters -> false;
 
-        X509Certificate[] certificateChain = new X509Certificate[]{};
+        X509Certificate[] certificateChain = new X509Certificate[]{mock(X509Certificate.class)};
         String authType = "RSA";
 
-        EnhanceableX509ExtendedTrustManager trustManager = new EnhanceableX509ExtendedTrustManager(
-                baseTrustManager,
-                chainAndAuthTypeValidator,
-                chainAndAuthTypeWithSocketValidator,
-                chainAndAuthTypeWithSSLEngineValidator
-        );
+        EnhanceableX509ExtendedTrustManager trustManager = new EnhanceableX509ExtendedTrustManager(baseTrustManager, trustManagerParametersPredicate);
 
         trustManager.checkClientTrusted(certificateChain, authType);
 
@@ -107,20 +86,13 @@ class EnhanceableX509ExtendedTrustManagerShould {
     @Test
     void callChainAndAuthTypeWithSocketValidatorWhenPresentAndNotTheBaseTrustManagerWhenCallingCheckClientTrusted() throws CertificateException {
         X509ExtendedTrustManager baseTrustManager = mock(X509ExtendedTrustManager.class);
-        ChainAndAuthTypeValidator chainAndAuthTypeValidator = mock(ChainAndAuthTypeValidator.class);
-        ChainAndAuthTypeWithSocketValidator chainAndAuthTypeWithSocketValidator = (certificateChain, authType, socket) -> true;
-        ChainAndAuthTypeWithSSLEngineValidator chainAndAuthTypeWithSSLEngineValidator = mock(ChainAndAuthTypeWithSSLEngineValidator.class);
+        Predicate<TrustManagerParameters> trustManagerParametersPredicate = trustManagerParameters -> true;
 
-        X509Certificate[] certificateChain = new X509Certificate[]{};
+        X509Certificate[] certificateChain = new X509Certificate[]{mock(X509Certificate.class)};
         String authType = "RSA";
         Socket socket = mock(Socket.class);
 
-        EnhanceableX509ExtendedTrustManager trustManager = new EnhanceableX509ExtendedTrustManager(
-                baseTrustManager,
-                chainAndAuthTypeValidator,
-                chainAndAuthTypeWithSocketValidator,
-                chainAndAuthTypeWithSSLEngineValidator
-        );
+        EnhanceableX509ExtendedTrustManager trustManager = new EnhanceableX509ExtendedTrustManager(baseTrustManager, trustManagerParametersPredicate);
 
         trustManager.checkClientTrusted(certificateChain, authType, socket);
 
@@ -130,20 +102,13 @@ class EnhanceableX509ExtendedTrustManagerShould {
     @Test
     void notCallChainAndAuthTypeWithSocketValidatorWhenAbsentAndShouldCallTheBaseTrustManagerWhenCallingCheckClientTrusted() throws CertificateException {
         X509ExtendedTrustManager baseTrustManager = mock(X509ExtendedTrustManager.class);
-        ChainAndAuthTypeValidator chainAndAuthTypeValidator = mock(ChainAndAuthTypeValidator.class);
-        ChainAndAuthTypeWithSocketValidator chainAndAuthTypeWithSocketValidator = null;
-        ChainAndAuthTypeWithSSLEngineValidator chainAndAuthTypeWithSSLEngineValidator = mock(ChainAndAuthTypeWithSSLEngineValidator.class);
+        Predicate<TrustManagerParameters> trustManagerParametersPredicate = null;
 
-        X509Certificate[] certificateChain = new X509Certificate[]{};
+        X509Certificate[] certificateChain = new X509Certificate[]{mock(X509Certificate.class)};
         String authType = "RSA";
         Socket socket = mock(Socket.class);
 
-        EnhanceableX509ExtendedTrustManager trustManager = new EnhanceableX509ExtendedTrustManager(
-                baseTrustManager,
-                chainAndAuthTypeValidator,
-                chainAndAuthTypeWithSocketValidator,
-                chainAndAuthTypeWithSSLEngineValidator
-        );
+        EnhanceableX509ExtendedTrustManager trustManager = new EnhanceableX509ExtendedTrustManager(baseTrustManager, trustManagerParametersPredicate);
 
         trustManager.checkClientTrusted(certificateChain, authType, socket);
 
@@ -153,20 +118,13 @@ class EnhanceableX509ExtendedTrustManagerShould {
     @Test
     void callBaseTrustManagerWhenChainAndAuthTypeWithSocketValidatorEvaluatesToFalseWhenCallingCheckClientTrusted() throws CertificateException {
         X509ExtendedTrustManager baseTrustManager = mock(X509ExtendedTrustManager.class);
-        ChainAndAuthTypeValidator chainAndAuthTypeValidator = mock(ChainAndAuthTypeValidator.class);
-        ChainAndAuthTypeWithSocketValidator chainAndAuthTypeWithSocketValidator = (certificateChain, authType, socket) -> false;
-        ChainAndAuthTypeWithSSLEngineValidator chainAndAuthTypeWithSSLEngineValidator = mock(ChainAndAuthTypeWithSSLEngineValidator.class);
+        Predicate<TrustManagerParameters> trustManagerParametersPredicate = trustManagerParameters -> false;
 
-        X509Certificate[] certificateChain = new X509Certificate[]{};
+        X509Certificate[] certificateChain = new X509Certificate[]{mock(X509Certificate.class)};
         String authType = "RSA";
         Socket socket = mock(Socket.class);
 
-        EnhanceableX509ExtendedTrustManager trustManager = new EnhanceableX509ExtendedTrustManager(
-                baseTrustManager,
-                chainAndAuthTypeValidator,
-                chainAndAuthTypeWithSocketValidator,
-                chainAndAuthTypeWithSSLEngineValidator
-        );
+        EnhanceableX509ExtendedTrustManager trustManager = new EnhanceableX509ExtendedTrustManager(baseTrustManager, trustManagerParametersPredicate);
 
         trustManager.checkClientTrusted(certificateChain, authType, socket);
 
@@ -176,20 +134,13 @@ class EnhanceableX509ExtendedTrustManagerShould {
     @Test
     void callChainAndAuthTypeWithSSLEngineValidatorWhenPresentAndNotTheBaseTrustManagerWhenCallingCheckClientTrusted() throws CertificateException {
         X509ExtendedTrustManager baseTrustManager = mock(X509ExtendedTrustManager.class);
-        ChainAndAuthTypeValidator chainAndAuthTypeValidator = mock(ChainAndAuthTypeValidator.class);
-        ChainAndAuthTypeWithSocketValidator chainAndAuthTypeWithSocketValidator = mock(ChainAndAuthTypeWithSocketValidator.class);
-        ChainAndAuthTypeWithSSLEngineValidator chainAndAuthTypeWithSSLEngineValidator = (certificateChain, authType, sslEngine) -> true;
+        Predicate<TrustManagerParameters> trustManagerParametersPredicate = trustManagerParameters -> true;
 
-        X509Certificate[] certificateChain = new X509Certificate[]{};
+        X509Certificate[] certificateChain = new X509Certificate[]{mock(X509Certificate.class)};
         String authType = "RSA";
         SSLEngine sslEngine = mock(SSLEngine.class);
 
-        EnhanceableX509ExtendedTrustManager trustManager = new EnhanceableX509ExtendedTrustManager(
-                baseTrustManager,
-                chainAndAuthTypeValidator,
-                chainAndAuthTypeWithSocketValidator,
-                chainAndAuthTypeWithSSLEngineValidator
-        );
+        EnhanceableX509ExtendedTrustManager trustManager = new EnhanceableX509ExtendedTrustManager(baseTrustManager, trustManagerParametersPredicate);
 
         trustManager.checkClientTrusted(certificateChain, authType, sslEngine);
 
@@ -199,20 +150,13 @@ class EnhanceableX509ExtendedTrustManagerShould {
     @Test
     void notCallChainAndAuthTypeWithSSLEngineValidatorWhenAbsentAndShouldCallTheBaseTrustManagerWhenCallingCheckClientTrusted() throws CertificateException {
         X509ExtendedTrustManager baseTrustManager = mock(X509ExtendedTrustManager.class);
-        ChainAndAuthTypeValidator chainAndAuthTypeValidator = mock(ChainAndAuthTypeValidator.class);
-        ChainAndAuthTypeWithSocketValidator chainAndAuthTypeWithSocketValidator = mock(ChainAndAuthTypeWithSocketValidator.class);
-        ChainAndAuthTypeWithSSLEngineValidator chainAndAuthTypeWithSSLEngineValidator = null;
+        Predicate<TrustManagerParameters> trustManagerParametersPredicate = null;
 
-        X509Certificate[] certificateChain = new X509Certificate[]{};
+        X509Certificate[] certificateChain = new X509Certificate[]{mock(X509Certificate.class)};
         String authType = "RSA";
         SSLEngine sslEngine = mock(SSLEngine.class);
 
-        EnhanceableX509ExtendedTrustManager trustManager = new EnhanceableX509ExtendedTrustManager(
-                baseTrustManager,
-                chainAndAuthTypeValidator,
-                chainAndAuthTypeWithSocketValidator,
-                chainAndAuthTypeWithSSLEngineValidator
-        );
+        EnhanceableX509ExtendedTrustManager trustManager = new EnhanceableX509ExtendedTrustManager(baseTrustManager, trustManagerParametersPredicate);
 
         trustManager.checkClientTrusted(certificateChain, authType, sslEngine);
 
@@ -222,20 +166,13 @@ class EnhanceableX509ExtendedTrustManagerShould {
     @Test
     void callBaseTrustManagerWhenChainAndAuthTypeWithSSLEngineValidatorEvaluatesToFalseWhenCallingCheckClientTrusted() throws CertificateException {
         X509ExtendedTrustManager baseTrustManager = mock(X509ExtendedTrustManager.class);
-        ChainAndAuthTypeValidator chainAndAuthTypeValidator = mock(ChainAndAuthTypeValidator.class);
-        ChainAndAuthTypeWithSocketValidator chainAndAuthTypeWithSocketValidator = mock(ChainAndAuthTypeWithSocketValidator.class);
-        ChainAndAuthTypeWithSSLEngineValidator chainAndAuthTypeWithSSLEngineValidator = (certificateChain, authType, sslEngine) -> false;
+        Predicate<TrustManagerParameters> trustManagerParametersPredicate = trustManagerParameters -> false;
 
-        X509Certificate[] certificateChain = new X509Certificate[]{};
+        X509Certificate[] certificateChain = new X509Certificate[]{mock(X509Certificate.class)};
         String authType = "RSA";
         SSLEngine sslEngine = mock(SSLEngine.class);
 
-        EnhanceableX509ExtendedTrustManager trustManager = new EnhanceableX509ExtendedTrustManager(
-                baseTrustManager,
-                chainAndAuthTypeValidator,
-                chainAndAuthTypeWithSocketValidator,
-                chainAndAuthTypeWithSSLEngineValidator
-        );
+        EnhanceableX509ExtendedTrustManager trustManager = new EnhanceableX509ExtendedTrustManager(baseTrustManager, trustManagerParametersPredicate);
 
         trustManager.checkClientTrusted(certificateChain, authType, sslEngine);
 
@@ -245,20 +182,12 @@ class EnhanceableX509ExtendedTrustManagerShould {
     @Test
     void callChainAndAuthTypeValidatorWhenPresentAndNotTheBaseTrustManagerWhenCallingCheckServerTrusted() throws CertificateException {
         X509ExtendedTrustManager baseTrustManager = mock(X509ExtendedTrustManager.class);
-        ChainAndAuthTypeValidator chainAndAuthTypeValidator = (certificateChain, authType) -> true;
-        ChainAndAuthTypeWithSocketValidator chainAndAuthTypeWithSocketValidator = mock(ChainAndAuthTypeWithSocketValidator.class);
-        ChainAndAuthTypeWithSSLEngineValidator chainAndAuthTypeWithSSLEngineValidator = mock(ChainAndAuthTypeWithSSLEngineValidator.class);
+        Predicate<TrustManagerParameters> trustManagerParametersPredicate = trustManagerParameters -> true;
 
-        X509Certificate[] certificateChain = new X509Certificate[]{};
+        X509Certificate[] certificateChain = new X509Certificate[]{mock(X509Certificate.class)};
         String authType = "RSA";
 
-        EnhanceableX509ExtendedTrustManager trustManager = new EnhanceableX509ExtendedTrustManager(
-                baseTrustManager,
-                chainAndAuthTypeValidator,
-                chainAndAuthTypeWithSocketValidator,
-                chainAndAuthTypeWithSSLEngineValidator
-        );
-
+        EnhanceableX509ExtendedTrustManager trustManager = new EnhanceableX509ExtendedTrustManager(baseTrustManager, trustManagerParametersPredicate);
         trustManager.checkServerTrusted(certificateChain, authType);
 
         verify(baseTrustManager, times(0)).checkServerTrusted(certificateChain, authType);
@@ -267,20 +196,12 @@ class EnhanceableX509ExtendedTrustManagerShould {
     @Test
     void notCallChainAndAuthTypeValidatorWhenAbsentAndShouldCallTheBaseTrustManagerWhenCallingCheckServerTrusted() throws CertificateException {
         X509ExtendedTrustManager baseTrustManager = mock(X509ExtendedTrustManager.class);
-        ChainAndAuthTypeValidator chainAndAuthTypeValidator = null;
-        ChainAndAuthTypeWithSocketValidator chainAndAuthTypeWithSocketValidator = mock(ChainAndAuthTypeWithSocketValidator.class);
-        ChainAndAuthTypeWithSSLEngineValidator chainAndAuthTypeWithSSLEngineValidator = mock(ChainAndAuthTypeWithSSLEngineValidator.class);
+        Predicate<TrustManagerParameters> trustManagerParametersPredicate = null;
 
-        X509Certificate[] certificateChain = new X509Certificate[]{};
+        X509Certificate[] certificateChain = new X509Certificate[]{mock(X509Certificate.class)};
         String authType = "RSA";
 
-        EnhanceableX509ExtendedTrustManager trustManager = new EnhanceableX509ExtendedTrustManager(
-                baseTrustManager,
-                chainAndAuthTypeValidator,
-                chainAndAuthTypeWithSocketValidator,
-                chainAndAuthTypeWithSSLEngineValidator
-        );
-
+        EnhanceableX509ExtendedTrustManager trustManager = new EnhanceableX509ExtendedTrustManager(baseTrustManager, trustManagerParametersPredicate);
         trustManager.checkServerTrusted(certificateChain, authType);
 
         verify(baseTrustManager, times(1)).checkServerTrusted(certificateChain, authType);
@@ -289,20 +210,12 @@ class EnhanceableX509ExtendedTrustManagerShould {
     @Test
     void callBaseTrustManagerWhenChainAndAuthTypeValidatorEvaluatesToFalseWhenCallingCheckServerTrusted() throws CertificateException {
         X509ExtendedTrustManager baseTrustManager = mock(X509ExtendedTrustManager.class);
-        ChainAndAuthTypeValidator chainAndAuthTypeValidator = (certificateChain, authType) -> false;
-        ChainAndAuthTypeWithSocketValidator chainAndAuthTypeWithSocketValidator = mock(ChainAndAuthTypeWithSocketValidator.class);
-        ChainAndAuthTypeWithSSLEngineValidator chainAndAuthTypeWithSSLEngineValidator = mock(ChainAndAuthTypeWithSSLEngineValidator.class);
+        Predicate<TrustManagerParameters> trustManagerParametersPredicate = trustManagerParameters -> false;
 
-        X509Certificate[] certificateChain = new X509Certificate[]{};
+        X509Certificate[] certificateChain = new X509Certificate[]{mock(X509Certificate.class)};
         String authType = "RSA";
 
-        EnhanceableX509ExtendedTrustManager trustManager = new EnhanceableX509ExtendedTrustManager(
-                baseTrustManager,
-                chainAndAuthTypeValidator,
-                chainAndAuthTypeWithSocketValidator,
-                chainAndAuthTypeWithSSLEngineValidator
-        );
-
+        EnhanceableX509ExtendedTrustManager trustManager = new EnhanceableX509ExtendedTrustManager(baseTrustManager, trustManagerParametersPredicate);
         trustManager.checkServerTrusted(certificateChain, authType);
 
         verify(baseTrustManager, times(1)).checkServerTrusted(certificateChain, authType);
@@ -311,21 +224,13 @@ class EnhanceableX509ExtendedTrustManagerShould {
     @Test
     void callChainAndAuthTypeWithSocketValidatorWhenPresentAndNotTheBaseTrustManagerWhenCallingCheckServerTrusted() throws CertificateException {
         X509ExtendedTrustManager baseTrustManager = mock(X509ExtendedTrustManager.class);
-        ChainAndAuthTypeValidator chainAndAuthTypeValidator = mock(ChainAndAuthTypeValidator.class);
-        ChainAndAuthTypeWithSocketValidator chainAndAuthTypeWithSocketValidator = (certificateChain, authType, socket) -> true;
-        ChainAndAuthTypeWithSSLEngineValidator chainAndAuthTypeWithSSLEngineValidator = mock(ChainAndAuthTypeWithSSLEngineValidator.class);
+        Predicate<TrustManagerParameters> trustManagerParametersPredicate = trustManagerParameters -> true;
 
-        X509Certificate[] certificateChain = new X509Certificate[]{};
+        X509Certificate[] certificateChain = new X509Certificate[]{mock(X509Certificate.class)};
         String authType = "RSA";
         Socket socket = mock(Socket.class);
 
-        EnhanceableX509ExtendedTrustManager trustManager = new EnhanceableX509ExtendedTrustManager(
-                baseTrustManager,
-                chainAndAuthTypeValidator,
-                chainAndAuthTypeWithSocketValidator,
-                chainAndAuthTypeWithSSLEngineValidator
-        );
-
+        EnhanceableX509ExtendedTrustManager trustManager = new EnhanceableX509ExtendedTrustManager(baseTrustManager, trustManagerParametersPredicate);
         trustManager.checkServerTrusted(certificateChain, authType, socket);
 
         verify(baseTrustManager, times(0)).checkServerTrusted(certificateChain, authType, socket);
@@ -334,21 +239,13 @@ class EnhanceableX509ExtendedTrustManagerShould {
     @Test
     void notCallChainAndAuthTypeWithSocketValidatorWhenAbsentAndShouldCallTheBaseTrustManagerWhenCallingCheckServerTrusted() throws CertificateException {
         X509ExtendedTrustManager baseTrustManager = mock(X509ExtendedTrustManager.class);
-        ChainAndAuthTypeValidator chainAndAuthTypeValidator = mock(ChainAndAuthTypeValidator.class);
-        ChainAndAuthTypeWithSocketValidator chainAndAuthTypeWithSocketValidator = null;
-        ChainAndAuthTypeWithSSLEngineValidator chainAndAuthTypeWithSSLEngineValidator = mock(ChainAndAuthTypeWithSSLEngineValidator.class);
+        Predicate<TrustManagerParameters> trustManagerParametersPredicate = null;
 
-        X509Certificate[] certificateChain = new X509Certificate[]{};
+        X509Certificate[] certificateChain = new X509Certificate[]{mock(X509Certificate.class)};
         String authType = "RSA";
         Socket socket = mock(Socket.class);
 
-        EnhanceableX509ExtendedTrustManager trustManager = new EnhanceableX509ExtendedTrustManager(
-                baseTrustManager,
-                chainAndAuthTypeValidator,
-                chainAndAuthTypeWithSocketValidator,
-                chainAndAuthTypeWithSSLEngineValidator
-        );
-
+        EnhanceableX509ExtendedTrustManager trustManager = new EnhanceableX509ExtendedTrustManager(baseTrustManager, trustManagerParametersPredicate);
         trustManager.checkServerTrusted(certificateChain, authType, socket);
 
         verify(baseTrustManager, times(1)).checkServerTrusted(certificateChain, authType, socket);
@@ -357,21 +254,13 @@ class EnhanceableX509ExtendedTrustManagerShould {
     @Test
     void callBaseTrustManagerWhenChainAndAuthTypeWithSocketValidatorEvaluatesToFalseWhenCallingCheckServerTrusted() throws CertificateException {
         X509ExtendedTrustManager baseTrustManager = mock(X509ExtendedTrustManager.class);
-        ChainAndAuthTypeValidator chainAndAuthTypeValidator = mock(ChainAndAuthTypeValidator.class);
-        ChainAndAuthTypeWithSocketValidator chainAndAuthTypeWithSocketValidator = (certificateChain, authType, socket) -> false;
-        ChainAndAuthTypeWithSSLEngineValidator chainAndAuthTypeWithSSLEngineValidator = mock(ChainAndAuthTypeWithSSLEngineValidator.class);
+        Predicate<TrustManagerParameters> trustManagerParametersPredicate = trustManagerParameters -> false;
 
-        X509Certificate[] certificateChain = new X509Certificate[]{};
+        X509Certificate[] certificateChain = new X509Certificate[]{mock(X509Certificate.class)};
         String authType = "RSA";
         Socket socket = mock(Socket.class);
 
-        EnhanceableX509ExtendedTrustManager trustManager = new EnhanceableX509ExtendedTrustManager(
-                baseTrustManager,
-                chainAndAuthTypeValidator,
-                chainAndAuthTypeWithSocketValidator,
-                chainAndAuthTypeWithSSLEngineValidator
-        );
-
+        EnhanceableX509ExtendedTrustManager trustManager = new EnhanceableX509ExtendedTrustManager(baseTrustManager, trustManagerParametersPredicate);
         trustManager.checkServerTrusted(certificateChain, authType, socket);
 
         verify(baseTrustManager, times(1)).checkServerTrusted(certificateChain, authType, socket);
@@ -380,21 +269,13 @@ class EnhanceableX509ExtendedTrustManagerShould {
     @Test
     void callChainAndAuthTypeWithSSLEngineValidatorWhenPresentAndNotTheBaseTrustManagerWhenCallingCheckServerTrusted() throws CertificateException {
         X509ExtendedTrustManager baseTrustManager = mock(X509ExtendedTrustManager.class);
-        ChainAndAuthTypeValidator chainAndAuthTypeValidator = mock(ChainAndAuthTypeValidator.class);
-        ChainAndAuthTypeWithSocketValidator chainAndAuthTypeWithSocketValidator = mock(ChainAndAuthTypeWithSocketValidator.class);
-        ChainAndAuthTypeWithSSLEngineValidator chainAndAuthTypeWithSSLEngineValidator = (certificateChain, authType, sslEngine) -> true;
+        Predicate<TrustManagerParameters> trustManagerParametersPredicate = trustManagerParameters -> true;
 
-        X509Certificate[] certificateChain = new X509Certificate[]{};
+        X509Certificate[] certificateChain = new X509Certificate[]{mock(X509Certificate.class)};
         String authType = "RSA";
         SSLEngine sslEngine = mock(SSLEngine.class);
 
-        EnhanceableX509ExtendedTrustManager trustManager = new EnhanceableX509ExtendedTrustManager(
-                baseTrustManager,
-                chainAndAuthTypeValidator,
-                chainAndAuthTypeWithSocketValidator,
-                chainAndAuthTypeWithSSLEngineValidator
-        );
-
+        EnhanceableX509ExtendedTrustManager trustManager = new EnhanceableX509ExtendedTrustManager(baseTrustManager, trustManagerParametersPredicate);
         trustManager.checkServerTrusted(certificateChain, authType, sslEngine);
 
         verify(baseTrustManager, times(0)).checkServerTrusted(certificateChain, authType, sslEngine);
@@ -403,21 +284,13 @@ class EnhanceableX509ExtendedTrustManagerShould {
     @Test
     void notCallChainAndAuthTypeWithSSLEngineValidatorWhenAbsentAndShouldCallTheBaseTrustManagerWhenCallingCheckServerTrusted() throws CertificateException {
         X509ExtendedTrustManager baseTrustManager = mock(X509ExtendedTrustManager.class);
-        ChainAndAuthTypeValidator chainAndAuthTypeValidator = mock(ChainAndAuthTypeValidator.class);
-        ChainAndAuthTypeWithSocketValidator chainAndAuthTypeWithSocketValidator = mock(ChainAndAuthTypeWithSocketValidator.class);
-        ChainAndAuthTypeWithSSLEngineValidator chainAndAuthTypeWithSSLEngineValidator = null;
+        Predicate<TrustManagerParameters> trustManagerParametersPredicate = null;
 
-        X509Certificate[] certificateChain = new X509Certificate[]{};
+        X509Certificate[] certificateChain = new X509Certificate[]{mock(X509Certificate.class)};
         String authType = "RSA";
         SSLEngine sslEngine = mock(SSLEngine.class);
 
-        EnhanceableX509ExtendedTrustManager trustManager = new EnhanceableX509ExtendedTrustManager(
-                baseTrustManager,
-                chainAndAuthTypeValidator,
-                chainAndAuthTypeWithSocketValidator,
-                chainAndAuthTypeWithSSLEngineValidator
-        );
-
+        EnhanceableX509ExtendedTrustManager trustManager = new EnhanceableX509ExtendedTrustManager(baseTrustManager, trustManagerParametersPredicate);
         trustManager.checkServerTrusted(certificateChain, authType, sslEngine);
 
         verify(baseTrustManager, times(1)).checkServerTrusted(certificateChain, authType, sslEngine);
@@ -426,21 +299,13 @@ class EnhanceableX509ExtendedTrustManagerShould {
     @Test
     void callBaseTrustManagerWhenChainAndAuthTypeWithSSLEngineValidatorEvaluatesToFalseWhenCallingCheckServerTrusted() throws CertificateException {
         X509ExtendedTrustManager baseTrustManager = mock(X509ExtendedTrustManager.class);
-        ChainAndAuthTypeValidator chainAndAuthTypeValidator = mock(ChainAndAuthTypeValidator.class);
-        ChainAndAuthTypeWithSocketValidator chainAndAuthTypeWithSocketValidator = mock(ChainAndAuthTypeWithSocketValidator.class);
-        ChainAndAuthTypeWithSSLEngineValidator chainAndAuthTypeWithSSLEngineValidator = (certificateChain, authType, sslEngine) -> false;
+        Predicate<TrustManagerParameters> trustManagerParametersPredicate = trustManagerParameters -> false;
 
-        X509Certificate[] certificateChain = new X509Certificate[]{};
+        X509Certificate[] certificateChain = new X509Certificate[]{mock(X509Certificate.class)};
         String authType = "RSA";
         SSLEngine sslEngine = mock(SSLEngine.class);
 
-        EnhanceableX509ExtendedTrustManager trustManager = new EnhanceableX509ExtendedTrustManager(
-                baseTrustManager,
-                chainAndAuthTypeValidator,
-                chainAndAuthTypeWithSocketValidator,
-                chainAndAuthTypeWithSSLEngineValidator
-        );
-
+        EnhanceableX509ExtendedTrustManager trustManager = new EnhanceableX509ExtendedTrustManager(baseTrustManager, trustManagerParametersPredicate);
         trustManager.checkServerTrusted(certificateChain, authType, sslEngine);
 
         verify(baseTrustManager, times(1)).checkServerTrusted(certificateChain, authType, sslEngine);

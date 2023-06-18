@@ -212,7 +212,25 @@ class SSLFactoryShould {
     }
 
     @Test
-    void buildSSLFactoryWithInflatableTrustMaterialWithAdditionalOptions() throws IOException {
+    void buildSSLFactoryWithInflatableTrustMaterialWithAdditionalOptions() {
+        Path trustStoreDestination = Paths.get(HOME_DIRECTORY, "inflatable-truststore.p12");
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withInflatableTrustMaterial(trustStoreDestination, null, "PKCS12", trustManagerParameters -> true)
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+
+        assertThat(sslFactory.getTrustManager()).isPresent();
+        assertThat(sslFactory.getTrustManager().get()).isInstanceOf(InflatableX509ExtendedTrustManager.class);
+        assertThat(sslFactory.getTrustManagerFactory()).isPresent();
+        assertThat(sslFactory.getTrustedCertificates()).isEmpty();
+        assertThat(sslFactory.getHostnameVerifier()).isNotNull();
+        assertThat(sslFactory.getKeyManager()).isNotPresent();
+        assertThat(sslFactory.getKeyManagerFactory()).isNotPresent();
+    }
+
+    @Test
+    void buildSSLFactoryWithInflatableTrustMaterialWithDeprecatedOptions() {
         Path trustStoreDestination = Paths.get(HOME_DIRECTORY, "inflatable-truststore.p12");
         SSLFactory sslFactory = SSLFactory.builder()
                 .withInflatableTrustMaterial(trustStoreDestination, null, "PKCS12", (chain, authType) -> true)
@@ -1165,6 +1183,25 @@ class SSLFactoryShould {
 
         assertThat(sslFactory.getSslContext()).isNotNull();
         assertThat(sslFactory.getSslContext().getProvider().getName()).isEqualTo("SunJSSE");
+    }
+
+    @Test
+    void buildSSLFactoryWithTrustValidatorBasedOnTrustManagerParameters() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
+                .withTrustEnhancer(trustManagerParameters -> true)
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+
+        assertThat(sslFactory.getTrustManager()).isPresent();
+        assertThat(sslFactory.getTrustManager().get()).isNotInstanceOf(HotSwappableX509ExtendedTrustManager.class);
+        assertThat(sslFactory.getTrustManager().get()).isInstanceOf(EnhanceableX509ExtendedTrustManager.class);
+        assertThat(sslFactory.getTrustManagerFactory()).isPresent();
+        assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
+        assertThat(sslFactory.getHostnameVerifier()).isNotNull();
+        assertThat(sslFactory.getKeyManager()).isNotPresent();
+        assertThat(sslFactory.getKeyManagerFactory()).isNotPresent();
     }
 
     @Test
