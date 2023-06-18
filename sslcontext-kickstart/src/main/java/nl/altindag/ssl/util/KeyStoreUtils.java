@@ -16,6 +16,7 @@
 package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.exception.GenericKeyStoreException;
+import nl.altindag.ssl.util.internal.CollectorsUtils;
 import nl.altindag.ssl.util.internal.IOUtils;
 import nl.altindag.ssl.util.internal.StringUtils;
 import org.slf4j.Logger;
@@ -38,7 +39,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.UnaryOperator;
 
 import static nl.altindag.ssl.util.internal.ValidationUtils.requireNotEmpty;
@@ -239,6 +242,44 @@ public final class KeyStoreUtils {
         return Collections.unmodifiableList(keyStores);
     }
 
+    public static List<Certificate> getCertificates(KeyStore keyStore) {
+        return getAliasToCertificate(keyStore).values().stream()
+                .collect(CollectorsUtils.toUnmodifiableList());
+    }
+
+    public static Map<String, Certificate> getAliasToCertificate(KeyStore keyStore) {
+        try {
+            Map<String, Certificate> aliasToCertificate = new HashMap<>();
+
+            List<String> aliases = getAliases(keyStore);
+            for (String alias : aliases) {
+                if (keyStore.isCertificateEntry(alias)) {
+                    Certificate certificate = keyStore.getCertificate(alias);
+                    aliasToCertificate.put(alias, certificate);
+                }
+            }
+
+            return Collections.unmodifiableMap(aliasToCertificate);
+        } catch (KeyStoreException e) {
+            throw new GenericKeyStoreException(e);
+        }
+    }
+
+    public static List<String> getAliases(KeyStore keyStore) {
+        try {
+            List<String> destinationAliases = new ArrayList<>();
+            Enumeration<String> sourceAliases = keyStore.aliases();
+            while (sourceAliases.hasMoreElements()) {
+                String alias = sourceAliases.nextElement();
+                destinationAliases.add(alias);
+            }
+
+            return Collections.unmodifiableList(destinationAliases);
+        } catch (KeyStoreException e) {
+            throw new GenericKeyStoreException(e);
+        }
+    }
+
     public static void write(Path destination, KeyStore keyStore, char[] password) {
         IOUtils.write(destination, outputStream -> keyStore.store(outputStream, password));
     }
@@ -260,15 +301,15 @@ public final class KeyStoreUtils {
     }
 
     private static int amountOfSpecifiedMaterial(KeyStore keyStore,
-                                          KeyStoreBiPredicate<KeyStore, String> predicate,
-                                          int upperBoundaryForMaterialCounter) {
+                                                 KeyStoreBiPredicate<KeyStore, String> predicate,
+                                                 int upperBoundaryForMaterialCounter) {
 
         try {
             int materialCounter = 0;
-            Enumeration<String> aliases = keyStore.aliases();
-            while (aliases.hasMoreElements() && materialCounter < upperBoundaryForMaterialCounter) {
-                String alias = aliases.nextElement();
-                if (predicate.test(keyStore, alias)) {
+
+            List<String> aliases = getAliases(keyStore);
+            for (String alias : aliases) {
+                if (materialCounter < upperBoundaryForMaterialCounter && predicate.test(keyStore, alias)) {
                     materialCounter++;
                 }
             }

@@ -44,6 +44,7 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -458,6 +459,35 @@ class KeyStoreUtilsShould {
     }
 
     @Test
+    void getCertificates() {
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+
+        List<Certificate> certificates = KeyStoreUtils.getCertificates(trustStore);
+        assertThat(certificates).hasSize(1);
+    }
+
+    @Test
+    void getAliasToCertificate() {
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+
+        Map<String, Certificate> aliasToCertificate = KeyStoreUtils.getAliasToCertificate(trustStore);
+        assertThat(aliasToCertificate.values()).hasSize(1);
+        assertThat(aliasToCertificate)
+                .hasSize(1)
+                .containsKey("google");
+    }
+
+    @Test
+    void getAliasToCertificateFiltersOutKeyMaterial() throws KeyStoreException {
+        KeyStore keyStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, KEYSTORE_PASSWORD);
+
+        assertThat(keyStore.size()).isGreaterThan(0);
+
+        Map<String, Certificate> aliasToCertificate = KeyStoreUtils.getAliasToCertificate(keyStore);
+        assertThat(aliasToCertificate).isEmpty();
+    }
+
+    @Test
     void throwsIllegalArgumentExceptionWhenTrustStoreIsCreatedWithEmptyListOfCertificates() {
         List<Certificate> certificates = Collections.emptyList();
         assertThatThrownBy(() -> KeyStoreUtils.createTrustStore(certificates))
@@ -542,6 +572,25 @@ class KeyStoreUtilsShould {
             }
         })) {
             assertThatThrownBy(() -> KeyStoreUtils.createTrustStore(trustedCertificates))
+                    .isInstanceOf(GenericKeyStoreException.class)
+                    .hasMessageContaining("lazy");
+        }
+    }
+
+    @Test
+    void throwGenericKeyStoreWhenIsCertificateEntryThrowsKeyStoreExceptionForMethodGetAliasToCertificate() throws KeyStoreException {
+        KeyStore keyStore = mock(KeyStore.class);
+        doThrow(new KeyStoreException("lazy")).when(keyStore).isCertificateEntry(anyString());
+
+        try (MockedStatic<KeyStoreUtils> keyStoreUtilsMock = mockStatic(KeyStoreUtils.class, invocation -> {
+            Method method = invocation.getMethod();
+            if ("getAliases".equals(method.getName()) && method.getParameterCount() == 1) {
+                return List.of("hello");
+            } else {
+                return invocation.callRealMethod();
+            }
+        })) {
+            assertThatThrownBy(() -> KeyStoreUtils.getAliasToCertificate(keyStore))
                     .isInstanceOf(GenericKeyStoreException.class)
                     .hasMessageContaining("lazy");
         }
