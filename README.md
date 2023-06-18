@@ -534,7 +534,7 @@ prompting the user to trust the certificate if integrated in a GUI.
 SSLFactory sslFactory = SSLFactory.builder()
         .withDefaultTrustMaterial()
         .withSystemTrustMaterial()
-        .withInflatableTrustMaterial(Paths.get("/path/to/truststore.p12"), "password".toCharArray(), "PKCS12", (X509Certificate[] chain, String authType) -> {
+        .withInflatableTrustMaterial(Paths.get("/path/to/truststore.p12"), "password".toCharArray(), "PKCS12", trustManagerParameters -> {
             // do some validation to decide whether to trust this certificate
             return true;
         })
