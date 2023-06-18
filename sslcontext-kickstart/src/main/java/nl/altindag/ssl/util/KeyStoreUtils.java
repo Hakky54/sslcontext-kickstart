@@ -242,12 +242,12 @@ public final class KeyStoreUtils {
         return Collections.unmodifiableList(keyStores);
     }
 
-    public static List<? extends Certificate> getCertificates(KeyStore keyStore) {
+    public static List<Certificate> getCertificates(KeyStore keyStore) {
         return getAliasToCertificate(keyStore).values().stream()
                 .collect(CollectorsUtils.toUnmodifiableList());
     }
 
-    public static Map<String, ? extends Certificate> getAliasToCertificate(KeyStore keyStore) {
+    public static Map<String, Certificate> getAliasToCertificate(KeyStore keyStore) {
         try {
             Map<String, Certificate> aliasToCertificate = new HashMap<>();
 
@@ -261,7 +261,7 @@ public final class KeyStoreUtils {
 
             return Collections.unmodifiableMap(aliasToCertificate);
         } catch (KeyStoreException e) {
-            throw new RuntimeException(e);
+            throw new GenericKeyStoreException(e);
         }
     }
 
