@@ -35,6 +35,8 @@ import nl.altindag.ssl.util.SSLSocketUtils;
 import nl.altindag.ssl.util.TrustManagerUtils;
 import nl.altindag.ssl.util.internal.StringUtils;
 import nl.altindag.ssl.util.internal.UriUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.CertPathTrustManagerParameters;
 import javax.net.ssl.HostnameVerifier;
@@ -83,6 +85,8 @@ import static nl.altindag.ssl.util.internal.ValidationUtils.requireNotEmpty;
  * @author Hakan Altindag
  */
 public final class SSLFactory {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(SSLFactory.class);
 
     private final SSLMaterial sslMaterial;
 
@@ -752,6 +756,7 @@ public final class SSLFactory {
 
         public Builder withTrustingAllCertificatesWithoutValidation() {
             trustManagers.add(TrustManagerUtils.createUnsafeTrustManager());
+            LOGGER.debug("UnsafeTrustManager is being used. Client/Server certificates will be accepted without validation.");
             return this;
         }
 
