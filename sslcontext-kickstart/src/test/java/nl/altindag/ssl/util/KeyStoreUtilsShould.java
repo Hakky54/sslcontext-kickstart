@@ -115,17 +115,11 @@ class KeyStoreUtilsShould {
 
     @Test
     void loadSystemKeyStore() {
-        LogCaptor logCaptor = LogCaptor.forClass(KeyStoreUtils.class);
-        logCaptor.setLogLevelToDebug();
-
         List<KeyStore> keyStores = KeyStoreUtils.loadSystemKeyStores();
 
         String operatingSystem = System.getProperty("os.name").toLowerCase();
         if (operatingSystem.contains("mac") || operatingSystem.contains("windows") || operatingSystem.contains("linux")) {
             assertThat(keyStores).isNotEmpty();
-
-            System.out.println(">>>>>>");
-            logCaptor.getLogs().forEach(System.out::println);
         }
     }
 
@@ -156,7 +150,7 @@ class KeyStoreUtilsShould {
             } else if ("createKeyStoreIfAvailable".equals(method.getName()) && method.getParameterCount() == 2 && "Windows-ROOT-CURRENTUSER".equals(invocation.getArgument(0))) {
                 return Optional.of(windowsRootCurrentUserKeyStore);
             } else {
-                return invocation.getMock();
+                return invocation.callRealMethod();
             }
         })) {
             List<KeyStore> keyStores = KeyStoreUtils.loadSystemKeyStores();
@@ -187,7 +181,7 @@ class KeyStoreUtilsShould {
                 } else if ("createKeyStore".equals(method.getName()) && method.getParameterCount() == 2 && "AndroidCAStore".equals(invocation.getArgument(0))) {
                     return androidCAStore;
                 } else {
-                    return invocation.getMock();
+                    return invocation.callRealMethod();
                 }
             })) {
                 List<KeyStore> keyStores = KeyStoreUtils.loadSystemKeyStores();
@@ -245,7 +239,7 @@ class KeyStoreUtilsShould {
             } else if ("createTrustStore".equals(method.getName()) && method.getParameterCount() == 1 && method.getParameters()[0].getType().equals(List.class)) {
                 return systemTrustStore;
             } else {
-                return invocation.getMock();
+                return invocation.callRealMethod();
             }
         })) {
             List<KeyStore> keyStores = KeyStoreUtils.loadSystemKeyStores();

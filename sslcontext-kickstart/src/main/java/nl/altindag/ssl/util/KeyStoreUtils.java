@@ -207,8 +207,7 @@ public final class KeyStoreUtils {
         OperatingSystem operatingSystem = OperatingSystem.get();
         switch (operatingSystem) {
             case MAC: {
-                KeyStore keychainStore = createKeyStore("KeychainStore", null);
-                keyStores.add(keychainStore);
+                createKeyStoreIfAvailable("KeychainStore", null).ifPresent(keyStores::add);
 
                 List<Certificate> systemTrustedCertificates = MacCertificateUtils.getCertificates();
                 KeyStore systemTrustStore = createTrustStore(systemTrustedCertificates);
@@ -222,19 +221,11 @@ public final class KeyStoreUtils {
                 break;
             }
             case ANDROID: {
-                KeyStore androidCAStore = createKeyStore("AndroidCAStore", null);
-                keyStores.add(androidCAStore);
+                createKeyStoreIfAvailable("AndroidCAStore", null).ifPresent(keyStores::add);
                 break;
             }
             case WINDOWS: {
-                KeyStore windowsRootKeyStore = createKeyStore("Windows-ROOT", null);
-                KeyStore windowsMyKeyStore = createKeyStore("Windows-MY", null);
-
-                keyStores.add(windowsRootKeyStore);
-                keyStores.add(windowsMyKeyStore);
-
-                // Only available on Java 11 and 17+
-                Stream.of("Windows-MY-CURRENTUSER", "Windows-MY-LOCALMACHINE", "Windows-ROOT-LOCALMACHINE", "Windows-ROOT-CURRENTUSER")
+                Stream.of("Windows-ROOT", "Windows-ROOT-LOCALMACHINE", "Windows-ROOT-CURRENTUSER", "Windows-MY", "Windows-MY-CURRENTUSER", "Windows-MY-LOCALMACHINE")
                         .map(keystoreType -> createKeyStoreIfAvailable(keystoreType, null))
                         .filter(Optional::isPresent)
                         .map(Optional::get)
