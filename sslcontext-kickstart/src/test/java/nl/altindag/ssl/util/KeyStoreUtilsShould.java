@@ -124,7 +124,25 @@ class KeyStoreUtilsShould {
     }
 
     @Test
+    void loadSystemKeyStoreNotLogIfDebugIsDisabled() {
+        LogCaptor logCaptor = LogCaptor.forClass(KeyStoreUtils.class);
+        logCaptor.setLogLevelToInfo();
+
+        List<KeyStore> keyStores = KeyStoreUtils.loadSystemKeyStores();
+
+        String operatingSystem = System.getProperty("os.name").toLowerCase();
+        if (operatingSystem.contains("mac") || operatingSystem.contains("windows") || operatingSystem.contains("linux")) {
+            assertThat(keyStores).isNotEmpty();
+        }
+
+        assertThat(logCaptor.getDebugLogs()).isEmpty();
+    }
+
+    @Test
     void loadWindowsSystemKeyStore() {
+        LogCaptor logCaptor = LogCaptor.forClass(KeyStoreUtils.class);
+        logCaptor.setLogLevelToDebug();
+
         System.setProperty("os.name", "windows");
         KeyStore windowsRootKeyStore = mock(KeyStore.class);
         KeyStore windowsMyKeyStore = mock(KeyStore.class);
@@ -157,6 +175,7 @@ class KeyStoreUtilsShould {
         })) {
             List<KeyStore> keyStores = KeyStoreUtils.loadSystemKeyStores();
             assertThat(keyStores).containsExactlyInAnyOrder(windowsRootKeyStore, windowsMyKeyStore, windowsMyCurrentUserKeyStore, windowsMyLocalmachineKeyStore, windowsRootCurrentUserKeyStore, windowsRootLocalmachineKeyStore);
+            assertThat(logCaptor.getDebugLogs()).contains("Loaded [12] system trusted certificates");
         } finally {
             resetOsName();
         }
@@ -518,6 +537,8 @@ class KeyStoreUtilsShould {
 
     @Test
     void createKeyStoreIfAvailableReturnsFilledKeyStore() {
+        LogCaptor logCaptor = LogCaptor.forClass(KeyStoreUtils.class);
+
         KeyStore bananaKeyStore = mock(KeyStore.class);
 
         try (MockedStatic<KeyStoreUtils> keyStoreUtilsMock = mockStatic(KeyStoreUtils.class, invocation -> {
@@ -532,6 +553,30 @@ class KeyStoreUtilsShould {
         })) {
             Optional<KeyStore> keyStore = KeyStoreUtils.createKeyStoreIfAvailable("Banana", null);
             assertThat(keyStore).isPresent();
+            assertThat(logCaptor.getDebugLogs()).contains("Successfully loaded KeyStore of the type [Banana] having [2] entries");
+        }
+    }
+
+    @Test
+    void createKeyStoreIfAvailableReturnsFilledKeyStoreWithoutLoggingIfDebugIsDisabled() {
+        LogCaptor logCaptor = LogCaptor.forClass(KeyStoreUtils.class);
+        logCaptor.setLogLevelToInfo();
+
+        KeyStore bananaKeyStore = mock(KeyStore.class);
+
+        try (MockedStatic<KeyStoreUtils> keyStoreUtilsMock = mockStatic(KeyStoreUtils.class, invocation -> {
+            Method method = invocation.getMethod();
+            if ("createKeyStore".equals(method.getName()) && method.getParameterCount() == 2 && "Banana".equals(invocation.getArgument(0))) {
+                return bananaKeyStore;
+            } else if ("countAmountOfTrustMaterial".equals(method.getName())) {
+                return 2;
+            } else {
+                return invocation.callRealMethod();
+            }
+        })) {
+            Optional<KeyStore> keyStore = KeyStoreUtils.createKeyStoreIfAvailable("Banana", null);
+            assertThat(keyStore).isPresent();
+            assertThat(logCaptor.getDebugLogs()).isEmpty();
         }
     }
 
