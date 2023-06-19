@@ -116,6 +116,7 @@ class KeyStoreUtilsShould {
     @Test
     void loadSystemKeyStore() {
         LogCaptor logCaptor = LogCaptor.forClass(KeyStoreUtils.class);
+        logCaptor.setLogLevelToDebug();
 
         List<KeyStore> keyStores = KeyStoreUtils.loadSystemKeyStores();
 
@@ -123,6 +124,7 @@ class KeyStoreUtilsShould {
         if (operatingSystem.contains("mac") || operatingSystem.contains("windows") || operatingSystem.contains("linux")) {
             assertThat(keyStores).isNotEmpty();
 
+            System.out.println(">>>>>>");
             logCaptor.getLogs().forEach(System.out::println);
         }
     }
