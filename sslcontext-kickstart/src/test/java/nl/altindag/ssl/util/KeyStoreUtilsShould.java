@@ -45,6 +45,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -127,6 +128,10 @@ class KeyStoreUtilsShould {
         System.setProperty("os.name", "windows");
         KeyStore windowsRootKeyStore = mock(KeyStore.class);
         KeyStore windowsMyKeyStore = mock(KeyStore.class);
+        KeyStore windowsMyCurrentUserKeyStore = mock(KeyStore.class);
+        KeyStore windowsMyLocalmachineKeyStore = mock(KeyStore.class);
+        KeyStore windowsRootCurrentUserKeyStore = mock(KeyStore.class);
+        KeyStore windowsRootLocalmachineKeyStore = mock(KeyStore.class);
 
         try (MockedStatic<KeyStoreUtils> keyStoreUtilsMock = mockStatic(KeyStoreUtils.class, invocation -> {
             Method method = invocation.getMethod();
@@ -136,12 +141,20 @@ class KeyStoreUtilsShould {
                 return windowsRootKeyStore;
             } else if ("createKeyStore".equals(method.getName()) && method.getParameterCount() == 2 && "Windows-MY".equals(invocation.getArgument(0))) {
                 return windowsMyKeyStore;
+            } else if ("createKeyStoreIfAvailable".equals(method.getName()) && method.getParameterCount() == 2 && "Windows-MY-CURRENTUSER".equals(invocation.getArgument(0))) {
+                return Optional.of(windowsMyCurrentUserKeyStore);
+            } else if ("createKeyStoreIfAvailable".equals(method.getName()) && method.getParameterCount() == 2 && "Windows-MY-LOCALMACHINE".equals(invocation.getArgument(0))) {
+                return Optional.of(windowsMyLocalmachineKeyStore);
+            } else if ("createKeyStoreIfAvailable".equals(method.getName()) && method.getParameterCount() == 2 && "Windows-ROOT-LOCALMACHINE".equals(invocation.getArgument(0))) {
+                return Optional.of(windowsRootLocalmachineKeyStore);
+            } else if ("createKeyStoreIfAvailable".equals(method.getName()) && method.getParameterCount() == 2 && "Windows-ROOT-CURRENTUSER".equals(invocation.getArgument(0))) {
+                return Optional.of(windowsRootCurrentUserKeyStore);
             } else {
                 return invocation.getMock();
             }
         })) {
             List<KeyStore> keyStores = KeyStoreUtils.loadSystemKeyStores();
-            assertThat(keyStores).containsExactlyInAnyOrder(windowsRootKeyStore, windowsMyKeyStore);
+            assertThat(keyStores).containsExactlyInAnyOrder(windowsRootKeyStore, windowsMyKeyStore, windowsMyCurrentUserKeyStore, windowsMyLocalmachineKeyStore, windowsRootCurrentUserKeyStore, windowsRootLocalmachineKeyStore);
         } finally {
             resetOsName();
         }

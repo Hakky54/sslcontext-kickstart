@@ -42,7 +42,9 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.UnaryOperator;
+import java.util.stream.Stream;
 
 import static nl.altindag.ssl.util.internal.ValidationUtils.requireNotEmpty;
 import static nl.altindag.ssl.util.internal.ValidationUtils.requireNotNull;
@@ -230,6 +232,13 @@ public final class KeyStoreUtils {
 
                 keyStores.add(windowsRootKeyStore);
                 keyStores.add(windowsMyKeyStore);
+
+                // Only available on Java 11 and 17+
+                Stream.of("Windows-MY-CURRENTUSER", "Windows-MY-LOCALMACHINE", "Windows-ROOT-LOCALMACHINE", "Windows-ROOT-CURRENTUSER")
+                        .map(keystoreType -> createKeyStoreIfAvailable(keystoreType, null))
+                        .filter(Optional::isPresent)
+                        .map(Optional::get)
+                        .forEach(keyStores::add);
                 break;
             }
             default: {
@@ -240,6 +249,18 @@ public final class KeyStoreUtils {
         }
 
         return Collections.unmodifiableList(keyStores);
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    static Optional<KeyStore> createKeyStoreIfAvailable(String keyStoreType, char[] keyStorePassword) {
+        try {
+            KeyStore keyStore = createKeyStore(keyStoreType, keyStorePassword);
+            LOGGER.debug("Successfully loaded KeyStore of the type [{}] having [{}] entries", keyStoreType, keyStore.size());
+            return Optional.of(keyStore);
+        } catch (Exception ignored) {
+            LOGGER.debug("Failed to load KeyStore of the type [{}]", keyStoreType);
+            return Optional.empty();
+        }
     }
 
     public static List<Certificate> getCertificates(KeyStore keyStore) {
