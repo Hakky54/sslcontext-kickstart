@@ -501,6 +501,29 @@ class KeyStoreUtilsShould {
     }
 
     @Test
+    void createKeyStoreIfAvailableReturnsEmptyForNonExistingKeyStoreType() {
+        Optional<KeyStore> bananaKeyStore = KeyStoreUtils.createKeyStoreIfAvailable("Banana", null);
+        assertThat(bananaKeyStore).isEmpty();
+    }
+
+    @Test
+    void createKeyStoreIfAvailableReturnsFilledKeyStore() {
+        KeyStore bananaKeyStore = mock(KeyStore.class);
+
+        try (MockedStatic<KeyStoreUtils> keyStoreUtilsMock = mockStatic(KeyStoreUtils.class, invocation -> {
+            Method method = invocation.getMethod();
+            if ("createKeyStore".equals(method.getName()) && method.getParameterCount() == 2 && "Banana".equals(invocation.getArgument(0))) {
+                return bananaKeyStore;
+            } else {
+                return invocation.callRealMethod();
+            }
+        })) {
+            Optional<KeyStore> keyStore = KeyStoreUtils.createKeyStoreIfAvailable("Banana", null);
+            assertThat(keyStore).isPresent();
+        }
+    }
+
+    @Test
     void throwsIllegalArgumentExceptionWhenTrustStoreIsCreatedWithEmptyListOfCertificates() {
         List<Certificate> certificates = Collections.emptyList();
         assertThatThrownBy(() -> KeyStoreUtils.createTrustStore(certificates))

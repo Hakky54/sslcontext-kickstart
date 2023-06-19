@@ -255,7 +255,7 @@ public final class KeyStoreUtils {
     static Optional<KeyStore> createKeyStoreIfAvailable(String keyStoreType, char[] keyStorePassword) {
         try {
             KeyStore keyStore = createKeyStore(keyStoreType, keyStorePassword);
-            LOGGER.debug("Successfully loaded KeyStore of the type [{}] having [{}] entries", keyStoreType, keyStore.size());
+            LOGGER.debug("Successfully loaded KeyStore of the type [{}] having [{}] entries", keyStoreType == null ? "null" : keyStoreType, keyStore.size());
             return Optional.of(keyStore);
         } catch (Exception ignored) {
             LOGGER.debug("Failed to load KeyStore of the type [{}]", keyStoreType);
