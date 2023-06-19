@@ -239,6 +239,14 @@ public final class KeyStoreUtils {
             }
         }
 
+        if (LOGGER.isDebugEnabled()) {
+            int totalTrustedCertificates = keyStores.stream()
+                    .mapToInt(KeyStoreUtils::countAmountOfTrustMaterial)
+                    .sum();
+
+            LOGGER.debug("Loaded [{}] system trusted certificates", totalTrustedCertificates);
+        }
+
         return Collections.unmodifiableList(keyStores);
     }
 
@@ -246,7 +254,11 @@ public final class KeyStoreUtils {
     static Optional<KeyStore> createKeyStoreIfAvailable(String keyStoreType, char[] keyStorePassword) {
         try {
             KeyStore keyStore = createKeyStore(keyStoreType, keyStorePassword);
-            LOGGER.debug("Successfully loaded KeyStore of the type [{}] having [{}] entries", keyStoreType, keyStore.size());
+
+            if (LOGGER.isDebugEnabled()) {
+                int totalTrustedCertificates = countAmountOfTrustMaterial(keyStore);
+                LOGGER.debug("Successfully loaded KeyStore of the type [{}] having [{}] entries", keyStoreType, totalTrustedCertificates);
+            }
             return Optional.of(keyStore);
         } catch (Exception ignored) {
             LOGGER.debug("Failed to load KeyStore of the type [{}]", keyStoreType);

@@ -137,10 +137,10 @@ class KeyStoreUtilsShould {
             Method method = invocation.getMethod();
             if ("loadSystemKeyStores".equals(method.getName()) && method.getParameterCount() == 0) {
                 return invocation.callRealMethod();
-            } else if ("createKeyStore".equals(method.getName()) && method.getParameterCount() == 2 && "Windows-ROOT".equals(invocation.getArgument(0))) {
-                return windowsRootKeyStore;
-            } else if ("createKeyStore".equals(method.getName()) && method.getParameterCount() == 2 && "Windows-MY".equals(invocation.getArgument(0))) {
-                return windowsMyKeyStore;
+            } else if ("createKeyStoreIfAvailable".equals(method.getName()) && method.getParameterCount() == 2 && "Windows-ROOT".equals(invocation.getArgument(0))) {
+                return Optional.of(windowsRootKeyStore);
+            } else if ("createKeyStoreIfAvailable".equals(method.getName()) && method.getParameterCount() == 2 && "Windows-MY".equals(invocation.getArgument(0))) {
+                return Optional.of(windowsMyKeyStore);
             } else if ("createKeyStoreIfAvailable".equals(method.getName()) && method.getParameterCount() == 2 && "Windows-MY-CURRENTUSER".equals(invocation.getArgument(0))) {
                 return Optional.of(windowsMyCurrentUserKeyStore);
             } else if ("createKeyStoreIfAvailable".equals(method.getName()) && method.getParameterCount() == 2 && "Windows-MY-LOCALMACHINE".equals(invocation.getArgument(0))) {
@@ -149,8 +149,10 @@ class KeyStoreUtilsShould {
                 return Optional.of(windowsRootLocalmachineKeyStore);
             } else if ("createKeyStoreIfAvailable".equals(method.getName()) && method.getParameterCount() == 2 && "Windows-ROOT-CURRENTUSER".equals(invocation.getArgument(0))) {
                 return Optional.of(windowsRootCurrentUserKeyStore);
+            } else if ("countAmountOfTrustMaterial".equals(method.getName())) {
+                return 2;
             } else {
-                return invocation.callRealMethod();
+                return invocation.getMock();
             }
         })) {
             List<KeyStore> keyStores = KeyStoreUtils.loadSystemKeyStores();
@@ -178,10 +180,12 @@ class KeyStoreUtilsShould {
                 Method method = invocation.getMethod();
                 if ("loadSystemKeyStores".equals(method.getName()) && method.getParameterCount() == 0) {
                     return invocation.callRealMethod();
-                } else if ("createKeyStore".equals(method.getName()) && method.getParameterCount() == 2 && "AndroidCAStore".equals(invocation.getArgument(0))) {
-                    return androidCAStore;
+                } else if ("createKeyStoreIfAvailable".equals(method.getName()) && method.getParameterCount() == 2 && "AndroidCAStore".equals(invocation.getArgument(0))) {
+                    return Optional.of(androidCAStore);
+                } else if ("countAmountOfTrustMaterial".equals(method.getName())) {
+                    return 2;
                 } else {
-                    return invocation.callRealMethod();
+                    return invocation.getMock();
                 }
             })) {
                 List<KeyStore> keyStores = KeyStoreUtils.loadSystemKeyStores();
@@ -208,10 +212,12 @@ class KeyStoreUtilsShould {
             Method method = invocation.getMethod();
             if ("loadSystemKeyStores".equals(method.getName()) && method.getParameterCount() == 0) {
                 return invocation.callRealMethod();
-            } else if ("createKeyStore".equals(method.getName()) && method.getParameterCount() == 2 && "AndroidCAStore".equals(invocation.getArgument(0))) {
-                return androidCAStore;
+            } else if ("createKeyStoreIfAvailable".equals(method.getName()) && method.getParameterCount() == 2 && "AndroidCAStore".equals(invocation.getArgument(0))) {
+                return Optional.of(androidCAStore);
             } else if ("createTrustStore".equals(method.getName()) && method.getParameterCount() == 1) {
                 return mock(KeyStore.class);
+            } else if ("countAmountOfTrustMaterial".equals(method.getName())) {
+                return 2;
             } else {
                 return invocation.getMock();
             }
@@ -234,10 +240,12 @@ class KeyStoreUtilsShould {
             Method method = invocation.getMethod();
             if ("loadSystemKeyStores".equals(method.getName()) && method.getParameterCount() == 0) {
                 return invocation.callRealMethod();
-            } else if ("createKeyStore".equals(method.getName()) && method.getParameterCount() == 2 && "KeychainStore".equals(invocation.getArgument(0))) {
-                return keychainStore;
+            } else if ("createKeyStoreIfAvailable".equals(method.getName()) && method.getParameterCount() == 2 && "KeychainStore".equals(invocation.getArgument(0))) {
+                return Optional.of(keychainStore);
             } else if ("createTrustStore".equals(method.getName()) && method.getParameterCount() == 1 && method.getParameters()[0].getType().equals(List.class)) {
                 return systemTrustStore;
+            } else if ("countAmountOfTrustMaterial".equals(method.getName())) {
+                return 2;
             } else {
                 return invocation.callRealMethod();
             }
@@ -263,6 +271,8 @@ class KeyStoreUtilsShould {
                      return invocation.callRealMethod();
                  } else if ("createTrustStore".equals(method.getName()) && method.getParameterCount() == 1 && method.getParameters()[0].getType().equals(List.class)) {
                      return systemTrustStore;
+                 } else if ("countAmountOfTrustMaterial".equals(method.getName())) {
+                     return 2;
                  } else {
                      return invocation.getMock();
                  }
@@ -514,6 +524,8 @@ class KeyStoreUtilsShould {
             Method method = invocation.getMethod();
             if ("createKeyStore".equals(method.getName()) && method.getParameterCount() == 2 && "Banana".equals(invocation.getArgument(0))) {
                 return bananaKeyStore;
+            } else if ("countAmountOfTrustMaterial".equals(method.getName())) {
+                return 2;
             } else {
                 return invocation.callRealMethod();
             }
