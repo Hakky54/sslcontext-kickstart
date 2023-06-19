@@ -38,6 +38,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 
+import static nl.altindag.ssl.util.internal.CollectionUtils.isEmpty;
+
 /**
  * <strong>NOTE:</strong>
  * Please don't use this class directly as it is part of the internal API. Class name and methods can be changed any time.
@@ -161,7 +163,7 @@ public class InflatableX509ExtendedTrustManager extends HotSwappableX509Extended
         writeLock.lock();
 
         try {
-            if (certificates == null || certificates.isEmpty()) {
+            if (isEmpty(certificates)) {
                 return;
             }
 
@@ -172,15 +174,16 @@ public class InflatableX509ExtendedTrustManager extends HotSwappableX509Extended
             }
             X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
             setTrustManager(trustManager);
-
-            if (trustStorePath != null) {
-                KeyStoreUtils.write(trustStorePath, trustStore, trustStorePassword);
-            }
+            getTrustStorePath().ifPresent(path -> KeyStoreUtils.write(path, trustStore, trustStorePassword));
         } catch (KeyStoreException e) {
             LOGGER.error("Cannot add certificate", e);
         } finally {
             writeLock.unlock();
         }
+    }
+
+    private Optional<Path> getTrustStorePath() {
+        return Optional.ofNullable(trustStorePath);
     }
 
 }
