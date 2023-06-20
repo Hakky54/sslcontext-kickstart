@@ -3,6 +3,18 @@
 This list is not intended to be all-encompassing - it will document major and breaking API
 changes with their rationale when appropriate:
 
+### v8.1.2
+
+- Add support for new Windows KeyStore types
+- Added debug logger when using UnsafeTrustManager
+- Bump dependencies
+- Improve readability of InflatableTrustManager
+- Reduced code duplication
+- Additional methods for KeyStoreUtils
+- Simplify usage of EnhanceableTrustManager and InflatableTrustManager
+- Made CertificateExtractorUtils thread safe
+- Applied sonar recommendations
+
 ### v8.1.1
 
 - Bug fix InvalidAlgorithmParameterException: trustAnchors parameter must be non empty for InflatableTrustManager
