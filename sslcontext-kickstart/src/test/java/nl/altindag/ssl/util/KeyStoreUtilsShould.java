@@ -45,6 +45,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -117,31 +118,64 @@ class KeyStoreUtilsShould {
         List<KeyStore> keyStores = KeyStoreUtils.loadSystemKeyStores();
 
         String operatingSystem = System.getProperty("os.name").toLowerCase();
-        if (operatingSystem.contains("mac") || operatingSystem.contains("windows")) {
+        if (operatingSystem.contains("mac") || operatingSystem.contains("windows") || operatingSystem.contains("linux")) {
             assertThat(keyStores).isNotEmpty();
         }
     }
 
     @Test
+    void loadSystemKeyStoreNotLogIfDebugIsDisabled() {
+        LogCaptor logCaptor = LogCaptor.forClass(KeyStoreUtils.class);
+        logCaptor.setLogLevelToInfo();
+
+        List<KeyStore> keyStores = KeyStoreUtils.loadSystemKeyStores();
+
+        String operatingSystem = System.getProperty("os.name").toLowerCase();
+        if (operatingSystem.contains("mac") || operatingSystem.contains("windows") || operatingSystem.contains("linux")) {
+            assertThat(keyStores).isNotEmpty();
+        }
+
+        assertThat(logCaptor.getDebugLogs()).isEmpty();
+    }
+
+    @Test
     void loadWindowsSystemKeyStore() {
+        LogCaptor logCaptor = LogCaptor.forClass(KeyStoreUtils.class);
+        logCaptor.setLogLevelToDebug();
+
         System.setProperty("os.name", "windows");
         KeyStore windowsRootKeyStore = mock(KeyStore.class);
         KeyStore windowsMyKeyStore = mock(KeyStore.class);
+        KeyStore windowsMyCurrentUserKeyStore = mock(KeyStore.class);
+        KeyStore windowsMyLocalmachineKeyStore = mock(KeyStore.class);
+        KeyStore windowsRootCurrentUserKeyStore = mock(KeyStore.class);
+        KeyStore windowsRootLocalmachineKeyStore = mock(KeyStore.class);
 
         try (MockedStatic<KeyStoreUtils> keyStoreUtilsMock = mockStatic(KeyStoreUtils.class, invocation -> {
             Method method = invocation.getMethod();
             if ("loadSystemKeyStores".equals(method.getName()) && method.getParameterCount() == 0) {
                 return invocation.callRealMethod();
-            } else if ("createKeyStore".equals(method.getName()) && method.getParameterCount() == 2 && "Windows-ROOT".equals(invocation.getArgument(0))) {
-                return windowsRootKeyStore;
-            } else if ("createKeyStore".equals(method.getName()) && method.getParameterCount() == 2 && "Windows-MY".equals(invocation.getArgument(0))) {
-                return windowsMyKeyStore;
+            } else if ("createKeyStoreIfAvailable".equals(method.getName()) && method.getParameterCount() == 2 && "Windows-ROOT".equals(invocation.getArgument(0))) {
+                return Optional.of(windowsRootKeyStore);
+            } else if ("createKeyStoreIfAvailable".equals(method.getName()) && method.getParameterCount() == 2 && "Windows-MY".equals(invocation.getArgument(0))) {
+                return Optional.of(windowsMyKeyStore);
+            } else if ("createKeyStoreIfAvailable".equals(method.getName()) && method.getParameterCount() == 2 && "Windows-MY-CURRENTUSER".equals(invocation.getArgument(0))) {
+                return Optional.of(windowsMyCurrentUserKeyStore);
+            } else if ("createKeyStoreIfAvailable".equals(method.getName()) && method.getParameterCount() == 2 && "Windows-MY-LOCALMACHINE".equals(invocation.getArgument(0))) {
+                return Optional.of(windowsMyLocalmachineKeyStore);
+            } else if ("createKeyStoreIfAvailable".equals(method.getName()) && method.getParameterCount() == 2 && "Windows-ROOT-LOCALMACHINE".equals(invocation.getArgument(0))) {
+                return Optional.of(windowsRootLocalmachineKeyStore);
+            } else if ("createKeyStoreIfAvailable".equals(method.getName()) && method.getParameterCount() == 2 && "Windows-ROOT-CURRENTUSER".equals(invocation.getArgument(0))) {
+                return Optional.of(windowsRootCurrentUserKeyStore);
+            } else if ("countAmountOfTrustMaterial".equals(method.getName())) {
+                return 2;
             } else {
                 return invocation.getMock();
             }
         })) {
             List<KeyStore> keyStores = KeyStoreUtils.loadSystemKeyStores();
-            assertThat(keyStores).containsExactlyInAnyOrder(windowsRootKeyStore, windowsMyKeyStore);
+            assertThat(keyStores).containsExactlyInAnyOrder(windowsRootKeyStore, windowsMyKeyStore, windowsMyCurrentUserKeyStore, windowsMyLocalmachineKeyStore, windowsRootCurrentUserKeyStore, windowsRootLocalmachineKeyStore);
+            assertThat(logCaptor.getDebugLogs()).contains("Loaded [12] system trusted certificates");
         } finally {
             resetOsName();
         }
@@ -165,8 +199,10 @@ class KeyStoreUtilsShould {
                 Method method = invocation.getMethod();
                 if ("loadSystemKeyStores".equals(method.getName()) && method.getParameterCount() == 0) {
                     return invocation.callRealMethod();
-                } else if ("createKeyStore".equals(method.getName()) && method.getParameterCount() == 2 && "AndroidCAStore".equals(invocation.getArgument(0))) {
-                    return androidCAStore;
+                } else if ("createKeyStoreIfAvailable".equals(method.getName()) && method.getParameterCount() == 2 && "AndroidCAStore".equals(invocation.getArgument(0))) {
+                    return Optional.of(androidCAStore);
+                } else if ("countAmountOfTrustMaterial".equals(method.getName())) {
+                    return 2;
                 } else {
                     return invocation.getMock();
                 }
@@ -195,10 +231,12 @@ class KeyStoreUtilsShould {
             Method method = invocation.getMethod();
             if ("loadSystemKeyStores".equals(method.getName()) && method.getParameterCount() == 0) {
                 return invocation.callRealMethod();
-            } else if ("createKeyStore".equals(method.getName()) && method.getParameterCount() == 2 && "AndroidCAStore".equals(invocation.getArgument(0))) {
-                return androidCAStore;
+            } else if ("createKeyStoreIfAvailable".equals(method.getName()) && method.getParameterCount() == 2 && "AndroidCAStore".equals(invocation.getArgument(0))) {
+                return Optional.of(androidCAStore);
             } else if ("createTrustStore".equals(method.getName()) && method.getParameterCount() == 1) {
                 return mock(KeyStore.class);
+            } else if ("countAmountOfTrustMaterial".equals(method.getName())) {
+                return 2;
             } else {
                 return invocation.getMock();
             }
@@ -221,12 +259,14 @@ class KeyStoreUtilsShould {
             Method method = invocation.getMethod();
             if ("loadSystemKeyStores".equals(method.getName()) && method.getParameterCount() == 0) {
                 return invocation.callRealMethod();
-            } else if ("createKeyStore".equals(method.getName()) && method.getParameterCount() == 2 && "KeychainStore".equals(invocation.getArgument(0))) {
-                return keychainStore;
+            } else if ("createKeyStoreIfAvailable".equals(method.getName()) && method.getParameterCount() == 2 && "KeychainStore".equals(invocation.getArgument(0))) {
+                return Optional.of(keychainStore);
             } else if ("createTrustStore".equals(method.getName()) && method.getParameterCount() == 1 && method.getParameters()[0].getType().equals(List.class)) {
                 return systemTrustStore;
+            } else if ("countAmountOfTrustMaterial".equals(method.getName())) {
+                return 2;
             } else {
-                return invocation.getMock();
+                return invocation.callRealMethod();
             }
         })) {
             List<KeyStore> keyStores = KeyStoreUtils.loadSystemKeyStores();
@@ -250,6 +290,8 @@ class KeyStoreUtilsShould {
                      return invocation.callRealMethod();
                  } else if ("createTrustStore".equals(method.getName()) && method.getParameterCount() == 1 && method.getParameters()[0].getType().equals(List.class)) {
                      return systemTrustStore;
+                 } else if ("countAmountOfTrustMaterial".equals(method.getName())) {
+                     return 2;
                  } else {
                      return invocation.getMock();
                  }
@@ -485,6 +527,57 @@ class KeyStoreUtilsShould {
 
         Map<String, Certificate> aliasToCertificate = KeyStoreUtils.getAliasToCertificate(keyStore);
         assertThat(aliasToCertificate).isEmpty();
+    }
+
+    @Test
+    void createKeyStoreIfAvailableReturnsEmptyForNonExistingKeyStoreType() {
+        Optional<KeyStore> bananaKeyStore = KeyStoreUtils.createKeyStoreIfAvailable("Banana", null);
+        assertThat(bananaKeyStore).isEmpty();
+    }
+
+    @Test
+    void createKeyStoreIfAvailableReturnsFilledKeyStore() {
+        LogCaptor logCaptor = LogCaptor.forClass(KeyStoreUtils.class);
+
+        KeyStore bananaKeyStore = mock(KeyStore.class);
+
+        try (MockedStatic<KeyStoreUtils> keyStoreUtilsMock = mockStatic(KeyStoreUtils.class, invocation -> {
+            Method method = invocation.getMethod();
+            if ("createKeyStore".equals(method.getName()) && method.getParameterCount() == 2 && "Banana".equals(invocation.getArgument(0))) {
+                return bananaKeyStore;
+            } else if ("countAmountOfTrustMaterial".equals(method.getName())) {
+                return 2;
+            } else {
+                return invocation.callRealMethod();
+            }
+        })) {
+            Optional<KeyStore> keyStore = KeyStoreUtils.createKeyStoreIfAvailable("Banana", null);
+            assertThat(keyStore).isPresent();
+            assertThat(logCaptor.getDebugLogs()).contains("Successfully loaded KeyStore of the type [Banana] having [2] entries");
+        }
+    }
+
+    @Test
+    void createKeyStoreIfAvailableReturnsFilledKeyStoreWithoutLoggingIfDebugIsDisabled() {
+        LogCaptor logCaptor = LogCaptor.forClass(KeyStoreUtils.class);
+        logCaptor.setLogLevelToInfo();
+
+        KeyStore bananaKeyStore = mock(KeyStore.class);
+
+        try (MockedStatic<KeyStoreUtils> keyStoreUtilsMock = mockStatic(KeyStoreUtils.class, invocation -> {
+            Method method = invocation.getMethod();
+            if ("createKeyStore".equals(method.getName()) && method.getParameterCount() == 2 && "Banana".equals(invocation.getArgument(0))) {
+                return bananaKeyStore;
+            } else if ("countAmountOfTrustMaterial".equals(method.getName())) {
+                return 2;
+            } else {
+                return invocation.callRealMethod();
+            }
+        })) {
+            Optional<KeyStore> keyStore = KeyStoreUtils.createKeyStoreIfAvailable("Banana", null);
+            assertThat(keyStore).isPresent();
+            assertThat(logCaptor.getDebugLogs()).isEmpty();
+        }
     }
 
     @Test
