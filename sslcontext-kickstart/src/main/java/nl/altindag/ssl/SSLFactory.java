@@ -147,14 +147,14 @@ public final class SSLFactory {
     }
 
     public SSLEngine getSSLEngine() {
-        return sslMaterial.getSslContext().createSSLEngine();
+        return getSSLEngine(null, null);
     }
 
     public SSLEngine getSSLEngine(String peerHost, Integer peerPort) {
         if (nonNull(peerHost) && nonNull(peerPort)) {
             return sslMaterial.getSslContext().createSSLEngine(peerHost, peerPort);
         } else {
-            return getSSLEngine();
+            return sslMaterial.getSslContext().createSSLEngine();
         }
     }
 
