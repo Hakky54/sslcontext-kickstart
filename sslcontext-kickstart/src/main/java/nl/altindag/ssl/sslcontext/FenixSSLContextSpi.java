@@ -55,12 +55,12 @@ class FenixSSLContextSpi extends SSLContextSpi {
 
     @Override
     protected SSLSocketFactory engineGetSocketFactory() {
-        return SSLSocketUtils.createSslSocketFactory(sslContext, engineGetSupportedSSLParameters());
+        return SSLSocketUtils.createSslSocketFactory(sslContext, engineGetDefaultSSLParameters());
     }
 
     @Override
     protected SSLServerSocketFactory engineGetServerSocketFactory() {
-        return SSLSocketUtils.createSslServerSocketFactory(sslContext, engineGetSupportedSSLParameters());
+        return SSLSocketUtils.createSslServerSocketFactory(sslContext, engineGetDefaultSSLParameters());
     }
 
     @Override
@@ -81,7 +81,7 @@ class FenixSSLContextSpi extends SSLContextSpi {
             sslEngine = sslContext.createSSLEngine();
         }
 
-        sslEngine.setSSLParameters(engineGetSupportedSSLParameters());
+        sslEngine.setSSLParameters(engineGetDefaultSSLParameters());
         return sslEngine;
     }
 
@@ -97,12 +97,12 @@ class FenixSSLContextSpi extends SSLContextSpi {
 
     @Override
     protected SSLParameters engineGetDefaultSSLParameters() {
-        return sslContext.getDefaultSSLParameters();
+        return SSLParametersUtils.copy(sslParameters);
     }
 
     @Override
     protected SSLParameters engineGetSupportedSSLParameters() {
-        return SSLParametersUtils.copy(sslParameters);
+        return SSLParametersUtils.copy(sslContext.getSupportedSSLParameters());
     }
 
 }
