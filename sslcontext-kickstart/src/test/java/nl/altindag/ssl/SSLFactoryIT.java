@@ -23,7 +23,9 @@ import nl.altindag.ssl.util.TrustManagerUtils;
 import org.junit.jupiter.api.Test;
 
 import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.X509ExtendedTrustManager;
 import java.io.BufferedReader;
@@ -56,7 +58,12 @@ class SSLFactoryIT {
                 .withIdentityMaterial("keystore/client-server/server-one/identity.jks", "secret".toCharArray())
                 .withTrustMaterial("keystore/client-server/server-one/truststore.jks", "secret".toCharArray())
                 .withNeedClientAuthentication()
+                .withProtocols("TLSv1.3")
                 .build();
+
+        SSLContext sslContext = sslFactoryForServer.getSslContext();
+        SSLParameters defaultSSLParameters = sslContext.getDefaultSSLParameters();
+        SSLParameters supportedSSLParameters = sslContext.getSupportedSSLParameters();
 
         Server server = Server.createDefault(sslFactoryForServer);
 

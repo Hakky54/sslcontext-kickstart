@@ -20,6 +20,7 @@ import nl.altindag.ssl.exception.GenericSecurityException;
 import nl.altindag.ssl.model.KeyStoreHolder;
 import nl.altindag.ssl.model.TrustManagerParameters;
 import nl.altindag.ssl.model.internal.SSLMaterial;
+import nl.altindag.ssl.sslcontext.FenixSSLContext;
 import nl.altindag.ssl.trustmanager.trustoptions.TrustAnchorTrustOptions;
 import nl.altindag.ssl.trustmanager.trustoptions.TrustStoreTrustOptions;
 import nl.altindag.ssl.trustmanager.validator.ChainAndAuthTypeValidator;
@@ -31,7 +32,6 @@ import nl.altindag.ssl.util.KeyStoreUtils;
 import nl.altindag.ssl.util.SSLContextUtils;
 import nl.altindag.ssl.util.SSLParametersUtils;
 import nl.altindag.ssl.util.SSLSessionUtils;
-import nl.altindag.ssl.util.SSLSocketUtils;
 import nl.altindag.ssl.util.TrustManagerUtils;
 import nl.altindag.ssl.util.internal.StringUtils;
 import nl.altindag.ssl.util.internal.UriUtils;
@@ -99,11 +99,11 @@ public final class SSLFactory {
     }
 
     public SSLSocketFactory getSslSocketFactory() {
-        return SSLSocketUtils.createSslSocketFactory(sslMaterial.getSslContext(), getSslParameters());
+        return sslMaterial.getSslContext().getSocketFactory();
     }
 
     public SSLServerSocketFactory getSslServerSocketFactory() {
-        return SSLSocketUtils.createSslServerSocketFactory(sslMaterial.getSslContext(), getSslParameters());
+        return sslMaterial.getSslContext().getServerSocketFactory();
     }
 
     public Optional<X509ExtendedKeyManager> getKeyManager() {
@@ -147,19 +147,15 @@ public final class SSLFactory {
     }
 
     public SSLEngine getSSLEngine() {
-        return getSSLEngine(null, null);
+        return sslMaterial.getSslContext().createSSLEngine();
     }
 
     public SSLEngine getSSLEngine(String peerHost, Integer peerPort) {
-        SSLEngine sslEngine;
         if (nonNull(peerHost) && nonNull(peerPort)) {
-            sslEngine = sslMaterial.getSslContext().createSSLEngine(peerHost, peerPort);
+            return sslMaterial.getSslContext().createSSLEngine(peerHost, peerPort);
         } else {
-            sslEngine = sslMaterial.getSslContext().createSSLEngine();
+            return getSSLEngine();
         }
-
-        sslEngine.setSSLParameters(getSslParameters());
-        return sslEngine;
     }
 
     public static Builder builder() {
@@ -826,7 +822,7 @@ public final class SSLFactory {
 
             X509ExtendedKeyManager keyManager = isIdentityMaterialPresent() ? createKeyManager() : null;
             X509ExtendedTrustManager trustManager = isTrustMaterialPresent() ? createTrustManager() : null;
-            SSLContext sslContext = SSLContextUtils.createSslContext(
+            SSLContext baseSslContext = SSLContextUtils.createSslContext(
                     keyManager,
                     trustManager,
                     secureRandom,
@@ -836,16 +832,17 @@ public final class SSLFactory {
             );
 
             if (sessionTimeoutInSeconds >= 0) {
-                SSLSessionUtils.updateSessionTimeout(sslContext, sessionTimeoutInSeconds);
+                SSLSessionUtils.updateSessionTimeout(baseSslContext, sessionTimeoutInSeconds);
             }
 
             if (sessionCacheSizeInBytes >= 0) {
-                SSLSessionUtils.updateSessionCacheSize(sslContext, sessionCacheSizeInBytes);
+                SSLSessionUtils.updateSessionCacheSize(baseSslContext, sessionCacheSizeInBytes);
             }
 
             sslParameters.setCipherSuites(ciphers.isEmpty() ? null : ciphers.stream().distinct().toArray(String[]::new));
             sslParameters.setProtocols(protocols.isEmpty() ? null : protocols.stream().distinct().toArray(String[]::new));
-            SSLParameters baseSslParameters = SSLParametersUtils.merge(sslParameters, sslContext.getDefaultSSLParameters());
+            SSLParameters baseSslParameters = SSLParametersUtils.merge(sslParameters, baseSslContext.getDefaultSSLParameters());
+            SSLContext sslContext = new FenixSSLContext(baseSslContext, baseSslParameters);
 
             SSLMaterial sslMaterial = new SSLMaterial.Builder()
                     .withSslContext(sslContext)
