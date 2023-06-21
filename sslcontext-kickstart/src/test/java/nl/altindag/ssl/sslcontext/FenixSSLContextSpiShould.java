@@ -15,19 +15,25 @@
  */
 package nl.altindag.ssl.sslcontext;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLParameters;
+import nl.altindag.log.LogCaptor;
+import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * <strong>NOTE:</strong>
- * Please don't use this class directly as it is part of the internal API. Class name and methods can be changed any time.
- *
  * @author Hakan Altindag
  */
-public class FenixSSLContext extends SSLContext {
+class FenixSSLContextSpiShould {
 
-    public FenixSSLContext(SSLContext baseSslContext, SSLParameters baseSslParameters) {
-        super(new FenixSSLContextSpi(baseSslContext, baseSslParameters), baseSslContext.getProvider(), baseSslContext.getProtocol());
+    @Test
+    void ignoreProvidedParametersAndDebugLogWhenEngineInitIsBeingCalled() {
+        LogCaptor logCaptor = LogCaptor.forClass(FenixSSLContextSpi.class);
+
+        FenixSSLContextSpi sslContextSpi = new FenixSSLContextSpi(null, null);
+        sslContextSpi.engineInit(null, null, null);
+
+        assertThat(logCaptor.getDebugLogs())
+                .containsExactly("The provided parameters are being ignored as the SSLContext has already been initialized");
     }
 
 }

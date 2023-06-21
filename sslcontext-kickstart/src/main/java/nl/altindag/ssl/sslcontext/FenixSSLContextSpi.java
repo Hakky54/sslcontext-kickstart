@@ -17,6 +17,8 @@ package nl.altindag.ssl.sslcontext;
 
 import nl.altindag.ssl.util.SSLParametersUtils;
 import nl.altindag.ssl.util.SSLSocketUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
@@ -36,6 +38,8 @@ import static java.util.Objects.nonNull;
  */
 class FenixSSLContextSpi extends SSLContextSpi {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(FenixSSLContextSpi.class);
+
     private final SSLContext sslContext;
     private final SSLParameters sslParameters;
 
@@ -46,7 +50,7 @@ class FenixSSLContextSpi extends SSLContextSpi {
 
     @Override
     protected void engineInit(KeyManager[] km, TrustManager[] tm, SecureRandom sr) {
-        // ignore as the base SSLContext has already been initialized;
+        LOGGER.debug("The provided parameters are being ignored as the SSLContext has already been initialized");
     }
 
     @Override
@@ -61,7 +65,7 @@ class FenixSSLContextSpi extends SSLContextSpi {
 
     @Override
     protected SSLEngine engineCreateSSLEngine() {
-        return getSSLEngine(null, null);
+        return getSSLEngine(null, 0);
     }
 
     @Override
@@ -69,9 +73,9 @@ class FenixSSLContextSpi extends SSLContextSpi {
         return getSSLEngine(host, port);
     }
 
-    private SSLEngine getSSLEngine(String peerHost, Integer peerPort) {
+    private SSLEngine getSSLEngine(String peerHost, int peerPort) {
         SSLEngine sslEngine;
-        if (nonNull(peerHost) && nonNull(peerPort)) {
+        if (nonNull(peerHost)) {
             sslEngine = sslContext.createSSLEngine(peerHost, peerPort);
         } else {
             sslEngine = sslContext.createSSLEngine();
