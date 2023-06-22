@@ -47,7 +47,13 @@ import javax.net.ssl.CertPathTrustManagerParameters;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLParameters;
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509ExtendedKeyManager;
@@ -1779,6 +1785,69 @@ class SSLFactoryShould {
 
         assertThat(sslFactory.getTrustManager()).isPresent();
         assertThat(sslFactory.getTrustManager().get()).isInstanceOf(DummyX509ExtendedTrustManager.class);
+    }
+
+    @Test
+    void banana() throws IOException {
+        String configuredProtocol = "TLSv1.2";
+        String configuredCipher = "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384";
+        boolean configuredNeedClientAuthentication = true;
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD)
+                .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
+                .withProtocols(configuredProtocol)
+                .withNeedClientAuthentication(configuredNeedClientAuthentication)
+                .withCiphers(configuredCipher)
+                .build();
+
+        SSLContext sslContext = sslFactory.getSslContext();
+        SSLParameters defaultSSLParameters = sslContext.getDefaultSSLParameters();
+        SSLParameters supportedSSLParameters = sslContext.getSupportedSSLParameters();
+
+        assertThat(defaultSSLParameters.getProtocols()).containsExactly(configuredProtocol);
+        assertThat(defaultSSLParameters.getCipherSuites()).containsExactly(configuredCipher);
+        assertThat(defaultSSLParameters.getNeedClientAuth()).isTrue();
+        assertThat(defaultSSLParameters.getWantClientAuth()).isFalse();
+
+        assertThat(supportedSSLParameters.getProtocols()).hasSizeGreaterThan(1).contains(configuredProtocol);
+        assertThat(supportedSSLParameters.getCipherSuites()).hasSizeGreaterThan(1).contains(configuredCipher);
+        assertThat(supportedSSLParameters.getNeedClientAuth()).isFalse();
+        assertThat(supportedSSLParameters.getWantClientAuth()).isFalse();
+
+        SSLSocketFactory sslSocketFactory = sslFactory.getSslSocketFactory();
+        assertThat(sslSocketFactory.getDefaultCipherSuites()).containsExactly(configuredCipher);
+        assertThat(sslSocketFactory.getSupportedCipherSuites()).containsExactly(configuredCipher);
+
+        SSLSocket socket = (SSLSocket) sslSocketFactory.createSocket();
+        assertThat(socket.getEnabledProtocols()).containsExactly(configuredProtocol);
+        assertThat(socket.getSupportedProtocols()).hasSizeGreaterThan(1).contains(configuredProtocol);
+        assertThat(socket.getEnabledCipherSuites()).containsExactly(configuredCipher);
+        assertThat(socket.getSupportedCipherSuites()).hasSizeGreaterThan(1).contains(configuredCipher);
+        assertThat(socket.getNeedClientAuth()).isTrue();
+        assertThat(socket.getWantClientAuth()).isFalse();
+        socket.close();
+
+        SSLServerSocketFactory sslServerSocketFactory = sslFactory.getSslServerSocketFactory();
+        assertThat(sslSocketFactory.getDefaultCipherSuites()).containsExactly(configuredCipher);
+        assertThat(sslSocketFactory.getSupportedCipherSuites()).containsExactly(configuredCipher);
+
+        SSLServerSocket serverSocket = (SSLServerSocket) sslServerSocketFactory.createServerSocket();
+        assertThat(serverSocket.getEnabledProtocols()).containsExactly(configuredProtocol);
+        assertThat(serverSocket.getSupportedProtocols()).hasSizeGreaterThan(1).contains(configuredProtocol);
+        assertThat(serverSocket.getEnabledCipherSuites()).containsExactly(configuredCipher);
+        assertThat(serverSocket.getSupportedCipherSuites()).hasSizeGreaterThan(1).contains(configuredCipher);
+        assertThat(serverSocket.getNeedClientAuth()).isTrue();
+        assertThat(serverSocket.getWantClientAuth()).isFalse();
+        serverSocket.close();
+
+        SSLEngine sslEngine = sslFactory.getSSLEngine();
+        assertThat(sslEngine.getEnabledProtocols()).containsExactly(configuredProtocol);
+        assertThat(sslEngine.getSupportedProtocols()).hasSizeGreaterThan(1).contains(configuredProtocol);
+        assertThat(sslEngine.getEnabledCipherSuites()).containsExactly(configuredCipher);
+        assertThat(sslEngine.getSupportedCipherSuites()).hasSizeGreaterThan(1).contains(configuredCipher);
+        assertThat(sslEngine.getNeedClientAuth()).isTrue();
+        assertThat(sslEngine.getWantClientAuth()).isFalse();
     }
 
     @Test
