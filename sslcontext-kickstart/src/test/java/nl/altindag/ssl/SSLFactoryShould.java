@@ -1788,7 +1788,7 @@ class SSLFactoryShould {
     }
 
     @Test
-    void banana() throws IOException {
+    void haveConsistentParameterConfiguration() throws IOException {
         String configuredProtocol = "TLSv1.2";
         String configuredCipher = "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384";
         boolean configuredNeedClientAuthentication = true;
