@@ -35,12 +35,12 @@ import static nl.altindag.ssl.util.internal.ValidationUtils.requireNotNull;
  *
  * @author Hakan Altindag
  */
-public final class CompositeSSLSocketFactory extends SSLSocketFactory {
+public final class FenixSSLSocketFactory extends SSLSocketFactory {
 
     private final SSLSocketFactory sslSocketFactory;
     private final SSLParameters sslParameters;
 
-    public CompositeSSLSocketFactory(SSLSocketFactory sslSocketFactory, SSLParameters sslParameters) {
+    public FenixSSLSocketFactory(SSLSocketFactory sslSocketFactory, SSLParameters sslParameters) {
         this.sslSocketFactory = requireNotNull(sslSocketFactory, GENERIC_EXCEPTION_MESSAGE.apply("SSLSocketFactory"));
         this.sslParameters = requireNotNull(sslParameters, GENERIC_EXCEPTION_MESSAGE.apply("SSLParameters"));
     }

@@ -44,7 +44,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
  * @author Hakan Altindag
  */
 @ExtendWith(MockitoExtension.class)
-class CompositeSSLSocketFactoryShould {
+class FenixSSLSocketFactoryShould {
 
     private final SSLParameters sslParameters = spy(
             new SSLParameters(
@@ -55,7 +55,7 @@ class CompositeSSLSocketFactoryShould {
 
     private final SSLSocketFactory sslSocketFactory = mock(SSLSocketFactory.class);
 
-    private final CompositeSSLSocketFactory victim = new CompositeSSLSocketFactory(sslSocketFactory, sslParameters);
+    private final FenixSSLSocketFactory victim = new FenixSSLSocketFactory(sslSocketFactory, sslParameters);
 
     @Test
     void returnDefaultCipherSuites() {
