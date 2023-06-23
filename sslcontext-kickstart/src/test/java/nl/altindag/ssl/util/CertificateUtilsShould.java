@@ -115,17 +115,16 @@ class CertificateUtilsShould {
         when(certificate.getSubjectX500Principal()).thenReturn(x500Principal);
         when(x500Principal.getName(X500Principal.CANONICAL)).thenReturn("cn=localhost");
 
-        List<X509Certificate> certificates = IntStream.rangeClosed(0, 1002)
+        List<X509Certificate> certificates = IntStream.rangeClosed(0, 10)
                 .mapToObj(index -> certificate)
                 .collect(Collectors.toList());
 
         Map<String, X509Certificate> aliasToCertificate = CertificateUtils.generateAliases(certificates);
         assertThat(aliasToCertificate.get("cn=localhost")).isNotNull();
         assertThat(aliasToCertificate.get("cn=localhost-1")).isNotNull();
-        assertThat(aliasToCertificate.get("cn=localhost-1000")).isNotNull();
-        assertThat(aliasToCertificate.get("cn=localhost-1001")).isNull();
+        assertThat(aliasToCertificate.get("cn=localhost-9")).isNotNull();
 
-        List<String> expectedAliases = IntStream.rangeClosed(0, 1000)
+        List<String> expectedAliases = IntStream.rangeClosed(0, 9)
                 .mapToObj(index -> "cn=localhost-" + index)
                 .collect(Collectors.toCollection(ArrayList::new));
         expectedAliases.add(0, "cn=localhost");

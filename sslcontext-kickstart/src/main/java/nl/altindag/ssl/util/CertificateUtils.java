@@ -47,6 +47,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -94,27 +95,23 @@ public final class CertificateUtils {
     public static <T extends Certificate> Map<String, T> generateAliases(List<T> certificates) {
         Map<String, T> aliasToCertificate = new HashMap<>();
         for (T certificate : certificates) {
-            String alias = generateAlias(certificate);
-
-            boolean shouldAddCertificate = true;
-            if (aliasToCertificate.containsKey(alias)) {
-                for (int number = 0; number <= 1000; number++) {
-                    String mayBeUniqueAlias = alias + "-" + number;
-                    if (!aliasToCertificate.containsKey(mayBeUniqueAlias)) {
-                        alias = mayBeUniqueAlias;
-                        shouldAddCertificate = true;
-                        break;
-                    } else {
-                        shouldAddCertificate = false;
-                    }
-                }
-            }
-
-            if (shouldAddCertificate) {
-                aliasToCertificate.put(alias, certificate);
-            }
+            String alias = generateUniqueAlias(certificate, aliasToCertificate::containsKey);
+            aliasToCertificate.put(alias, certificate);
         }
         return aliasToCertificate;
+    }
+
+    public static <T extends Certificate> String generateUniqueAlias(T certificate, Predicate<String> aliasPredicate) {
+        String initialAlias = generateAlias(certificate);
+        String alias = initialAlias;
+
+        int counter = 0;
+        while (aliasPredicate.test(alias)) {
+            alias = String.format("%s-%d", initialAlias, counter);
+            counter++;
+        }
+
+        return alias;
     }
 
     public static <T extends Certificate> void write(Path destination, T certificate) {

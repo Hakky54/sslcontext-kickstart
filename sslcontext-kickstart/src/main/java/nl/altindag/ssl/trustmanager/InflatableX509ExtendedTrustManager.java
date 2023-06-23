@@ -15,6 +15,7 @@
  */
 package nl.altindag.ssl.trustmanager;
 
+import nl.altindag.ssl.exception.GenericKeyStoreException;
 import nl.altindag.ssl.model.TrustManagerParameters;
 import nl.altindag.ssl.util.CertificateUtils;
 import nl.altindag.ssl.util.KeyStoreUtils;
@@ -168,18 +169,32 @@ public class InflatableX509ExtendedTrustManager extends HotSwappableX509Extended
             }
 
             for (Certificate certificate : certificates) {
-                String alias = CertificateUtils.generateAlias(certificate);
+                if (KeyStoreUtils.containsCertificate(trustStore, certificate)) {
+                    continue;
+                }
+
+                String alias = generateAlias(certificate);
                 trustStore.setCertificateEntry(alias, certificate);
                 LOGGER.info("Added certificate for [{}]", alias);
             }
             X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
             setTrustManager(trustManager);
             getTrustStorePath().ifPresent(path -> KeyStoreUtils.write(path, trustStore, trustStorePassword));
-        } catch (KeyStoreException e) {
+        } catch (KeyStoreException | GenericKeyStoreException e) {
             LOGGER.error("Cannot add certificate", e);
         } finally {
             writeLock.unlock();
         }
+    }
+
+    private String generateAlias(Certificate certificate) {
+        return CertificateUtils.generateUniqueAlias(certificate, alias -> {
+            try {
+                return trustStore.containsAlias(alias);
+            } catch (KeyStoreException e) {
+                throw new GenericKeyStoreException(e);
+            }
+        });
     }
 
     private Optional<Path> getTrustStorePath() {

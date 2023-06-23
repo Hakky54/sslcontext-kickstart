@@ -304,6 +304,14 @@ public final class KeyStoreUtils {
         }
     }
 
+    public static <T extends Certificate> boolean containsCertificate(KeyStore keyStore, T certificate) {
+        try {
+            return keyStore.getCertificateAlias(certificate) != null;
+        } catch (KeyStoreException e) {
+            throw new GenericKeyStoreException(e);
+        }
+    }
+
     public static void write(Path destination, KeyStore keyStore, char[] password) {
         IOUtils.write(destination, outputStream -> keyStore.store(outputStream, password));
     }
