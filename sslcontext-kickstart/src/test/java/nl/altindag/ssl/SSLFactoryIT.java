@@ -56,6 +56,7 @@ class SSLFactoryIT {
                 .withIdentityMaterial("keystore/client-server/server-one/identity.jks", "secret".toCharArray())
                 .withTrustMaterial("keystore/client-server/server-one/truststore.jks", "secret".toCharArray())
                 .withNeedClientAuthentication()
+                .withProtocols("TLSv1.3")
                 .build();
 
         Server server = Server.createDefault(sslFactoryForServer);
