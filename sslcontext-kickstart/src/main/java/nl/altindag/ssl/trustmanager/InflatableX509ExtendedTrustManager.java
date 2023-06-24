@@ -37,6 +37,7 @@ import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 
 import static nl.altindag.ssl.util.internal.CollectionUtils.isEmpty;
@@ -59,6 +60,7 @@ import static nl.altindag.ssl.util.internal.CollectionUtils.isEmpty;
 public class InflatableX509ExtendedTrustManager extends HotSwappableX509ExtendedTrustManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InflatableX509ExtendedTrustManager.class);
+    private static final BiPredicate<KeyStore, X509Certificate> IGNORE_DUPLICATE_CHECKER = (trustStore, certificate) -> false;
 
     private final KeyStore trustStore;
     private final Path trustStorePath;
@@ -150,7 +152,7 @@ public class InflatableX509ExtendedTrustManager extends HotSwappableX509Extended
                 TrustManagerParameters trustManagerParameters = new TrustManagerParameters(chain, authType, socket, sslEngine);
                 boolean shouldBeTrusted = trustManagerParametersPredicate.test(trustManagerParameters);
                 if (shouldBeTrusted) {
-                    addCertificates(Collections.singletonList(chain[0]));
+                    addCertificates(Collections.singletonList(chain[0]), IGNORE_DUPLICATE_CHECKER);
                 } else {
                     throw e2;
                 }
@@ -161,6 +163,10 @@ public class InflatableX509ExtendedTrustManager extends HotSwappableX509Extended
     }
 
     public void addCertificates(List<X509Certificate> certificates) {
+        addCertificates(certificates, KeyStoreUtils::containsCertificate);
+    }
+
+    private void addCertificates(List<X509Certificate> certificates, BiPredicate<KeyStore, X509Certificate> duplicateChecker) {
         writeLock.lock();
 
         try {
@@ -168,8 +174,8 @@ public class InflatableX509ExtendedTrustManager extends HotSwappableX509Extended
                 return;
             }
 
-            for (Certificate certificate : certificates) {
-                if (KeyStoreUtils.containsCertificate(trustStore, certificate)) {
+            for (X509Certificate certificate : certificates) {
+                if (duplicateChecker.test(trustStore, certificate)) {
                     continue;
                 }
 
