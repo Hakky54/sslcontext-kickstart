@@ -47,7 +47,15 @@ public final class HostnameVerifierUtils {
     /**
      * Creates a fenix hostname verifier which validates the hostname against the SAN field of the peer certificate.
      */
+    @Deprecated
     public static HostnameVerifier createFenix() {
+        return createDefault();
+    }
+
+    /**
+     * Creates the default hostname verifier which is able to validate the hostname against the SAN field of the peer certificate.
+     */
+    public static HostnameVerifier createDefault() {
         return FenixHostnameVerifier.getInstance();
     }
 
