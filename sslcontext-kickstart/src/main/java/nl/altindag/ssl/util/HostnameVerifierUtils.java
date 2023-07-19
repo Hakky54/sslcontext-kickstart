@@ -16,10 +16,13 @@
 package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.hostnameverifier.BasicHostnameVerifier;
+import nl.altindag.ssl.hostnameverifier.EnhanceableHostnameVerifier;
 import nl.altindag.ssl.hostnameverifier.FenixHostnameVerifier;
 import nl.altindag.ssl.hostnameverifier.UnsafeHostnameVerifier;
+import nl.altindag.ssl.model.HostnameVerifierParameters;
 
 import javax.net.ssl.HostnameVerifier;
+import java.util.function.Predicate;
 
 /**
  * @author Hakan Altindag
@@ -57,6 +60,10 @@ public final class HostnameVerifierUtils {
      */
     public static HostnameVerifier createDefault() {
         return FenixHostnameVerifier.getInstance();
+    }
+
+    public static HostnameVerifier createEnhanceable(HostnameVerifier baseHostnameVerifier, Predicate<HostnameVerifierParameters> hostnameVerifierParametersValidator) {
+        return new EnhanceableHostnameVerifier(baseHostnameVerifier, hostnameVerifierParametersValidator);
     }
 
 }

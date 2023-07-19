@@ -66,6 +66,7 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "8.1.2"
      - [Skip hostname validation](#skip-hostname-validation)
      - [Loading JDK and OS trusted certificates](#loading-jdk-and-os-trusted-certificates)
      - [Using specific protocols and ciphers with custom secure-random and hostname-verifier](#using-specific-protocols-ciphers-with-custom-secure-random-and-hostname-verifier)
+     - [Enhanceable hostname verifier](#enhanceable-hostname-verifier)
      - [Using multiple identity materials and trust materials](#support-for-using-multiple-identity-materials-and-trust-materials)
      - [Using custom KeyManager and TrustManager](#support-for-using-x509extendedkeymanager-and-x509extendedtrustmanager)
      - [Using dummy identity and trust material](#using-dummy-identity-and-trust-material)
@@ -334,6 +335,15 @@ SSLFactory.builder()
           .withCiphers("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384", "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384")
           .withHostnameVerifier(hostnameVerifier)
           .withSecureRandom(secureRandom)
+          .build();
+```
+
+### Enhanceable hostname verifier
+If you want to improve or whitelist certain hostnames from the default hostname verifier, you can apply the snippet bellow. If the method body returns true the hostname will be trusted by default
+```text
+SSLFactory sslFactory = SSLFactory.builder()
+          .withDefaultTrustMaterial()
+          .withHostnameVerifierEnhancer(parameters -> "localhost".equals(parameters.getHostname()))
           .build();
 ```
 

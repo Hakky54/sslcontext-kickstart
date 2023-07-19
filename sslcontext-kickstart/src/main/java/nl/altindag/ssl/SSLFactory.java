@@ -17,6 +17,7 @@ package nl.altindag.ssl;
 
 import nl.altindag.ssl.exception.GenericKeyStoreException;
 import nl.altindag.ssl.exception.GenericSecurityException;
+import nl.altindag.ssl.model.HostnameVerifierParameters;
 import nl.altindag.ssl.model.KeyStoreHolder;
 import nl.altindag.ssl.model.TrustManagerParameters;
 import nl.altindag.ssl.model.internal.SSLMaterial;
@@ -175,7 +176,8 @@ public final class SSLFactory {
         private Provider securityProvider = null;
         private String securityProviderName = null;
         private SecureRandom secureRandom = null;
-        private HostnameVerifier hostnameVerifier = HostnameVerifierUtils.createFenix();
+        private HostnameVerifier hostnameVerifier = HostnameVerifierUtils.createDefault();
+        private Predicate<HostnameVerifierParameters> hostnameVerifierEnhancer = null;
 
         private final List<KeyStoreHolder> identities = new ArrayList<>();
         private final List<KeyStore> trustStores = new ArrayList<>();
@@ -671,6 +673,11 @@ public final class SSLFactory {
             return this;
         }
 
+        public Builder withHostnameVerifierEnhancer(Predicate<HostnameVerifierParameters> hostnameVerifierParametersValidator) {
+            this.hostnameVerifierEnhancer = hostnameVerifierParametersValidator;
+            return this;
+        }
+
         public Builder withCiphers(String... ciphers) {
             this.ciphers.addAll(Arrays.asList(ciphers));
             return this;
@@ -843,6 +850,10 @@ public final class SSLFactory {
             sslParameters.setProtocols(protocols.isEmpty() ? null : protocols.stream().distinct().toArray(String[]::new));
             SSLParameters baseSslParameters = SSLParametersUtils.merge(sslParameters, baseSslContext.getDefaultSSLParameters());
             SSLContext sslContext = new FenixSSLContext(baseSslContext, baseSslParameters);
+
+            HostnameVerifier hostnameVerifier = Optional.ofNullable(hostnameVerifierEnhancer)
+                    .map(enhancer -> HostnameVerifierUtils.createEnhanceable(this.hostnameVerifier, enhancer))
+                    .orElse(this.hostnameVerifier);
 
             SSLMaterial sslMaterial = new SSLMaterial.Builder()
                     .withSslContext(sslContext)
