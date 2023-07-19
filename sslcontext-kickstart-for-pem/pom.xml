@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.github.hakky54</groupId>
         <artifactId>sslcontext-kickstart-parent</artifactId>
-        <version>8.1.3-SNAPSHOT</version>
+        <version>8.1.3</version>
     </parent>
 
     <artifactId>sslcontext-kickstart-for-pem</artifactId>
