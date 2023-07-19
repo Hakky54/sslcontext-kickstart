@@ -3,6 +3,13 @@
 This list is not intended to be all-encompassing - it will document major and breaking API
 changes with their rationale when appropriate:
 
+### v8.1.3
+- Added default hostname verifier in HostnameVerifierUtils
+- Marked a method in HostnameVerifierUtils as deprecated
+- Align behaviour of SSLContext, SSLEngine, SSLSocketFactory and SSLServerSocketFactory with custom SSLContext
+- Added Enhanceable HostnameVerifier
+- Improve duplicate checker for InflatableTrustManager
+
 ### v8.1.2
 
 - Add support for new Windows KeyStore types
