@@ -846,9 +846,7 @@ public final class SSLFactory {
                 SSLSessionUtils.updateSessionCacheSize(baseSslContext, sessionCacheSizeInBytes);
             }
 
-            sslParameters.setCipherSuites(ciphers.isEmpty() ? null : ciphers.stream().distinct().toArray(String[]::new));
-            sslParameters.setProtocols(protocols.isEmpty() ? null : protocols.stream().distinct().toArray(String[]::new));
-            SSLParameters baseSslParameters = SSLParametersUtils.merge(sslParameters, baseSslContext.getDefaultSSLParameters());
+            SSLParameters baseSslParameters = createSslParameters(baseSslContext);
             SSLContext sslContext = new FenixSSLContext(baseSslContext, baseSslParameters);
 
             HostnameVerifier hostnameVerifier = Optional.ofNullable(hostnameVerifierEnhancer)
@@ -899,6 +897,36 @@ public final class SSLFactory {
                     .withTrustEnhancer(chainAndAuthTypeWithSocketValidator)
                     .withTrustEnhancer(chainAndAuthTypeWithSSLEngineValidator)
                     .build();
+        }
+
+        private SSLParameters createSslParameters(SSLContext sslContext) {
+            SSLParameters defaultSSLParameters = sslContext.getDefaultSSLParameters();
+            List<String> defaultCiphers = Arrays.asList(defaultSSLParameters.getCipherSuites());
+            List<String> defaultProtocols = Arrays.asList(defaultSSLParameters.getProtocols());
+
+            List<String> preferredCiphers = ciphers.stream()
+                    .distinct()
+                    .filter(defaultCiphers::contains)
+                    .collect(Collectors.toList());
+
+            if (preferredCiphers.isEmpty()) {
+                sslParameters.setCipherSuites(defaultCiphers.stream().toArray(String[]::new));
+            } else {
+                sslParameters.setCipherSuites(preferredCiphers.stream().toArray(String[]::new));
+            }
+
+            List<String> preferredProtocols = protocols.stream()
+                    .distinct()
+                    .filter(defaultProtocols::contains)
+                    .collect(Collectors.toList());
+
+            if (preferredProtocols.isEmpty()) {
+                sslParameters.setProtocols(defaultProtocols.stream().toArray(String[]::new));
+            } else {
+                sslParameters.setProtocols(preferredProtocols.stream().toArray(String[]::new));
+            }
+
+            return SSLParametersUtils.merge(sslParameters, defaultSSLParameters);
         }
 
     }

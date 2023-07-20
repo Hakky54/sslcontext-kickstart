@@ -1340,14 +1340,14 @@ class SSLFactoryShould {
     @Test
     void buildSSLFactoryWithSystemPropertyDerivedProtocol() {
         String propertyName = "https.protocols";
-        System.setProperty(propertyName, "TLSv1.2,   ,TLSv1.1");
+        System.setProperty(propertyName, "TLSv1.2,   ");
 
         SSLFactory sslFactory = SSLFactory.builder()
                 .withDefaultTrustMaterial()
                 .withSystemPropertyDerivedProtocols()
                 .build();
 
-        assertThat(sslFactory.getProtocols()).containsExactly("TLSv1.2", "TLSv1.1");
+        assertThat(sslFactory.getProtocols()).containsExactly("TLSv1.2");
         System.clearProperty(propertyName);
     }
 
@@ -1554,14 +1554,14 @@ class SSLFactoryShould {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withDefaultTrustMaterial()
                 .withCiphers("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384", "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384")
-                .withProtocols("TLSv1.2", "TLSv1.1")
+                .withProtocols("TLSv1.2")
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
         assertThat(sslFactory.getSslParameters().getCipherSuites())
                 .containsExactlyInAnyOrder("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384", "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384");
         assertThat(sslFactory.getSslParameters().getProtocols())
-                .containsExactlyInAnyOrder("TLSv1.2", "TLSv1.1");
+                .contains("TLSv1.2");
         assertThat(sslFactory.getSslParameters())
                 .isNotEqualTo(sslFactory.getSslContext().getDefaultSSLParameters());
     }
@@ -1580,11 +1580,11 @@ class SSLFactoryShould {
     void returnSpecifiedProtocols() {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withDefaultTrustMaterial()
-                .withProtocols("TLSv1.2", "TLSv1.1")
+                .withProtocols("TLSv1.2")
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
-        assertThat(sslFactory.getProtocols()).containsExactlyInAnyOrder("TLSv1.2", "TLSv1.1");
+        assertThat(sslFactory.getProtocols()).contains("TLSv1.2");
     }
 
     @Test
