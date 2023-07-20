@@ -3,6 +3,9 @@
 This list is not intended to be all-encompassing - it will document major and breaking API
 changes with their rationale when appropriate:
 
+### v8.1.4
+- Bug-fix Filter out unsupported ciphers and protocols
+
 ### v8.1.3
 - Added default hostname verifier in HostnameVerifierUtils
 - Marked a method in HostnameVerifierUtils as deprecated
