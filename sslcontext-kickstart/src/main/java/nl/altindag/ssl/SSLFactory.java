@@ -79,6 +79,7 @@ import java.util.stream.Collectors;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
+import static nl.altindag.ssl.util.internal.CollectorsUtils.toStringArray;
 import static nl.altindag.ssl.util.internal.ValidationUtils.requireNotBlank;
 import static nl.altindag.ssl.util.internal.ValidationUtils.requireNotEmpty;
 
@@ -904,27 +905,20 @@ public final class SSLFactory {
             List<String> defaultCiphers = Arrays.asList(defaultSSLParameters.getCipherSuites());
             List<String> defaultProtocols = Arrays.asList(defaultSSLParameters.getProtocols());
 
-            List<String> preferredCiphers = ciphers.stream()
+            String[] preferredCiphers = ciphers.stream()
                     .distinct()
+                    .filter(StringUtils::isNotBlank)
                     .filter(defaultCiphers::contains)
-                    .collect(Collectors.toList());
+                    .collect(toStringArray());
 
-            if (preferredCiphers.isEmpty()) {
-                sslParameters.setCipherSuites(defaultCiphers.stream().toArray(String[]::new));
-            } else {
-                sslParameters.setCipherSuites(preferredCiphers.stream().toArray(String[]::new));
-            }
-
-            List<String> preferredProtocols = protocols.stream()
+            String[] preferredProtocols = protocols.stream()
                     .distinct()
+                    .filter(StringUtils::isNotBlank)
                     .filter(defaultProtocols::contains)
-                    .collect(Collectors.toList());
+                    .collect(toStringArray());
 
-            if (preferredProtocols.isEmpty()) {
-                sslParameters.setProtocols(defaultProtocols.stream().toArray(String[]::new));
-            } else {
-                sslParameters.setProtocols(preferredProtocols.stream().toArray(String[]::new));
-            }
+            sslParameters.setCipherSuites(preferredCiphers);
+            sslParameters.setProtocols(preferredProtocols);
 
             return SSLParametersUtils.merge(sslParameters, defaultSSLParameters);
         }

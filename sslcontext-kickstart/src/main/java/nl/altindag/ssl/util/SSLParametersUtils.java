@@ -44,8 +44,10 @@ public final class SSLParametersUtils {
         SSLParameters target = new SSLParameters();
 
         String[] ciphers = Optional.ofNullable(baseSslParameters.getCipherSuites())
+                .filter(array -> array.length != 0)
                 .orElseGet(alternativeSslParameters::getCipherSuites);
         String[] protocols = Optional.ofNullable(baseSslParameters.getProtocols())
+                .filter(array -> array.length != 0)
                 .orElseGet(alternativeSslParameters::getProtocols);
 
         target.setCipherSuites(ciphers);

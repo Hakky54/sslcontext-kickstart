@@ -45,4 +45,12 @@ public final class CollectorsUtils {
         return Collectors.collectingAndThen(Collectors.toList(), finisher);
     }
 
+    public static <T> Collector<T, ?, T[]> toArray(T[] template) {
+        return Collectors.collectingAndThen(Collectors.toList(), list -> list.toArray(template));
+    }
+
+    public static Collector<String, ?, String[]> toStringArray() {
+        return toArray(new String[]{});
+    }
+
 }
