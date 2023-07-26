@@ -22,8 +22,8 @@ Hey, hello there 👋 Welcome, I hope you will like this library ❤️ Feel fre
 ```xml
 <dependency>
     <groupId>io.github.hakky54</groupId>
-  <artifactId>sslcontext-kickstart</artifactId>
-  <version>8.1.4</version>
+    <artifactId>sslcontext-kickstart</artifactId>
+    <version>8.1.4</version>
 </dependency>
 ```
 ### Install with Gradle
