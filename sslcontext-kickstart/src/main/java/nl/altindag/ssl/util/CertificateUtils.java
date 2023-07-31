@@ -98,7 +98,7 @@ public final class CertificateUtils {
             String alias = generateUniqueAlias(certificate, aliasToCertificate::containsKey);
             aliasToCertificate.put(alias, certificate);
         }
-        return aliasToCertificate;
+        return Collections.unmodifiableMap(aliasToCertificate);
     }
 
     public static <T extends Certificate> String generateUniqueAlias(T certificate, Predicate<String> aliasPredicate) {
