@@ -238,11 +238,15 @@ class LinuxCertificateUtilsShould {
                          return true;
                      } else if ("isRegularFile".equals(methodName) && "/etc/ssl/certs".equals(path)) {
                          return false;
+                     } else if ("isSymbolicLink".equals(methodName) && "/etc/ssl/certs".equals(path)) {
+                         return false;
                      } else if ("isDirectory".equals(methodName) && "/etc/ssl/certs".equals(path)) {
                          return true;
                      } else if ("walk".equals(methodName)) {
                          return Stream.of(Paths.get("/etc/ssl/certs/some-certificate.pem"));
                      } else if ("isRegularFile".equals(methodName) && "/etc/ssl/certs/some-certificate.pem".equals(path)) {
+                         return true;
+                     } else if ("isSymbolicLink".equals(methodName) && "/etc/ssl/certs/some-certificate.pem".equals(path)) {
                          return true;
                      } else if ("exists".equals(methodName)) {
                          return false;
