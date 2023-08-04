@@ -254,7 +254,7 @@ class KeyStoreUtilsShould {
         KeyStore keychainStore = mock(KeyStore.class);
         KeyStore systemTrustStore = mock(KeyStore.class);
 
-        try (MockedStatic<MacCertificateUtils> macCertificateUtilsMockedStatic = mockStatic(MacCertificateUtils.class);
+        try (MockedStatic<MacCertificateUtils> macCertificateUtilsMockedStatic = mockStatic(MacCertificateUtils.class, invocationOnMock -> Collections.singletonList(mock(X509Certificate.class)));
              MockedStatic<KeyStoreUtils> keyStoreUtilsMockedStatic = mockStatic(KeyStoreUtils.class, invocation -> {
             Method method = invocation.getMethod();
             if ("loadSystemKeyStores".equals(method.getName()) && method.getParameterCount() == 0) {
@@ -283,7 +283,7 @@ class KeyStoreUtilsShould {
 
         KeyStore systemTrustStore = mock(KeyStore.class);
 
-        try (MockedStatic<LinuxCertificateUtils> linuxCertificateUtilsMockedStatic = mockStatic(LinuxCertificateUtils.class);
+        try (MockedStatic<LinuxCertificateUtils> linuxCertificateUtilsMockedStatic = mockStatic(LinuxCertificateUtils.class, invocationOnMock -> Collections.singletonList(mock(X509Certificate.class)));
              MockedStatic<KeyStoreUtils> keyStoreUtilsMockedStatic = mockStatic(KeyStoreUtils.class, invocation -> {
                  Method method = invocation.getMethod();
                  if ("loadSystemKeyStores".equals(method.getName()) && method.getParameterCount() == 0) {

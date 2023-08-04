@@ -210,14 +210,18 @@ public final class KeyStoreUtils {
                 createKeyStoreIfAvailable("KeychainStore", null).ifPresent(keyStores::add);
 
                 List<Certificate> systemTrustedCertificates = MacCertificateUtils.getCertificates();
-                KeyStore systemTrustStore = createTrustStore(systemTrustedCertificates);
-                keyStores.add(systemTrustStore);
+                if (!systemTrustedCertificates.isEmpty()) {
+                    KeyStore systemTrustStore = createTrustStore(systemTrustedCertificates);
+                    keyStores.add(systemTrustStore);
+                }
                 break;
             }
             case LINUX: {
                 List<Certificate> certificates = LinuxCertificateUtils.getCertificates();
-                KeyStore linuxTrustStore = createTrustStore(certificates);
-                keyStores.add(linuxTrustStore);
+                if (!certificates.isEmpty()) {
+                    KeyStore linuxTrustStore = createTrustStore(certificates);
+                    keyStores.add(linuxTrustStore);
+                }
                 break;
             }
             case ANDROID: {
