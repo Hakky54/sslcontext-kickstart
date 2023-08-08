@@ -19,8 +19,6 @@ import nl.altindag.ssl.exception.GenericIOException;
 import nl.altindag.ssl.util.internal.IOUtils;
 
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.cert.Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,9 +34,13 @@ import static nl.altindag.ssl.util.OperatingSystem.MAC;
  */
 final class MacCertificateUtils {
 
-    private static final Path HOME_DIRECTORY = Paths.get(System.getProperty("user.home"));
+    private static final String SECURITY_EXECUTABLE_PATH = "/usr/bin/security";
     private static final String SYSTEM_ROOT_KEYCHAIN_FILE = "/System/Library/Keychains/SystemRootCertificates.keychain";
     private static final List<String> KEYCHAIN_LOOKUP_COMMANDS = Arrays.asList("list-keychains", "default-keychain");
+
+    private static final String EMPTY = "";
+    private static final String SPACE = " ";
+    private static final String DOUBLE_QUOTES = "\"";
 
     private MacCertificateUtils() {
     }
@@ -67,7 +69,7 @@ final class MacCertificateUtils {
                 .map(Process::getInputStream)
                 .map(IOUtils::getContent)
                 .flatMap(content -> Stream.of(content.split(System.lineSeparator()))
-                        .map(line -> line.replace("\"", ""))
+                        .map(line -> line.replace(DOUBLE_QUOTES, EMPTY))
                         .map(String::trim))
                 .forEach(keychainFiles::add);
 
@@ -75,7 +77,7 @@ final class MacCertificateUtils {
     }
 
     private static Process createProcessForGettingKeychainFile(String command) {
-        return createProcess("security " + command);
+        return createProcess(SECURITY_EXECUTABLE_PATH + SPACE + command);
     }
 
     /**
@@ -88,25 +90,16 @@ final class MacCertificateUtils {
      * </pre>
      */
     private static Process createProcessForGettingCertificates(String keychainFilePath) {
-        return createProcess("security find-certificate -a -p " + keychainFilePath);
+        String command = String.format("%s find-certificate -a -p %s", SECURITY_EXECUTABLE_PATH, keychainFilePath);
+        return createProcess(command);
     }
 
     private static Process createProcess(String command) {
         try {
-            return createProcess()
-                    .command("sh", "-c", command)
-                    .directory(HOME_DIRECTORY.toFile())
-                    .start();
+            return Runtime.getRuntime().exec(command);
         } catch (IOException e) {
             throw new GenericIOException(e);
         }
-    }
-
-    /**
-     * Added to make {@link MacCertificateUtils#createProcess(String)} testable
-     */
-    static ProcessBuilder createProcess() {
-        return new ProcessBuilder();
     }
 
 }

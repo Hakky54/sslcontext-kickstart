@@ -20,7 +20,6 @@ import nl.altindag.ssl.exception.GenericIOException;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
-import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.security.cert.Certificate;
@@ -28,7 +27,6 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -53,15 +51,13 @@ class MacCertificateUtilsShould {
     void throwsGenericIOExceptionWhenSystemProcessCannotStarted() throws IOException {
         System.setProperty("os.name", "Mac OS X");
 
-        ProcessBuilder processBuilder = mock(ProcessBuilder.class);
-        when(processBuilder.command(anyString(), anyString(), anyString())).thenReturn(processBuilder);
-        when(processBuilder.directory(any(File.class))).thenReturn(processBuilder);
-        when(processBuilder.start()).thenThrow(new IOException("KABOOM!"));
+        Runtime runtime = mock(Runtime.class);
+        when(runtime.exec(anyString())).thenThrow(new IOException("KABOOM!"));
 
-        try (MockedStatic<MacCertificateUtils> mockedStatic = mockStatic(MacCertificateUtils.class, invocation -> {
+        try (MockedStatic<Runtime> mockedStatic = mockStatic(Runtime.class, invocation -> {
             Method method = invocation.getMethod();
-            if ("createProcess".equals(method.getName()) && method.getParameterCount() == 0) {
-                return processBuilder;
+            if ("getRuntime".equals(method.getName())) {
+                return runtime;
             } else {
                 return invocation.callRealMethod();
             }
