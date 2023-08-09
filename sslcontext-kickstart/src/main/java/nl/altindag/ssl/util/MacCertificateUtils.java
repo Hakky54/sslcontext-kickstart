@@ -34,7 +34,7 @@ import static nl.altindag.ssl.util.OperatingSystem.MAC;
  */
 final class MacCertificateUtils {
 
-    private static final String SECURITY_EXECUTABLE_PATH = "/usr/bin/security";
+    private static final String SECURITY_EXECUTABLE = "security";
     private static final String SYSTEM_ROOT_KEYCHAIN_FILE = "/System/Library/Keychains/SystemRootCertificates.keychain";
     private static final List<String> KEYCHAIN_LOOKUP_COMMANDS = Arrays.asList("list-keychains", "default-keychain");
 
@@ -77,7 +77,7 @@ final class MacCertificateUtils {
     }
 
     private static Process createProcessForGettingKeychainFile(String command) {
-        return createProcess(SECURITY_EXECUTABLE_PATH + SPACE + command);
+        return createProcess(SECURITY_EXECUTABLE + SPACE + command);
     }
 
     /**
@@ -90,7 +90,7 @@ final class MacCertificateUtils {
      * </pre>
      */
     private static Process createProcessForGettingCertificates(String keychainFilePath) {
-        String command = String.format("%s find-certificate -a -p %s", SECURITY_EXECUTABLE_PATH, keychainFilePath);
+        String command = String.format("%s find-certificate -a -p %s", SECURITY_EXECUTABLE, keychainFilePath);
         return createProcess(command);
     }
 
