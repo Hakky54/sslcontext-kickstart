@@ -33,6 +33,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.SignatureException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
@@ -394,6 +398,17 @@ public final class CertificateUtils {
 
             return String.join(System.lineSeparator(), certificateContainer);
         } catch (CertificateEncodingException e) {
+            throw new GenericCertificateException(e);
+        }
+    }
+
+    public static <T extends Certificate> boolean isSelfSigned(T certificate) {
+        try {
+            certificate.verify(certificate.getPublicKey());
+            return true;
+        } catch (SignatureException e) {
+            return false;
+        } catch (CertificateException | NoSuchAlgorithmException | InvalidKeyException | NoSuchProviderException e) {
             throw new GenericCertificateException(e);
         }
     }

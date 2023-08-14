@@ -515,6 +515,28 @@ class CertificateUtilsShould {
     }
 
     @Test
+    void isSelfSigned() {
+        List<Certificate> certificates = CertificateUtils.loadCertificate(PEM_LOCATION + "self-signed.pem");
+
+        assertThat(certificates).hasSize(1);
+        Certificate certificate = certificates.get(0);
+
+        boolean selfSigned = CertificateUtils.isSelfSigned(certificate);
+        assertThat(selfSigned).isTrue();
+    }
+
+    @Test
+    void isNotSelfSigned() {
+        List<Certificate> certificates = CertificateUtils.loadCertificate(PEM_LOCATION + "not-self-signed.pem");
+
+        assertThat(certificates).hasSize(1);
+        Certificate certificate = certificates.get(0);
+
+        boolean selfSigned = CertificateUtils.isSelfSigned(certificate);
+        assertThat(selfSigned).isFalse();
+    }
+
+    @Test
     void notAddSubjectAndIssuerAsHeaderWhenCertificateTypeIsNotX509Certificate() throws CertificateEncodingException {
         Certificate certificate = mock(Certificate.class);
 
