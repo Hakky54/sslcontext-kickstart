@@ -48,6 +48,18 @@ class MacCertificateUtilsShould {
     }
 
     @Test
+    void notContainLoginKeychain() {
+        if (OS_NAME.toLowerCase().contains("mac")) {
+            List<String> keychainFiles = MacCertificateUtils.getKeychainFiles();
+            assertThat(keychainFiles).isNotEmpty();
+
+            for (String keychainFile : keychainFiles) {
+                assertThat(keychainFile).doesNotEndWith("/Library/Keychains/login.keychain-db");
+            }
+        }
+    }
+
+    @Test
     void throwsGenericIOExceptionWhenSystemProcessCannotStarted() throws IOException {
         System.setProperty("os.name", "Mac OS X");
 
