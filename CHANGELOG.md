@@ -3,6 +3,12 @@
 This list is not intended to be all-encompassing - it will document major and breaking API
 changes with their rationale when appropriate:
 
+### v8.1.6
+- Bug-fix Resolved antivirus alert by removing shell script layer from Mac OS X command to fetch system trusted Certificate Authorities
+- Bug-fix Resolved antivirus alert by excluding ~/Library/Keychains/login.keychain-db keychain file from MacCertificateUtils
+- Bumped dependencies
+- Added method to check if a certificate is a self-signed one in CertificateUtils
+
 ### v8.1.5
 - Bug-fix Resolve exception for system certificates on Mac and Linux
 - Bump dependencies
