@@ -36,7 +36,7 @@
     </developers>
 
     <properties>
-        <version.jetty-util>9.4.51.v20230217</version.jetty-util>
+        <version.jetty-util>9.4.52.v20230823</version.jetty-util>
         <version.jetty-reactive-httpclient>1.1.14</version.jetty-reactive-httpclient>
     </properties>
 
