@@ -54,7 +54,10 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import static nl.altindag.ssl.TestConstants.DER_LOCATION;
 import static nl.altindag.ssl.TestConstants.KEYSTORE_LOCATION;
+import static nl.altindag.ssl.TestConstants.P7B_LOCATION;
+import static nl.altindag.ssl.TestConstants.PEM_LOCATION;
 import static nl.altindag.ssl.TestConstants.TRUSTSTORE_FILE_NAME;
 import static nl.altindag.ssl.TestConstants.TRUSTSTORE_PASSWORD;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -73,10 +76,6 @@ import static org.mockito.Mockito.when;
  */
 @ExtendWith(MockitoExtension.class)
 class CertificateUtilsShould {
-
-    private static final String PEM_LOCATION = "pem/";
-    private static final String DER_LOCATION = "der/";
-    private static final String P7B_LOCATION = "p7b/";
 
     @Test
     void generateAliasForX509Certificate() {

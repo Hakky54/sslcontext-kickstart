@@ -29,4 +29,8 @@ public class TestConstants {
     public static final String HOME_DIRECTORY = System.getProperty("user.home");
     public static final String EMPTY = "";
 
+    public static final String PEM_LOCATION = "pem/";
+    public static final String DER_LOCATION = "der/";
+    public static final String P7B_LOCATION = "p7b/";
+
 }
