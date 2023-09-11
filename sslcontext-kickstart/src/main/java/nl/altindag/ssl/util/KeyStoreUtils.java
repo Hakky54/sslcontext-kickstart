@@ -320,6 +320,29 @@ public final class KeyStoreUtils {
         IOUtils.write(destination, outputStream -> keyStore.store(outputStream, password));
     }
 
+    /**
+     * Adds the provides list of certificates to the given keystore path on the filesystem if exists.
+     * If the keystore is absent it will create it with the given password and also add the certificates.
+     */
+    public static <T extends Certificate> void add(Path keystorePath, char[] password, List<T> certificates) {
+        KeyStore keyStore = Files.exists(keystorePath) ? loadKeyStore(keystorePath, password) : createKeyStore(password);
+        int initialAmountOfTrustMaterial = countAmountOfTrustMaterial(keyStore);
+        Map<String, T> aliasToCertificate = CertificateUtils.generateAliases(certificates);
+
+        try {
+            for (Map.Entry<String, T> entry : aliasToCertificate.entrySet()) {
+                keyStore.setCertificateEntry(entry.getKey(), entry.getValue());
+            }
+        } catch (KeyStoreException e) {
+            LOGGER.debug("Failed to add certificate to the keystore", e);
+        }
+
+        int amountOfTrustMaterial = countAmountOfTrustMaterial(keyStore);
+        if (amountOfTrustMaterial > initialAmountOfTrustMaterial) {
+            write(keystorePath, keyStore, password);
+        }
+    }
+
     public static int countAmountOfTrustMaterial(KeyStore keyStore) {
         return amountOfSpecifiedMaterial(keyStore, KeyStore::isCertificateEntry, Integer.MAX_VALUE);
     }
