@@ -518,7 +518,7 @@ class KeyStoreUtilsShould {
         int initialAmountOfTrustMaterial = KeyStoreUtils.countAmountOfTrustMaterial(baseTruststore);
         int expectedAmountOfTrustMaterial = initialAmountOfTrustMaterial + 3;
 
-        KeyStoreUtils.add(truststorePath, TRUSTSTORE_PASSWORD, certificates);
+        KeyStoreUtils.add(truststorePath, TRUSTSTORE_PASSWORD, "PKCS12", certificates);
 
         KeyStore truststore = KeyStoreUtils.loadKeyStore(truststorePath, TRUSTSTORE_PASSWORD);
         int actualAmountOfTrustMaterial = KeyStoreUtils.countAmountOfTrustMaterial(truststore);
@@ -543,13 +543,45 @@ class KeyStoreUtilsShould {
         assertThat(certificates).hasSize(3);
         int expectedAmountOfTrustMaterial = 3;
 
-        KeyStoreUtils.add(truststorePath, TRUSTSTORE_PASSWORD, certificates);
+        KeyStoreUtils.add(truststorePath, TRUSTSTORE_PASSWORD, "PKCS12", certificates);
 
         KeyStore truststore = KeyStoreUtils.loadKeyStore(truststorePath, TRUSTSTORE_PASSWORD);
         int actualAmountOfTrustMaterial = KeyStoreUtils.countAmountOfTrustMaterial(truststore);
         assertThat(actualAmountOfTrustMaterial).isEqualTo(expectedAmountOfTrustMaterial);
 
         Files.delete(truststorePath);
+    }
+
+    @Test
+    void logsDebugStatementsWhenKeyStoreExceptionOccurs() throws KeyStoreException {
+        KeyStore mockedKeyStore = mock(KeyStore.class);
+        List<Certificate> certificates = CertificateUtils.loadCertificate(PEM_LOCATION + "stackexchange.pem");
+
+        doThrow(new KeyStoreException("KABOOOM!")).when(mockedKeyStore).setCertificateEntry(anyString(), any(Certificate.class));
+
+        try (LogCaptor logCaptor = LogCaptor.forClass(KeyStoreUtils.class);
+             MockedStatic<Files> filesMockedStatic = mockStatic(Files.class, invocation -> {
+                 Method method = invocation.getMethod();
+                 if ("exists".equals(method.getName())) {
+                     return false;
+                 } else {
+                     return invocation.callRealMethod();
+                 }
+             });
+             MockedStatic<KeyStoreUtils> keyStoreUtilsMockedStatic = mockStatic(KeyStoreUtils.class, invocation -> {
+                 Method method = invocation.getMethod();
+                 if ("createKeyStore".equals(method.getName())
+                         && method.getParameterCount() == 2) {
+                     return mockedKeyStore;
+                 } else if ("countAmountOfTrustMaterial".equals(method.getName())) {
+                    return 3;
+                 } else {
+                     return invocation.callRealMethod();
+                 }
+             })) {
+            KeyStoreUtils.add(Paths.get(TestConstants.HOME_DIRECTORY).resolve("non-existing.jks"), TRUSTSTORE_PASSWORD, "PKCS12", certificates);
+            assertThat(logCaptor.getDebugLogs()).containsExactly("Failed to add a certificate tagged with the alias [cn=stackexchangecom] to the keystore");
+        }
     }
 
     @Test
