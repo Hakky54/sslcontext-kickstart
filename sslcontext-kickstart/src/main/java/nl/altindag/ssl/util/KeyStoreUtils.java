@@ -327,7 +327,21 @@ public final class KeyStoreUtils {
     public static <T extends Certificate> void add(Path keystorePath, char[] password, String keystoreType, List<T> certificates) {
         KeyStore keyStore = Files.exists(keystorePath) ? loadKeyStore(keystorePath, password, keystoreType) : createKeyStore(keystoreType, password);
         int initialAmountOfTrustMaterial = countAmountOfTrustMaterial(keyStore);
-        Map<String, T> aliasToCertificate = CertificateUtils.generateAliases(certificates);
+
+        add(keyStore, certificates);
+
+        int amountOfTrustMaterial = countAmountOfTrustMaterial(keyStore);
+        if (amountOfTrustMaterial > initialAmountOfTrustMaterial) {
+            write(keystorePath, keyStore, password);
+        }
+    }
+
+    public static <T extends Certificate> void add(KeyStore keyStore, List<T> certificates) {
+        List<Certificate> existingCertificates = getCertificates(keyStore);
+        Map<String, T> aliasToCertificate = certificates.stream()
+                .distinct()
+                .filter(certificate -> !existingCertificates.contains(certificate))
+                .collect(CollectorsUtils.toListAndThen(CertificateUtils::generateAliases));
 
         String alias = "";
         try {
@@ -338,11 +352,6 @@ public final class KeyStoreUtils {
             }
         } catch (KeyStoreException e) {
             LOGGER.debug(String.format("Failed to add a certificate tagged with the alias [%s] to the keystore", alias), e);
-        }
-
-        int amountOfTrustMaterial = countAmountOfTrustMaterial(keyStore);
-        if (amountOfTrustMaterial > initialAmountOfTrustMaterial) {
-            write(keystorePath, keyStore, password);
         }
     }
 

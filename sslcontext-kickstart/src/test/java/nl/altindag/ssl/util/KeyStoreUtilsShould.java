@@ -529,7 +529,64 @@ class KeyStoreUtilsShould {
 
     @Test
     void addCertificatesToNonExistingKeyStore() throws IOException {
+        Path truststorePath = Paths.get(TestConstants.HOME_DIRECTORY).resolve(Paths.get("truststore.jks"));
+        List<Certificate> certificates = CertificateUtils.loadCertificate(
+                PEM_LOCATION + "badssl-certificate.pem",
+                PEM_LOCATION + "github-certificate.pem",
+                PEM_LOCATION + "stackexchange.pem"
+        );
+
+        assertThat(certificates).hasSize(3);
+        int expectedAmountOfTrustMaterial = 3;
+
+        KeyStoreUtils.add(truststorePath, TRUSTSTORE_PASSWORD, "PKCS12", certificates);
+
+        assertThat(Files.exists(truststorePath)).isTrue();
+        KeyStore truststore = KeyStoreUtils.loadKeyStore(truststorePath, TRUSTSTORE_PASSWORD);
+        int actualAmountOfTrustMaterial = KeyStoreUtils.countAmountOfTrustMaterial(truststore);
+        assertThat(actualAmountOfTrustMaterial).isEqualTo(expectedAmountOfTrustMaterial);
+
+        Files.delete(truststorePath);
+    }
+
+    @Test
+    void addCertificatesToNonExistingKeyStoreWhileFilteringOutDuplicates() throws IOException {
+        Path truststorePath = Paths.get(TestConstants.HOME_DIRECTORY).resolve(Paths.get("truststore.jks"));
+        List<Certificate> certificates = CertificateUtils.loadCertificate(
+                PEM_LOCATION + "badssl-certificate.pem",
+                PEM_LOCATION + "badssl-certificate.pem",
+                PEM_LOCATION + "github-certificate.pem",
+                PEM_LOCATION + "github-certificate.pem",
+                PEM_LOCATION + "stackexchange.pem",
+                PEM_LOCATION + "stackexchange.pem"
+        );
+
+        assertThat(certificates).hasSize(6);
+        int expectedAmountOfTrustMaterial = 3;
+
+        KeyStoreUtils.add(truststorePath, TRUSTSTORE_PASSWORD, "PKCS12", certificates);
+
+        assertThat(Files.exists(truststorePath)).isTrue();
+        KeyStore truststore = KeyStoreUtils.loadKeyStore(truststorePath, TRUSTSTORE_PASSWORD);
+        int actualAmountOfTrustMaterial = KeyStoreUtils.countAmountOfTrustMaterial(truststore);
+        assertThat(actualAmountOfTrustMaterial).isEqualTo(expectedAmountOfTrustMaterial);
+
+        Files.delete(truststorePath);
+    }
+
+    @Test
+    void addCertificatesToNonExistingKeyStoreWhileFilteringOutExistingCertificates() throws IOException {
+        List<Certificate> existingCertificates = CertificateUtils.loadCertificate(
+                PEM_LOCATION + "badssl-certificate.pem",
+                PEM_LOCATION + "stackexchange.pem"
+        );
+
         KeyStore baseTruststore = KeyStoreUtils.createKeyStore(TRUSTSTORE_PASSWORD);
+        assertThat(KeyStoreUtils.containsTrustMaterial(baseTruststore)).isFalse();
+
+        KeyStoreUtils.add(baseTruststore, existingCertificates);
+        assertThat(KeyStoreUtils.countAmountOfTrustMaterial(baseTruststore)).isEqualTo(2);
+
         Path truststorePath = Paths.get(TestConstants.HOME_DIRECTORY).resolve(Paths.get("truststore.jks"));
         KeyStoreUtils.write(truststorePath, baseTruststore, TRUSTSTORE_PASSWORD);
         assertThat(Files.exists(truststorePath)).isTrue();
@@ -574,7 +631,9 @@ class KeyStoreUtilsShould {
                          && method.getParameterCount() == 2) {
                      return mockedKeyStore;
                  } else if ("countAmountOfTrustMaterial".equals(method.getName())) {
-                    return 3;
+                    return 0;
+                 } else if ("getCertificates".equals(method.getName())) {
+                     return Collections.emptyList();
                  } else {
                      return invocation.callRealMethod();
                  }
