@@ -1332,6 +1332,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/henryju"><img src="https://avatars.githubusercontent.com/u/281596?v=4?s=100" width="100px;" alt=""/><br /><sub><b>henryju</b></sub></a><br /> <a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Ahenryju" title="Code and Ideas, Planning, & Feedback">🤔 💻</a></td>
     <td align="center"><a href="https://github.com/nquinquenel"><img src="https://avatars.githubusercontent.com/u/14952624?v=4?s=100" width="100px;" alt=""/><br /><sub><b>nquinquenel</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Anquinquenel" title="Code and Bug reports">🐛 💻</a></td>
     <td align="center"><a href="https://github.com/woj-tek"><img src="https://avatars.githubusercontent.com/u/724413?v=4?s=100" width="100px;" alt=""/><br /><sub><b>woj-tek</b></sub></a><br /><a title="Bug reports">🐛</a></td>
+    <td align="center"><a href="https://github.com/thahnen"><img src="https://avatars.githubusercontent.com/u/6588381?v=4?s=100" width="100px;" alt=""/><br /><sub><b>thahnen</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Athahnen" title="Bug reports">🐛</a></td>
   </tr>
 </table>
 
