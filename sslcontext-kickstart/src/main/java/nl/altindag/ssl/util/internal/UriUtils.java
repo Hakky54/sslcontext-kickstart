@@ -53,4 +53,13 @@ public final class UriUtils {
         }
     }
 
+    public static int extractPort(String value) {
+        try {
+            URI url = new URI(value);
+            return url.getPort();
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
+
 }
