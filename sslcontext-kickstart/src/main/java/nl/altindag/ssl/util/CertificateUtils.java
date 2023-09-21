@@ -48,6 +48,7 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -101,7 +102,7 @@ public final class CertificateUtils {
     }
 
     public static <T extends Certificate> Map<String, T> generateAliases(List<T> certificates) {
-        Map<String, T> aliasToCertificate = new HashMap<>();
+        Map<String, T> aliasToCertificate = new LinkedHashMap<>();
         for (T certificate : certificates) {
             String alias = generateUniqueAlias(certificate, aliasToCertificate::containsKey);
             aliasToCertificate.put(alias, certificate);
