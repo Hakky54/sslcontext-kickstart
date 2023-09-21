@@ -47,7 +47,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -319,24 +318,27 @@ public final class CertificateUtils {
 
     public static Map<String, List<X509Certificate>> getCertificatesFromExternalSources(List<String> urls) {
         return urls.stream()
+                .distinct()
                 .map(url -> new AbstractMap.SimpleEntry<>(url, getCertificatesFromExternalSource(url)))
-                .collect(Collectors.collectingAndThen(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue), Collections::unmodifiableMap));
+                .collect(Collectors.collectingAndThen(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue, (key1, key2) -> key1, LinkedHashMap::new), Collections::unmodifiableMap));
     }
 
     public static Map<String, List<X509Certificate>> getCertificatesFromExternalSources(Proxy proxy, List<String> urls) {
         CertificateExtractorUtils certificateExtractorUtils = new CertificateExtractorUtils(proxy);
 
         return urls.stream()
+                .distinct()
                 .map(url -> new AbstractMap.SimpleEntry<>(url, certificateExtractorUtils.getCertificateFromExternalSource(url)))
-                .collect(Collectors.collectingAndThen(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue), Collections::unmodifiableMap));
+                .collect(Collectors.collectingAndThen(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue, (key1, key2) -> key1, LinkedHashMap::new), Collections::unmodifiableMap));
     }
 
     public static Map<String, List<X509Certificate>> getCertificatesFromExternalSources(Proxy proxy, PasswordAuthentication passwordAuthentication, List<String> urls) {
         CertificateExtractorUtils certificateExtractorUtils = new CertificateExtractorUtils(proxy, passwordAuthentication);
 
         return urls.stream()
+                .distinct()
                 .map(url -> new AbstractMap.SimpleEntry<>(url, certificateExtractorUtils.getCertificateFromExternalSource(url)))
-                .collect(Collectors.collectingAndThen(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue), Collections::unmodifiableMap));
+                .collect(Collectors.collectingAndThen(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue, (key1, key2) -> key1, LinkedHashMap::new), Collections::unmodifiableMap));
     }
 
     public static Map<String, List<String>> getCertificatesFromExternalSourcesAsPem(String... urls) {
@@ -352,10 +354,8 @@ public final class CertificateUtils {
     }
 
     public static Map<String, List<String>> getCertificatesFromExternalSourcesAsPem(List<String> urls) {
-        Map<String, List<String>> certificates = CertificateUtils.getCertificatesFromExternalSources(urls).entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, entry -> CertificateUtils.convertToPem(entry.getValue())));
-
-        return Collections.unmodifiableMap(certificates);
+        return CertificateUtils.getCertificatesFromExternalSources(urls).entrySet().stream()
+                .collect(Collectors.collectingAndThen(Collectors.toMap(Map.Entry::getKey, entry -> CertificateUtils.convertToPem(entry.getValue()), (key1, key2) -> key1, LinkedHashMap::new), Collections::unmodifiableMap));
     }
 
     public static Map<String, List<String>> getCertificatesFromExternalSourcesAsPem(Proxy proxy, List<String> urls) {
@@ -366,10 +366,8 @@ public final class CertificateUtils {
     }
 
     public static Map<String, List<String>> getCertificatesFromExternalSourcesAsPem(Proxy proxy, PasswordAuthentication passwordAuthentication, List<String> urls) {
-        Map<String, List<String>> certificates = CertificateUtils.getCertificatesFromExternalSources(proxy, passwordAuthentication, urls).entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, entry -> CertificateUtils.convertToPem(entry.getValue())));
-
-        return Collections.unmodifiableMap(certificates);
+        return CertificateUtils.getCertificatesFromExternalSources(proxy, passwordAuthentication, urls).entrySet().stream()
+                .collect(Collectors.collectingAndThen(Collectors.toMap(Map.Entry::getKey, entry -> CertificateUtils.convertToPem(entry.getValue()), (key1, key2) -> key1, LinkedHashMap::new), Collections::unmodifiableMap));
     }
 
     public static List<String> convertToPem(List<X509Certificate> certificates) {
