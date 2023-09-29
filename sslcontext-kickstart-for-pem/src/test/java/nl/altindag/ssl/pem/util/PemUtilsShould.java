@@ -16,6 +16,7 @@
 package nl.altindag.ssl.pem.util;
 
 import nl.altindag.ssl.exception.GenericIOException;
+import nl.altindag.ssl.exception.GenericKeyStoreException;
 import nl.altindag.ssl.pem.exception.CertificateParseException;
 import nl.altindag.ssl.pem.exception.PemParseException;
 import nl.altindag.ssl.pem.exception.PrivateKeyParseException;
@@ -845,6 +846,7 @@ class PemUtilsShould {
             }
         })) {
             assertThatThrownBy(() -> PemUtils.loadIdentityMaterial(PEM_LOCATION + "unencrypted-identity.pem"))
+                    .isInstanceOf(GenericKeyStoreException.class)
                     .hasMessageContaining("lazy");
         }
     }
