@@ -60,6 +60,7 @@
         <version.logcaptor>2.9.0</version.logcaptor>
         <version.mockito>5.5.0</version.mockito>
         <version.ssl-server>1.0.5</version.ssl-server>
+        <version.byte-buddy>1.14.8</version.byte-buddy>
         <version.jacoco-maven-plugin>0.8.10</version.jacoco-maven-plugin>
         <version.maven-surefire-plugin>3.1.2</version.maven-surefire-plugin>
         <version.maven-fail-safe>3.1.2</version.maven-fail-safe>
@@ -126,6 +127,18 @@
                         <artifactId>sslcontext-kickstart</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>net.bytebuddy</groupId>
+                <artifactId>byte-buddy</artifactId>
+                <version>${version.byte-buddy}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>net.bytebuddy</groupId>
+                <artifactId>byte-buddy-agent</artifactId>
+                <version>${version.byte-buddy}</version>
+                <scope>test</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
