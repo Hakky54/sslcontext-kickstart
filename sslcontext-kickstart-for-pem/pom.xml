@@ -36,7 +36,7 @@
     </developers>
 
     <properties>
-        <version.bouncy-castle>1.70</version.bouncy-castle>
+        <version.bouncy-castle>1.76</version.bouncy-castle>
     </properties>
 
     <dependencies>
@@ -46,7 +46,7 @@
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
-            <artifactId>bcpkix-jdk15on</artifactId>
+            <artifactId>bcpkix-jdk18on</artifactId>
             <version>${version.bouncy-castle}</version>
         </dependency>
 
