@@ -3,6 +3,13 @@
 This list is not intended to be all-encompassing - it will document major and breaking API
 changes with their rationale when appropriate:
 
+### v8.1.7
+- Resolved CVE-2023-33201 LDAP injection vulnerability caused by transitive dependency of Bouncy Castle in the library of sslcontext-kickstart-for-pem  
+- Bumped dependencies
+- Filter out duplicate extracted certificates
+- Add appending capabilities to an existing keystore
+- Added option to extract port from uri
+
 ### v8.1.6
 - Bug-fix Resolved antivirus alert by removing shell script layer from Mac OS X command to fetch system trusted Certificate Authorities
 - Bug-fix Resolved antivirus alert by excluding ~/Library/Keychains/login.keychain-db keychain file from MacCertificateUtils
