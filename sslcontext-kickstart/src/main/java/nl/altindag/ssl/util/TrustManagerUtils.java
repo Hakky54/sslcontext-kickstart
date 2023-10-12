@@ -611,20 +611,20 @@ public final class TrustManagerUtils {
                 return Optional.empty();
             }
 
-            Predicate<TrustManagerParameters> trustManagerParametersValidator;
-            if (this.trustManagerParametersValidator != null) {
-                trustManagerParametersValidator = this.trustManagerParametersValidator;
+            Predicate<TrustManagerParameters> aTrustManagerParametersValidator;
+            if (trustManagerParametersValidator != null) {
+                aTrustManagerParametersValidator = trustManagerParametersValidator;
             } else if (chainAndAuthTypeValidator != null) {
-                trustManagerParametersValidator = trustManagerParameters -> chainAndAuthTypeValidator.test(trustManagerParameters.getChain(), trustManagerParameters.getAuthType());
+                aTrustManagerParametersValidator = trustManagerParameters -> chainAndAuthTypeValidator.test(trustManagerParameters.getChain(), trustManagerParameters.getAuthType());
             } else if (chainAndAuthTypeWithSocketValidator != null) {
-                trustManagerParametersValidator = trustManagerParameters -> chainAndAuthTypeWithSocketValidator.test(trustManagerParameters.getChain(), trustManagerParameters.getAuthType(), trustManagerParameters.getSocket().orElse(null));
+                aTrustManagerParametersValidator = trustManagerParameters -> chainAndAuthTypeWithSocketValidator.test(trustManagerParameters.getChain(), trustManagerParameters.getAuthType(), trustManagerParameters.getSocket().orElse(null));
             } else if (chainAndAuthTypeWithSSLEngineValidator != null) {
-                trustManagerParametersValidator = trustManagerParameters -> chainAndAuthTypeWithSSLEngineValidator.test(trustManagerParameters.getChain(), trustManagerParameters.getAuthType(), trustManagerParameters.getSslEngine().orElse(null));
+                aTrustManagerParametersValidator = trustManagerParameters -> chainAndAuthTypeWithSSLEngineValidator.test(trustManagerParameters.getChain(), trustManagerParameters.getAuthType(), trustManagerParameters.getSslEngine().orElse(null));
             } else {
-                trustManagerParametersValidator = trustManagerParameters -> false;
+                aTrustManagerParametersValidator = trustManagerParameters -> false;
             }
 
-            X509ExtendedTrustManager enhanceableTrustManager = TrustManagerUtils.createEnhanceableTrustManager(baseTrustManager, trustManagerParametersValidator, shouldTrustedCertificatesBeConcealed);
+            X509ExtendedTrustManager enhanceableTrustManager = TrustManagerUtils.createEnhanceableTrustManager(baseTrustManager, aTrustManagerParametersValidator, shouldTrustedCertificatesBeConcealed);
             return Optional.of(enhanceableTrustManager);
         }
 
