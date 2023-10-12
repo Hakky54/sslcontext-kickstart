@@ -201,6 +201,7 @@ public final class SSLFactory {
         private ChainAndAuthTypeWithSocketValidator chainAndAuthTypeWithSocketValidator = null;
         private ChainAndAuthTypeWithSSLEngineValidator chainAndAuthTypeWithSSLEngineValidator = null;
         private Predicate<TrustManagerParameters> trustManagerParametersValidator = null;
+        private boolean shouldTrustedCertificatesBeConcealed = false;
 
         private Builder() {
         }
@@ -787,6 +788,11 @@ public final class SSLFactory {
             return this;
         }
 
+        public Builder withConcealedTrustedCertificates() {
+            this.shouldTrustedCertificatesBeConcealed = true;
+            return this;
+        }
+
         private Builder withSystemPropertyDerivedMaterial(String keyStorePathProperty,
                                                           String keyStorePasswordProperty,
                                                           String keyStoreTypeProperty,
@@ -894,6 +900,7 @@ public final class SSLFactory {
                     .withSwappableTrustManager(swappableTrustManagerEnabled)
                     .withLoggingTrustManager(loggingTrustManagerEnabled)
                     .withTrustEnhancer(trustManagerParametersValidator)
+                    .withTrustEnhancer(shouldTrustedCertificatesBeConcealed)
                     .withTrustEnhancer(chainAndAuthTypeValidator)
                     .withTrustEnhancer(chainAndAuthTypeWithSocketValidator)
                     .withTrustEnhancer(chainAndAuthTypeWithSSLEngineValidator)

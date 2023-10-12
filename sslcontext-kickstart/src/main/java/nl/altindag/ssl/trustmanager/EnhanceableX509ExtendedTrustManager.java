@@ -33,15 +33,19 @@ import java.util.function.Predicate;
  */
 public final class EnhanceableX509ExtendedTrustManager extends DelegatingX509ExtendedTrustManager {
 
+    private static final X509Certificate[] EMPTY_ACCEPTED_ISSUERS = {};
     private final Predicate<TrustManagerParameters> trustManagerParametersValidator;
+    private final boolean shouldTrustedCertificatesBeConcealed;
 
     public EnhanceableX509ExtendedTrustManager(
             X509ExtendedTrustManager trustManager,
-            Predicate<TrustManagerParameters> trustManagerParametersValidator) {
+            Predicate<TrustManagerParameters> trustManagerParametersValidator,
+            boolean shouldTrustedCertificatesBeConcealed) {
 
         super(trustManager);
         this.trustManagerParametersValidator = Optional.ofNullable(trustManagerParametersValidator)
                 .orElse(trustManagerParameters -> false);
+        this.shouldTrustedCertificatesBeConcealed = shouldTrustedCertificatesBeConcealed;
     }
 
     @Override
@@ -81,6 +85,23 @@ public final class EnhanceableX509ExtendedTrustManager extends DelegatingX509Ext
         }
 
         trustManagerRunnable.run();
+    }
+
+    @Override
+    public X509Certificate[] getAcceptedIssuers() {
+        if (shouldTrustedCertificatesBeConcealed) {
+            return EMPTY_ACCEPTED_ISSUERS;
+        }
+
+        return super.getAcceptedIssuers();
+    }
+
+    public Predicate<TrustManagerParameters> getTrustManagerParametersValidator() {
+        return trustManagerParametersValidator;
+    }
+
+    public boolean isTrustedCertificatesConcealed() {
+        return shouldTrustedCertificatesBeConcealed;
     }
 
 }
