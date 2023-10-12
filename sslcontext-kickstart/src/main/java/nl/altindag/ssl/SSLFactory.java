@@ -788,7 +788,7 @@ public final class SSLFactory {
             return this;
         }
 
-        public Builder withConcealedTrustedCertificates() {
+        public Builder withConcealedTrustMaterial() {
             this.shouldTrustedCertificatesBeConcealed = true;
             return this;
         }
