@@ -1304,8 +1304,9 @@ class SSLFactoryShould {
         assertThat(sslFactory.getSslContext()).isNotNull();
 
         HostnameVerifier hostnameVerifier = sslFactory.getHostnameVerifier();
-        assertThat(hostnameVerifier).isNotNull();
-        assertThat(hostnameVerifier).isInstanceOf(EnhanceableHostnameVerifier.class);
+        assertThat(hostnameVerifier)
+                .isNotNull()
+                .isInstanceOf(EnhanceableHostnameVerifier.class);
 
         assertThat(hostnameVerifier.verify("subdomain.thunderberry.nl", null)).isTrue();
         verify(innerHostnameVerifier, times(0)).verify(any(), any());
