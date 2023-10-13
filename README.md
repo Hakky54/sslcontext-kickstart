@@ -62,6 +62,7 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "8.1.7"
          - [TrustManager](#loading-trust-material-with-trustmanager-and-ocsp-options)
          - [Certificates](#loading-trust-material-with-certificates-and-ocsp-options)
      - [Enhanceable trust validations](#enhanceable-trust-validations)
+     - [Hide trusted certificate names of a server](#hide-trusted-certificate-names-of-a-server)
      - [Skip certificate validation](#trusting-all-certificates-without-validation-not-recommended-to-use-at-production-)
      - [Skip hostname validation](#skip-hostname-validation)
      - [Loading JDK and OS trusted certificates](#loading-jdk-and-os-trusted-certificates)
@@ -302,6 +303,26 @@ SSLFactory.builder()
           })
           .build();
 ```
+##### Hide trusted certificate names of a server
+By default, a server exposes the list of trusted certificate names if requested by the client. The list of trusted certificate names can be requested with:
+```shell
+openssl s_client -showcerts -servername 127.0.0.1 -connect 127.0.0.1:8443
+```
+
+The output will be under `Acceptable client certificate CA names`:
+![alt text](https://github.com/Hakky54/sslcontext-kickstart/blob/master/images/demo-sending-server-ca-names.png?raw=true)
+
+For some end-user this might lead into information leaks and security risks. This information can be hidden away so the client cannot request it anymore with an additional option within the `SSLFactory#withConcealedTrustMaterial()`. An example usage would be:
+```text
+SSLFactory updatedSslFactory = SSLFactory.builder()
+      .withIdentityMaterial(Paths.get("/path/to/your/identity.jks"), "password".toCharArray())
+      .withTrustMaterial(Paths.get("/path/to/your/truststore.jks"), "password".toCharArray())
+      .withConcealedTrustMaterial()
+      .build();
+```
+
+Which will result into the following output:
+![alt text](https://github.com/Hakky54/sslcontext-kickstart/blob/master/images/demo-not-sending-server-ca-names.png?raw=true)
 
 ##### Trusting all certificates without validation, not recommended to use at production!
 ```text
