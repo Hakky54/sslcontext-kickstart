@@ -337,13 +337,6 @@ public final class TrustManagerUtils {
         }
 
         if (baseTrustManager instanceof HotSwappableX509ExtendedTrustManager
-                && ((HotSwappableX509ExtendedTrustManager) baseTrustManager).getInnerTrustManager() instanceof LoggingX509ExtendedTrustManager) {
-            ((HotSwappableX509ExtendedTrustManager) baseTrustManager).setTrustManager(
-                    new LoggingX509ExtendedTrustManager(
-                            TrustManagerUtils.wrapIfNeeded(newTrustManager)
-                    )
-            );
-        } else if (baseTrustManager instanceof HotSwappableX509ExtendedTrustManager
                 && ((HotSwappableX509ExtendedTrustManager) baseTrustManager).getInnerTrustManager() instanceof LoggingX509ExtendedTrustManager
                 && ((LoggingX509ExtendedTrustManager) ((HotSwappableX509ExtendedTrustManager) baseTrustManager).getInnerTrustManager()).getInnerTrustManager() instanceof EnhanceableX509ExtendedTrustManager) {
 
@@ -366,6 +359,13 @@ public final class TrustManagerUtils {
                             TrustManagerUtils.wrapIfNeeded(newTrustManager),
                             existingEnhanceableX509ExtendedTrustManager.getTrustManagerParametersValidator(),
                             existingEnhanceableX509ExtendedTrustManager.isTrustedCertificatesConcealed()
+                    )
+            );
+        } else if (baseTrustManager instanceof HotSwappableX509ExtendedTrustManager
+                && ((HotSwappableX509ExtendedTrustManager) baseTrustManager).getInnerTrustManager() instanceof LoggingX509ExtendedTrustManager) {
+            ((HotSwappableX509ExtendedTrustManager) baseTrustManager).setTrustManager(
+                    new LoggingX509ExtendedTrustManager(
+                            TrustManagerUtils.wrapIfNeeded(newTrustManager)
                     )
             );
         } else if (baseTrustManager instanceof HotSwappableX509ExtendedTrustManager) {

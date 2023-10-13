@@ -20,6 +20,7 @@ import nl.altindag.ssl.exception.GenericSecurityException;
 import nl.altindag.ssl.exception.GenericTrustManagerException;
 import nl.altindag.ssl.trustmanager.CompositeX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.DummyX509ExtendedTrustManager;
+import nl.altindag.ssl.trustmanager.EnhanceableX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.HotSwappableX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.InflatableX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.KeyStoreTestUtils;
@@ -316,6 +317,82 @@ class TrustManagerUtilsShould {
                 .isInstanceOf(GenericTrustManagerException.class)
                 .hasMessage("The baseTrustManager is from the instance of [nl.altindag.ssl.trustmanager.LoggingX509ExtendedTrustManager] " +
                         "and should be an instance of [nl.altindag.ssl.trustmanager.HotSwappableX509ExtendedTrustManager].");
+    }
+
+    @Test
+    void trustManagerShouldSwapEvenThoughItContainsAnEnhanceableTrustManager() {
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.trustManagerBuilder()
+                .withTrustManagers(TrustManagerUtils.createTrustManagerWithJdkTrustedCertificates())
+                .withSwappableTrustManager(true)
+                .withTrustEnhancer(true)
+                .build();
+
+        assertThat(trustManager).isInstanceOf(HotSwappableX509ExtendedTrustManager.class);
+        assertThat(trustManager.getAcceptedIssuers()).isEmpty();
+
+        X509ExtendedTrustManager innerTrustManager = ((HotSwappableX509ExtendedTrustManager) trustManager).getInnerTrustManager();
+        assertThat(innerTrustManager).isInstanceOf(EnhanceableX509ExtendedTrustManager.class);
+        assertThat(innerTrustManager.getAcceptedIssuers()).isEmpty();
+
+        X509ExtendedTrustManager innerInnerTrustManager = ((EnhanceableX509ExtendedTrustManager) innerTrustManager).getInnerTrustManager();
+        assertThat(innerInnerTrustManager.getAcceptedIssuers()).isNotEmpty();
+
+        KeyStore trustStoreOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+        X509ExtendedTrustManager newTrustManager = TrustManagerUtils.createTrustManager(trustStoreOne);
+
+        TrustManagerUtils.swapTrustManager(trustManager, newTrustManager);
+        assertThat(trustManager.getAcceptedIssuers()).isEmpty();
+
+        innerTrustManager = ((HotSwappableX509ExtendedTrustManager) trustManager).getInnerTrustManager();
+        assertThat(innerTrustManager).isInstanceOf(EnhanceableX509ExtendedTrustManager.class);
+        assertThat(innerTrustManager.getAcceptedIssuers()).isEmpty();
+
+        assertThat(((EnhanceableX509ExtendedTrustManager) innerTrustManager).getInnerTrustManager().getAcceptedIssuers()).isNotEmpty();
+        assertThat(((EnhanceableX509ExtendedTrustManager) innerTrustManager).getInnerTrustManager())
+                .isNotEqualTo(innerInnerTrustManager)
+                .isEqualTo(newTrustManager);
+    }
+
+    @Test
+    void trustManagerShouldSwapEvenThoughItContainsAnEnhanceableTrustManagerWrappedInALoggingTrustManager() {
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.trustManagerBuilder()
+                .withTrustManagers(TrustManagerUtils.createTrustManagerWithJdkTrustedCertificates())
+                .withSwappableTrustManager(true)
+                .withTrustEnhancer(true)
+                .withLoggingTrustManager(true)
+                .build();
+
+        assertThat(trustManager).isInstanceOf(HotSwappableX509ExtendedTrustManager.class);
+        assertThat(trustManager.getAcceptedIssuers()).isEmpty();
+
+        X509ExtendedTrustManager innerTrustManager = ((HotSwappableX509ExtendedTrustManager) trustManager).getInnerTrustManager();
+        assertThat(innerTrustManager).isInstanceOf(LoggingX509ExtendedTrustManager.class);
+
+        X509ExtendedTrustManager innerInnerTrustManager = ((LoggingX509ExtendedTrustManager) innerTrustManager).getInnerTrustManager();
+        assertThat(innerInnerTrustManager).isInstanceOf(EnhanceableX509ExtendedTrustManager.class);
+        assertThat(innerInnerTrustManager.getAcceptedIssuers()).isEmpty();
+
+        X509ExtendedTrustManager innerInnerInnerTrustManager = ((EnhanceableX509ExtendedTrustManager) innerInnerTrustManager).getInnerTrustManager();
+        assertThat(innerInnerInnerTrustManager.getAcceptedIssuers()).isNotEmpty();
+
+        KeyStore trustStoreOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+        X509ExtendedTrustManager newTrustManager = TrustManagerUtils.createTrustManager(trustStoreOne);
+
+        TrustManagerUtils.swapTrustManager(trustManager, newTrustManager);
+        assertThat(trustManager.getAcceptedIssuers()).isEmpty();
+
+        innerTrustManager = ((HotSwappableX509ExtendedTrustManager) trustManager).getInnerTrustManager();
+        assertThat(innerTrustManager).isInstanceOf(LoggingX509ExtendedTrustManager.class);
+        assertThat(innerTrustManager.getAcceptedIssuers()).isEmpty();
+
+        innerInnerTrustManager = ((LoggingX509ExtendedTrustManager) innerTrustManager).getInnerTrustManager();
+        assertThat(innerInnerTrustManager).isInstanceOf(EnhanceableX509ExtendedTrustManager.class);
+        assertThat(innerInnerTrustManager.getAcceptedIssuers()).isEmpty();
+
+        assertThat(((EnhanceableX509ExtendedTrustManager) innerInnerTrustManager).getInnerTrustManager().getAcceptedIssuers()).isNotEmpty();
+        assertThat(((EnhanceableX509ExtendedTrustManager) innerInnerTrustManager).getInnerTrustManager())
+                .isNotEqualTo(innerInnerTrustManager)
+                .isEqualTo(newTrustManager);
     }
 
     @Test

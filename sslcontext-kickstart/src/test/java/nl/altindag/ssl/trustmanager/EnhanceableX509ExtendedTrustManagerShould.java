@@ -27,9 +27,11 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.function.Predicate;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Hakan Altindag
@@ -309,6 +311,26 @@ class EnhanceableX509ExtendedTrustManagerShould {
         trustManager.checkServerTrusted(certificateChain, authType, sslEngine);
 
         verify(baseTrustManager, times(1)).checkServerTrusted(certificateChain, authType, sslEngine);
+    }
+
+    @Test
+    void shouldConcealTrustedCertificatesWhenEnabled() {
+        X509ExtendedTrustManager baseTrustManager = mock(X509ExtendedTrustManager.class);
+        when(baseTrustManager.getAcceptedIssuers()).thenReturn(new X509Certificate[]{mock(X509Certificate.class)});
+        assertThat(baseTrustManager.getAcceptedIssuers()).hasSize(1);
+
+        EnhanceableX509ExtendedTrustManager trustManager = new EnhanceableX509ExtendedTrustManager(baseTrustManager, null, true);
+        assertThat(trustManager.getAcceptedIssuers()).isEmpty();
+    }
+
+    @Test
+    void shouldNotConcealTrustedCertificatesWhenDisabled() {
+        X509ExtendedTrustManager baseTrustManager = mock(X509ExtendedTrustManager.class);
+        when(baseTrustManager.getAcceptedIssuers()).thenReturn(new X509Certificate[]{mock(X509Certificate.class)});
+        assertThat(baseTrustManager.getAcceptedIssuers()).hasSize(1);
+
+        EnhanceableX509ExtendedTrustManager trustManager = new EnhanceableX509ExtendedTrustManager(baseTrustManager, null, false);
+        assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
     }
 
 }

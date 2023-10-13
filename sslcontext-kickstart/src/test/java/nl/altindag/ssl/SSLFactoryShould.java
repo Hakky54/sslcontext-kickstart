@@ -20,6 +20,7 @@ import nl.altindag.ssl.exception.GenericKeyManagerException;
 import nl.altindag.ssl.exception.GenericKeyStoreException;
 import nl.altindag.ssl.exception.GenericSecurityException;
 import nl.altindag.ssl.exception.GenericTrustManagerException;
+import nl.altindag.ssl.hostnameverifier.EnhanceableHostnameVerifier;
 import nl.altindag.ssl.hostnameverifier.FenixHostnameVerifier;
 import nl.altindag.ssl.keymanager.CompositeX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.DummyX509ExtendedKeyManager;
@@ -52,6 +53,7 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
@@ -104,12 +106,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anySet;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Hakan Altindag
@@ -1265,6 +1262,56 @@ class SSLFactoryShould {
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
         assertThat(sslFactory.getKeyManager()).isNotPresent();
         assertThat(sslFactory.getKeyManagerFactory()).isNotPresent();
+    }
+
+    @Test
+    void buildSSLFactoryWithConcealedTrustMaterial() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
+                .withConcealedTrustMaterial()
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+
+        assertThat(sslFactory.getTrustManager()).isPresent();
+        assertThat(sslFactory.getTrustManager().get()).isInstanceOf(EnhanceableX509ExtendedTrustManager.class);
+        assertThat(sslFactory.getTrustManager().get().getAcceptedIssuers()).isEmpty();
+        assertThat(sslFactory.getTrustManagerFactory()).isPresent();
+        assertThat(sslFactory.getTrustedCertificates()).isEmpty();
+        assertThat(sslFactory.getHostnameVerifier()).isNotNull();
+        assertThat(sslFactory.getKeyManager()).isNotPresent();
+        assertThat(sslFactory.getKeyManagerFactory()).isNotPresent();
+
+        EnhanceableX509ExtendedTrustManager enhanceableX509ExtendedTrustManager = (EnhanceableX509ExtendedTrustManager) sslFactory.getTrustManager().get();
+        X509ExtendedTrustManager innerTrustManager = enhanceableX509ExtendedTrustManager.getInnerTrustManager();
+        assertThat(innerTrustManager.getAcceptedIssuers()).isNotEmpty();
+    }
+
+    @Test
+    void buildSSLFactoryWithEnhancedHostnameVerifier() {
+        HostnameVerifier innerHostnameVerifier = mock(HostnameVerifier.class);
+        when(innerHostnameVerifier.verify(any(), any())).thenReturn(false);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withDefaultTrustMaterial()
+                .withHostnameVerifier(innerHostnameVerifier)
+                .withHostnameVerifierEnhancer(hostnameVerifierParameters -> {
+                    String hostname = hostnameVerifierParameters.getHostname();
+                    return hostname.contains("thunderberry");
+                })
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+
+        HostnameVerifier hostnameVerifier = sslFactory.getHostnameVerifier();
+        assertThat(hostnameVerifier).isNotNull();
+        assertThat(hostnameVerifier).isInstanceOf(EnhanceableHostnameVerifier.class);
+
+        assertThat(hostnameVerifier.verify("subdomain.thunderberry.nl", null)).isTrue();
+        verify(innerHostnameVerifier, times(0)).verify(any(), any());
+
+        assertThat(hostnameVerifier.verify("google.com", spy(SSLSession.class))).isFalse();
+        verify(innerHostnameVerifier, times(1)).verify(any(), any());
     }
 
     @Test
