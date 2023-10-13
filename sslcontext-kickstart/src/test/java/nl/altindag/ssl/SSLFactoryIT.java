@@ -73,6 +73,29 @@ class SSLFactoryIT {
     }
 
     @Test
+    void executeHttpsRequestWithMutualAuthenticationWhileHavingConcealedTrustMaterial() throws IOException {
+        SSLFactory sslFactoryForServer = SSLFactory.builder()
+                .withIdentityMaterial("keystore/client-server/server-one/identity.jks", "secret".toCharArray())
+                .withTrustMaterial("keystore/client-server/server-one/truststore.jks", "secret".toCharArray())
+                .withConcealedTrustMaterial()
+                .withNeedClientAuthentication()
+                .withProtocols("TLSv1.3")
+                .build();
+
+        Server server = Server.createDefault(sslFactoryForServer);
+
+        SSLFactory sslFactoryForClient = SSLFactory.builder()
+                .withIdentityMaterial("keystore/client-server/client-one/identity.jks", "secret".toCharArray())
+                .withTrustMaterial("keystore/client-server/client-one/truststore.jks", "secret".toCharArray())
+                .build();
+
+        Response response = executeRequest("https://localhost:8443/api/hello", sslFactoryForClient.getSslSocketFactory());
+        assertThat(response.getStatusCode()).isEqualTo(200);
+
+        server.stop();
+    }
+
+    @Test
     void executeRequestToTwoServersWithMutualAuthenticationWithSingleHttpClientAndSingleSslConfiguration() throws IOException {
         char[] keyStorePassword = "secret".toCharArray();
         SSLFactory sslFactoryForServerOne = SSLFactory.builder()
