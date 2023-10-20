@@ -3,6 +3,9 @@
 This list is not intended to be all-encompassing - it will document major and breaking API
 changes with their rationale when appropriate:
 
+### v8.2.0
+- Added option to conceal trusted certificate names for a server
+- Bumped dependencies
 ### v8.1.7
 - Resolved CVE-2023-33201 LDAP injection vulnerability caused by transitive dependency of Bouncy Castle in the library of sslcontext-kickstart-for-pem  
 - Bumped dependencies
