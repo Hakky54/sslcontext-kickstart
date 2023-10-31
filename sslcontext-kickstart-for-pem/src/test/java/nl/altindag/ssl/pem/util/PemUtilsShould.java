@@ -20,6 +20,7 @@ import nl.altindag.ssl.exception.GenericKeyStoreException;
 import nl.altindag.ssl.pem.exception.CertificateParseException;
 import nl.altindag.ssl.pem.exception.PemParseException;
 import nl.altindag.ssl.pem.exception.PrivateKeyParseException;
+import nl.altindag.ssl.pem.exception.PublicKeyParseException;
 import nl.altindag.ssl.util.KeyStoreUtils;
 import nl.altindag.ssl.util.internal.IOUtils;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
@@ -49,6 +50,7 @@ import java.security.Key;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Optional;
@@ -389,7 +391,6 @@ class PemUtilsShould {
                 .hasRootCauseMessage("KABOOM!!!");
     }
 
-
     @Test
     void loadUnencryptedPrivateKeyFromClassPath() {
         PrivateKey privateKey = PemUtils.loadPrivateKey(PEM_LOCATION + "unencrypted-identity.pem");
@@ -496,6 +497,15 @@ class PemUtilsShould {
     }
 
     @Test
+    void extractPublicKeyFromPrivateKey() {
+        String identityContent = getResourceContent(PEM_LOCATION + "encrypted-identity.pem");
+        PrivateKey privateKey = PemUtils.parsePrivateKey(identityContent, DEFAULT_PASSWORD);
+        PublicKey publicKey = PemUtils.extractPublicKey(privateKey);
+
+        assertThat(publicKey).isNotNull();
+    }
+
+    @Test
     void parseSingleTrustMaterialFromContentAsAsOneLiner() {
         String certificateContent = getResourceContent(PEM_LOCATION + "one-liner-stackexchange.pem");
 
@@ -575,7 +585,7 @@ class PemUtilsShould {
     @Test
     void loadUnEncryptedRsaIdentityMaterialFromContentAsOneLiner() {
         String identityContent = getResourceContent(PEM_LOCATION + "one-liner-unencrypted-rsa-identity.pem");
-        X509ExtendedKeyManager keyManager = PemUtils.parseIdentityMaterial(identityContent, null);
+        X509ExtendedKeyManager keyManager = PemUtils.parseIdentityMaterial(identityContent);
 
         assertThat(keyManager).isNotNull();
     }
@@ -849,6 +859,26 @@ class PemUtilsShould {
                     .isInstanceOf(GenericKeyStoreException.class)
                     .hasMessageContaining("lazy");
         }
+    }
+
+    @Test
+    void throwsPublicKeyParseExceptionForUnknownPrivateKeyWhenAttemptingToExtractPublicKey() {
+        assertThatThrownBy(() -> PemUtils.extractPublicKey(null))
+                .isInstanceOf(PublicKeyParseException.class);
+    }
+
+    @Test
+    void throwsPublicKeyParseExceptionWhenUnableToExtractPublicKeyFromPrivateKey() {
+        // PKCS#8 - ED25519
+        String privateKeyContent =
+                "-----BEGIN PRIVATE KEY-----\n" +
+			    "MC4CAQAwBQYDK2VwBCIEIA5tsa4jA+q4iWoJXeFggOs1qrbloeNFM0/2SjtKWYLR\n" +
+			    "-----END PRIVATE KEY-----";
+        PrivateKey privateKey = PemUtils.parsePrivateKey(privateKeyContent);
+
+        assertThatThrownBy(() -> PemUtils.extractPublicKey(privateKey))
+                .isInstanceOf(PublicKeyParseException.class)
+                .hasMessageContaining("Could not extract public key for the given private key.");
     }
 
     private String getResourceContent(String path) {

@@ -20,6 +20,10 @@ package nl.altindag.ssl.pem.exception;
  */
 public final class PublicKeyParseException extends PemParseException {
 
+    public PublicKeyParseException(Throwable cause) {
+        super(cause);
+    }
+
     public PublicKeyParseException(String message) {
         super(message);
     }
