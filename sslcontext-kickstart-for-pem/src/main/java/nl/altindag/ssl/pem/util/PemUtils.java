@@ -22,6 +22,7 @@ import nl.altindag.ssl.pem.decryptor.Pkcs8Decryptor;
 import nl.altindag.ssl.pem.exception.CertificateParseException;
 import nl.altindag.ssl.pem.exception.PemParseException;
 import nl.altindag.ssl.pem.exception.PrivateKeyParseException;
+import nl.altindag.ssl.pem.exception.PublicKeyParseException;
 import nl.altindag.ssl.util.KeyManagerUtils;
 import nl.altindag.ssl.util.TrustManagerUtils;
 import nl.altindag.ssl.util.internal.IOUtils;
@@ -35,10 +36,13 @@ import org.bouncycastle.openssl.PEMException;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.X509TrustedCertificateBlock;
+import org.bouncycastle.openssl.jcajce.JcaMiscPEMGenerator;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.pkcs.PKCS8EncryptedPrivateKeyInfo;
 import org.bouncycastle.pkcs.PKCSException;
+import org.bouncycastle.util.io.pem.PemObject;
+import org.bouncycastle.util.io.pem.PemWriter;
 
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509ExtendedTrustManager;
@@ -46,8 +50,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.nio.file.Path;
+import java.security.KeyPair;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.Security;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
@@ -516,6 +523,31 @@ public final class PemUtils {
             return PemUtils.getInstance().getKeyConverter().getPrivateKey(privateKeyInfo);
         } catch (PEMException exception) {
             throw new PrivateKeyParseException(exception);
+        }
+    }
+
+    public static PublicKey extractPublicKey(PrivateKey privateKey) {
+        try(StringWriter writer = new StringWriter()) {
+            JcaMiscPEMGenerator pemGenerator = new JcaMiscPEMGenerator(privateKey, null);
+            PemObject pemObject = pemGenerator.generate();
+
+            PemWriter pemWriter = new PemWriter(writer);
+            pemWriter.writeObject(pemObject);
+            pemWriter.close();
+
+            try(StringReader stringReader = new StringReader(writer.toString());
+                PEMParser pemParser = new PEMParser(stringReader)) {
+                Object object = pemParser.readObject();
+                if (object instanceof PEMKeyPair) {
+                    PEMKeyPair pemKeyPair = (PEMKeyPair) object;
+                    KeyPair keyPair = getInstance().getKeyConverter().getKeyPair(pemKeyPair);
+                    return keyPair.getPublic();
+                } else {
+                    throw new PublicKeyParseException("Could not extract public key for the given private key.");
+                }
+            }
+        } catch (IOException exception) {
+            throw new PublicKeyParseException(exception);
         }
     }
 
