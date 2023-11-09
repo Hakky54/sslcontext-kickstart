@@ -51,6 +51,7 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.io.Writer;
 import java.nio.file.Path;
 import java.security.KeyPair;
 import java.security.PrivateKey;
@@ -527,16 +528,18 @@ public final class PemUtils {
     }
 
     public static PublicKey extractPublicKey(PrivateKey privateKey) {
-        try(StringWriter writer = new StringWriter()) {
+        try(Writer writer = new StringWriter();
+            PemWriter pemWriter = new PemWriter(writer)) {
+
             JcaMiscPEMGenerator pemGenerator = new JcaMiscPEMGenerator(privateKey, null);
             PemObject pemObject = pemGenerator.generate();
-
-            PemWriter pemWriter = new PemWriter(writer);
             pemWriter.writeObject(pemObject);
-            pemWriter.close();
+            pemWriter.flush();
 
-            try(StringReader stringReader = new StringReader(writer.toString());
-                PEMParser pemParser = new PEMParser(stringReader)) {
+            String pemContent = writer.toString();
+
+            try(Reader reader = new StringReader(pemContent);
+                PEMParser pemParser = new PEMParser(reader)) {
                 Object object = pemParser.readObject();
                 if (object instanceof PEMKeyPair) {
                     PEMKeyPair pemKeyPair = (PEMKeyPair) object;
