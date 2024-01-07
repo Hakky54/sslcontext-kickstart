@@ -49,21 +49,29 @@ import static nl.altindag.ssl.util.internal.CollectorsUtils.toUnmodifiableList;
 /**
  * @author Hakan Altindag
  */
-class CertificateExtractorUtils {
+public class CertificateExtractingClient {
 
     private static final Pattern CA_ISSUERS_AUTHORITY_INFO_ACCESS = Pattern.compile("(?s)^AuthorityInfoAccess\\h+\\[\\R\\s*\\[\\R.*?accessMethod:\\h+caIssuers\\R\\h*accessLocation: URIName:\\h+(https?://\\S+)", Pattern.MULTILINE);
 
-    private static CertificateExtractorUtils instance;
+    private static CertificateExtractingClient instance;
 
+    private final boolean shouldResolveRootCa;
+    private final Proxy proxy;
     private final SSLFactory sslFactoryForCertificateCapturing;
     private final SSLFactory unsafeSslFactory;
     private final SSLSocketFactory unsafeSslSocketFactory;
     private final SSLSocketFactory certificateCapturingSslSocketFactory;
     private final List<X509Certificate> certificatesCollector;
 
-    private Proxy proxy;
+    private CertificateExtractingClient(boolean shouldResolveRootCa, Proxy proxy, PasswordAuthentication passwordAuthentication) {
+        this.shouldResolveRootCa = shouldResolveRootCa;
+        this.proxy = proxy;
 
-    private CertificateExtractorUtils() {
+        if (passwordAuthentication != null) {
+            Authenticator authenticator = new FelixAuthenticator(passwordAuthentication);
+            Authenticator.setDefault(authenticator);
+        }
+
         certificatesCollector = new CopyOnWriteArrayList<>();
 
         X509ExtendedTrustManager certificateCapturingTrustManager = TrustManagerUtils.createCertificateCapturingTrustManager(certificatesCollector);
@@ -80,20 +88,9 @@ class CertificateExtractorUtils {
         unsafeSslSocketFactory = unsafeSslFactory.getSslSocketFactory();
     }
 
-    protected CertificateExtractorUtils(Proxy proxy) {
-        this();
-        this.proxy = proxy;
-    }
-
-    protected CertificateExtractorUtils(Proxy proxy, PasswordAuthentication passwordAuthentication) {
-        this(proxy);
-        Authenticator authenticator = new FelixAuthenticator(passwordAuthentication);
-        Authenticator.setDefault(authenticator);
-    }
-
-    static CertificateExtractorUtils getInstance() {
+    static CertificateExtractingClient getInstance() {
         if (instance == null) {
-            instance = new CertificateExtractorUtils();
+            instance = new CertificateExtractingClient(true, null, null);
         } else {
             instance.certificatesCollector.clear();
             SSLSessionUtils.invalidateCaches(instance.sslFactoryForCertificateCapturing);
@@ -101,7 +98,7 @@ class CertificateExtractorUtils {
         return instance;
     }
 
-    List<X509Certificate> getCertificateFromExternalSource(String url) {
+    public List<X509Certificate> get(String url) {
         try {
             URL parsedUrl = new URL(url);
             if ("https".equalsIgnoreCase(parsedUrl.getProtocol())) {
@@ -110,10 +107,14 @@ class CertificateExtractorUtils {
                 connection.connect();
                 connection.disconnect();
 
-                List<X509Certificate> rootCa = getRootCaFromChainIfPossible(certificatesCollector);
-                return Stream.of(certificatesCollector, rootCa)
-                        .flatMap(Collection::stream)
-                        .collect(toUnmodifiableList());
+                if (shouldResolveRootCa) {
+                    List<X509Certificate> resolvedRootCa = getRootCaFromChainIfPossible(certificatesCollector);
+                    return Stream.of(certificatesCollector, resolvedRootCa)
+                            .flatMap(Collection::stream)
+                            .collect(toUnmodifiableList());
+                }
+
+                return Collections.unmodifiableList(certificatesCollector);
             } else {
                 return Collections.emptyList();
             }
@@ -221,6 +222,37 @@ class CertificateExtractorUtils {
         protected PasswordAuthentication getPasswordAuthentication() {
             return passwordAuthentication;
         }
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+
+        private Proxy proxy = null;
+        private PasswordAuthentication passwordAuthentication = null;
+        private boolean shouldResolveRootCa = true;
+
+        public Builder withProxy(Proxy proxy) {
+            this.proxy = proxy;
+            return this;
+        }
+
+        public Builder withProxyPasswordAuthentication(PasswordAuthentication passwordAuthentication) {
+            this.passwordAuthentication = passwordAuthentication;
+            return this;
+        }
+
+        public Builder withResolvedRootCa(boolean shouldResolveRootCa) {
+            this.shouldResolveRootCa = shouldResolveRootCa;
+            return this;
+        }
+
+        public CertificateExtractingClient build() {
+            return new CertificateExtractingClient(shouldResolveRootCa, proxy, passwordAuthentication);
+        }
+
     }
 
 }

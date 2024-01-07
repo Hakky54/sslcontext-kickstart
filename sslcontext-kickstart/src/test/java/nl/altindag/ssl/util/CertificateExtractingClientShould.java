@@ -45,6 +45,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -58,13 +59,13 @@ import static org.mockito.Mockito.verify;
  * @author Hakan Altindag
  */
 @ExtendWith(MockitoExtension.class)
-class CertificateExtractorUtilsShould {
+class CertificateExtractingClientShould {
 
     @Test
     void getRootCaIfPossibleReturnsJdkTrustedCaCertificateWhenNoAuthorityInfoAccessExtensionIsPresent() {
         List<X509Certificate> certificates = CertificateUtils.getCertificatesFromExternalSource("https://www.reddit.com/");
 
-        try (MockedStatic<CertificateExtractorUtils> mockedStatic = mockStatic(CertificateExtractorUtils.class, invocation -> {
+        try (MockedStatic<CertificateExtractingClient> mockedStatic = mockStatic(CertificateExtractingClient.class, invocation -> {
             Method method = invocation.getMethod();
             if ("getRootCaFromAuthorityInfoAccessExtensionIfPresent".equals(method.getName())) {
                 return Collections.emptyList();
@@ -72,7 +73,7 @@ class CertificateExtractorUtilsShould {
                 return invocation.callRealMethod();
             }
         })) {
-            CertificateExtractorUtils victim = spy(CertificateExtractorUtils.getInstance());
+            CertificateExtractingClient victim = spy(CertificateExtractingClient.getInstance());
 
             X509Certificate certificate = certificates.get(certificates.size() - 1);
             List<X509Certificate> rootCaCertificate = victim.getRootCaIfPossible(certificate);
@@ -86,7 +87,7 @@ class CertificateExtractorUtilsShould {
     void getRootCaIfPossibleReturnsEmptyListWhenNoAuthorityInfoAccessExtensionIsPresentAndNoMatching() {
         List<X509Certificate> certificates = CertificateUtils.getCertificatesFromExternalSource("https://www.reddit.com/");
 
-        try (MockedStatic<CertificateExtractorUtils> mockedStatic = mockStatic(CertificateExtractorUtils.class, invocation -> {
+        try (MockedStatic<CertificateExtractingClient> mockedStatic = mockStatic(CertificateExtractingClient.class, invocation -> {
             Method method = invocation.getMethod();
             if ("getRootCaFromAuthorityInfoAccessExtensionIfPresent".equals(method.getName()) || "getRootCaFromJdkTrustedCertificates".equals(method.getName())) {
                 return Collections.emptyList();
@@ -94,7 +95,7 @@ class CertificateExtractorUtilsShould {
                 return invocation.callRealMethod();
             }
         })) {
-            CertificateExtractorUtils victim = spy(CertificateExtractorUtils.getInstance());
+            CertificateExtractingClient victim = spy(CertificateExtractingClient.getInstance());
 
             doReturn(Collections.emptyList())
                     .when(victim)
@@ -110,20 +111,31 @@ class CertificateExtractorUtilsShould {
     }
 
     @Test
+    void rootCaIsNotResolvedWhenDisabled() {
+        CertificateExtractingClient client = spy(CertificateExtractingClient.builder()
+                .withResolvedRootCa(false)
+                .build());
+
+        client.get("https://www.reddit.com/");
+
+        verify(client, times(0)).getRootCaFromChainIfPossible(anyList());
+    }
+
+    @Test
     void getRootCaFromChainIfPossibleReturnsEmptyListWhenNoCertificatesHaveBeenProvided() {
-        List<X509Certificate> rootCa = CertificateExtractorUtils.getInstance().getRootCaFromChainIfPossible(Collections.emptyList());
+        List<X509Certificate> rootCa = CertificateExtractingClient.getInstance().getRootCaFromChainIfPossible(Collections.emptyList());
         assertThat(rootCa).isEmpty();
     }
 
     @Test
     void getRootCaFromAuthorityInfoAccessExtensionIfPresentReturnsEmptyListWhenCertificateIsNotInstanceOfX509CertImpl() {
-        List<X509Certificate> rootCa = CertificateExtractorUtils.getInstance().getRootCaFromAuthorityInfoAccessExtensionIfPresent(mock(X509Certificate.class));
+        List<X509Certificate> rootCa = CertificateExtractingClient.getInstance().getRootCaFromAuthorityInfoAccessExtensionIfPresent(mock(X509Certificate.class));
         assertThat(rootCa).isEmpty();
     }
 
     @Test
     void throwsGenericCertificateExceptionWhenGetCertificatesFromRemoteFileFails() throws MalformedURLException {
-        CertificateExtractorUtils victim = CertificateExtractorUtils.getInstance();
+        CertificateExtractingClient victim = CertificateExtractingClient.getInstance();
 
         URI uri = mock(URI.class);
         doThrow(new MalformedURLException("KABOOM!!!"))
@@ -140,20 +152,23 @@ class CertificateExtractorUtilsShould {
         X509Certificate intermediateCertificate = mock(X509Certificate.class);
         doNothing().when(intermediateCertificate).verify(any());
 
-        List<X509Certificate> certificatesFromRemoteFile = CertificateExtractorUtils.getInstance().getCertificatesFromRemoteFile(uri, intermediateCertificate);
+        List<X509Certificate> certificatesFromRemoteFile = CertificateExtractingClient.getInstance().getCertificatesFromRemoteFile(uri, intermediateCertificate);
         assertThat(certificatesFromRemoteFile).isNotEmpty();
     }
 
     @Test
     void extractCertificatesWithProxyAndAuthentication() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        CertificateExtractorUtils certificateExtractorUtilsWithoutProxy = CertificateExtractorUtils.getInstance();
-        List<X509Certificate> certificates = certificateExtractorUtilsWithoutProxy.getCertificateFromExternalSource("https://google.com");
+        CertificateExtractingClient certificateExtractingClientWithoutProxy = CertificateExtractingClient.getInstance();
+        List<X509Certificate> certificates = certificateExtractingClientWithoutProxy.get("https://google.com");
         assertThat(certificates).isNotEmpty();
 
         Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("my-custom-host", 8081));
-        CertificateExtractorUtils certificateExtractorUtilsWithProxy = new CertificateExtractorUtils(proxy);
+        CertificateExtractingClient certificateExtractingClientWithProxy = CertificateExtractingClient.builder()
+                .withProxy(proxy)
+                .withResolvedRootCa(true)
+                .build();
 
-        assertThatThrownBy(() -> certificateExtractorUtilsWithProxy.getCertificateFromExternalSource("https://google.com"))
+        assertThatThrownBy(() -> certificateExtractingClientWithProxy.get("https://google.com"))
                 .isInstanceOf(GenericIOException.class)
                 .hasMessage("Failed getting certificate from: [https://google.com]")
                 .hasRootCauseInstanceOf(UnknownHostException.class)
@@ -163,9 +178,13 @@ class CertificateExtractorUtilsShould {
             ArgumentCaptor<Authenticator> authenticatorCaptor = ArgumentCaptor.forClass(Authenticator.class);
 
             PasswordAuthentication passwordAuthentication = new PasswordAuthentication("foo", "bar".toCharArray());
-            CertificateExtractorUtils certificateExtractorUtilsWithProxyAndAuthentication = new CertificateExtractorUtils(proxy, passwordAuthentication);
+            CertificateExtractingClient certificateExtractingClientWithProxyAndAuthentication = CertificateExtractingClient.builder()
+                    .withProxy(proxy)
+                    .withProxyPasswordAuthentication(passwordAuthentication)
+                    .withResolvedRootCa(true)
+                    .build();
 
-            assertThatThrownBy(() -> certificateExtractorUtilsWithProxyAndAuthentication.getCertificateFromExternalSource("https://google.com"))
+            assertThatThrownBy(() -> certificateExtractingClientWithProxyAndAuthentication.get("https://google.com"))
                     .isInstanceOf(GenericIOException.class)
                     .hasMessage("Failed getting certificate from: [https://google.com]")
                     .hasRootCauseInstanceOf(UnknownHostException.class)
