@@ -428,8 +428,4 @@ public final class CertificateUtils {
         }
     }
 
-    public static <T extends Certificate> boolean isNotSelfSigned(T certificate) {
-        return !isSelfSigned(certificate);
-    }
-
 }
