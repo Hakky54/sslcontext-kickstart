@@ -45,6 +45,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -107,6 +108,17 @@ class CertificateExtractingClientShould {
             verify(victim, times(1)).getRootCaFromAuthorityInfoAccessExtensionIfPresent(certificate);
             verify(victim, times(1)).getRootCaFromJdkTrustedCertificates(certificate);
         }
+    }
+
+    @Test
+    void rootCaIsNotResolvedWhenDisabled() {
+        CertificateExtractingClient client = spy(CertificateExtractingClient.builder()
+                .withResolvedRootCa(false)
+                .build());
+
+        client.get("https://www.reddit.com/");
+
+        verify(client, times(0)).getRootCaFromChainIfPossible(anyList());
     }
 
     @Test

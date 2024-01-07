@@ -531,7 +531,7 @@ class CertificateUtilsShould {
         assertThat(certificates).hasSize(1);
         Certificate certificate = certificates.get(0);
 
-        boolean selfSigned = CertificateUtils.isSelfSigned(certificate);
+        boolean selfSigned = CertificateUtils.isNotSelfSigned(certificate);
         assertThat(selfSigned).isFalse();
     }
 
