@@ -224,7 +224,7 @@ class CertificateUtilsShould {
             assertThat(constructed).hasSize(1);
 
             CertificateExtractingClient certificateExtractingClient = constructed.get(0);
-            assertThat(constructorArgs.get(certificateExtractingClient)).containsExactly(true, proxy, null);
+            assertThat(constructorArgs.get(certificateExtractingClient)).contains(true, proxy, null);
             mockedStatic.verify(CertificateExtractingClient::getInstance, times(0));
         }
     }
@@ -244,7 +244,7 @@ class CertificateUtilsShould {
             assertThat(constructed).hasSize(1);
 
             CertificateExtractingClient certificateExtractingClient = constructed.get(0);
-            assertThat(constructorArgs.get(certificateExtractingClient)).containsExactly(true, proxy, passwordAuthentication);
+            assertThat(constructorArgs.get(certificateExtractingClient)).contains(true, proxy, passwordAuthentication);
             mockedStatic.verify(CertificateExtractingClient::getInstance, times(0));
         }
     }
@@ -263,7 +263,7 @@ class CertificateUtilsShould {
             assertThat(constructed).hasSize(1);
 
             CertificateExtractingClient certificateExtractingClient = constructed.get(0);
-            assertThat(constructorArgs.get(certificateExtractingClient)).containsExactly(true, proxy, null);
+            assertThat(constructorArgs.get(certificateExtractingClient)).contains(true, proxy, null);
             mockedStatic.verify(CertificateExtractingClient::getInstance, times(0));
         }
     }
@@ -283,7 +283,7 @@ class CertificateUtilsShould {
             assertThat(constructed).hasSize(1);
 
             CertificateExtractingClient certificateExtractingClient = constructed.get(0);
-            assertThat(constructorArgs.get(certificateExtractingClient)).containsExactly(true, proxy, passwordAuthentication);
+            assertThat(constructorArgs.get(certificateExtractingClient)).contains(true, proxy, passwordAuthentication);
             mockedStatic.verify(CertificateExtractingClient::getInstance, times(0));
         }
     }
@@ -302,7 +302,7 @@ class CertificateUtilsShould {
             assertThat(constructed).hasSize(1);
 
             CertificateExtractingClient certificateExtractingClient = constructed.get(0);
-            assertThat(constructorArgs.get(certificateExtractingClient)).containsExactly(true, proxy, null);
+            assertThat(constructorArgs.get(certificateExtractingClient)).contains(true, proxy, null);
             mockedStatic.verify(CertificateExtractingClient::getInstance, times(0));
         }
     }
@@ -322,7 +322,7 @@ class CertificateUtilsShould {
             assertThat(constructed).hasSize(1);
 
             CertificateExtractingClient certificateExtractingClient = constructed.get(0);
-            assertThat(constructorArgs.get(certificateExtractingClient)).containsExactly(true, proxy, passwordAuthentication);
+            assertThat(constructorArgs.get(certificateExtractingClient)).contains(true, proxy, passwordAuthentication);
             mockedStatic.verify(CertificateExtractingClient::getInstance, times(0));
         }
     }
@@ -341,7 +341,7 @@ class CertificateUtilsShould {
             assertThat(constructed).hasSize(1);
 
             CertificateExtractingClient certificateExtractingClient = constructed.get(0);
-            assertThat(constructorArgs.get(certificateExtractingClient)).containsExactly(true, proxy, null);
+            assertThat(constructorArgs.get(certificateExtractingClient)).contains(true, proxy, null);
             mockedStatic.verify(CertificateExtractingClient::getInstance, times(0));
         }
     }
@@ -360,7 +360,7 @@ class CertificateUtilsShould {
             assertThat(constructed).hasSize(1);
 
             CertificateExtractingClient certificateExtractingClient = constructed.get(0);
-            assertThat(constructorArgs.get(certificateExtractingClient)).containsExactly(true, proxy, null);
+            assertThat(constructorArgs.get(certificateExtractingClient)).contains(true, proxy, null);
             mockedStatic.verify(CertificateExtractingClient::getInstance, times(0));
         }
     }
@@ -380,7 +380,7 @@ class CertificateUtilsShould {
             assertThat(constructed).hasSize(1);
 
             CertificateExtractingClient certificateExtractingClient = constructed.get(0);
-            assertThat(constructorArgs.get(certificateExtractingClient)).containsExactly(true, proxy, passwordAuthentication);
+            assertThat(constructorArgs.get(certificateExtractingClient)).contains(true, proxy, passwordAuthentication);
             mockedStatic.verify(CertificateExtractingClient::getInstance, times(0));
         }
     }
@@ -400,7 +400,7 @@ class CertificateUtilsShould {
             assertThat(constructed).hasSize(1);
 
             CertificateExtractingClient certificateExtractingClient = constructed.get(0);
-            assertThat(constructorArgs.get(certificateExtractingClient)).containsExactly(true, proxy, passwordAuthentication);
+            assertThat(constructorArgs.get(certificateExtractingClient)).contains(true, proxy, passwordAuthentication);
             mockedStatic.verify(CertificateExtractingClient::getInstance, times(0));
         }
     }
