@@ -275,15 +275,24 @@ public final class CertificateUtils {
     }
 
     public static List<X509Certificate> getCertificatesFromExternalSource(String url) {
-        return CertificateExtractorUtils.getInstance().getCertificateFromExternalSource(url);
+        return CertificateExtractingClient.getInstance().get(url);
     }
 
     public static List<X509Certificate> getCertificatesFromExternalSource(Proxy proxy, String url) {
-        return new CertificateExtractorUtils(proxy).getCertificateFromExternalSource(url);
+        return CertificateExtractingClient.builder()
+                .withResolvedRootCa(true)
+                .withProxy(proxy)
+                .build()
+                .get(url);
     }
 
     public static List<X509Certificate> getCertificatesFromExternalSource(Proxy proxy, PasswordAuthentication passwordAuthentication, String url) {
-        return new CertificateExtractorUtils(proxy, passwordAuthentication).getCertificateFromExternalSource(url);
+        return CertificateExtractingClient.builder()
+                .withResolvedRootCa(true)
+                .withProxy(proxy)
+                .withProxyPasswordAuthentication(passwordAuthentication)
+                .build()
+                .get(url);
     }
 
     public static List<String> getCertificatesFromExternalSourceAsPem(String url) {
@@ -324,20 +333,27 @@ public final class CertificateUtils {
     }
 
     public static Map<String, List<X509Certificate>> getCertificatesFromExternalSources(Proxy proxy, List<String> urls) {
-        CertificateExtractorUtils certificateExtractorUtils = new CertificateExtractorUtils(proxy);
+        CertificateExtractingClient client = CertificateExtractingClient.builder()
+                .withResolvedRootCa(true)
+                .withProxy(proxy)
+                .build();
 
         return urls.stream()
                 .distinct()
-                .map(url -> new AbstractMap.SimpleEntry<>(url, certificateExtractorUtils.getCertificateFromExternalSource(url)))
+                .map(url -> new AbstractMap.SimpleEntry<>(url, client.get(url)))
                 .collect(Collectors.collectingAndThen(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue, (key1, key2) -> key1, LinkedHashMap::new), Collections::unmodifiableMap));
     }
 
     public static Map<String, List<X509Certificate>> getCertificatesFromExternalSources(Proxy proxy, PasswordAuthentication passwordAuthentication, List<String> urls) {
-        CertificateExtractorUtils certificateExtractorUtils = new CertificateExtractorUtils(proxy, passwordAuthentication);
+        CertificateExtractingClient client = CertificateExtractingClient.builder()
+                .withResolvedRootCa(true)
+                .withProxyPasswordAuthentication(passwordAuthentication)
+                .withProxy(proxy)
+                .build();
 
         return urls.stream()
                 .distinct()
-                .map(url -> new AbstractMap.SimpleEntry<>(url, certificateExtractorUtils.getCertificateFromExternalSource(url)))
+                .map(url -> new AbstractMap.SimpleEntry<>(url, client.get(url)))
                 .collect(Collectors.collectingAndThen(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue, (key1, key2) -> key1, LinkedHashMap::new), Collections::unmodifiableMap));
     }
 
@@ -410,6 +426,10 @@ public final class CertificateUtils {
         } catch (CertificateException | NoSuchAlgorithmException | InvalidKeyException | NoSuchProviderException e) {
             throw new GenericCertificateException(e);
         }
+    }
+
+    public static <T extends Certificate> boolean isNotSelfSigned(T certificate) {
+        return !isSelfSigned(certificate);
     }
 
 }
