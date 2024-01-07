@@ -44,7 +44,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import static nl.altindag.ssl.util.CertificateUtils.isNotSelfSigned;
 import static nl.altindag.ssl.util.internal.CollectorsUtils.toUnmodifiableList;
 
 /**
@@ -133,7 +132,11 @@ public class CertificateExtractingClient {
     List<X509Certificate> getRootCaFromChainIfPossible(List<X509Certificate> certificates) {
         if (!certificates.isEmpty()) {
             X509Certificate certificate = certificates.get(certificates.size() - 1);
-            if (isNotSelfSigned(certificate)) {
+            String issuer = certificate.getIssuerX500Principal().getName();
+            String subject = certificate.getSubjectX500Principal().getName();
+
+            boolean isSelfSignedCertificate = issuer.equals(subject);
+            if (!isSelfSignedCertificate) {
                 return getRootCaIfPossible(certificate);
             }
         }
