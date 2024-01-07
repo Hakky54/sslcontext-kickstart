@@ -180,7 +180,7 @@ class CertificateExtractingClientShould {
             PasswordAuthentication passwordAuthentication = new PasswordAuthentication("foo", "bar".toCharArray());
             CertificateExtractingClient certificateExtractingClientWithProxyAndAuthentication = CertificateExtractingClient.builder()
                     .withProxy(proxy)
-                    .withProxyPasswordAuthentication(passwordAuthentication)
+                    .withPasswordAuthentication(passwordAuthentication)
                     .withResolvedRootCa(true)
                     .build();
 

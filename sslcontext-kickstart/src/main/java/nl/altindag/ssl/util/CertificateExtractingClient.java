@@ -239,7 +239,7 @@ public class CertificateExtractingClient {
             return this;
         }
 
-        public Builder withProxyPasswordAuthentication(PasswordAuthentication passwordAuthentication) {
+        public Builder withPasswordAuthentication(PasswordAuthentication passwordAuthentication) {
             this.passwordAuthentication = passwordAuthentication;
             return this;
         }
