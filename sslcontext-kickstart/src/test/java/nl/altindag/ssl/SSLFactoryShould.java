@@ -1598,6 +1598,24 @@ class SSLFactoryShould {
     }
 
     @Test
+    void returnWithExcludedCiphers() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withDummyTrustMaterial()
+                .build();
+
+        assertThat(sslFactory.getCiphers()).contains("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384");
+
+        sslFactory = SSLFactory.builder()
+                .withDummyTrustMaterial()
+                .withExcludedCiphers("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384")
+                .build();
+
+        assertThat(sslFactory.getCiphers())
+                .isNotEmpty()
+                .doesNotContainSequence("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384");
+    }
+
+    @Test
     void returnSpecifiedCiphersAndProtocolsWithinSslParameters() {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withDefaultTrustMaterial()
@@ -1633,6 +1651,24 @@ class SSLFactoryShould {
 
         assertThat(sslFactory.getSslContext()).isNotNull();
         assertThat(sslFactory.getProtocols()).contains("TLSv1.2");
+    }
+
+    @Test
+    void returnWithExcludedProtocols() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withDummyTrustMaterial()
+                .build();
+
+        assertThat(sslFactory.getProtocols()).contains("TLSv1.2");
+
+        sslFactory = SSLFactory.builder()
+                .withDummyTrustMaterial()
+                .withExcludedProtocols("TLSv1.2")
+                .build();
+
+        assertThat(sslFactory.getProtocols())
+                .isNotEmpty()
+                .doesNotContainSequence("TLSv1.2");
     }
 
     @Test

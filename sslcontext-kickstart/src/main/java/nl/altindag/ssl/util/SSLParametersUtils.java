@@ -16,6 +16,9 @@
 package nl.altindag.ssl.util;
 
 import javax.net.ssl.SSLParameters;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -41,6 +44,10 @@ public final class SSLParametersUtils {
     }
 
     public static SSLParameters merge(SSLParameters baseSslParameters, SSLParameters alternativeSslParameters) {
+        return merge(baseSslParameters, alternativeSslParameters, Collections.emptyList(), Collections.emptyList());
+    }
+
+    public static SSLParameters merge(SSLParameters baseSslParameters, SSLParameters alternativeSslParameters, List<String> excludedCiphers, List<String> excludedProtocols) {
         SSLParameters target = new SSLParameters();
 
         String[] ciphers = Optional.ofNullable(baseSslParameters.getCipherSuites())
@@ -49,6 +56,26 @@ public final class SSLParametersUtils {
         String[] protocols = Optional.ofNullable(baseSslParameters.getProtocols())
                 .filter(array -> array.length != 0)
                 .orElseGet(alternativeSslParameters::getProtocols);
+
+        if (!excludedCiphers.isEmpty()) {
+            ciphers = Arrays.stream(ciphers)
+                    .filter(cipher -> !excludedCiphers.contains(cipher))
+                    .toArray(String[]::new);
+
+            if (ciphers.length == 0) {
+                ciphers = alternativeSslParameters.getCipherSuites();
+            }
+        }
+
+        if (!excludedProtocols.isEmpty()) {
+            protocols = Arrays.stream(protocols)
+                    .filter(cipher -> !excludedProtocols.contains(cipher))
+                    .toArray(String[]::new);
+
+            if (protocols.length == 0) {
+                protocols = alternativeSslParameters.getProtocols();
+            }
+        }
 
         target.setCipherSuites(ciphers);
         target.setProtocols(protocols);

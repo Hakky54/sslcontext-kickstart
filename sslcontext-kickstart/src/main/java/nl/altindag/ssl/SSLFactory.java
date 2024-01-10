@@ -188,6 +188,8 @@ public final class SSLFactory {
         private final Map<String, List<URI>> preferredAliasToHost = new HashMap<>();
         private final List<String> protocols = new ArrayList<>();
         private final List<String> ciphers = new ArrayList<>();
+        private final List<String> excludedProtocols = new ArrayList<>();
+        private final List<String> excludedCiphers = new ArrayList<>();
 
         private boolean swappableKeyManagerEnabled = false;
         private boolean swappableTrustManagerEnabled = false;
@@ -685,6 +687,11 @@ public final class SSLFactory {
             return this;
         }
 
+        public Builder withExcludedCiphers(String... ciphers) {
+            this.excludedCiphers.addAll(Arrays.asList(ciphers));
+            return this;
+        }
+
         public Builder withSystemPropertyDerivedCiphers() {
             ciphers.addAll(extractPropertyValues("https.cipherSuites"));
             return this;
@@ -692,6 +699,11 @@ public final class SSLFactory {
 
         public Builder withProtocols(String... protocols) {
             this.protocols.addAll(Arrays.asList(protocols));
+            return this;
+        }
+
+        public Builder withExcludedProtocols(String... protocols) {
+            this.excludedProtocols.addAll(Arrays.asList(protocols));
             return this;
         }
 
@@ -927,7 +939,7 @@ public final class SSLFactory {
             sslParameters.setCipherSuites(preferredCiphers);
             sslParameters.setProtocols(preferredProtocols);
 
-            return SSLParametersUtils.merge(sslParameters, defaultSSLParameters);
+            return SSLParametersUtils.merge(sslParameters, defaultSSLParameters, excludedCiphers, excludedProtocols);
         }
 
     }
