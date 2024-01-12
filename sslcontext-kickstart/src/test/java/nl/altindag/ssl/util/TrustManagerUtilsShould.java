@@ -672,6 +672,22 @@ class TrustManagerUtilsShould {
     }
 
     @Test
+    void addCertificateToInflatableX509ExtendedTrustManagerEvenThoughItIsWrappedInAHotSwappableX509ExtendedTrustManagerWhichIsWrappedIntoACompositeX509ExtendedTrustManager() {
+        X509Certificate certificate = mock(X509Certificate.class);
+        List<X509Certificate> certificates = Collections.singletonList(certificate);
+
+        InflatableX509ExtendedTrustManager inflatableX509ExtendedTrustManager = mock(InflatableX509ExtendedTrustManager.class);
+        X509ExtendedTrustManager jdkTrustManager = TrustManagerUtils.createTrustManagerWithJdkTrustedCertificates();
+        X509ExtendedTrustManager combinedTrustManager = TrustManagerUtils.combine(inflatableX509ExtendedTrustManager, jdkTrustManager);
+        HotSwappableX509ExtendedTrustManager hotSwappableX509ExtendedTrustManager = (HotSwappableX509ExtendedTrustManager) TrustManagerUtils.createSwappableTrustManager(combinedTrustManager);
+//        when(hotSwappableX509ExtendedTrustManager.getInnerTrustManager()).thenReturn(combinedTrustManager);
+
+        TrustManagerUtils.addCertificate(hotSwappableX509ExtendedTrustManager, certificates);
+
+        verify(inflatableX509ExtendedTrustManager, times(1)).addCertificates(certificates);
+    }
+
+    @Test
     void addCertificateToInflatableX509ExtendedTrustManagerEvenThoughItIsWrappedInACompositeX509ExtendedTrustManager() {
         X509Certificate certificate = mock(X509Certificate.class);
         List<X509Certificate> certificates = Collections.singletonList(certificate);

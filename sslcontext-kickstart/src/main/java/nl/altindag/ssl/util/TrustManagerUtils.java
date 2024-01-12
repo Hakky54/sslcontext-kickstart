@@ -276,11 +276,27 @@ public final class TrustManagerUtils {
             return;
         }
 
-        if (trustManager instanceof HotSwappableX509ExtendedTrustManager
-                && ((HotSwappableX509ExtendedTrustManager) trustManager).getInnerTrustManager() instanceof InflatableX509ExtendedTrustManager) {
-            ((InflatableX509ExtendedTrustManager) ((HotSwappableX509ExtendedTrustManager) trustManager)
-                    .getInnerTrustManager()).addCertificates(certificates);
-            return;
+        if (trustManager instanceof HotSwappableX509ExtendedTrustManager) {
+            if (((HotSwappableX509ExtendedTrustManager) trustManager).getInnerTrustManager() instanceof InflatableX509ExtendedTrustManager) {
+                ((InflatableX509ExtendedTrustManager) ((HotSwappableX509ExtendedTrustManager) trustManager)
+                        .getInnerTrustManager()).addCertificates(certificates);
+                return;
+            }
+
+            if (((HotSwappableX509ExtendedTrustManager) trustManager).getInnerTrustManager() instanceof CompositeX509ExtendedTrustManager) {
+                List<X509ExtendedTrustManager> innerTrustManagers = ((CompositeX509ExtendedTrustManager) ((HotSwappableX509ExtendedTrustManager) trustManager)
+                        .getInnerTrustManager()).getInnerTrustManagers();
+
+                Optional<InflatableX509ExtendedTrustManager> inflatableX509ExtendedTrustManager = innerTrustManagers.stream()
+                        .filter(InflatableX509ExtendedTrustManager.class::isInstance)
+                        .map(InflatableX509ExtendedTrustManager.class::cast)
+                        .findFirst();
+
+                if (inflatableX509ExtendedTrustManager.isPresent()) {
+                    inflatableX509ExtendedTrustManager.get().addCertificates(certificates);
+                    return;
+                }
+            }
         }
 
         if (trustManager instanceof CompositeX509ExtendedTrustManager) {
