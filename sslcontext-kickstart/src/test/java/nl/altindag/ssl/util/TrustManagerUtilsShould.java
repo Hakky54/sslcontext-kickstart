@@ -672,6 +672,21 @@ class TrustManagerUtilsShould {
     }
 
     @Test
+    void addCertificateToInflatableX509ExtendedTrustManagerEvenThoughItIsWrappedInAHotSwappableX509ExtendedTrustManagerWhichIsWrappedIntoACompositeX509ExtendedTrustManager() {
+        X509Certificate certificate = mock(X509Certificate.class);
+        List<X509Certificate> certificates = Collections.singletonList(certificate);
+
+        InflatableX509ExtendedTrustManager inflatableX509ExtendedTrustManager = mock(InflatableX509ExtendedTrustManager.class);
+        X509ExtendedTrustManager jdkTrustManager = TrustManagerUtils.createTrustManagerWithJdkTrustedCertificates();
+        X509ExtendedTrustManager combinedTrustManager = TrustManagerUtils.combine(inflatableX509ExtendedTrustManager, jdkTrustManager);
+        HotSwappableX509ExtendedTrustManager hotSwappableX509ExtendedTrustManager = (HotSwappableX509ExtendedTrustManager) TrustManagerUtils.createSwappableTrustManager(combinedTrustManager);
+
+        TrustManagerUtils.addCertificate(hotSwappableX509ExtendedTrustManager, certificates);
+
+        verify(inflatableX509ExtendedTrustManager, times(1)).addCertificates(certificates);
+    }
+
+    @Test
     void addCertificateToInflatableX509ExtendedTrustManagerEvenThoughItIsWrappedInACompositeX509ExtendedTrustManager() {
         X509Certificate certificate = mock(X509Certificate.class);
         List<X509Certificate> certificates = Collections.singletonList(certificate);
@@ -903,6 +918,21 @@ class TrustManagerUtilsShould {
         X509ExtendedTrustManager trustManager = mock(X509ExtendedTrustManager.class);
         HotSwappableX509ExtendedTrustManager hotSwappableX509ExtendedTrustManager = mock(HotSwappableX509ExtendedTrustManager.class);
         when(hotSwappableX509ExtendedTrustManager.getInnerTrustManager()).thenReturn(trustManager);
+
+        assertThatThrownBy(() -> TrustManagerUtils.addCertificate(hotSwappableX509ExtendedTrustManager, certificates))
+                .isInstanceOf(GenericTrustManagerException.class)
+                .hasMessage("The provided trustManager should be an instance of [nl.altindag.ssl.trustmanager.InflatableX509ExtendedTrustManager]");
+    }
+
+    @Test
+    void throwExceptionWhenAddingCertificateToANonInflatableX509ExtendedTrustManagerEvenThoughItIsWrappedInAHotSwappableX509ExtendedTrustManagerContainingACompositeX509ExtendedTrustManager() {
+        X509Certificate certificate = mock(X509Certificate.class);
+        List<X509Certificate> certificates = Collections.singletonList(certificate);
+        X509ExtendedTrustManager nonInflatableTrustManager = mock(X509ExtendedTrustManager.class);
+        CompositeX509ExtendedTrustManager compositeX509ExtendedTrustManager = mock(CompositeX509ExtendedTrustManager.class);
+        HotSwappableX509ExtendedTrustManager hotSwappableX509ExtendedTrustManager = mock(HotSwappableX509ExtendedTrustManager.class);
+        when(hotSwappableX509ExtendedTrustManager.getInnerTrustManager()).thenReturn(compositeX509ExtendedTrustManager);
+        when(compositeX509ExtendedTrustManager.getInnerTrustManagers()).thenReturn(Collections.singletonList(nonInflatableTrustManager));
 
         assertThatThrownBy(() -> TrustManagerUtils.addCertificate(hotSwappableX509ExtendedTrustManager, certificates))
                 .isInstanceOf(GenericTrustManagerException.class)
