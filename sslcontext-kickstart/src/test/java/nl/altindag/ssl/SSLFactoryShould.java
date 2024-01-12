@@ -1598,6 +1598,91 @@ class SSLFactoryShould {
     }
 
     @Test
+    void returnWithExcludedCiphers() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withDummyTrustMaterial()
+                .build();
+
+        assertThat(sslFactory.getCiphers()).contains("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384");
+
+        sslFactory = SSLFactory.builder()
+                .withDummyTrustMaterial()
+                .withExcludedCiphers("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384")
+                .build();
+
+        assertThat(sslFactory.getCiphers())
+                .isNotEmpty()
+                .doesNotContainSequence("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384");
+    }
+
+    @Test
+    void returnWithDefaultCiphersWhenAllIsExcluded() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withDummyTrustMaterial()
+                .build();
+
+        assertThat(sslFactory.getCiphers()).contains("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384");
+
+        sslFactory = SSLFactory.builder()
+                .withDummyTrustMaterial()
+                .withExcludedCiphers(
+                        "TLS_AES_256_GCM_SHA384",
+                        "TLS_AES_128_GCM_SHA256",
+                        "TLS_CHACHA20_POLY1305_SHA256",
+                        "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384",
+                        "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
+                        "TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256",
+                        "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
+                        "TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256",
+                        "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
+                        "TLS_DHE_RSA_WITH_AES_256_GCM_SHA384",
+                        "TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256",
+                        "TLS_DHE_DSS_WITH_AES_256_GCM_SHA384",
+                        "TLS_DHE_RSA_WITH_AES_128_GCM_SHA256",
+                        "TLS_DHE_DSS_WITH_AES_128_GCM_SHA256",
+                        "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384",
+                        "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384",
+                        "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256",
+                        "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256",
+                        "TLS_DHE_RSA_WITH_AES_256_CBC_SHA256",
+                        "TLS_DHE_DSS_WITH_AES_256_CBC_SHA256",
+                        "TLS_DHE_RSA_WITH_AES_128_CBC_SHA256",
+                        "TLS_DHE_DSS_WITH_AES_128_CBC_SHA256",
+                        "TLS_ECDH_ECDSA_WITH_AES_256_GCM_SHA384",
+                        "TLS_ECDH_RSA_WITH_AES_256_GCM_SHA384",
+                        "TLS_ECDH_ECDSA_WITH_AES_128_GCM_SHA256",
+                        "TLS_ECDH_RSA_WITH_AES_128_GCM_SHA256",
+                        "TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA384",
+                        "TLS_ECDH_RSA_WITH_AES_256_CBC_SHA384",
+                        "TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA256",
+                        "TLS_ECDH_RSA_WITH_AES_128_CBC_SHA256",
+                        "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA",
+                        "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",
+                        "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA",
+                        "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA",
+                        "TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
+                        "TLS_DHE_DSS_WITH_AES_256_CBC_SHA",
+                        "TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
+                        "TLS_DHE_DSS_WITH_AES_128_CBC_SHA",
+                        "TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA",
+                        "TLS_ECDH_RSA_WITH_AES_256_CBC_SHA",
+                        "TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA",
+                        "TLS_ECDH_RSA_WITH_AES_128_CBC_SHA",
+                        "TLS_RSA_WITH_AES_256_GCM_SHA384",
+                        "TLS_RSA_WITH_AES_128_GCM_SHA256",
+                        "TLS_RSA_WITH_AES_256_CBC_SHA256",
+                        "TLS_RSA_WITH_AES_128_CBC_SHA256",
+                        "TLS_RSA_WITH_AES_256_CBC_SHA",
+                        "TLS_RSA_WITH_AES_128_CBC_SHA",
+                        "TLS_EMPTY_RENEGOTIATION_INFO_SCSV"
+                ).build();
+
+        assertThat(sslFactory.getCiphers())
+                .isNotEmpty()
+                .contains("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384");
+    }
+
+    @Test
     void returnSpecifiedCiphersAndProtocolsWithinSslParameters() {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withDefaultTrustMaterial()
@@ -1633,6 +1718,42 @@ class SSLFactoryShould {
 
         assertThat(sslFactory.getSslContext()).isNotNull();
         assertThat(sslFactory.getProtocols()).contains("TLSv1.2");
+    }
+
+    @Test
+    void returnWithExcludedProtocols() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withDummyTrustMaterial()
+                .build();
+
+        assertThat(sslFactory.getProtocols()).contains("TLSv1.2");
+
+        sslFactory = SSLFactory.builder()
+                .withDummyTrustMaterial()
+                .withExcludedProtocols("TLSv1.2")
+                .build();
+
+        assertThat(sslFactory.getProtocols())
+                .isNotEmpty()
+                .doesNotContainSequence("TLSv1.2");
+    }
+
+    @Test
+    void returnWithDefaultProtocolsWhenAllIsExcluded() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withDummyTrustMaterial()
+                .build();
+
+        assertThat(sslFactory.getProtocols()).contains("TLSv1.2");
+
+        sslFactory = SSLFactory.builder()
+                .withDummyTrustMaterial()
+                .withExcludedProtocols("TLSv1.2", "TLSv1.3", "TLSv1.1")
+                .build();
+
+        assertThat(sslFactory.getProtocols())
+                .isNotEmpty()
+                .contains("TLSv1.2");
     }
 
     @Test
