@@ -27,7 +27,7 @@ import java.security.cert.X509Certificate;
  *
  * @author Hakan Altindag
  */
-class DelegatingX509ExtendedTrustManager extends DelegatingTrustManager<X509ExtendedTrustManager> {
+public class DelegatingX509ExtendedTrustManager extends DelegatingTrustManager<X509ExtendedTrustManager> {
 
     DelegatingX509ExtendedTrustManager(X509ExtendedTrustManager trustManager) {
         super(trustManager);

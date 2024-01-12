@@ -19,6 +19,7 @@ import nl.altindag.ssl.exception.GenericTrustManagerException;
 import nl.altindag.ssl.model.TrustManagerParameters;
 import nl.altindag.ssl.trustmanager.CertificateCapturingX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.CompositeX509ExtendedTrustManager;
+import nl.altindag.ssl.trustmanager.DelegatingX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.DummyX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.EnhanceableX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.HotSwappableX509ExtendedTrustManager;
@@ -271,49 +272,41 @@ public final class TrustManagerUtils {
      * and it is allowed that it is wrapped in a {@link CompositeX509ExtendedTrustManager}
      */
     public static void addCertificate(X509ExtendedTrustManager trustManager, List<X509Certificate> certificates) {
-        if (trustManager instanceof InflatableX509ExtendedTrustManager) {
-            ((InflatableX509ExtendedTrustManager) trustManager).addCertificates(certificates);
+        boolean certificateAdded = addCertificateIfPossible(trustManager, certificates);
+        if (certificateAdded) {
             return;
-        }
-
-        if (trustManager instanceof HotSwappableX509ExtendedTrustManager) {
-            if (((HotSwappableX509ExtendedTrustManager) trustManager).getInnerTrustManager() instanceof InflatableX509ExtendedTrustManager) {
-                ((InflatableX509ExtendedTrustManager) ((HotSwappableX509ExtendedTrustManager) trustManager)
-                        .getInnerTrustManager()).addCertificates(certificates);
-                return;
-            }
-
-            if (((HotSwappableX509ExtendedTrustManager) trustManager).getInnerTrustManager() instanceof CompositeX509ExtendedTrustManager) {
-                List<X509ExtendedTrustManager> innerTrustManagers = ((CompositeX509ExtendedTrustManager) ((HotSwappableX509ExtendedTrustManager) trustManager)
-                        .getInnerTrustManager()).getInnerTrustManagers();
-
-                Optional<InflatableX509ExtendedTrustManager> inflatableX509ExtendedTrustManager = innerTrustManagers.stream()
-                        .filter(InflatableX509ExtendedTrustManager.class::isInstance)
-                        .map(InflatableX509ExtendedTrustManager.class::cast)
-                        .findFirst();
-
-                if (inflatableX509ExtendedTrustManager.isPresent()) {
-                    inflatableX509ExtendedTrustManager.get().addCertificates(certificates);
-                    return;
-                }
-            }
-        }
-
-        if (trustManager instanceof CompositeX509ExtendedTrustManager) {
-            Optional<InflatableX509ExtendedTrustManager> inflatableX509ExtendedTrustManager = ((CompositeX509ExtendedTrustManager) trustManager).getInnerTrustManagers().stream()
-                    .filter(InflatableX509ExtendedTrustManager.class::isInstance)
-                    .map(InflatableX509ExtendedTrustManager.class::cast)
-                    .findFirst();
-
-            if (inflatableX509ExtendedTrustManager.isPresent()) {
-                inflatableX509ExtendedTrustManager.get().addCertificates(certificates);
-                return;
-            }
         }
 
         throw new GenericTrustManagerException(
                 String.format("The provided trustManager should be an instance of [%s]", InflatableX509ExtendedTrustManager.class.getName())
         );
+    }
+
+    private static boolean addCertificateIfPossible(X509ExtendedTrustManager trustManager, List<X509Certificate> certificates) {
+        if (trustManager instanceof InflatableX509ExtendedTrustManager) {
+            ((InflatableX509ExtendedTrustManager) trustManager).addCertificates(certificates);
+            return true;
+        }
+
+        if (trustManager instanceof DelegatingX509ExtendedTrustManager) {
+            X509ExtendedTrustManager innerTrustManager = ((DelegatingX509ExtendedTrustManager) trustManager).getInnerTrustManager();
+            return addCertificateIfPossible(innerTrustManager, certificates);
+        }
+
+        if (trustManager instanceof CompositeX509ExtendedTrustManager) {
+            List<X509ExtendedTrustManager> innerTrustManagers = ((CompositeX509ExtendedTrustManager) trustManager).getInnerTrustManagers();
+
+            Optional<InflatableX509ExtendedTrustManager> inflatableX509ExtendedTrustManager = innerTrustManagers.stream()
+                    .filter(InflatableX509ExtendedTrustManager.class::isInstance)
+                    .map(InflatableX509ExtendedTrustManager.class::cast)
+                    .findFirst();
+
+            if (inflatableX509ExtendedTrustManager.isPresent()) {
+                return addCertificateIfPossible(inflatableX509ExtendedTrustManager.get(), certificates);
+            }
+        }
+
+        return false;
     }
 
     /**
