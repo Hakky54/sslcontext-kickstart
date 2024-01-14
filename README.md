@@ -1355,6 +1355,8 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/woj-tek"><img src="https://avatars.githubusercontent.com/u/724413?v=4?s=100" width="100px;" alt=""/><br /><sub><b>woj-tek</b></sub></a><br /><a title="Bug reports">🐛</a></td>
     <td align="center"><a href="https://github.com/thahnen"><img src="https://avatars.githubusercontent.com/u/6588381?v=4?s=100" width="100px;" alt=""/><br /><sub><b>thahnen</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Athahnen" title="Bug reports">🐛</a></td>
     <td align="center"><a href="https://github.com/gerardnorton"><img src="https://avatars.githubusercontent.com/u/62466694?v=4?s=100" width="100px;" alt=""/><br /><sub><b>gerardnorton</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Agerardnorton" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="https://github.com/austinarbor"><img src="https://avatars.githubusercontent.com/u/11469880?v=4?s=100" width="100px;" alt=""/><br /><sub><b>austinarbor</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Aaustinarbor" title="Bug reports">🐛</a></td>
+    <td align="center"><a href="https://github.com/ssmoss"><img src="https://avatars.githubusercontent.com/u/8904909?v=4?s=100" width="100px;" alt=""/><br /><sub><b>ssmoss</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Assmoss" title="Ideas, Planning, & Feedback">🤔</a></td>
   </tr>
 </table>
 
