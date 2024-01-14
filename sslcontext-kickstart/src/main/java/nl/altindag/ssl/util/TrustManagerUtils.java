@@ -56,6 +56,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 import static nl.altindag.ssl.util.internal.CollectorsUtils.toListAndThen;
@@ -338,6 +339,14 @@ public final class TrustManagerUtils {
             );
         }
 
+        if (!(baseTrustManager instanceof HotSwappableX509ExtendedTrustManager)) {
+            throw new GenericTrustManagerException(
+                    String.format("The baseTrustManager is from the instance of [%s] and should be an instance of [%s].",
+                            baseTrustManager.getClass().getName(),
+                            HotSwappableX509ExtendedTrustManager.class.getName())
+            );
+        }
+
         if (newTrustManager instanceof HotSwappableX509ExtendedTrustManager
                 && !(newTrustManager instanceof InflatableX509ExtendedTrustManager)) {
             throw new GenericTrustManagerException(
@@ -345,46 +354,38 @@ public final class TrustManagerUtils {
             );
         }
 
-        if (baseTrustManager instanceof HotSwappableX509ExtendedTrustManager
-                && ((HotSwappableX509ExtendedTrustManager) baseTrustManager).getInnerTrustManager() instanceof LoggingX509ExtendedTrustManager
-                && ((LoggingX509ExtendedTrustManager) ((HotSwappableX509ExtendedTrustManager) baseTrustManager).getInnerTrustManager()).getInnerTrustManager() instanceof EnhanceableX509ExtendedTrustManager) {
+        HotSwappableX509ExtendedTrustManager swappableTrustManager = (HotSwappableX509ExtendedTrustManager) baseTrustManager;
+        X509ExtendedTrustManager innerTrustManager = swappableTrustManager.getInnerTrustManager();
 
-            EnhanceableX509ExtendedTrustManager existingEnhanceableX509ExtendedTrustManager = (EnhanceableX509ExtendedTrustManager) ((LoggingX509ExtendedTrustManager) ((HotSwappableX509ExtendedTrustManager) baseTrustManager).getInnerTrustManager()).getInnerTrustManager();
-            ((HotSwappableX509ExtendedTrustManager) baseTrustManager).setTrustManager(
-                    new LoggingX509ExtendedTrustManager(
-                            new EnhanceableX509ExtendedTrustManager(
-                                    TrustManagerUtils.wrapIfNeeded(newTrustManager),
-                                    existingEnhanceableX509ExtendedTrustManager.getTrustManagerParametersValidator(),
-                                    existingEnhanceableX509ExtendedTrustManager.isTrustedCertificatesConcealed()
-                            )
-                    )
-            );
-        } else if (baseTrustManager instanceof HotSwappableX509ExtendedTrustManager
-                && ((HotSwappableX509ExtendedTrustManager) baseTrustManager).getInnerTrustManager() instanceof EnhanceableX509ExtendedTrustManager) {
+        List<UnaryOperator<X509ExtendedTrustManager>> mappers = new ArrayList<>();
+        computeMappersForNewTrustManager(innerTrustManager, mappers);
+        Collections.reverse(mappers);
 
-            EnhanceableX509ExtendedTrustManager existingEnhanceableX509ExtendedTrustManager = (EnhanceableX509ExtendedTrustManager) ((HotSwappableX509ExtendedTrustManager) baseTrustManager).getInnerTrustManager();
-            ((HotSwappableX509ExtendedTrustManager) baseTrustManager).setTrustManager(
+        X509ExtendedTrustManager resolvedNewTrustManager = TrustManagerUtils.wrapIfNeeded(newTrustManager);
+        for (UnaryOperator<X509ExtendedTrustManager> mapper : mappers) {
+            resolvedNewTrustManager = mapper.apply(resolvedNewTrustManager);
+        }
+
+        swappableTrustManager.setTrustManager(resolvedNewTrustManager);
+    }
+
+    private static void computeMappersForNewTrustManager(X509ExtendedTrustManager trustManager, List<UnaryOperator<X509ExtendedTrustManager>> mappers) {
+        if (trustManager instanceof LoggingX509ExtendedTrustManager) {
+            LoggingX509ExtendedTrustManager loggingTrustManager = (LoggingX509ExtendedTrustManager) trustManager;
+            mappers.add(LoggingX509ExtendedTrustManager::new);
+            computeMappersForNewTrustManager(loggingTrustManager.getInnerTrustManager(), mappers);
+        }
+
+        if (trustManager instanceof EnhanceableX509ExtendedTrustManager) {
+            EnhanceableX509ExtendedTrustManager existingEnhanceableTrustManager = (EnhanceableX509ExtendedTrustManager) trustManager;
+            mappers.add(newTrustManager ->
                     new EnhanceableX509ExtendedTrustManager(
                             TrustManagerUtils.wrapIfNeeded(newTrustManager),
-                            existingEnhanceableX509ExtendedTrustManager.getTrustManagerParametersValidator(),
-                            existingEnhanceableX509ExtendedTrustManager.isTrustedCertificatesConcealed()
+                            existingEnhanceableTrustManager.getTrustManagerParametersValidator(),
+                            existingEnhanceableTrustManager.isTrustedCertificatesConcealed()
                     )
             );
-        } else if (baseTrustManager instanceof HotSwappableX509ExtendedTrustManager
-                && ((HotSwappableX509ExtendedTrustManager) baseTrustManager).getInnerTrustManager() instanceof LoggingX509ExtendedTrustManager) {
-            ((HotSwappableX509ExtendedTrustManager) baseTrustManager).setTrustManager(
-                    new LoggingX509ExtendedTrustManager(
-                            TrustManagerUtils.wrapIfNeeded(newTrustManager)
-                    )
-            );
-        } else if (baseTrustManager instanceof HotSwappableX509ExtendedTrustManager) {
-            ((HotSwappableX509ExtendedTrustManager) baseTrustManager).setTrustManager(TrustManagerUtils.wrapIfNeeded(newTrustManager));
-        } else {
-            throw new GenericTrustManagerException(
-                    String.format("The baseTrustManager is from the instance of [%s] and should be an instance of [%s].",
-                            baseTrustManager.getClass().getName(),
-                            HotSwappableX509ExtendedTrustManager.class.getName())
-            );
+            computeMappersForNewTrustManager(existingEnhanceableTrustManager.getInnerTrustManager(), mappers);
         }
     }
 
