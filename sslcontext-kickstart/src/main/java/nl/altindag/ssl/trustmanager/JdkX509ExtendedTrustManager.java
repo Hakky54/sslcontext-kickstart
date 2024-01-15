@@ -15,11 +15,7 @@
  */
 package nl.altindag.ssl.trustmanager;
 
-import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedTrustManager;
-import java.net.Socket;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 
 /**
  * <strong>NOTE:</strong>
@@ -31,36 +27,6 @@ public final class JdkX509ExtendedTrustManager extends DelegatingX509ExtendedTru
 
     public JdkX509ExtendedTrustManager(X509ExtendedTrustManager trustManager) {
         super(trustManager);
-    }
-
-    @Override
-    public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-        super.checkClientTrusted(chain, authType);
-    }
-
-    @Override
-    public void checkClientTrusted(X509Certificate[] chain, String authType, Socket socket) throws CertificateException {
-        super.checkClientTrusted(chain, authType, socket);
-    }
-
-    @Override
-    public void checkClientTrusted(X509Certificate[] chain, String authType, SSLEngine sslEngine) throws CertificateException {
-        super.checkClientTrusted(chain, authType, sslEngine);
-    }
-
-    @Override
-    public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-        super.checkServerTrusted(chain, authType);
-    }
-
-    @Override
-    public void checkServerTrusted(X509Certificate[] chain, String authType, Socket socket) throws CertificateException {
-        super.checkServerTrusted(chain, authType, socket);
-    }
-
-    @Override
-    public void checkServerTrusted(X509Certificate[] chain, String authType, SSLEngine sslEngine) throws CertificateException {
-        super.checkServerTrusted(chain, authType, sslEngine);
     }
 
 }
