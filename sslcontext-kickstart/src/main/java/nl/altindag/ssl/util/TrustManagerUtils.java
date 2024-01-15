@@ -24,7 +24,9 @@ import nl.altindag.ssl.trustmanager.DummyX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.EnhanceableX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.HotSwappableX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.InflatableX509ExtendedTrustManager;
+import nl.altindag.ssl.trustmanager.JdkX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.LoggingX509ExtendedTrustManager;
+import nl.altindag.ssl.trustmanager.SystemX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.TrustManagerFactoryWrapper;
 import nl.altindag.ssl.trustmanager.UnsafeX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.X509TrustManagerWrapper;
@@ -84,7 +86,7 @@ public final class TrustManagerUtils {
     }
 
     public static X509ExtendedTrustManager createTrustManagerWithJdkTrustedCertificates() {
-        return createTrustManager((KeyStore) null);
+        return new JdkX509ExtendedTrustManager(createTrustManager((KeyStore) null));
     }
 
     public static Optional<X509ExtendedTrustManager> createTrustManagerWithSystemTrustedCertificates() {
@@ -94,7 +96,7 @@ public final class TrustManagerUtils {
         }
 
         X509ExtendedTrustManager trustManager = createTrustManager(trustStores.toArray(new KeyStore[]{}));
-        return Optional.of(trustManager);
+        return Optional.of(new SystemX509ExtendedTrustManager(trustManager));
     }
 
 

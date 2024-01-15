@@ -79,12 +79,6 @@ public final class LoggingX509ExtendedTrustManager extends DelegatingX509Extende
         super.checkServerTrusted(chain, authType, sslEngine);
     }
 
-    @Override
-    public X509Certificate[] getAcceptedIssuers() {
-        X509Certificate[] acceptedIssuers = trustManager.getAcceptedIssuers();
-        return Arrays.copyOf(acceptedIssuers, acceptedIssuers.length);
-    }
-
     private static void logCertificate(CounterParty counterParty, X509Certificate[] chain, String authType, Socket socket, SSLEngine sslEngine) {
         String certificateChain = Arrays.toString(chain);
 

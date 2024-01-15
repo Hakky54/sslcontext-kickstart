@@ -23,8 +23,10 @@ import nl.altindag.ssl.trustmanager.DummyX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.EnhanceableX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.HotSwappableX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.InflatableX509ExtendedTrustManager;
+import nl.altindag.ssl.trustmanager.JdkX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.KeyStoreTestUtils;
 import nl.altindag.ssl.trustmanager.LoggingX509ExtendedTrustManager;
+import nl.altindag.ssl.trustmanager.SystemX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.UnsafeX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.X509TrustManagerWrapper;
 import org.junit.jupiter.api.Test;
@@ -176,7 +178,7 @@ class TrustManagerUtilsShould {
     void createTrustManagerWithJdkTrustedCertificatesWhenCallingCreateTrustManagerWithJdkTrustedCertificates() {
         X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManagerWithJdkTrustedCertificates();
 
-        assertThat(trustManager).isNotNull();
+        assertThat(trustManager).isNotNull().isInstanceOf(JdkX509ExtendedTrustManager.class);
         assertThat((trustManager).getAcceptedIssuers()).hasSizeGreaterThan(10);
     }
 
@@ -212,6 +214,7 @@ class TrustManagerUtilsShould {
             Optional<X509ExtendedTrustManager> trustManager = TrustManagerUtils.createTrustManagerWithSystemTrustedCertificates();
             if (operatingSystem.contains("mac") || operatingSystem.contains("windows") || operatingSystem.contains("linux")) {
                 assertThat(trustManager).isPresent();
+                assertThat(trustManager.get()).isInstanceOf(SystemX509ExtendedTrustManager.class);
                 assertThat((trustManager).get().getAcceptedIssuers()).hasSizeGreaterThan(0);
             }
         }
