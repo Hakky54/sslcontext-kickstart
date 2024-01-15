@@ -3,6 +3,16 @@
 This list is not intended to be all-encompassing - it will document major and breaking API
 changes with their rationale when appropriate:
 
+### v8.3.0
+- Bumped dependencies
+- Added option to extract public key from private key
+- Added option to disable resolving root ca when extracting server certificates
+- Added options to exclude ciphers and protocols in the SSLFactory
+- Bug-fix allow adding new certificates in a nested TrustManager
+- Simplified adding certificates to TrustManager
+- Simplified swapping TrustManagers
+- Added JdkX509ExtendedTrustManager wrapper for JDK trusted CA's from cacerts
+- Added SystemX509ExtendedTrustManager wrapper for OS trusted CA's
 ### v8.2.0
 - Added option to conceal trusted certificate names for a server
 - Bumped dependencies
