@@ -274,6 +274,9 @@ public final class KeyStoreUtils {
                     .thenApply(Optional::of)
                     .get(500, TimeUnit.MILLISECONDS);
         } catch (Exception exception) {
+            if (exception instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
             LOGGER.debug(String.format("Failed to load KeyStore of the type [%s]", keyStoreType), exception);
             return Optional.empty();
         }
