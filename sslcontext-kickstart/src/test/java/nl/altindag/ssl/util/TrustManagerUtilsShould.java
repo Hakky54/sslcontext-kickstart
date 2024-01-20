@@ -32,7 +32,9 @@ import nl.altindag.ssl.trustmanager.X509TrustManagerWrapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.stubbing.Answer;
 
 import javax.net.ssl.CertPathTrustManagerParameters;
 import javax.net.ssl.ManagerFactoryParameters;
@@ -59,6 +61,9 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -192,6 +197,7 @@ class TrustManagerUtilsShould {
         assertThat((trustManager).getAcceptedIssuers()).hasSizeGreaterThan(10);
     }
 
+    @SuppressWarnings("rawtypes")
     @Test
     void createTrustManagerWithSystemTrustedCertificate() {
         String operatingSystem = System.getProperty("os.name").toLowerCase();
@@ -210,7 +216,14 @@ class TrustManagerUtilsShould {
             } else {
                 return invocation.callRealMethod();
             }
-        })) {
+        }); MockedStatic<CompletableFuture>  mockCompletableFuture = mockStatic(CompletableFuture.class, Mockito.CALLS_REAL_METHODS)) {
+            mockCompletableFuture.when(() -> CompletableFuture.supplyAsync(any()))
+                    .thenAnswer((Answer<CompletableFuture<?>>) invocation -> {
+                        Executor currentThread = Runnable::run;
+                        Supplier<?> supplier = invocation.getArgument(0);
+                        return CompletableFuture.supplyAsync(supplier, currentThread);
+                    });
+
             Optional<X509ExtendedTrustManager> trustManager = TrustManagerUtils.createTrustManagerWithSystemTrustedCertificates();
             if (operatingSystem.contains("mac") || operatingSystem.contains("windows") || operatingSystem.contains("linux")) {
                 assertThat(trustManager).isPresent();

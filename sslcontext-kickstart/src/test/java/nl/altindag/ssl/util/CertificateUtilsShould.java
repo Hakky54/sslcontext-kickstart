@@ -23,8 +23,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.stubbing.Answer;
 
 import javax.net.ssl.X509ExtendedTrustManager;
 import javax.security.auth.x500.X500Principal;
@@ -50,6 +52,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -62,6 +67,7 @@ import static nl.altindag.ssl.TestConstants.TRUSTSTORE_FILE_NAME;
 import static nl.altindag.ssl.TestConstants.TRUSTSTORE_PASSWORD;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -427,30 +433,35 @@ class CertificateUtilsShould {
     void getSystemTrustedCertificates() {
         String operatingSystem = System.getProperty("os.name").toLowerCase();
 
-        if (operatingSystem.contains("mac")) {
-            try (MockedStatic<MacCertificateUtils> macCertificateUtilsMockedStatic = mockStatic(MacCertificateUtils.class);
-                 MockedStatic<KeyStoreUtils> keyStoreUtilsMockedStatic = mockStatic(KeyStoreUtils.class, invocation -> {
-                     Method method = invocation.getMethod();
-                     if ("createKeyStore".equals(method.getName())
-                             && method.getParameterCount() == 2) {
-                         return KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
-                     } else if ("createTrustStore".equals(method.getName())
-                             && method.getParameterCount() == 1
-                             && method.getParameters()[0].getType().equals(List.class)) {
-                         return KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-without-password.jks", null);
-                     } else {
-                         return invocation.callRealMethod();
-                     }
-                 })) {
-                List<X509Certificate> certificates = CertificateUtils.getSystemTrustedCertificates();
-                assertThat(certificates).isNotEmpty();
-            }
-        } else {
+        try (MockedStatic<MacCertificateUtils> macCertificateUtilsMockedStatic = mockStatic(MacCertificateUtils.class);
+             MockedStatic<KeyStoreUtils> keyStoreUtilsMockedStatic = mockStatic(KeyStoreUtils.class, invocation -> {
+                 Method method = invocation.getMethod();
+                 if ("createKeyStore".equals(method.getName())
+                         && method.getParameterCount() == 2
+                         && operatingSystem.contains("mac")) {
+                     return KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+                 } else if ("createTrustStore".equals(method.getName())
+                         && method.getParameterCount() == 1
+                         && method.getParameters()[0].getType().equals(List.class)
+                         && operatingSystem.contains("mac")) {
+                     return KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-without-password.jks", null);
+                 } else {
+                     return invocation.callRealMethod();
+                 }
+             }); MockedStatic<CompletableFuture>  mockCompletableFuture = mockStatic(CompletableFuture.class, Mockito.CALLS_REAL_METHODS)) {
+            mockCompletableFuture.when(() -> CompletableFuture.supplyAsync(any()))
+                    .thenAnswer((Answer<CompletableFuture<?>>) invocation -> {
+                        Executor currentThread = Runnable::run;
+                        Supplier<?> supplier = invocation.getArgument(0);
+                        return CompletableFuture.supplyAsync(supplier, currentThread);
+                    });
+
             List<X509Certificate> certificates = CertificateUtils.getSystemTrustedCertificates();
             if (operatingSystem.contains("mac") || operatingSystem.contains("windows") || operatingSystem.contains("linux")) {
                 assertThat(certificates).isNotEmpty();
             }
         }
+
     }
 
     @Test
