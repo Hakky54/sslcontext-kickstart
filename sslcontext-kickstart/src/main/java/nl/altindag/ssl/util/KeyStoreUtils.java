@@ -43,7 +43,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static nl.altindag.ssl.util.internal.ValidationUtils.requireNotEmpty;
@@ -62,6 +65,7 @@ public final class KeyStoreUtils {
     private static final UnaryOperator<String> KEYSTORE_NOT_FOUND_EXCEPTION_MESSAGE = certificatePath -> String.format("Failed to load the keystore from the classpath for the given path: [%s]", certificatePath);
     private static final String EMPTY_TRUST_MANAGER_FOR_TRUSTSTORE_EXCEPTION = "Could not create TrustStore because the provided TrustManager does not contain any trusted certificates";
     private static final String EMPTY_CERTIFICATES_EXCEPTION = "Could not create TrustStore because certificate is absent";
+    private static List<String> excludedSystemKeyStoreTypes;
 
     private KeyStoreUtils() {}
 
@@ -229,7 +233,9 @@ public final class KeyStoreUtils {
                 break;
             }
             case WINDOWS: {
+                List<String> excludedSystemKeyStoreTypes = getExcludedSystemKeyStoreTypes();
                 Stream.of("Windows-ROOT", "Windows-ROOT-LOCALMACHINE", "Windows-ROOT-CURRENTUSER", "Windows-MY", "Windows-MY-CURRENTUSER", "Windows-MY-LOCALMACHINE")
+                        .filter(keyStoreType -> !excludedSystemKeyStoreTypes.contains(keyStoreType.toLowerCase()))
                         .map(keystoreType -> createKeyStoreIfAvailable(keystoreType, null))
                         .filter(Optional::isPresent)
                         .map(Optional::get)
@@ -257,17 +263,33 @@ public final class KeyStoreUtils {
     @SuppressWarnings("SameParameterValue")
     static Optional<KeyStore> createKeyStoreIfAvailable(String keyStoreType, char[] keyStorePassword) {
         try {
-            KeyStore keyStore = createKeyStore(keyStoreType, keyStorePassword);
-
-            if (LOGGER.isDebugEnabled()) {
-                int totalTrustedCertificates = countAmountOfTrustMaterial(keyStore);
-                LOGGER.debug("Successfully loaded KeyStore of the type [{}] having [{}] entries", keyStoreType, totalTrustedCertificates);
-            }
-            return Optional.of(keyStore);
-        } catch (Exception ignored) {
-            LOGGER.debug("Failed to load KeyStore of the type [{}]", keyStoreType);
+            return CompletableFuture.supplyAsync(() -> createKeyStore(keyStoreType, keyStorePassword))
+                    .thenApply(keyStore -> {
+                        if (LOGGER.isDebugEnabled()) {
+                            int totalTrustedCertificates = countAmountOfTrustMaterial(keyStore);
+                            LOGGER.debug("Successfully loaded KeyStore of the type [{}] having [{}] entries", keyStoreType, totalTrustedCertificates);
+                        }
+                        return keyStore;
+                    })
+                    .thenApply(Optional::of)
+                    .get(200, TimeUnit.MILLISECONDS);
+        } catch (Exception exception) {
+            LOGGER.debug(String.format("Failed to load KeyStore of the type [%s]", keyStoreType), exception);
             return Optional.empty();
         }
+    }
+
+    private static List<String> getExcludedSystemKeyStoreTypes() {
+        if (excludedSystemKeyStoreTypes == null) {
+            excludedSystemKeyStoreTypes = Optional.ofNullable(System.getProperty("sslcontext-kickstart.excluded-system-keystore-types"))
+                    .map(properties -> properties.split(","))
+                    .map(properties -> Stream.of(properties)
+                            .map(String::trim)
+                            .map(String::toLowerCase)
+                            .collect(Collectors.toList()))
+                    .orElseGet(Collections::emptyList);
+        }
+        return excludedSystemKeyStoreTypes;
     }
 
     public static List<Certificate> getCertificates(KeyStore keyStore) {
