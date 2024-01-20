@@ -272,7 +272,7 @@ public final class KeyStoreUtils {
                         return keyStore;
                     })
                     .thenApply(Optional::of)
-                    .get(200, TimeUnit.MILLISECONDS);
+                    .get(2000, TimeUnit.MILLISECONDS);
         } catch (Exception exception) {
             LOGGER.debug(String.format("Failed to load KeyStore of the type [%s]", keyStoreType), exception);
             return Optional.empty();
