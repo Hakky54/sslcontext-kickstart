@@ -66,6 +66,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
@@ -843,6 +844,49 @@ class KeyStoreUtilsShould {
                     .isInstanceOf(GenericKeyStoreException.class)
                     .hasMessageContaining("lazy");
         }
+    }
+
+    @Test
+    @SuppressWarnings("rawtypes")
+    void interruptCurrentThreadIfFutureGetsInterrupted() {
+        KeyStore mockedKeyStore = mock(KeyStore.class);
+        CompletableFuture<KeyStore> completableFuture = spy(CompletableFuture.completedFuture(mockedKeyStore));
+
+        try (MockedStatic<CompletableFuture> mockStatic = mockStatic(CompletableFuture.class, invocationOnMock -> {
+            Method method = invocationOnMock.getMethod();
+            if ("supplyAsync".equals(method.getName())) {
+                return completableFuture;
+            } else if ("reportGet".equalsIgnoreCase(method.getName())) {
+                throw new InterruptedException();
+            } else {
+                return invocationOnMock.callRealMethod();
+            }
+        })) {
+            Optional<KeyStore> keyStore = KeyStoreUtils.createKeyStoreIfAvailable("PKCS12", null);
+            assertThat(keyStore).isEmpty();
+            assertThat(Thread.interrupted()).isTrue();
+        }
+    }
+
+    @Test
+    void throwGenericKeyStoreWhenIsCertificateEntryThrowsKeyStoreExceptionForMethodCountAmountOfTrustMaterial() throws KeyStoreException {
+        KeyStore keyStore = mock(KeyStore.class);
+        doThrow(new KeyStoreException("some-alias")).when(keyStore).isCertificateEntry(anyString());
+        when(keyStore.aliases()).thenReturn(Collections.enumeration(Arrays.asList("some-alias")));
+
+        assertThatThrownBy(() -> KeyStoreUtils.countAmountOfTrustMaterial(keyStore))
+                .isInstanceOf(GenericKeyStoreException.class)
+                .hasMessageContaining("some-alias");
+    }
+
+    @Test
+    void throwGenericKeyStoreWhenGetCertificateAliasThrowsKeyStoreExceptionForMethodContainsCertificate() throws KeyStoreException {
+        KeyStore keyStore = mock(KeyStore.class);
+        doThrow(new KeyStoreException("KABOOOM")).when(keyStore).getCertificateAlias(any());
+
+        assertThatThrownBy(() -> KeyStoreUtils.containsCertificate(keyStore, null))
+                .isInstanceOf(GenericKeyStoreException.class)
+                .hasMessageContaining("KABOOOM");
     }
 
     private void resetOsName() {
