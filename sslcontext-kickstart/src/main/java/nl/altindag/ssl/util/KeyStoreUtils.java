@@ -46,7 +46,6 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.UnaryOperator;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static nl.altindag.ssl.util.internal.ValidationUtils.requireNotEmpty;
@@ -232,8 +231,11 @@ public final class KeyStoreUtils {
                 break;
             }
             case WINDOWS: {
-                List<KeyStore> windowsKeyStores = createKeyStores("Windows-ROOT", "Windows-ROOT-LOCALMACHINE", "Windows-ROOT-CURRENTUSER", "Windows-MY", "Windows-MY-CURRENTUSER", "Windows-MY-LOCALMACHINE");
-                keyStores.addAll(windowsKeyStores);
+                Stream.of("Windows-ROOT", "Windows-ROOT-LOCALMACHINE", "Windows-ROOT-CURRENTUSER", "Windows-MY", "Windows-MY-CURRENTUSER", "Windows-MY-LOCALMACHINE")
+                        .map(keyStoreType -> createKeyStoreIfAvailable(keyStoreType, null))
+                        .filter(Optional::isPresent)
+                        .map(Optional::get)
+                        .forEach(keyStores::add);
                 break;
             }
             default: {
@@ -252,14 +254,6 @@ public final class KeyStoreUtils {
         }
 
         return Collections.unmodifiableList(keyStores);
-    }
-
-    private static List<KeyStore> createKeyStores(String... keyStoreTypes) {
-        return Stream.of(keyStoreTypes).parallel()
-                .map(keyStoreType -> createKeyStoreIfAvailable(keyStoreType, null))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(Collectors.toList());
     }
 
     @SuppressWarnings("SameParameterValue")

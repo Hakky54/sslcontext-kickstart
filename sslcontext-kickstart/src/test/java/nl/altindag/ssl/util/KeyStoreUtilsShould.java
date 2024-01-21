@@ -20,7 +20,6 @@ import nl.altindag.ssl.IOTestUtils;
 import nl.altindag.ssl.SSLFactory;
 import nl.altindag.ssl.TestConstants;
 import nl.altindag.ssl.exception.GenericKeyStoreException;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
@@ -146,7 +145,6 @@ class KeyStoreUtilsShould {
     }
 
     @Test
-    @Disabled
     void loadWindowsSystemKeyStore() {
         LogCaptor logCaptor = LogCaptor.forClass(KeyStoreUtils.class);
         logCaptor.setLogLevelToDebug();
@@ -177,8 +175,6 @@ class KeyStoreUtilsShould {
                 return windowsRootCurrentUserKeyStore;
             } else if ("countAmountOfTrustMaterial".equals(method.getName())) {
                 return 2;
-            } else if ("createKeyStores".equals(method.getName())) {
-                return invocation.callRealMethod();
             } else if ("createKeyStoreIfAvailable".equals(method.getName())) {
                 return invocation.callRealMethod();
             } else {
@@ -698,7 +694,6 @@ class KeyStoreUtilsShould {
 
     @Test
     @SuppressWarnings("rawtypes")
-    @Disabled
     void createKeyStoreIfAvailableReturnsFilledKeyStore() {
         LogCaptor logCaptor = LogCaptor.forClass(KeyStoreUtils.class);
 
