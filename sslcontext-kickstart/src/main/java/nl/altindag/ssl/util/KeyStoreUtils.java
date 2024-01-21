@@ -65,7 +65,6 @@ public final class KeyStoreUtils {
     private static final UnaryOperator<String> KEYSTORE_NOT_FOUND_EXCEPTION_MESSAGE = certificatePath -> String.format("Failed to load the keystore from the classpath for the given path: [%s]", certificatePath);
     private static final String EMPTY_TRUST_MANAGER_FOR_TRUSTSTORE_EXCEPTION = "Could not create TrustStore because the provided TrustManager does not contain any trusted certificates";
     private static final String EMPTY_CERTIFICATES_EXCEPTION = "Could not create TrustStore because certificate is absent";
-    private static List<String> excludedSystemKeyStoreTypes;
 
     private KeyStoreUtils() {}
 
@@ -233,13 +232,8 @@ public final class KeyStoreUtils {
                 break;
             }
             case WINDOWS: {
-                List<String> excludedSystemKeyStoreTypes = getExcludedSystemKeyStoreTypes();
-                Stream.of("Windows-ROOT", "Windows-ROOT-LOCALMACHINE", "Windows-ROOT-CURRENTUSER", "Windows-MY", "Windows-MY-CURRENTUSER", "Windows-MY-LOCALMACHINE")
-                        .filter(keyStoreType -> !excludedSystemKeyStoreTypes.contains(keyStoreType.toLowerCase()))
-                        .map(keystoreType -> createKeyStoreIfAvailable(keystoreType, null))
-                        .filter(Optional::isPresent)
-                        .map(Optional::get)
-                        .forEach(keyStores::add);
+                List<KeyStore> windowsKeyStores = createKeyStores("Windows-ROOT", "Windows-ROOT-LOCALMACHINE", "Windows-ROOT-CURRENTUSER", "Windows-MY", "Windows-MY-CURRENTUSER", "Windows-MY-LOCALMACHINE");
+                keyStores.addAll(windowsKeyStores);
                 break;
             }
             default: {
@@ -258,6 +252,14 @@ public final class KeyStoreUtils {
         }
 
         return Collections.unmodifiableList(keyStores);
+    }
+
+    private static List<KeyStore> createKeyStores(String... keyStoreTypes) {
+        return Stream.of(keyStoreTypes).parallel()
+                .map(keyStoreType -> createKeyStoreIfAvailable(keyStoreType, null))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toList());
     }
 
     @SuppressWarnings("SameParameterValue")
@@ -280,19 +282,6 @@ public final class KeyStoreUtils {
             LOGGER.debug(String.format("Failed to load KeyStore of the type [%s]", keyStoreType), exception);
             return Optional.empty();
         }
-    }
-
-    private static List<String> getExcludedSystemKeyStoreTypes() {
-        if (excludedSystemKeyStoreTypes == null) {
-            excludedSystemKeyStoreTypes = Optional.ofNullable(System.getProperty("sslcontext-kickstart.excluded-system-keystore-types"))
-                    .map(properties -> properties.split(","))
-                    .map(properties -> Stream.of(properties)
-                            .map(String::trim)
-                            .map(String::toLowerCase)
-                            .collect(Collectors.toList()))
-                    .orElseGet(Collections::emptyList);
-        }
-        return excludedSystemKeyStoreTypes;
     }
 
     public static List<Certificate> getCertificates(KeyStore keyStore) {
