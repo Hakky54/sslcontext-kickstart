@@ -16,6 +16,7 @@
 package nl.altindag.ssl.util;
 
 import nl.altindag.log.LogCaptor;
+import nl.altindag.ssl.MockUtils;
 import nl.altindag.ssl.exception.GenericSecurityException;
 import nl.altindag.ssl.exception.GenericTrustManagerException;
 import nl.altindag.ssl.trustmanager.CompositeX509ExtendedTrustManager;
@@ -34,7 +35,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.stubbing.Answer;
 
 import javax.net.ssl.CertPathTrustManagerParameters;
 import javax.net.ssl.ManagerFactoryParameters;
@@ -62,8 +62,6 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -217,12 +215,7 @@ class TrustManagerUtilsShould {
                 return invocation.callRealMethod();
             }
         }); MockedStatic<CompletableFuture>  mockCompletableFuture = mockStatic(CompletableFuture.class, Mockito.CALLS_REAL_METHODS)) {
-            mockCompletableFuture.when(() -> CompletableFuture.supplyAsync(any()))
-                    .thenAnswer((Answer<CompletableFuture<?>>) invocation -> {
-                        Executor currentThread = Runnable::run;
-                        Supplier<?> supplier = invocation.getArgument(0);
-                        return CompletableFuture.supplyAsync(supplier, currentThread);
-                    });
+            MockUtils.supplyAsyncOnCurrentThread(mockCompletableFuture);
 
             Optional<X509ExtendedTrustManager> trustManager = TrustManagerUtils.createTrustManagerWithSystemTrustedCertificates();
             if (operatingSystem.contains("mac") || operatingSystem.contains("windows") || operatingSystem.contains("linux")) {

@@ -16,6 +16,7 @@
 package nl.altindag.ssl.util;
 
 import nl.altindag.log.LogCaptor;
+import nl.altindag.ssl.MockUtils;
 import nl.altindag.ssl.TestConstants;
 import nl.altindag.ssl.exception.GenericCertificateException;
 import nl.altindag.ssl.exception.GenericIOException;
@@ -26,7 +27,6 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.stubbing.Answer;
 
 import javax.net.ssl.X509ExtendedTrustManager;
 import javax.security.auth.x500.X500Principal;
@@ -53,8 +53,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -67,7 +65,6 @@ import static nl.altindag.ssl.TestConstants.TRUSTSTORE_FILE_NAME;
 import static nl.altindag.ssl.TestConstants.TRUSTSTORE_PASSWORD;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -449,12 +446,7 @@ class CertificateUtilsShould {
                      return invocation.callRealMethod();
                  }
              }); MockedStatic<CompletableFuture>  mockCompletableFuture = mockStatic(CompletableFuture.class, Mockito.CALLS_REAL_METHODS)) {
-            mockCompletableFuture.when(() -> CompletableFuture.supplyAsync(any()))
-                    .thenAnswer((Answer<CompletableFuture<?>>) invocation -> {
-                        Executor currentThread = Runnable::run;
-                        Supplier<?> supplier = invocation.getArgument(0);
-                        return CompletableFuture.supplyAsync(supplier, currentThread);
-                    });
+            MockUtils.supplyAsyncOnCurrentThread(mockCompletableFuture);
 
             List<X509Certificate> certificates = CertificateUtils.getSystemTrustedCertificates();
             if (operatingSystem.contains("mac") || operatingSystem.contains("windows") || operatingSystem.contains("linux")) {

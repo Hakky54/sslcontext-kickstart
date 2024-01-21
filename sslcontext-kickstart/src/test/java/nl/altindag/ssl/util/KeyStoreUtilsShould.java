@@ -17,6 +17,7 @@ package nl.altindag.ssl.util;
 
 import nl.altindag.log.LogCaptor;
 import nl.altindag.ssl.IOTestUtils;
+import nl.altindag.ssl.MockUtils;
 import nl.altindag.ssl.SSLFactory;
 import nl.altindag.ssl.TestConstants;
 import nl.altindag.ssl.exception.GenericKeyStoreException;
@@ -25,7 +26,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.stubbing.Answer;
 
 import javax.net.ssl.X509ExtendedTrustManager;
 import java.io.IOException;
@@ -49,8 +49,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -181,12 +179,7 @@ class KeyStoreUtilsShould {
                 return invocation.getMock();
             }
         }); MockedStatic<CompletableFuture>  mockCompletableFuture = mockStatic(CompletableFuture.class, Mockito.CALLS_REAL_METHODS)) {
-            mockCompletableFuture.when(() -> CompletableFuture.supplyAsync(any()))
-                    .thenAnswer((Answer<CompletableFuture<?>>) invocation -> {
-                        Executor currentThread = Runnable::run;
-                        Supplier<?> supplier = invocation.getArgument(0);
-                        return CompletableFuture.supplyAsync(supplier, currentThread);
-                    });
+            MockUtils.supplyAsyncOnCurrentThread(mockCompletableFuture);
 
             List<KeyStore> keyStores = KeyStoreUtils.loadSystemKeyStores();
             assertThat(keyStores).containsExactlyInAnyOrder(windowsRootKeyStore, windowsMyKeyStore, windowsMyCurrentUserKeyStore, windowsMyLocalmachineKeyStore, windowsRootCurrentUserKeyStore, windowsRootLocalmachineKeyStore);
@@ -709,12 +702,7 @@ class KeyStoreUtilsShould {
                 return invocation.callRealMethod();
             }
         }); MockedStatic<CompletableFuture>  mockCompletableFuture = mockStatic(CompletableFuture.class, Mockito.CALLS_REAL_METHODS)) {
-            mockCompletableFuture.when(() -> CompletableFuture.supplyAsync(any()))
-                    .thenAnswer((Answer<CompletableFuture<?>>) invocation -> {
-                        Executor currentThread = Runnable::run;
-                        Supplier<?> supplier = invocation.getArgument(0);
-                        return CompletableFuture.supplyAsync(supplier, currentThread);
-                    });
+            MockUtils.supplyAsyncOnCurrentThread(mockCompletableFuture);
 
             Optional<KeyStore> keyStore = KeyStoreUtils.createKeyStoreIfAvailable("Banana", null);
             assertThat(keyStore).isPresent();
@@ -740,12 +728,7 @@ class KeyStoreUtilsShould {
                 return invocation.callRealMethod();
             }
         }); MockedStatic<CompletableFuture>  mockCompletableFuture = mockStatic(CompletableFuture.class, Mockito.CALLS_REAL_METHODS)) {
-            mockCompletableFuture.when(() -> CompletableFuture.supplyAsync(any()))
-                    .thenAnswer((Answer<CompletableFuture<?>>) invocation -> {
-                        Executor currentThread = Runnable::run;
-                        Supplier<?> supplier = invocation.getArgument(0);
-                        return CompletableFuture.supplyAsync(supplier, currentThread);
-                    });
+            MockUtils.supplyAsyncOnCurrentThread(mockCompletableFuture);
 
             Optional<KeyStore> keyStore = KeyStoreUtils.createKeyStoreIfAvailable("Banana", null);
             assertThat(keyStore).isPresent();
