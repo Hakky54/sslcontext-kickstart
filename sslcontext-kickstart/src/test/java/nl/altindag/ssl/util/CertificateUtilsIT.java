@@ -181,4 +181,26 @@ class CertificateUtilsIT {
         assertThat(certificatesFromRemote.get("https://localhost:8443")).hasSizeGreaterThan(0);
     }
 
+    @Test
+    void clearCertificateCollectorAfterExtractingCertificates() {
+        char[] keyStorePassword = "secret".toCharArray();
+        SSLFactory sslFactoryForServerOne = SSLFactory.builder()
+                .withIdentityMaterial("keystore/client-server/server-three/identity.jks", keyStorePassword)
+                .withTrustMaterial("keystore/client-server/server-three/truststore.jks", keyStorePassword)
+                .withProtocols("TLSv1.2")
+                .build();
+
+        Server server = Server.createDefault(sslFactoryForServerOne);
+
+        CertificateExtractingClient client = CertificateExtractingClient.builder()
+                .build();
+
+        List<X509Certificate> certificates = client.get("https://localhost:8443");
+
+        server.stop();
+
+        assertThat(certificates).hasSizeGreaterThan(0);
+        assertThat(client.getCertificatesCollector()).isEmpty();
+    }
+
 }

@@ -91,9 +91,6 @@ public class CertificateExtractingClient {
     static CertificateExtractingClient getInstance() {
         if (instance == null) {
             instance = new CertificateExtractingClient(true, null, null);
-        } else {
-            instance.certificatesCollector.clear();
-            SSLSessionUtils.invalidateCaches(instance.sslFactoryForCertificateCapturing);
         }
         return instance;
     }
@@ -121,6 +118,7 @@ public class CertificateExtractingClient {
         } catch (IOException e) {
             throw new GenericIOException(String.format("Failed getting certificate from: [%s]", url), e);
         } finally {
+            certificatesCollector.clear();
             SSLSessionUtils.invalidateCaches(sslFactoryForCertificateCapturing);
         }
     }
@@ -208,6 +206,10 @@ public class CertificateExtractingClient {
         } catch (CertificateException | NoSuchAlgorithmException | InvalidKeyException | NoSuchProviderException | SignatureException e) {
             return false;
         }
+    }
+
+    List<X509Certificate> getCertificatesCollector() {
+        return certificatesCollector;
     }
 
     private static class FelixAuthenticator extends Authenticator {
