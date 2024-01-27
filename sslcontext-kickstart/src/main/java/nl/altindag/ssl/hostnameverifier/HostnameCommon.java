@@ -52,11 +52,8 @@ final class HostnameCommon {
             if (labelLength < 1 || labelLength > 63) {
                 return true;
             }
-            if (dot == -1) {
+            if (dot == -1 || dot == hostname.length() - 1 ) {
                 break;
-            }
-            if (dot == hostname.length() - 1) {
-                break; // Trailing '.' is allowed.
             }
             labelStart = dot + 1;
         }

@@ -685,7 +685,7 @@ class KeyStoreUtilsShould {
     void getAliasToCertificateFiltersOutKeyMaterial() throws KeyStoreException {
         KeyStore keyStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, KEYSTORE_PASSWORD);
 
-        assertThat(keyStore.size()).isGreaterThan(0);
+        assertThat(keyStore.size()).isPositive();
 
         Map<String, Certificate> aliasToCertificate = KeyStoreUtils.getAliasToCertificate(keyStore);
         assertThat(aliasToCertificate).isEmpty();

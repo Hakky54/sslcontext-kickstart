@@ -60,7 +60,7 @@ import static nl.altindag.ssl.util.internal.CollectionUtils.isEmpty;
 public class InflatableX509ExtendedTrustManager extends HotSwappableX509ExtendedTrustManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InflatableX509ExtendedTrustManager.class);
-    private static final BiPredicate<KeyStore, X509Certificate> IGNORE_DUPLICATE_CHECKER = (trustStore, certificate) -> false;
+    private static final BiPredicate<KeyStore, X509Certificate> IGNORE_DUPLICATE_CHECKER = (t, c) -> false;
 
     private final KeyStore trustStore;
     private final Path trustStorePath;
