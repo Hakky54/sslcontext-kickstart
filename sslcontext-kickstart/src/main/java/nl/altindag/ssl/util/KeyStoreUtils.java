@@ -237,7 +237,7 @@ public final class KeyStoreUtils {
                 break;
             }
             default: {
-                String resolvedOsName = OperatingSystem.UNKNOWN.getResolvedOsName();
+                String resolvedOsName = OperatingSystem.getResolvedOsName();
                 LOGGER.warn("No system KeyStores available for [{}]", resolvedOsName);
                 return Collections.emptyList();
             }
