@@ -731,6 +731,17 @@ class KeyStoreUtilsShould {
     }
 
     @Test
+    void wrapKeyStoreExceptionIntoAGenericKeyStoreExceptionWhenCallingContainsTrustMaterialFails() throws KeyStoreException {
+        KeyStore keyStore = mock(KeyStore.class);
+
+        when(keyStore.aliases()).thenReturn(Collections.enumeration(Collections.singletonList("some-alias")));
+        doThrow((new KeyStoreException("KABOOM!"))).when(keyStore).isCertificateEntry("some-alias");
+
+        assertThatThrownBy(() -> KeyStoreUtils.containsTrustMaterial(keyStore))
+                .isInstanceOf(GenericKeyStoreException.class);
+    }
+
+    @Test
     void createKeyStoreIfAvailableReturnsFilledKeyStoreWithoutLoggingIfDebugIsDisabled() {
         LogCaptor logCaptor = LogCaptor.forClass(KeyStoreUtils.class);
         logCaptor.setLogLevelToInfo();

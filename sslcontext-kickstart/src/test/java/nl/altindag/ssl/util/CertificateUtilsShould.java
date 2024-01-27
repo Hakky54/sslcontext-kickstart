@@ -37,10 +37,10 @@ import java.net.Proxy;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
+import java.security.*;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -62,6 +62,7 @@ import static nl.altindag.ssl.TestConstants.TRUSTSTORE_FILE_NAME;
 import static nl.altindag.ssl.TestConstants.TRUSTSTORE_PASSWORD;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -533,6 +534,54 @@ class CertificateUtilsShould {
 
         boolean selfSigned = CertificateUtils.isSelfSigned(certificate);
         assertThat(selfSigned).isFalse();
+    }
+
+    @Test
+    void wrapCertificateExceptionIntoGenericCertificateExceptionWhenIsSelfSignedCallFails() throws CertificateException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, NoSuchProviderException {
+        List<Certificate> certificates = CertificateUtils.loadCertificate(PEM_LOCATION + "not-self-signed.pem");
+        assertThat(certificates).hasSize(1);
+        Certificate certificate = spy(certificates.get(0));
+
+        doThrow(new CertificateException("KABOOM!")).when(certificate).verify(any());
+
+        assertThatThrownBy(() -> CertificateUtils.isSelfSigned(certificate))
+                .isInstanceOf(GenericCertificateException.class);
+    }
+
+    @Test
+    void wrapNoSuchAlgorithmExceptionIntoGenericCertificateExceptionWhenIsSelfSignedCallFails() throws CertificateException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, NoSuchProviderException {
+        List<Certificate> certificates = CertificateUtils.loadCertificate(PEM_LOCATION + "not-self-signed.pem");
+        assertThat(certificates).hasSize(1);
+        Certificate certificate = spy(certificates.get(0));
+
+        doThrow(new NoSuchAlgorithmException("KABOOM!")).when(certificate).verify(any());
+
+        assertThatThrownBy(() -> CertificateUtils.isSelfSigned(certificate))
+                .isInstanceOf(GenericCertificateException.class);
+    }
+
+    @Test
+    void wrapInvalidKeyExceptionIntoGenericCertificateExceptionWhenIsSelfSignedCallFails() throws CertificateException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, NoSuchProviderException {
+        List<Certificate> certificates = CertificateUtils.loadCertificate(PEM_LOCATION + "not-self-signed.pem");
+        assertThat(certificates).hasSize(1);
+        Certificate certificate = spy(certificates.get(0));
+
+        doThrow(new InvalidKeyException("KABOOM!")).when(certificate).verify(any());
+
+        assertThatThrownBy(() -> CertificateUtils.isSelfSigned(certificate))
+                .isInstanceOf(GenericCertificateException.class);
+    }
+
+    @Test
+    void wrapNoSuchProviderExceptionIntoGenericCertificateExceptionWhenIsSelfSignedCallFails() throws CertificateException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, NoSuchProviderException {
+        List<Certificate> certificates = CertificateUtils.loadCertificate(PEM_LOCATION + "not-self-signed.pem");
+        assertThat(certificates).hasSize(1);
+        Certificate certificate = spy(certificates.get(0));
+
+        doThrow(new NoSuchProviderException("KABOOM!")).when(certificate).verify(any());
+
+        assertThatThrownBy(() -> CertificateUtils.isSelfSigned(certificate))
+                .isInstanceOf(GenericCertificateException.class);
     }
 
     @Test
