@@ -267,8 +267,10 @@ class InflatableX509ExtendedTrustManagerShould {
 
         assertThat(trustedCerts).hasSizeGreaterThan(0);
 
-        Path trustStoreDestination = Paths.get(HOME_DIRECTORY, "inflatable-truststore.p12");
-        assertThat(Files.exists(trustStoreDestination)).isFalse();
+        Path destinationDirectory = Paths.get(HOME_DIRECTORY, "hakky54-ssl");
+        Path trustStoreDestination = destinationDirectory.resolve("inflatable-truststore.p12");
+        Files.createDirectories(destinationDirectory);
+        assertThat(Files.exists(destinationDirectory)).isTrue();
 
         InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager(trustStoreDestination, "secret".toCharArray(), "PKCS12", trustManagerParameters -> true);
         trustManager.addCertificates(Arrays.asList(trustedCerts));
@@ -280,11 +282,12 @@ class InflatableX509ExtendedTrustManagerShould {
         KeyStore inflatedTrustStore = KeyStoreUtils.loadKeyStore(trustStoreDestination, "secret".toCharArray(), "PKCS12");
         assertThat(KeyStoreTestUtils.getTrustedX509Certificates(inflatedTrustStore)).containsExactly(trustedCerts);
 
-        Files.delete(trustStoreDestination);
+        Files.deleteIfExists(trustStoreDestination);
+        Files.deleteIfExists(destinationDirectory);
     }
 
     @Test
-    void addOnlyOnceNewlyTrustedCertificates() throws KeyStoreException, IOException {
+    void addOnlyOnceNewlyTrustedCertificates() throws KeyStoreException {
         LogCaptor logCaptor = LogCaptor.forClass(InflatableX509ExtendedTrustManager.class);
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
@@ -332,7 +335,7 @@ class InflatableX509ExtendedTrustManagerShould {
     }
 
     @Test
-    void notAddCertificateIfInnerTrustManagerHasTrustedTheNewCertificateFromADifferentThread() throws KeyStoreException, IOException, CertificateException {
+    void notAddCertificateIfInnerTrustManagerHasTrustedTheNewCertificateFromADifferentThread() throws KeyStoreException, CertificateException {
         X509ExtendedTrustManager innerTrustManager = mock(X509ExtendedTrustManager.class);
         doThrow(new CertificateException("KABOOOM!"))
                 .doNothing()
