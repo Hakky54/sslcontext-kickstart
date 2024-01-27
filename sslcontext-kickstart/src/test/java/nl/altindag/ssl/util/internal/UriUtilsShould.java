@@ -34,7 +34,13 @@ class UriUtilsShould {
     }
 
     @Test
-    void throwExceptionWhenInvalidUriIsProvided() {
+    void extractPort() {
+        int port = UriUtils.extractPort("https://my-first-domain.com:443");
+        assertThat(port).isEqualTo(443);
+    }
+
+    @Test
+    void throwExceptionWhenInvalidUriIsProvidedWhileExtractingTheHost() {
         assertThatThrownBy(() -> UriUtils.extractHost("https://my-first-domain.com/q/h?s=^IXIC"))
                 .isInstanceOf(IllegalArgumentException.class);
     }
@@ -60,6 +66,12 @@ class UriUtilsShould {
         assertThatThrownBy(() -> UriUtils.validate(host))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Hostname should be defined for the given input: [https:/]");
+    }
+
+    @Test
+    void throwExceptionWhenInvalidUriIsProvidedWhileExtractingThePort() {
+        assertThatThrownBy(() -> UriUtils.extractPort("https://my-first-domain.com/q/h?s=^IXIC"))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
 }

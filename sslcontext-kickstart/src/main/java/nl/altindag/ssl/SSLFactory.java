@@ -868,16 +868,16 @@ public final class SSLFactory {
             SSLParameters baseSslParameters = createSslParameters(baseSslContext);
             SSLContext sslContext = new FenixSSLContext(baseSslContext, baseSslParameters);
 
-            HostnameVerifier hostnameVerifier = Optional.ofNullable(hostnameVerifierEnhancer)
-                    .map(enhancer -> HostnameVerifierUtils.createEnhanceable(this.hostnameVerifier, enhancer))
-                    .orElse(this.hostnameVerifier);
+            HostnameVerifier resolvedHostnameVerifier = Optional.ofNullable(hostnameVerifierEnhancer)
+                    .map(enhancer -> HostnameVerifierUtils.createEnhanceable(hostnameVerifier, enhancer))
+                    .orElse(hostnameVerifier);
 
             SSLMaterial sslMaterial = new SSLMaterial.Builder()
                     .withSslContext(sslContext)
                     .withKeyManager(keyManager)
                     .withTrustManager(trustManager)
                     .withSslParameters(baseSslParameters)
-                    .withHostnameVerifier(hostnameVerifier)
+                    .withHostnameVerifier(resolvedHostnameVerifier)
                     .withCiphers(Collections.unmodifiableList(Arrays.asList(baseSslParameters.getCipherSuites())))
                     .withProtocols(Collections.unmodifiableList(Arrays.asList(baseSslParameters.getProtocols())))
                     .build();
