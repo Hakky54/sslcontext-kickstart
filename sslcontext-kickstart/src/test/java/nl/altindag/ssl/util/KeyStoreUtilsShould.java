@@ -363,6 +363,25 @@ class KeyStoreUtilsShould {
     }
 
     @Test
+    void returnTrueWhenItDoesContainsCertificate() {
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+        X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
+        X509Certificate[] acceptedIssuers = trustManager.getAcceptedIssuers();
+        assertThat(acceptedIssuers).isNotEmpty();
+
+        X509Certificate certificates = acceptedIssuers[0];
+        assertThat(KeyStoreUtils.containsCertificate(trustStore, certificates)).isTrue();
+    }
+
+    @Test
+    void returnFalseWhenItDoesNotContainsCertificate() {
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+
+        X509Certificate certificates = mock(X509Certificate.class);
+        assertThat(KeyStoreUtils.containsCertificate(trustStore, certificates)).isFalse();
+    }
+
+    @Test
     void countAmountOfTrustMaterial() {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 
@@ -698,6 +717,17 @@ class KeyStoreUtilsShould {
             assertThat(keyStore).isPresent();
             assertThat(logCaptor.getDebugLogs()).contains("Successfully loaded KeyStore of the type [Banana] having [2] entries");
         }
+    }
+
+    @Test
+    void wrapKeyStoreExceptionIntoAGenericKeyStoreExceptionWhenCallingContainsCertificateFails() throws KeyStoreException {
+        KeyStore keyStore = mock(KeyStore.class);
+        Certificate certificate = mock(Certificate.class);
+
+        doThrow((new KeyStoreException("KABOOM!"))).when(keyStore).getCertificateAlias(certificate);
+
+        assertThatThrownBy(() -> KeyStoreUtils.containsCertificate(keyStore, certificate))
+                .isInstanceOf(GenericKeyStoreException.class);
     }
 
     @Test
