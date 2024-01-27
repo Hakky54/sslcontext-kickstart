@@ -22,12 +22,12 @@ enum OperatingSystem {
 
     MAC, LINUX, ANDROID, WINDOWS, UNKNOWN;
 
-    String getResolvedOsName() {
+    static String getResolvedOsName() {
         return System.getProperty("os.name").toLowerCase();
     }
 
     static OperatingSystem get() {
-        String operatingSystem = System.getProperty("os.name").toLowerCase();
+        String operatingSystem = getResolvedOsName();
         if (operatingSystem.contains("windows")) {
             return WINDOWS;
         }

@@ -96,7 +96,7 @@ public final class TrustManagerUtils {
         }
 
         X509ExtendedTrustManager trustManager = createTrustManager(trustStores.toArray(new KeyStore[]{}));
-        return Optional.of(new SystemX509ExtendedTrustManager(trustManager));
+        return Optional.of(new SystemX509ExtendedTrustManager(trustManager, OperatingSystem.get().name().toLowerCase()));
     }
 
 

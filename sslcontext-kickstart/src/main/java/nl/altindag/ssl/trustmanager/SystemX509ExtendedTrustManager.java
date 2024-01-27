@@ -23,10 +23,14 @@ import javax.net.ssl.X509ExtendedTrustManager;
  *
  * @author Hakan Altindag
  */
+@SuppressWarnings("FieldCanBeLocal")
 public final class SystemX509ExtendedTrustManager extends DelegatingX509ExtendedTrustManager {
 
-    public SystemX509ExtendedTrustManager(X509ExtendedTrustManager trustManager) {
+    private final String systemName;
+
+    public SystemX509ExtendedTrustManager(X509ExtendedTrustManager trustManager, String systemName) {
         super(trustManager);
+        this.systemName = systemName;
     }
 
 }
