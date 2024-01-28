@@ -35,7 +35,9 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
 
 /**
  * @author Hakan Altindag
@@ -297,6 +299,38 @@ class LinuxCertificateUtilsShould {
         }
 
         resetOsName();
+    }
+
+    @Test
+    void ignoreAnyErrorWhenCallingLoadCertificate() {
+        try (MockedStatic<CertificateUtils> certificateUtilsMockedStatic = mockStatic(CertificateUtils.class, invocation -> {
+            Method method = invocation.getMethod();
+            if ("loadCertificate".equals(method.getName())) {
+                throw new IOException("KABOOM");
+            } else {
+                return invocation.callRealMethod();
+            }
+        });
+             MockedStatic<Files> filesMockedStatic = mockStatic(Files.class, invocation -> {
+                 Method method = invocation.getMethod();
+                 if ("exists".equals(method.getName())) {
+                     return true;
+                 } else if ("isRegularFile".equals(method.getName())) {
+                     return true;
+                 } else {
+                     return invocation.callRealMethod();
+                 }
+             })) {
+
+            System.setProperty("os.name", "linux");
+
+            List<Certificate> certificates = LinuxCertificateUtils.getCertificates();
+            assertThat(certificates).isEmpty();
+
+            certificateUtilsMockedStatic.verify(() -> CertificateUtils.loadCertificate(any(Path.class)), times(8));
+
+            resetOsName();
+        }
     }
 
     @Test

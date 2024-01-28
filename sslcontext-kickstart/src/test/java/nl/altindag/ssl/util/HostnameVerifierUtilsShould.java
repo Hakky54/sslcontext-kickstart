@@ -16,6 +16,7 @@
 package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.hostnameverifier.BasicHostnameVerifier;
+import nl.altindag.ssl.hostnameverifier.FenixHostnameVerifier;
 import nl.altindag.ssl.hostnameverifier.UnsafeHostnameVerifier;
 import org.junit.jupiter.api.Test;
 
@@ -44,6 +45,24 @@ class HostnameVerifierUtilsShould {
         assertThat(hostnameVerifier)
                 .isNotNull()
                 .isInstanceOf(UnsafeHostnameVerifier.class);
+    }
+
+    @Test
+    void createFenix() {
+        HostnameVerifier hostnameVerifier = HostnameVerifierUtils.createFenix();
+
+        assertThat(hostnameVerifier)
+                .isNotNull()
+                .isInstanceOf(FenixHostnameVerifier.class);
+    }
+
+    @Test
+    void createDefault() {
+        HostnameVerifier hostnameVerifier = HostnameVerifierUtils.createDefault();
+
+        assertThat(hostnameVerifier)
+                .isNotNull()
+                .isInstanceOf(FenixHostnameVerifier.class);
     }
 
 }

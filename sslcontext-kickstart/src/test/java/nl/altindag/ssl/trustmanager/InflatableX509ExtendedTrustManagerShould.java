@@ -17,7 +17,9 @@ package nl.altindag.ssl.trustmanager;
 
 import nl.altindag.log.LogCaptor;
 import nl.altindag.log.model.LogEvent;
+import nl.altindag.ssl.exception.GenericKeyStoreException;
 import nl.altindag.ssl.model.TrustManagerParameters;
+import nl.altindag.ssl.util.CertificateUtils;
 import nl.altindag.ssl.util.KeyStoreUtils;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -46,9 +48,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import static nl.altindag.ssl.TestConstants.DER_LOCATION;
 import static nl.altindag.ssl.TestConstants.HOME_DIRECTORY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -527,7 +531,15 @@ class InflatableX509ExtendedTrustManagerShould {
         LogCaptor logCaptor = LogCaptor.forClass(InflatableX509ExtendedTrustManager.class);
 
         KeyStore trustStore = spy(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD));
-        List<X509Certificate> notYetTrustedCerts = Arrays.asList(KeyStoreTestUtils.getTrustedX509Certificates(trustStore));
+        doThrow(new KeyStoreException("KABOOM!")).when(trustStore).containsAlias(anyString());
+
+        List<X509Certificate> notYetTrustedCerts = CertificateUtils.loadCertificate(DER_LOCATION + "digicert.cer")
+                .stream()
+                .filter(X509Certificate.class::isInstance)
+                .map(X509Certificate.class::cast)
+                .collect(Collectors.toList());
+
+        assertThat(notYetTrustedCerts).hasSize(1);
 
         Path destinationDirectory = Paths.get(HOME_DIRECTORY, "hakky54-ssl");
         Path trustStoreDestination = destinationDirectory.resolve("inflatable-truststore.p12");
@@ -546,8 +558,19 @@ class InflatableX509ExtendedTrustManagerShould {
             }
         })) {
             InflatableX509ExtendedTrustManager trustManager = new InflatableX509ExtendedTrustManager(trustStoreDestination, "secret".toCharArray(), "PKCS12", trustManagerParameters -> true);
+            assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
+
             trustManager.addCertificates(notYetTrustedCerts);
-            assertThat(logCaptor.getInfoLogs()).isEmpty();
+            assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
+
+            List<LogEvent> logEvents = logCaptor.getLogEvents();
+            assertThat(logEvents).hasSize(1);
+
+            LogEvent logEvent = logEvents.get(0);
+            assertThat(logEvent.getLevel()).isEqualTo("ERROR");
+            assertThat(logEvent.getMessage()).isEqualTo("Cannot add certificate");
+            assertThat(logEvent.getThrowable()).isPresent();
+            assertThat(logEvent.getThrowable().get()).isInstanceOf(GenericKeyStoreException.class);
         } finally {
             Files.deleteIfExists(trustStoreDestination);
             Files.deleteIfExists(destinationDirectory);
