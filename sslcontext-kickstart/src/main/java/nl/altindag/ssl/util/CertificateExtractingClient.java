@@ -38,12 +38,10 @@ import java.security.NoSuchProviderException;
 import java.security.SignatureException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -126,7 +124,7 @@ public class CertificateExtractingClient {
                 return Collections.emptyList();
             }
         } catch (java.net.SocketTimeoutException e) {
-            LOGGER.debug("");
+            LOGGER.debug("The server didn't respond within the configured time-out of [{}] milliseconds", timeoutInMilliSeconds);
             return Collections.emptyList();
         } catch (IOException e) {
             throw new GenericIOException(String.format("Failed getting certificate from: [%s]", url), e);
