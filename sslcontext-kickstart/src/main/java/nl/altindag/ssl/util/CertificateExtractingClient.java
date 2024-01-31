@@ -18,6 +18,8 @@ package nl.altindag.ssl.util;
 import nl.altindag.ssl.SSLFactory;
 import nl.altindag.ssl.exception.GenericCertificateException;
 import nl.altindag.ssl.exception.GenericIOException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSocketFactory;
@@ -36,10 +38,12 @@ import java.security.NoSuchProviderException;
 import java.security.SignatureException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -51,7 +55,9 @@ import static nl.altindag.ssl.util.internal.CollectorsUtils.toUnmodifiableList;
  */
 public class CertificateExtractingClient {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(CertificateExtractingClient.class);
     private static final Pattern CA_ISSUERS_AUTHORITY_INFO_ACCESS = Pattern.compile("(?s)^AuthorityInfoAccess\\h+\\[\\R\\s*\\[\\R.*?accessMethod:\\h+caIssuers\\R\\h*accessLocation: URIName:\\h+(https?://\\S+)", Pattern.MULTILINE);
+    private static final int DEFAULT_TIMEOUT_IN_MILLISECONDS = 1000;
 
     private static CertificateExtractingClient instance;
 
@@ -62,10 +68,12 @@ public class CertificateExtractingClient {
     private final SSLSocketFactory unsafeSslSocketFactory;
     private final SSLSocketFactory certificateCapturingSslSocketFactory;
     private final List<X509Certificate> certificatesCollector;
+    private final int timeoutInMilliSeconds;
 
-    private CertificateExtractingClient(boolean shouldResolveRootCa, Proxy proxy, PasswordAuthentication passwordAuthentication) {
+    private CertificateExtractingClient(boolean shouldResolveRootCa, Proxy proxy, PasswordAuthentication passwordAuthentication, int timeoutInMilliSeconds) {
         this.shouldResolveRootCa = shouldResolveRootCa;
         this.proxy = proxy;
+        this.timeoutInMilliSeconds = timeoutInMilliSeconds;
 
         if (passwordAuthentication != null) {
             Authenticator authenticator = new FelixAuthenticator(passwordAuthentication);
@@ -90,7 +98,7 @@ public class CertificateExtractingClient {
 
     static CertificateExtractingClient getInstance() {
         if (instance == null) {
-            instance = new CertificateExtractingClient(true, null, null);
+            instance = new CertificateExtractingClient(true, null, null, DEFAULT_TIMEOUT_IN_MILLISECONDS);
         }
         return instance;
     }
@@ -101,6 +109,8 @@ public class CertificateExtractingClient {
             if ("https".equalsIgnoreCase(parsedUrl.getProtocol())) {
                 HttpsURLConnection connection = (HttpsURLConnection) createConnection(parsedUrl);
                 connection.setSSLSocketFactory(certificateCapturingSslSocketFactory);
+                connection.setConnectTimeout(timeoutInMilliSeconds);
+                connection.setReadTimeout(timeoutInMilliSeconds);
                 connection.connect();
                 connection.disconnect();
 
@@ -115,6 +125,9 @@ public class CertificateExtractingClient {
             } else {
                 return Collections.emptyList();
             }
+        } catch (java.net.SocketTimeoutException e) {
+            LOGGER.debug("");
+            return Collections.emptyList();
         } catch (IOException e) {
             throw new GenericIOException(String.format("Failed getting certificate from: [%s]", url), e);
         } finally {
@@ -235,6 +248,7 @@ public class CertificateExtractingClient {
         private Proxy proxy = null;
         private PasswordAuthentication passwordAuthentication = null;
         private boolean shouldResolveRootCa = true;
+        private int timeoutInMilliSeconds = DEFAULT_TIMEOUT_IN_MILLISECONDS;
 
         public Builder withProxy(Proxy proxy) {
             this.proxy = proxy;
@@ -251,8 +265,13 @@ public class CertificateExtractingClient {
             return this;
         }
 
+        public Builder withTimeout(int timeoutInMilliSeconds) {
+            this.timeoutInMilliSeconds = timeoutInMilliSeconds;
+            return this;
+        }
+
         public CertificateExtractingClient build() {
-            return new CertificateExtractingClient(shouldResolveRootCa, proxy, passwordAuthentication);
+            return new CertificateExtractingClient(shouldResolveRootCa, proxy, passwordAuthentication, timeoutInMilliSeconds);
         }
 
     }
