@@ -66,12 +66,12 @@ public class CertificateExtractingClient {
     private final SSLSocketFactory unsafeSslSocketFactory;
     private final SSLSocketFactory certificateCapturingSslSocketFactory;
     private final List<X509Certificate> certificatesCollector;
-    private final int timeoutInMilliSeconds;
+    private final int timeoutInMilliseconds;
 
-    private CertificateExtractingClient(boolean shouldResolveRootCa, Proxy proxy, PasswordAuthentication passwordAuthentication, int timeoutInMilliSeconds) {
+    private CertificateExtractingClient(boolean shouldResolveRootCa, Proxy proxy, PasswordAuthentication passwordAuthentication, int timeoutInMilliseconds) {
         this.shouldResolveRootCa = shouldResolveRootCa;
         this.proxy = proxy;
-        this.timeoutInMilliSeconds = timeoutInMilliSeconds;
+        this.timeoutInMilliseconds = timeoutInMilliseconds;
 
         if (passwordAuthentication != null) {
             Authenticator authenticator = new FelixAuthenticator(passwordAuthentication);
@@ -107,8 +107,8 @@ public class CertificateExtractingClient {
             if ("https".equalsIgnoreCase(parsedUrl.getProtocol())) {
                 HttpsURLConnection connection = (HttpsURLConnection) createConnection(parsedUrl);
                 connection.setSSLSocketFactory(certificateCapturingSslSocketFactory);
-                connection.setConnectTimeout(timeoutInMilliSeconds);
-                connection.setReadTimeout(timeoutInMilliSeconds);
+                connection.setConnectTimeout(timeoutInMilliseconds);
+                connection.setReadTimeout(timeoutInMilliseconds);
                 connection.connect();
                 connection.disconnect();
 
@@ -124,7 +124,7 @@ public class CertificateExtractingClient {
                 return Collections.emptyList();
             }
         } catch (java.net.SocketTimeoutException e) {
-            LOGGER.debug("The server didn't respond within the configured time-out of [{}] milliseconds", timeoutInMilliSeconds);
+            LOGGER.debug("The server didn't respond within the configured time-out of [{}] milliseconds", timeoutInMilliseconds);
             return Collections.emptyList();
         } catch (IOException e) {
             throw new GenericIOException(String.format("Failed getting certificate from: [%s]", url), e);
@@ -246,7 +246,7 @@ public class CertificateExtractingClient {
         private Proxy proxy = null;
         private PasswordAuthentication passwordAuthentication = null;
         private boolean shouldResolveRootCa = true;
-        private int timeoutInMilliSeconds = DEFAULT_TIMEOUT_IN_MILLISECONDS;
+        private int timeoutInMilliseconds = DEFAULT_TIMEOUT_IN_MILLISECONDS;
 
         public Builder withProxy(Proxy proxy) {
             this.proxy = proxy;
@@ -263,13 +263,13 @@ public class CertificateExtractingClient {
             return this;
         }
 
-        public Builder withTimeout(int timeoutInMilliSeconds) {
-            this.timeoutInMilliSeconds = timeoutInMilliSeconds;
+        public Builder withTimeout(int timeoutInMilliseconds) {
+            this.timeoutInMilliseconds = timeoutInMilliseconds;
             return this;
         }
 
         public CertificateExtractingClient build() {
-            return new CertificateExtractingClient(shouldResolveRootCa, proxy, passwordAuthentication, timeoutInMilliSeconds);
+            return new CertificateExtractingClient(shouldResolveRootCa, proxy, passwordAuthentication, timeoutInMilliseconds);
         }
 
     }
