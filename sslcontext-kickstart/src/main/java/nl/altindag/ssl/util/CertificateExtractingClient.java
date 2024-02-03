@@ -112,14 +112,10 @@ public class CertificateExtractingClient {
                 connection.connect();
                 connection.disconnect();
 
-                if (shouldResolveRootCa) {
-                    List<X509Certificate> resolvedRootCa = getRootCaFromChainIfPossible(certificatesCollector);
-                    return Stream.of(certificatesCollector, resolvedRootCa)
-                            .flatMap(Collection::stream)
-                            .collect(toUnmodifiableList());
-                }
-
-                return Collections.unmodifiableList(certificatesCollector);
+                List<X509Certificate> resolvedRootCa = shouldResolveRootCa? getRootCaFromChainIfPossible(certificatesCollector) : Collections.emptyList();
+                return Stream.of(certificatesCollector, resolvedRootCa)
+                        .flatMap(Collection::stream)
+                        .collect(toUnmodifiableList());
             } else {
                 return Collections.emptyList();
             }
