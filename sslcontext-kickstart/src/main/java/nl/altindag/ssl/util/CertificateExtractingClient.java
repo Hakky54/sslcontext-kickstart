@@ -29,6 +29,7 @@ import java.io.InputStream;
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 import java.net.Proxy;
+import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
@@ -119,7 +120,7 @@ public class CertificateExtractingClient {
             } else {
                 return Collections.emptyList();
             }
-        } catch (java.net.SocketTimeoutException e) {
+        } catch (SocketTimeoutException e) {
             LOGGER.debug("The server didn't respond within the configured time-out of [{}] milliseconds", timeoutInMilliseconds);
             return Collections.emptyList();
         } catch (IOException e) {
