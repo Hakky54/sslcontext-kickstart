@@ -3,6 +3,13 @@
 This list is not intended to be all-encompassing - it will document major and breaking API
 changes with their rationale when appropriate:
 
+### v8.3.1
+- Bumped dependencies
+- Added system name to the system trust manager
+- Bug-fix clear certificate collector after each fetch
+- Bug-fix resolve empty collector for certificate extracting client when disabling resolving root ca
+- Added timeout to certificate extracting client
+- Applied sonar recommendations
 ### v8.3.0
 - Bumped dependencies
 - Added option to extract public key from private key
