@@ -17,6 +17,9 @@ package nl.altindag.ssl.provider;
 
 import java.security.Provider;
 
+/**
+ * @author Hakan Altindag
+ */
 public final class FenixProvider extends Provider {
 
     public FenixProvider() {

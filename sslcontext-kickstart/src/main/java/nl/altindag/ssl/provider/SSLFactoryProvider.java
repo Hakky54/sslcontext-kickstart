@@ -19,6 +19,9 @@ import nl.altindag.ssl.SSLFactory;
 
 import java.util.Optional;
 
+/**
+ * @author Hakan Altindag
+ */
 public final class SSLFactoryProvider {
 
     private static SSLFactory sslFactory;
