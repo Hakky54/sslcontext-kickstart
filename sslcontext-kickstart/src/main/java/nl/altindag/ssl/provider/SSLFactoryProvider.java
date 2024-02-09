@@ -13,21 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.altindag.ssl.sslcontext;
+package nl.altindag.ssl.provider;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLParameters;
+import nl.altindag.ssl.SSLFactory;
 
-/**
- * <strong>NOTE:</strong>
- * Please don't use this class directly as it is part of the internal API. Class name and methods can be changed any time.
- *
- * @author Hakan Altindag
- */
-public final class FenixSSLContext extends SSLContext {
+import java.util.Optional;
 
-    public FenixSSLContext(SSLContext baseSslContext, SSLParameters baseSslParameters) {
-        super(new FenixSSLContextSpi(baseSslContext, baseSslParameters), baseSslContext.getProvider(), baseSslContext.getProtocol());
+public final class SSLFactoryProvider {
+
+    private static SSLFactory sslFactory;
+
+    private SSLFactoryProvider() {
+    }
+
+    public static void set(SSLFactory sslFactory) {
+        SSLFactoryProvider.sslFactory = sslFactory;
+    }
+
+    public static Optional<SSLFactory> get() {
+        return Optional.ofNullable(sslFactory);
     }
 
 }

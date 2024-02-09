@@ -15,6 +15,9 @@
  */
 package nl.altindag.ssl.sslcontext;
 
+import nl.altindag.ssl.SSLFactory;
+import nl.altindag.ssl.exception.GenericSecurityException;
+import nl.altindag.ssl.provider.SSLFactoryProvider;
 import nl.altindag.ssl.util.SSLParametersUtils;
 import nl.altindag.ssl.util.SSLSocketUtils;
 import org.slf4j.Logger;
@@ -30,13 +33,15 @@ import javax.net.ssl.SSLSessionContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import java.security.SecureRandom;
+import java.util.Optional;
 
 import static java.util.Objects.nonNull;
+import static nl.altindag.ssl.util.internal.ValidationUtils.GENERIC_EXCEPTION_MESSAGE;
 
 /**
  * @author Hakan Altindag
  */
-class FenixSSLContextSpi extends SSLContextSpi {
+public final class FenixSSLContextSpi extends SSLContextSpi {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FenixSSLContextSpi.class);
 
@@ -46,6 +51,18 @@ class FenixSSLContextSpi extends SSLContextSpi {
     FenixSSLContextSpi(SSLContext sslContext, SSLParameters sslParameters) {
         this.sslContext = sslContext;
         this.sslParameters = sslParameters;
+    }
+
+    public FenixSSLContextSpi() {
+        Optional<SSLFactory> sslFactory = SSLFactoryProvider.get();
+        if (!sslFactory.isPresent()) {
+            String message = GENERIC_EXCEPTION_MESSAGE.apply("SSLFactory");
+            LOGGER.debug(message);
+            throw new GenericSecurityException(message);
+        }
+
+        sslContext = sslFactory.get().getSslContext();
+        sslParameters = sslFactory.get().getSslParameters();
     }
 
     @Override
