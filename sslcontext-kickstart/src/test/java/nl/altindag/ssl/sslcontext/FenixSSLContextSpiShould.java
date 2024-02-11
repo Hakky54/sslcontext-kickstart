@@ -16,9 +16,13 @@
 package nl.altindag.ssl.sslcontext;
 
 import nl.altindag.log.LogCaptor;
+import nl.altindag.ssl.exception.GenericSecurityException;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @author Hakan Altindag
@@ -34,6 +38,19 @@ class FenixSSLContextSpiShould {
 
         assertThat(logCaptor.getDebugLogs())
                 .containsExactly("The provided parameters are being ignored as the SSLContext has already been initialized");
+    }
+
+    @Test
+    void throwExceptionAndDebugLogWhenDefaultConstructorIsCalledWhileSslFactoryProviderIsNotInitialized() {
+        LogCaptor logCaptor = LogCaptor.forClass(FenixSSLContextSpi.class);
+        String expectedMessage = "No valid SSLFactory has been provided. SSLFactory must be present, but was absent.";
+
+        assertThatThrownBy(FenixSSLContextSpi::new)
+                .isInstanceOf(GenericSecurityException.class)
+                .hasMessage(expectedMessage);
+
+        List<String> logs = logCaptor.getDebugLogs();
+        assertThat(logs).contains(expectedMessage);
     }
 
 }
