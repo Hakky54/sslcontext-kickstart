@@ -13,21 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.altindag.ssl.sslcontext;
+package nl.altindag.ssl.provider;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLParameters;
+import nl.altindag.ssl.SSLFactory;
+import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 /**
- * <strong>NOTE:</strong>
- * Please don't use this class directly as it is part of the internal API. Class name and methods can be changed any time.
- *
  * @author Hakan Altindag
  */
-public final class FenixSSLContext extends SSLContext {
+class SSLFactoryProviderShould {
 
-    public FenixSSLContext(SSLContext baseSslContext, SSLParameters baseSslParameters) {
-        super(new FenixSSLContextSpi(baseSslContext, baseSslParameters), baseSslContext.getProvider(), baseSslContext.getProtocol());
+    @Test
+    void setSslFactory() {
+        try {
+            SSLFactory sslFactory = mock(SSLFactory.class);
+
+            SSLFactoryProvider.set(sslFactory);
+            assertThat(SSLFactoryProvider.get()).isPresent();
+            assertThat(SSLFactoryProvider.get()).contains(sslFactory);
+        } finally {
+            SSLFactoryProvider.set(null);
+        }
     }
 
 }
