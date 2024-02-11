@@ -95,6 +95,7 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "8.3.0"
        - [Loading pem files from string content](#loading-pem-files-from-string-content)
        - [Loading encrypted pem files](#loading-encrypted-pem-files)
      - [Migrating from classic configuration](#migrating-from-classic-configuration)
+     - [Global SSL configuration](#global-ssl-configuration)
      - [Logging certificate validation](#logging-detailed-certificate-validation)
      - [Logging detailed KeyManager flow, input and output](#logging-detailed-keymanager-flow-input-and-output)
    - [Returnable values from the SSLFactory](#returnable-values-from-the-sslfactory)
@@ -815,6 +816,23 @@ SSLContext.setDefault(sslFactory.getSslContext());
 
 The SSLFactory returnable values can be supplied to the http client as shown [here](#tested-http-clients)
 
+##### Global SSL configuration
+If it is not possible to adjust the ssl configuration of a server or client because it is using the default ssl configuration or using a pre-configured, then you can give the snippet below a try.
+The snippet below will ensure the default SSLContext will be the one which is constructed by SSLFactory and the Security utility of Java will also use the SSLContext of SSLFactory if it is initialized with `SSLContext.getInstance("TLS")` or any of the following protocols: SSL, SSLv2, SSLv3, TLSv1, TLSv1.1, TLSv1.2, TLSv1.3
+```
+// The SSLFactory below is just an example, use your own custom initialized one here
+SSLFactory sslFactory = SSLFactory.builder()
+        .withDefaultTrustMaterial()
+        .withSystemTrustMaterial()
+        .build();
+
+Provider provider = new FenixProvider();
+Security.insertProviderAt(provider, 1);
+
+SSLFactoryProvider.set(sslFactory);
+SSLContext.setDefault(sslFactory.getSslContext());
+```
+
 ##### Logging detailed certificate validation
 ```text
 SSLFactory sslFactory = SSLFactory.builder()
@@ -1355,7 +1373,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/woj-tek"><img src="https://avatars.githubusercontent.com/u/724413?v=4?s=100" width="100px;" alt=""/><br /><sub><b>woj-tek</b></sub></a><br /><a title="Bug reports">🐛</a></td>
     <td align="center"><a href="https://github.com/thahnen"><img src="https://avatars.githubusercontent.com/u/6588381?v=4?s=100" width="100px;" alt=""/><br /><sub><b>thahnen</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Athahnen" title="Bug reports">🐛</a></td>
     <td align="center"><a href="https://github.com/gerardnorton"><img src="https://avatars.githubusercontent.com/u/62466694?v=4?s=100" width="100px;" alt=""/><br /><sub><b>gerardnorton</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Agerardnorton" title="Ideas, Planning, & Feedback">🤔</a></td>
-    <td align="center"><a href="https://github.com/austinarbor"><img src="https://avatars.githubusercontent.com/u/11469880?v=4?s=100" width="100px;" alt=""/><br /><sub><b>austinarbor</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Aaustinarbor" title="Bug reports">🐛</a></td>
+    <td align="center"><a href="https://github.com/austinarbor"><img src="https://avatars.githubusercontent.com/u/11469880?v=4?s=100" width="100px;" alt=""/><br /><sub><b>austinarbor</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Aaustinarbor" title="Bug reports and Ideas, Planning, & Feedback">🐛 🤔</a></td>
     <td align="center"><a href="https://github.com/ssmoss"><img src="https://avatars.githubusercontent.com/u/8904909?v=4?s=100" width="100px;" alt=""/><br /><sub><b>ssmoss</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Assmoss" title="Ideas, Planning, & Feedback">🤔</a></td>
   </tr>
 </table>
