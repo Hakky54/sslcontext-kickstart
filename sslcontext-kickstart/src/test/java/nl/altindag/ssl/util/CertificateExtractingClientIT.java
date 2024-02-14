@@ -56,7 +56,7 @@ class CertificateExtractingClientIT {
 
             List<X509Certificate> certificates = client.get("https://localhost:1234");
             assertThat(certificates).isEmpty();
-            assertThat(logCaptor.getDebugLogs()).contains("The server didn't respond within the configured time-out of [100] milliseconds");
+            assertThat(logCaptor.getDebugLogs()).contains("The client didn't get a respond within the configured time-out of [100] milliseconds from: [https://localhost:1234]");
 
             server.stop();
         }

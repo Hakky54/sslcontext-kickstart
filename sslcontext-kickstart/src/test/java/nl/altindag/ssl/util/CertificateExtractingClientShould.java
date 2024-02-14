@@ -15,6 +15,7 @@
  */
 package nl.altindag.ssl.util;
 
+import nl.altindag.log.LogCaptor;
 import nl.altindag.ssl.exception.GenericCertificateException;
 import nl.altindag.ssl.exception.GenericIOException;
 import org.junit.jupiter.api.Test;
@@ -24,6 +25,9 @@ import org.mockito.MockedStatic;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLException;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.Authenticator;
@@ -31,7 +35,9 @@ import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.PasswordAuthentication;
 import java.net.Proxy;
+import java.net.SocketTimeoutException;
 import java.net.URI;
+import java.net.URL;
 import java.net.UnknownHostException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -54,6 +60,7 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Hakan Altindag
@@ -144,6 +151,40 @@ class CertificateExtractingClientShould {
         assertThatThrownBy(() -> victim.getCertificatesFromRemoteFile(uri, null))
                 .isInstanceOf(GenericCertificateException.class)
                 .hasMessageContaining("KABOOM!!!");
+    }
+
+    @Test
+    void timeoutIfServerFailsToRespondInTimeAndReturnsEmptyListOfCertificatesWhenExceptionHasCauseOfSocketTimeoutException() throws IOException {
+        LogCaptor logCaptor = LogCaptor.forClass(CertificateExtractingClient.class);
+
+        CertificateExtractingClient victim = spy(CertificateExtractingClient.builder().withTimeout(100).build());
+
+        IOException ioException = new SSLException(new SocketTimeoutException("read timeout"));
+        HttpsURLConnection connection = spy((HttpsURLConnection) new URL("https://google.com").openConnection());
+
+        when(victim.createConnection(new URL("https://google.com"))).thenReturn(connection);
+        doThrow(ioException).when(connection).connect();
+
+        List<X509Certificate> certificates = victim.get("https://google.com");
+        assertThat(certificates).isEmpty();
+        assertThat(logCaptor.getDebugLogs()).contains("The client didn't get a respond within the configured time-out of [100] milliseconds from: [https://google.com]");
+    }
+
+    @Test
+    void timeoutIfServerFailsToRespondInTimeAndReturnsEmptyListOfCertificatesWhenExceptionIsInstanceOfSocketTimeoutException() throws IOException {
+        LogCaptor logCaptor = LogCaptor.forClass(CertificateExtractingClient.class);
+
+        CertificateExtractingClient victim = spy(CertificateExtractingClient.builder().withTimeout(100).build());
+
+        IOException ioException = new SocketTimeoutException("read timeout");
+        HttpsURLConnection connection = spy((HttpsURLConnection) new URL("https://google.com").openConnection());
+
+        when(victim.createConnection(new URL("https://google.com"))).thenReturn(connection);
+        doThrow(ioException).when(connection).connect();
+
+        List<X509Certificate> certificates = victim.get("https://google.com");
+        assertThat(certificates).isEmpty();
+        assertThat(logCaptor.getDebugLogs()).contains("The client didn't get a respond within the configured time-out of [100] milliseconds from: [https://google.com]");
     }
 
     @Test

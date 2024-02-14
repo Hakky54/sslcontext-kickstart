@@ -120,18 +120,19 @@ public class CertificateExtractingClient {
             } else {
                 return Collections.emptyList();
             }
-        } catch (SocketTimeoutException e) {
-            LOGGER.debug("The server didn't respond within the configured time-out of [{}] milliseconds", timeoutInMilliseconds);
-            return Collections.emptyList();
-        } catch (IOException e) {
-            throw new GenericIOException(String.format("Failed getting certificate from: [%s]", url), e);
+        } catch (IOException exception) {
+            if (exception instanceof SocketTimeoutException || exception.getCause() instanceof SocketTimeoutException) {
+                LOGGER.debug("The client didn't get a respond within the configured time-out of [{}] milliseconds from: [{}]", timeoutInMilliseconds, url);
+                return Collections.emptyList();
+            }
+            throw new GenericIOException(String.format("Failed getting certificate from: [%s]", url), exception);
         } finally {
             certificatesCollector.clear();
             SSLSessionUtils.invalidateCaches(sslFactoryForCertificateCapturing);
         }
     }
 
-    private URLConnection createConnection(URL url) throws IOException {
+    URLConnection createConnection(URL url) throws IOException {
         return proxy != null ? url.openConnection(proxy) : url.openConnection();
     }
 
