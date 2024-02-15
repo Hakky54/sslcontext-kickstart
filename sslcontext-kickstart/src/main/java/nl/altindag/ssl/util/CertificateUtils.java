@@ -94,7 +94,8 @@ public final class CertificateUtils {
                     .replace(" ", "-")
                     .replace(",", "_")
                     .replace("'", "")
-                    .replaceAll("[.*\\\\]+", "");
+                    .replaceAll("[.*\\\\/:]+", "")
+                    .replaceAll("(-)\\1+", "$1");
         } else {
             return UUID.randomUUID().toString().toLowerCase(Locale.US);
         }

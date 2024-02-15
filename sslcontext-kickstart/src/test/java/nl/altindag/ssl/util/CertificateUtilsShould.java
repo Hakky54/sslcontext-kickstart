@@ -93,10 +93,14 @@ class CertificateUtilsShould {
         X500Principal x500Principal = mock(X500Principal.class);
 
         when(certificate.getSubjectX500Principal()).thenReturn(x500Principal);
-        when(x500Principal.getName(X500Principal.CANONICAL)).thenReturn("cn=*.youtube.google.com_o=google\\ llc,l=*mountain *view\\ top,st=california,c=us");
+        when(x500Principal.getName(X500Principal.CANONICAL))
+                .thenReturn("cn=*.youtube.google.com_o=google\\ llc,l=*mountain *view\\ top,st=california,c=us")
+                .thenReturn("cn=go daddy secure certificate authority - g2,ou=http://certs.godaddy.com/repository/,o=godaddy.com\\, inc.,l=scottsdale,st=arizona,c=us");
 
         String alias = CertificateUtils.generateAlias(certificate);
         assertThat(alias).isEqualTo("cn=youtubegooglecom_o=google-llc_l=mountain-view-top_st=california_c=us".toLowerCase(Locale.ENGLISH));
+        alias = CertificateUtils.generateAlias(certificate);
+        assertThat(alias).isEqualTo("cn=go-daddy-secure-certificate-authority-g2_ou=httpcertsgodaddycomrepository_o=godaddycom_-inc_l=scottsdale_st=arizona_c=us".toLowerCase(Locale.ENGLISH));
     }
 
     @Test
