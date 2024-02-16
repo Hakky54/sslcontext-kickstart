@@ -23,6 +23,9 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
+ * <strong>NOTE:</strong>
+ * Please don't use this class directly as it is part of the internal API. Class name and methods can be changed any time.
+ *
  * @author Hakan Altindag
  */
 public final class SSLFactoryProvider {

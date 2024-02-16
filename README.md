@@ -826,10 +826,8 @@ SSLFactory sslFactory = SSLFactory.builder()
         .withSystemTrustMaterial()
         .build();
 
-Provider provider = new FenixProvider();
+Provider provider = ProviderUtils.create(sslFactory);
 Security.insertProviderAt(provider, 1);
-
-SSLFactoryProvider.set(sslFactory);
 SSLContext.setDefault(sslFactory.getSslContext());
 ```
 

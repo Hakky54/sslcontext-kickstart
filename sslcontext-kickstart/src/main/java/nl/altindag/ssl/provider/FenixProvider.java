@@ -18,6 +18,11 @@ package nl.altindag.ssl.provider;
 import java.security.Provider;
 
 /**
+ * <strong>NOTE:</strong>
+ * Please don't use this class directly as it is part of the internal API. Class name and methods can be changed any time.
+ * Instead use the {@link nl.altindag.ssl.util.ProviderUtils ProviderUtils} which provides the same functionality
+ * while it has a stable API because it is part of the public API.
+ *
  * @author Hakan Altindag
  */
 public final class FenixProvider extends Provider {

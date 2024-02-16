@@ -13,17 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-module nl.altindag.ssl {
+package nl.altindag.ssl.util;
 
-    requires transitive org.slf4j;
+import nl.altindag.ssl.SSLFactory;
+import nl.altindag.ssl.provider.FenixProvider;
+import nl.altindag.ssl.provider.SSLFactoryProvider;
 
-    exports nl.altindag.ssl;
-    exports nl.altindag.ssl.exception;
-    exports nl.altindag.ssl.model;
-    exports nl.altindag.ssl.trustmanager.validator;
-    exports nl.altindag.ssl.trustmanager.trustoptions;
-    exports nl.altindag.ssl.util;
-    exports nl.altindag.ssl.sslcontext to java.base;
-    exports nl.altindag.ssl.util.internal to nl.altindag.ssl.pem;
+import java.security.Provider;
+
+/**
+ * @author Hakan Altindag
+ */
+public final class ProviderUtils {
+
+    private ProviderUtils() {}
+
+    public static Provider create(SSLFactory sslFactory) {
+        SSLFactoryProvider.set(sslFactory);
+        return new FenixProvider();
+    }
 
 }
