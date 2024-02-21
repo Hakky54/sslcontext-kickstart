@@ -3,6 +3,11 @@
 This list is not intended to be all-encompassing - it will document major and breaking API
 changes with their rationale when appropriate:
 
+### v8.3.2
+- Added custom security provider
+- Bumped dependencies
+- Bug-fix remove invalid characters when generating certificate alias
+- Bug-fix handle timout exception correctly on java 8 when extracting certificates
 ### v8.3.1
 - Bumped dependencies
 - Added system name to the system trust manager
