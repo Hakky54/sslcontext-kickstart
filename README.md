@@ -819,6 +819,7 @@ The SSLFactory returnable values can be supplied to the http client as shown [he
 ##### Global SSL configuration
 If it is not possible to adjust the ssl configuration of a server or client because it is using the default ssl configuration or using a pre-configured, then you can give the snippet below a try.
 The snippet below will ensure the default SSLContext will be the one which is constructed by SSLFactory and the Security utility of Java will also use the SSLContext of SSLFactory if it is initialized with `SSLContext.getInstance("TLS")` or any of the following protocols: SSL, SSLv2, SSLv3, TLSv1, TLSv1.1, TLSv1.2, TLSv1.3
+See also a working demo here: [Bypassing and overruling SSL configuration of libraries](https://github.com/Hakky54/java-tutorials/tree/main/bypassing-overruling-ssl-configuration)
 ```
 // The SSLFactory below is just an example, use your own custom initialized one here
 SSLFactory sslFactory = SSLFactory.builder()
