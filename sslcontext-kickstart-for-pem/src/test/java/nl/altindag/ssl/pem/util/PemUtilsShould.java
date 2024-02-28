@@ -53,6 +53,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -498,11 +499,14 @@ class PemUtilsShould {
 
     @Test
     void extractPublicKeyFromPrivateKey() {
-        String identityContent = getResourceContent(PEM_LOCATION + "encrypted-identity.pem");
-        PrivateKey privateKey = PemUtils.parsePrivateKey(identityContent, DEFAULT_PASSWORD);
-        PublicKey publicKey = PemUtils.extractPublicKey(privateKey);
+        List<String> privateKeyFilePaths = List.of(PEM_LOCATION + "encrypted-ec-identity.pem", PEM_LOCATION + "encrypted-identity.pem", PEM_LOCATION + "encrypted-rsa-identity.pem", PEM_LOCATION + "rsa-unencrypted-identity.pem", PEM_LOCATION + "unencrypted-ec-identity.pem", PEM_LOCATION + "unencrypted-identity.pem");
+        for (String privateKeyFilePath : privateKeyFilePaths) {
+            String identityContent = getResourceContent(privateKeyFilePath);
+            PrivateKey privateKey = PemUtils.parsePrivateKey(identityContent, DEFAULT_PASSWORD);
+            PublicKey publicKey = PemUtils.extractPublicKey(privateKey);
 
-        assertThat(publicKey).isNotNull();
+            assertThat(publicKey).isNotNull();
+        }
     }
 
     @Test
