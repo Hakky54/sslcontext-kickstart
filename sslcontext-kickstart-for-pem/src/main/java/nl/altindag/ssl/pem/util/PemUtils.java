@@ -545,13 +545,13 @@ public final class PemUtils {
                     PEMKeyPair pemKeyPair = (PEMKeyPair) object;
                     KeyPair keyPair = getInstance().getKeyConverter().getKeyPair(pemKeyPair);
                     return keyPair.getPublic();
-                } else {
-                    throw new PublicKeyParseException("Could not extract public key for the given private key.");
                 }
             }
         } catch (IOException exception) {
             throw new PublicKeyParseException(exception);
         }
+
+        throw new PublicKeyParseException("Could not extract public key for the given private key.");
     }
 
     static PemUtils getInstance() {
