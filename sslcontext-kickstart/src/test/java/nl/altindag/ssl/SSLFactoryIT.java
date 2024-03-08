@@ -407,7 +407,7 @@ class SSLFactoryIT {
         assertThat(response.getStatusCode()).isEqualTo(200);
         assertThat(response.getBody()).contains("Hello from server one");
 
-        sslFactoryForClient.getSslParameters().setCipherSuites(new String[]{"TLS_AES_256_GCM_SHA384"});
+        sslFactoryForClient.getSslParameters().setCipherSuites(new String[]{"TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384"});
 
         assertThatThrownBy(() -> executeRequest("https://localhost:8443/api/hello", sslSocketFactory))
                 .isInstanceOfAny(SocketException.class, SSLException.class);
