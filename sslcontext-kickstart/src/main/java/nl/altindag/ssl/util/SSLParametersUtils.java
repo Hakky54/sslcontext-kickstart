@@ -15,7 +15,6 @@
  */
 package nl.altindag.ssl.util;
 
-import nl.altindag.ssl.exception.GenericTrustManagerException;
 import nl.altindag.ssl.sslparameters.HotSwappableSSLParameters;
 
 import javax.net.ssl.SSLParameters;
@@ -113,32 +112,6 @@ public final class SSLParametersUtils {
      */
     public static SSLParameters createSwappableSslParameters(SSLParameters sslParameters) {
         return new HotSwappableSSLParameters(sslParameters);
-    }
-
-    public static void swapCiphers(SSLParameters baseSslParameters, List<String> ciphers) {
-        SSLParameters newSslParameters = new SSLParameters(ciphers.toArray(new String[]{}));
-        swapSslParameters(baseSslParameters, newSslParameters);
-    }
-
-    public static void swapSslParameters(SSLParameters baseSslParameters, SSLParameters newSslParameters) {
-        if (!(baseSslParameters instanceof HotSwappableSSLParameters)) {
-            throw new GenericTrustManagerException(
-                    String.format("The baseSslParameters is from the instance of [%s] and should be an instance of [%s].",
-                            baseSslParameters.getClass().getName(),
-                            HotSwappableSSLParameters.class.getName())
-            );
-        }
-
-        if (newSslParameters instanceof HotSwappableSSLParameters) {
-            throw new GenericTrustManagerException(
-                    String.format("The newSslParameters should not be an instance of [%s]", HotSwappableSSLParameters.class.getName())
-            );
-        }
-
-        HotSwappableSSLParameters swappableSslParameters = (HotSwappableSSLParameters) baseSslParameters;
-
-        // Initially only support setting ciphers
-        swappableSslParameters.setCipherSuites(newSslParameters.getCipherSuites());
     }
 
 }

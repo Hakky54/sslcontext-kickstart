@@ -884,8 +884,6 @@ public final class SSLFactory {
                     .withTrustManager(trustManager)
                     .withSslParameters(baseSslParameters)
                     .withHostnameVerifier(resolvedHostnameVerifier)
-                    .withCiphers(Collections.unmodifiableList(Arrays.asList(baseSslParameters.getCipherSuites())))
-                    .withProtocols(Collections.unmodifiableList(Arrays.asList(baseSslParameters.getProtocols())))
                     .build();
 
             return new SSLFactory(sslMaterial);

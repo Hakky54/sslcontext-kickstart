@@ -20,6 +20,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509ExtendedTrustManager;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -37,8 +38,6 @@ public final class SSLMaterial {
     private X509ExtendedTrustManager trustManager;
     private HostnameVerifier hostnameVerifier;
     private SSLParameters sslParameters;
-    private List<String> ciphers;
-    private List<String> protocols;
 
     private SSLMaterial() {}
 
@@ -63,11 +62,11 @@ public final class SSLMaterial {
     }
 
     public List<String> getCiphers() {
-        return ciphers;
+        return Arrays.asList(sslParameters.getCipherSuites());
     }
 
     public List<String> getProtocols() {
-        return protocols;
+        return Arrays.asList(sslParameters.getProtocols());
     }
 
     public static class Builder {
@@ -77,8 +76,6 @@ public final class SSLMaterial {
         private X509ExtendedTrustManager trustManager;
         private HostnameVerifier hostnameVerifier;
         private SSLParameters sslParameters;
-        private List<String> ciphers;
-        private List<String> protocols;
 
         public Builder withSslContext(SSLContext sslContext) {
             this.sslContext = sslContext;
@@ -92,16 +89,6 @@ public final class SSLMaterial {
 
         public Builder withSslParameters(SSLParameters sslParameters) {
             this.sslParameters = sslParameters;
-            return this;
-        }
-
-        public Builder withCiphers(List<String> ciphers) {
-            this.ciphers = ciphers;
-            return this;
-        }
-
-        public Builder withProtocols(List<String> protocols) {
-            this.protocols = protocols;
             return this;
         }
 
@@ -122,8 +109,6 @@ public final class SSLMaterial {
             sslMaterial.trustManager = trustManager;
             sslMaterial.hostnameVerifier = hostnameVerifier;
             sslMaterial.sslParameters = sslParameters;
-            sslMaterial.ciphers = ciphers;
-            sslMaterial.protocols = protocols;
             return sslMaterial;
         }
     }

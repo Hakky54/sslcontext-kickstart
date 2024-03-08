@@ -16,14 +16,10 @@
 package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.SSLFactory;
-import nl.altindag.ssl.keymanager.HotSwappableX509ExtendedKeyManager;
-import nl.altindag.ssl.sslparameters.HotSwappableSSLParameters;
-import nl.altindag.ssl.trustmanager.HotSwappableX509ExtendedTrustManager;
 
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 /**
  * @author Hakan Altindag
@@ -45,10 +41,8 @@ public final class SSLFactoryUtils {
      * Other properties such as ciphers, protocols, secure-random, {@link javax.net.ssl.HostnameVerifier} and {@link javax.net.ssl.SSLParameters} will not be reloaded.
      */
     public static void reload(SSLFactory baseSslFactory, SSLFactory updatedSslFactory, boolean shouldInvalidateCaches) {
-        reload(baseSslFactory, updatedSslFactory, SSLFactory::getKeyManager, HotSwappableX509ExtendedKeyManager.class::isInstance, KeyManagerUtils::swapKeyManager);
-        reload(baseSslFactory, updatedSslFactory, SSLFactory::getTrustManager, HotSwappableX509ExtendedTrustManager.class::isInstance, TrustManagerUtils::swapTrustManager);
-        reload(baseSslFactory, updatedSslFactory, sslFactory -> Optional.of(sslFactory.getSslParameters()), HotSwappableSSLParameters.class::isInstance, SSLParametersUtils::swapSslParameters);
-
+        reload(baseSslFactory, updatedSslFactory, SSLFactory::getKeyManager, KeyManagerUtils::swapKeyManager);
+        reload(baseSslFactory, updatedSslFactory, SSLFactory::getTrustManager, TrustManagerUtils::swapTrustManager);
         if (shouldInvalidateCaches) {
             SSLSessionUtils.invalidateCaches(baseSslFactory);
         }
@@ -57,13 +51,12 @@ public final class SSLFactoryUtils {
     private static <T> void reload(SSLFactory baseSslFactory,
                                    SSLFactory updatedSslFactory,
                                    Function<SSLFactory, Optional<T>> mapper,
-                                   Predicate<T> predicate,
                                    BiConsumer<T, T> consumer) {
 
-        Optional<T> base = mapper.apply(baseSslFactory).filter(predicate);
-        Optional<T> update = mapper.apply(updatedSslFactory);
-        if (base.isPresent() && update.isPresent()) {
-            consumer.accept(base.get(), update.get());
+        Optional<T> baseManager = mapper.apply(baseSslFactory);
+        Optional<T> updatedManager = mapper.apply(updatedSslFactory);
+        if (baseManager.isPresent() && updatedManager.isPresent()) {
+            consumer.accept(baseManager.get(), updatedManager.get());
         }
     }
 
