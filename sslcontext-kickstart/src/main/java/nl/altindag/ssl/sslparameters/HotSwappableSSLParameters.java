@@ -34,6 +34,7 @@ public final class HotSwappableSSLParameters extends DelegatingSSLParameters {
         super(sslParameters);
     }
 
+    @Override
     public void setSslParameters(SSLParameters sslParameters) {
         setSafely(() -> super.setSslParameters(requireNotNull(sslParameters, GENERIC_EXCEPTION_MESSAGE.apply("SSLParameters"))));
     }
