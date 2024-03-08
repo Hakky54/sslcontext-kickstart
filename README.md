@@ -493,6 +493,16 @@ In that way existing connections which already have done the ssl handshake won't
 ```text
 SSLFactoryUtils.reload(baseSslFactory, updatedSslFactory, false);
 ```
+Additionally the SSL parameters can also be reloaded such as ciphers. A basic example is demonstrated below:
+```text
+SSLFactory sslFactory = SSLFactory.builder()
+          .withIdentityMaterial(Paths.get("/path/to/your/identity.jks"), "password".toCharArray())
+          .withTrustMaterial(Paths.get("/path/to/your/truststore.jks"), "password".toCharArray())
+          .withSwappableSslParameters
+          .build();
+          
+sslFactory.getSslParameters().setCipherSuites(new String[]{"TLS_DHE_RSA_WITH_AES_128_CBC_SHA256"})
+```
 
 ##### Support for swapping KeyManager and TrustManager at runtime
 It is possible to swap a KeyManager and TrustManager from a SSLContext, SSLSocketFactory and SSLServerSocketFactory while already using it within your client or server at runtime. This option will enable to refresh the identity and trust material of a server or client without the need of restarting your application or recreating it with SSLFactory. The identity and trust material may expire at some point in time and needs to be replaced to be still functional.
