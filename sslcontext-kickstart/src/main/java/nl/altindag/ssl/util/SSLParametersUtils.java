@@ -15,6 +15,8 @@
  */
 package nl.altindag.ssl.util;
 
+import nl.altindag.ssl.sslparameters.HotSwappableSSLParameters;
+
 import javax.net.ssl.SSLParameters;
 import java.util.Arrays;
 import java.util.Collections;
@@ -30,6 +32,14 @@ public final class SSLParametersUtils {
     }
 
     public static SSLParameters copy(SSLParameters source) {
+        if (source instanceof HotSwappableSSLParameters) {
+            HotSwappableSSLParameters swappableSslParameters = (HotSwappableSSLParameters) source;
+            SSLParameters innerSslParameters = swappableSslParameters.getInnerSslParameters();
+            SSLParameters copiedSslParameters = copy(innerSslParameters);
+            swappableSslParameters.setSslParameters(copiedSslParameters);
+            return swappableSslParameters;
+        }
+
         SSLParameters target = new SSLParameters();
         target.setProtocols(source.getProtocols());
         target.setCipherSuites(source.getCipherSuites());
@@ -91,6 +101,17 @@ public final class SSLParametersUtils {
         }
 
         return target;
+    }
+
+    /**
+     * Wraps the given SSLParameters into an instance of a Hot Swappable SSLParameters.
+     * This type of SSLParameters has the capability of swapping in and out different SSLParameters at runtime.
+     *
+     * @param sslParameters To be wrapped SSLParameters
+     * @return Swappable SSLParameters
+     */
+    public static SSLParameters createSwappableSslParameters(SSLParameters sslParameters) {
+        return new HotSwappableSSLParameters(sslParameters);
     }
 
 }

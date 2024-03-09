@@ -382,6 +382,39 @@ class SSLFactoryIT {
         server.stop();
     }
 
+    @Test
+    void executeRequestToServerWithMutualAuthenticationWithSwappingCiphers() throws IOException {
+        char[] keyStorePassword = "secret".toCharArray();
+
+        SSLFactory sslFactoryForServer = SSLFactory.builder()
+                .withIdentityMaterial("keystore/client-server/server-one/identity.jks", keyStorePassword)
+                .withTrustMaterial("keystore/client-server/server-one/truststore.jks", keyStorePassword)
+                .withNeedClientAuthentication()
+                .withProtocols("TLSv1.2")
+                .build();
+
+        Server server = Server.createDefault(sslFactoryForServer, 8443, "Hello from server one");
+
+        SSLFactory sslFactoryForClient = SSLFactory.builder()
+                .withIdentityMaterial("keystore/client-server/client-one/identity.jks", keyStorePassword)
+                .withTrustMaterial("keystore/client-server/client-one/truststore.jks", keyStorePassword)
+                .withSwappableSslParameters()
+                .build();
+
+        SSLSocketFactory sslSocketFactory = sslFactoryForClient.getSslSocketFactory();
+
+        Response response = executeRequest("https://localhost:8443/api/hello", sslSocketFactory);
+        assertThat(response.getStatusCode()).isEqualTo(200);
+        assertThat(response.getBody()).contains("Hello from server one");
+
+        sslFactoryForClient.getSslParameters().setCipherSuites(new String[]{"TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384"});
+
+        assertThatThrownBy(() -> executeRequest("https://localhost:8443/api/hello", sslSocketFactory))
+                .isInstanceOfAny(SocketException.class, SSLException.class);
+
+        server.stop();
+    }
+
     private Response executeRequest(String url, SSLSocketFactory sslSocketFactory) throws IOException {
         HttpsURLConnection connection = (HttpsURLConnection) new URL(url).openConnection();
         connection.setSSLSocketFactory(sslSocketFactory);

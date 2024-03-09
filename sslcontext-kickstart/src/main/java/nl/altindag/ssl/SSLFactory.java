@@ -193,6 +193,7 @@ public final class SSLFactory {
 
         private boolean swappableKeyManagerEnabled = false;
         private boolean swappableTrustManagerEnabled = false;
+        private boolean swappableSslParametersEnabled = false;
         private boolean loggingKeyManagerEnabled = false;
         private boolean loggingTrustManagerEnabled = false;
 
@@ -756,6 +757,11 @@ public final class SSLFactory {
             return this;
         }
 
+        public Builder withSwappableSslParameters() {
+            swappableSslParametersEnabled = true;
+            return this;
+        }
+
         public <T extends Provider> Builder withSecurityProvider(T securityProvider) {
             this.securityProvider = securityProvider;
             return this;
@@ -878,8 +884,6 @@ public final class SSLFactory {
                     .withTrustManager(trustManager)
                     .withSslParameters(baseSslParameters)
                     .withHostnameVerifier(resolvedHostnameVerifier)
-                    .withCiphers(Collections.unmodifiableList(Arrays.asList(baseSslParameters.getCipherSuites())))
-                    .withProtocols(Collections.unmodifiableList(Arrays.asList(baseSslParameters.getProtocols())))
                     .build();
 
             return new SSLFactory(sslMaterial);
@@ -939,7 +943,8 @@ public final class SSLFactory {
             sslParameters.setCipherSuites(preferredCiphers);
             sslParameters.setProtocols(preferredProtocols);
 
-            return SSLParametersUtils.merge(sslParameters, defaultSSLParameters, excludedCiphers, excludedProtocols);
+            SSLParameters mergedSslParameters = SSLParametersUtils.merge(sslParameters, defaultSSLParameters, excludedCiphers, excludedProtocols);
+            return swappableSslParametersEnabled ? SSLParametersUtils.createSwappableSslParameters(mergedSslParameters) : mergedSslParameters;
         }
 
     }
