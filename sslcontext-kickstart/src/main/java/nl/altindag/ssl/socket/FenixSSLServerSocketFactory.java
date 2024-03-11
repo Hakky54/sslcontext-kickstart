@@ -15,6 +15,8 @@
  */
 package nl.altindag.ssl.socket;
 
+import nl.altindag.ssl.util.SSLParametersUtils;
+
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
@@ -80,7 +82,7 @@ public final class FenixSSLServerSocketFactory extends SSLServerSocketFactory {
     private ServerSocket withSslParameters(ServerSocket socket) {
         if (socket instanceof SSLServerSocket) {
             SSLServerSocket sslSocket = (SSLServerSocket) socket;
-            sslSocket.setSSLParameters(sslParameters);
+            sslSocket.setSSLParameters(SSLParametersUtils.copy(sslParameters));
         }
         return socket;
     }

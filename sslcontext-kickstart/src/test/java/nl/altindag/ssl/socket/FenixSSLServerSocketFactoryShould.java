@@ -15,8 +15,10 @@
  */
 package nl.altindag.ssl.socket;
 
+import nl.altindag.ssl.util.SSLParametersUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.net.ssl.SSLParameters;
@@ -31,6 +33,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -75,11 +78,15 @@ class FenixSSLServerSocketFactoryShould {
 
         doReturn(mockedSslServerSocket).when(sslServerSocketFactory).createServerSocket();
 
-        ServerSocket serverSocket = victim.createServerSocket();
+        try(MockedStatic<SSLParameters> mockedStatic = mockStatic(SSLParameters.class)) {
+            ServerSocket serverSocket = victim.createServerSocket();
 
-        assertThat(serverSocket).isNotNull();
-        verify(sslServerSocketFactory, times(1)).createServerSocket();
-        verify(mockedSslServerSocket, times(1)).setSSLParameters(sslParameters);
+            assertThat(serverSocket).isNotNull();
+            verify(sslServerSocketFactory, times(1)).createServerSocket();
+            verify(mockedSslServerSocket, times(1)).setSSLParameters(any());
+
+            mockedStatic.verify(() -> SSLParametersUtils.copy(sslParameters), times(1));
+        }
     }
 
     @Test
@@ -102,11 +109,15 @@ class FenixSSLServerSocketFactoryShould {
         doReturn(mockedSslServerSocket)
                 .when(sslServerSocketFactory).createServerSocket(anyInt());
 
-        ServerSocket serverSocket = victim.createServerSocket(8443);
+        try(MockedStatic<SSLParameters> mockedStatic = mockStatic(SSLParameters.class)) {
+            ServerSocket serverSocket = victim.createServerSocket(8443);
 
-        assertThat(serverSocket).isNotNull();
-        verify(sslServerSocketFactory, times(1)).createServerSocket(8443);
-        verify(mockedSslServerSocket, times(1)).setSSLParameters(sslParameters);
+            assertThat(serverSocket).isNotNull();
+            verify(sslServerSocketFactory, times(1)).createServerSocket(8443);
+            verify(mockedSslServerSocket, times(1)).setSSLParameters(any());
+
+            mockedStatic.verify(() -> SSLParametersUtils.copy(sslParameters), times(1));
+        }
     }
 
     @Test
@@ -116,11 +127,15 @@ class FenixSSLServerSocketFactoryShould {
         doReturn(mockedSslServerSocket)
                 .when(sslServerSocketFactory).createServerSocket(anyInt(), anyInt());
 
-        ServerSocket serverSocket = victim.createServerSocket(8443, 50);
+        try(MockedStatic<SSLParameters> mockedStatic = mockStatic(SSLParameters.class)) {
+            ServerSocket serverSocket = victim.createServerSocket(8443, 50);
 
-        assertThat(serverSocket).isNotNull();
-        verify(sslServerSocketFactory, times(1)).createServerSocket(8443, 50);
-        verify(mockedSslServerSocket, times(1)).setSSLParameters(sslParameters);
+            assertThat(serverSocket).isNotNull();
+            verify(sslServerSocketFactory, times(1)).createServerSocket(8443, 50);
+            verify(mockedSslServerSocket, times(1)).setSSLParameters(any());
+
+            mockedStatic.verify(() -> SSLParametersUtils.copy(sslParameters), times(1));
+        }
     }
 
     @Test
@@ -130,11 +145,15 @@ class FenixSSLServerSocketFactoryShould {
         doReturn(mockedSslServerSocket)
                 .when(sslServerSocketFactory).createServerSocket(anyInt(), anyInt(), any(InetAddress.class));
 
-        ServerSocket serverSocket = victim.createServerSocket(8443, 50, InetAddress.getLocalHost());
+        try(MockedStatic<SSLParameters> mockedStatic = mockStatic(SSLParameters.class)) {
+            ServerSocket serverSocket = victim.createServerSocket(8443, 50, InetAddress.getLocalHost());
 
-        assertThat(serverSocket).isNotNull();
-        verify(sslServerSocketFactory, times(1)).createServerSocket(8443, 50, InetAddress.getLocalHost());
-        verify(mockedSslServerSocket, times(1)).setSSLParameters(sslParameters);
+            assertThat(serverSocket).isNotNull();
+            verify(sslServerSocketFactory, times(1)).createServerSocket(8443, 50, InetAddress.getLocalHost());
+            verify(mockedSslServerSocket, times(1)).setSSLParameters(any());
+
+            mockedStatic.verify(() -> SSLParametersUtils.copy(sslParameters), times(1));
+        }
     }
 
 }
