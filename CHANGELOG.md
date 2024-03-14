@@ -3,6 +3,9 @@
 This list is not intended to be all-encompassing - it will document major and breaking API
 changes with their rationale when appropriate:
 
+### v8.3.3
+- Added reloadable ciphers
+- Bumped dependencies
 ### v8.3.2
 - Added custom security provider
 - Bumped dependencies
