@@ -18,6 +18,8 @@ package nl.altindag.ssl.sslcontext;
 import nl.altindag.ssl.SSLFactory;
 import nl.altindag.ssl.exception.GenericSecurityException;
 import nl.altindag.ssl.provider.SSLFactoryProvider;
+import nl.altindag.ssl.sslengine.FenixSSLEngine;
+import nl.altindag.ssl.sslparameters.HotSwappableSSLParameters;
 import nl.altindag.ssl.util.SSLParametersUtils;
 import nl.altindag.ssl.util.SSLSocketUtils;
 import org.slf4j.Logger;
@@ -99,7 +101,7 @@ public final class FenixSSLContextSpi extends SSLContextSpi {
         }
 
         sslEngine.setSSLParameters(engineGetDefaultSSLParameters());
-        return sslEngine;
+        return sslParameters instanceof HotSwappableSSLParameters ? new FenixSSLEngine(sslEngine, (HotSwappableSSLParameters) sslParameters) : sslEngine;
     }
 
     @Override
