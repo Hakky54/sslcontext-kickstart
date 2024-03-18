@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.altindag.ssl.sslengine;
+package nl.altindag.ssl.socket;
 
 import nl.altindag.ssl.util.internal.Callable;
 
-import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLParameters;
+import javax.net.ssl.SSLServerSocket;
+import java.io.IOException;
 
 /**
  * <strong>NOTE:</strong>
@@ -26,28 +27,38 @@ import javax.net.ssl.SSLParameters;
  *
  * @author Hakan Altindag
  */
-public class FenixSSLEngine extends DelegatingSSLEngine {
+class FenixSSLServerSocket extends DelegatingSSLServerSocket {
 
     private final SSLParameters sslParameters;
 
-    public FenixSSLEngine(SSLEngine sslEngine, SSLParameters sslParameters) {
-        super(sslEngine);
+    public FenixSSLServerSocket(SSLServerSocket socket, SSLParameters sslParameters) throws IOException {
+        super(socket);
         this.sslParameters = sslParameters;
     }
 
     @Override
     public void setSSLParameters(SSLParameters params) {
-        // ignore
+
     }
 
     @Override
     public void setEnabledCipherSuites(String[] suites) {
-        // ignore
+
     }
 
     @Override
     public void setEnabledProtocols(String[] protocols) {
-        // ignore
+
+    }
+
+    @Override
+    public void setNeedClientAuth(boolean need) {
+
+    }
+
+    @Override
+    public void setWantClientAuth(boolean want) {
+
     }
 
     @Override
@@ -56,13 +67,13 @@ public class FenixSSLEngine extends DelegatingSSLEngine {
     }
 
     @Override
-    public String[] getEnabledProtocols() {
-        return updateAndGet(super::getEnabledProtocols);
+    public boolean getNeedClientAuth() {
+        return updateAndGet(super::getNeedClientAuth);
     }
 
     @Override
-    public boolean getNeedClientAuth() {
-        return updateAndGet(super::getNeedClientAuth);
+    public String[] getEnabledProtocols() {
+        return updateAndGet(super::getEnabledProtocols);
     }
 
     @Override
@@ -76,7 +87,7 @@ public class FenixSSLEngine extends DelegatingSSLEngine {
     }
 
     private <T> T updateAndGet(Callable<T> callable) {
-        sslEngine.setSSLParameters(sslParameters);
+        socket.setSSLParameters(sslParameters);
         return callable.call();
     }
 

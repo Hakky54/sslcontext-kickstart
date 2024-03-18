@@ -15,6 +15,7 @@
  */
 package nl.altindag.ssl.socket;
 
+import nl.altindag.ssl.sslparameters.HotSwappableSSLParameters;
 import nl.altindag.ssl.util.SSLParametersUtils;
 
 import javax.net.ssl.SSLParameters;
@@ -103,6 +104,10 @@ public final class FenixSSLSocketFactory extends SSLSocketFactory {
         if (socket instanceof SSLSocket) {
             SSLSocket sslSocket = (SSLSocket) socket;
             sslSocket.setSSLParameters(SSLParametersUtils.copy(sslParameters));
+
+            if (sslParameters instanceof HotSwappableSSLParameters) {
+                return new FenixSSLSocket(sslSocket, sslParameters);
+            }
         }
         return socket;
     }
