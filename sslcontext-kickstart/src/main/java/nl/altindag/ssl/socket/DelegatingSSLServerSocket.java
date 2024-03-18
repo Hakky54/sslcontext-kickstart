@@ -170,12 +170,12 @@ class DelegatingSSLServerSocket extends SSLServerSocket {
     }
 
     @Override
-    public void setSoTimeout(int timeout) throws SocketException {
+    public synchronized void setSoTimeout(int timeout) throws SocketException {
         socket.setSoTimeout(timeout);
     }
 
     @Override
-    public int getSoTimeout() throws IOException {
+    public synchronized int getSoTimeout() throws IOException {
         return socket.getSoTimeout();
     }
 
@@ -195,12 +195,12 @@ class DelegatingSSLServerSocket extends SSLServerSocket {
     }
 
     @Override
-    public void setReceiveBufferSize(int size) throws SocketException {
+    public synchronized void setReceiveBufferSize(int size) throws SocketException {
         socket.setReceiveBufferSize(size);
     }
 
     @Override
-    public int getReceiveBufferSize() throws SocketException {
+    public synchronized int getReceiveBufferSize() throws SocketException {
         return socket.getReceiveBufferSize();
     }
 

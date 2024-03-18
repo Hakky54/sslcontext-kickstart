@@ -16,6 +16,8 @@
 package nl.altindag.ssl.socket;
 
 import nl.altindag.ssl.util.internal.Callable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLSocket;
@@ -28,6 +30,8 @@ import javax.net.ssl.SSLSocket;
  */
 class FenixSSLSocket extends DelegatingSSLSocket {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(FenixSSLServerSocket.class);
+
     private final SSLParameters sslParameters;
 
     public FenixSSLSocket(SSLSocket socket, SSLParameters sslParameters) {
@@ -37,27 +41,27 @@ class FenixSSLSocket extends DelegatingSSLSocket {
 
     @Override
     public void setSSLParameters(SSLParameters params) {
-
+        LOGGER.debug("Ignoring provided ssl parameters");
     }
 
     @Override
     public void setEnabledCipherSuites(String[] suites) {
-
+        LOGGER.debug("Ignoring provided ciphers");
     }
 
     @Override
     public void setEnabledProtocols(String[] protocols) {
-
+        LOGGER.debug("Ignoring provided protocols");
     }
 
     @Override
     public void setNeedClientAuth(boolean need) {
-
+        LOGGER.debug("Ignoring provided need client auth");
     }
 
     @Override
     public void setWantClientAuth(boolean want) {
-
+        LOGGER.debug("Ignoring provided want client auth");
     }
 
     @Override

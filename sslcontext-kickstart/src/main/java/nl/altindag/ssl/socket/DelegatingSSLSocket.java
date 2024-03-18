@@ -26,8 +26,6 @@ import java.net.InetAddress;
 import java.net.SocketAddress;
 import java.net.SocketException;
 import java.nio.channels.SocketChannel;
-import java.util.List;
-import java.util.function.BiFunction;
 
 /**
  * <strong>NOTE:</strong>
@@ -164,7 +162,7 @@ class DelegatingSSLSocket extends SSLSocket {
     }
 
     @Override
-    public void close() throws IOException {
+    public synchronized void close() throws IOException {
         socket.close();
     }
 
@@ -184,12 +182,12 @@ class DelegatingSSLSocket extends SSLSocket {
     }
 
     @Override
-    public void setSoTimeout(int timeout) throws SocketException {
+    public synchronized void setSoTimeout(int timeout) throws SocketException {
         socket.setSoTimeout(timeout);
     }
 
     @Override
-    public int getSoTimeout() throws SocketException {
+    public synchronized int getSoTimeout() throws SocketException {
         return socket.getSoTimeout();
     }
 
@@ -209,12 +207,12 @@ class DelegatingSSLSocket extends SSLSocket {
     }
 
     @Override
-    public void setReceiveBufferSize(int size) throws SocketException {
+    public synchronized void setReceiveBufferSize(int size) throws SocketException {
         socket.setReceiveBufferSize(size);
     }
 
     @Override
-    public int getReceiveBufferSize() throws SocketException {
+    public synchronized int getReceiveBufferSize() throws SocketException {
         return socket.getReceiveBufferSize();
     }
 
@@ -299,12 +297,12 @@ class DelegatingSSLSocket extends SSLSocket {
     }
 
     @Override
-    public void setSendBufferSize(int size) throws SocketException {
+    public synchronized void setSendBufferSize(int size) throws SocketException {
         socket.setSendBufferSize(size);
     }
 
     @Override
-    public int getSendBufferSize() throws SocketException {
+    public synchronized int getSendBufferSize() throws SocketException {
         return socket.getSendBufferSize();
     }
 

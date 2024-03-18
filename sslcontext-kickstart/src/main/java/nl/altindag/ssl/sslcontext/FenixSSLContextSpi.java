@@ -101,7 +101,7 @@ public final class FenixSSLContextSpi extends SSLContextSpi {
         }
 
         sslEngine.setSSLParameters(engineGetDefaultSSLParameters());
-        return sslParameters instanceof HotSwappableSSLParameters ? new FenixSSLEngine(sslEngine, (HotSwappableSSLParameters) sslParameters) : sslEngine;
+        return sslParameters instanceof HotSwappableSSLParameters ? new FenixSSLEngine(sslEngine, sslParameters) : sslEngine;
     }
 
     @Override
