@@ -57,12 +57,12 @@ class FenixSSLServerSocket extends DelegatingSSLServerSocket {
 
     @Override
     public void setNeedClientAuth(boolean need) {
-        LOGGER.debug("Ignoring provided need client auth");
+        LOGGER.debug("Ignoring provided indicator for need client auth");
     }
 
     @Override
     public void setWantClientAuth(boolean want) {
-        LOGGER.debug("Ignoring provided want client auth");
+        LOGGER.debug("Ignoring provided indicator for want client auth");
     }
 
     @Override
@@ -71,13 +71,13 @@ class FenixSSLServerSocket extends DelegatingSSLServerSocket {
     }
 
     @Override
-    public boolean getNeedClientAuth() {
-        return updateAndGet(super::getNeedClientAuth);
+    public String[] getEnabledProtocols() {
+        return updateAndGet(super::getEnabledProtocols);
     }
 
     @Override
-    public String[] getEnabledProtocols() {
-        return updateAndGet(super::getEnabledProtocols);
+    public boolean getNeedClientAuth() {
+        return updateAndGet(super::getNeedClientAuth);
     }
 
     @Override

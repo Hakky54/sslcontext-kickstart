@@ -32,10 +32,9 @@ import java.nio.channels.ServerSocketChannel;
  */
 class DelegatingSSLServerSocket extends SSLServerSocket {
 
-    final SSLServerSocket socket;
+    SSLServerSocket socket;
 
     public DelegatingSSLServerSocket(SSLServerSocket socket) throws IOException {
-        super(socket.getLocalPort());
         this.socket = socket;
     }
 
@@ -51,7 +50,7 @@ class DelegatingSSLServerSocket extends SSLServerSocket {
 
     @Override
     public String[] getSupportedCipherSuites() {
-        return socket.getEnabledCipherSuites();
+        return socket.getSupportedCipherSuites();
     }
 
     @Override

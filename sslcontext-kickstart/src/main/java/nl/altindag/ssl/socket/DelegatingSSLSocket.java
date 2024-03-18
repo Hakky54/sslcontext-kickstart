@@ -53,7 +53,7 @@ class DelegatingSSLSocket extends SSLSocket {
 
     @Override
     public String[] getSupportedCipherSuites() {
-        return socket.getEnabledCipherSuites();
+        return socket.getSupportedCipherSuites();
     }
 
     @Override

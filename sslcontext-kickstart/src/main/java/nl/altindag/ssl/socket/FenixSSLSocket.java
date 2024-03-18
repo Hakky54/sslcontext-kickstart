@@ -30,7 +30,7 @@ import javax.net.ssl.SSLSocket;
  */
 class FenixSSLSocket extends DelegatingSSLSocket {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FenixSSLServerSocket.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FenixSSLSocket.class);
 
     private final SSLParameters sslParameters;
 
@@ -56,12 +56,12 @@ class FenixSSLSocket extends DelegatingSSLSocket {
 
     @Override
     public void setNeedClientAuth(boolean need) {
-        LOGGER.debug("Ignoring provided need client auth");
+        LOGGER.debug("Ignoring provided indicator for need client auth");
     }
 
     @Override
     public void setWantClientAuth(boolean want) {
-        LOGGER.debug("Ignoring provided want client auth");
+        LOGGER.debug("Ignoring provided indicator for want client auth");
     }
 
     @Override
