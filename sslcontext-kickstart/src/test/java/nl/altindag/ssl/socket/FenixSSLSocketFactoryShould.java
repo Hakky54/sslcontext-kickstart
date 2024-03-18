@@ -93,6 +93,23 @@ class FenixSSLSocketFactoryShould {
     }
 
     @Test
+    void createSocketWithHotSwappableSslParameters() throws IOException {
+        SSLSocket mockedSslSocket = mock(SSLSocket.class);
+        doReturn(mockedSslSocket).when(sslSocketFactory).createSocket();
+
+        try (MockedStatic<SSLParameters> mockedStatic = mockStatic(SSLParameters.class)) {
+            FenixSSLSocketFactory victim = new FenixSSLSocketFactory(sslSocketFactory, SSLParametersUtils.createSwappableSslParameters(sslParameters));
+            Socket socket = victim.createSocket();
+
+            assertThat(socket).isNotNull().isInstanceOf(FenixSSLSocket.class);
+            verify(sslSocketFactory, times(1)).createSocket();
+            verify(mockedSslSocket, times(1)).setSSLParameters(any());
+
+            mockedStatic.verify(() -> SSLParametersUtils.copy(sslParameters), times(1));
+        }
+    }
+
+    @Test
     void createSocketDoesNotUseSslParametersWhenInnerSslSocketFactoryReturnsSocket() throws IOException {
         Socket mockedSocket = mock(Socket.class);
 
