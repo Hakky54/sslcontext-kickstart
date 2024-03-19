@@ -506,7 +506,7 @@ sslFactory.getSslParameters().setCipherSuites(new String[]{"TLS_DHE_RSA_WITH_AES
 Please note that this might not work for all http clients and servers. It works for out of the box with Jetty, but for Netty it needs some additional configuration see the code snippet below. It basically depends on how the http client or server uses the ciphers or other ssl properties during the ssl handshake.
 ```text
 SSLFactory sslFactory = ... // your initialized SSLFactory similar to the above one with SwappableSslParameters 
-Provider provider = ProviderUtils.create(sslFactoryForServer);
+Provider provider = ProviderUtils.create(sslFactory);
 Security.insertProviderAt(provider, 1);
 
 // Initialize your server at this point
