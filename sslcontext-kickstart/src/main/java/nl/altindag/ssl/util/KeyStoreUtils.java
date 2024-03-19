@@ -17,6 +17,7 @@ package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.exception.GenericKeyStoreException;
 import nl.altindag.ssl.util.internal.CollectorsUtils;
+import nl.altindag.ssl.util.internal.ConcurrentUtils;
 import nl.altindag.ssl.util.internal.IOUtils;
 import nl.altindag.ssl.util.internal.StringUtils;
 import org.slf4j.Logger;
@@ -43,9 +44,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
+import static nl.altindag.ssl.util.OperatingSystem.WINDOWS;
 import static nl.altindag.ssl.util.internal.ValidationUtils.requireNotEmpty;
 import static nl.altindag.ssl.util.internal.ValidationUtils.requireNotNull;
 
@@ -257,7 +260,12 @@ public final class KeyStoreUtils {
     @SuppressWarnings("SameParameterValue")
     static Optional<KeyStore> createKeyStoreIfAvailable(String keyStoreType, char[] keyStorePassword) {
         try {
-            KeyStore keyStore = createKeyStore(keyStoreType, keyStorePassword);
+            KeyStore keyStore;
+            if (OperatingSystem.get() == WINDOWS) {
+                keyStore = ConcurrentUtils.supplyAsync(() -> createKeyStore(keyStoreType, keyStorePassword)).get(250, TimeUnit.MILLISECONDS);
+            } else {
+                keyStore = createKeyStore(keyStoreType, keyStorePassword);
+            }
 
             if (LOGGER.isDebugEnabled()) {
                 int totalTrustedCertificates = countAmountOfTrustMaterial(keyStore);
