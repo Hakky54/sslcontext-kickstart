@@ -262,7 +262,7 @@ public final class KeyStoreUtils {
         try {
             KeyStore keyStore;
             if (OperatingSystem.get() == WINDOWS) {
-                keyStore = ConcurrentUtils.supplyAsync(() -> createKeyStore(keyStoreType, keyStorePassword)).get(500, TimeUnit.MILLISECONDS);
+                keyStore = ConcurrentUtils.supplyAsync(() -> createKeyStore(keyStoreType, keyStorePassword)).get(1, TimeUnit.SECONDS);
             } else {
                 keyStore = createKeyStore(keyStoreType, keyStorePassword);
             }
