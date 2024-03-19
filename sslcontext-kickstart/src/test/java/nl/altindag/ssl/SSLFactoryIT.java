@@ -17,6 +17,7 @@ package nl.altindag.ssl;
 
 import nl.altindag.ssl.server.service.Server;
 import nl.altindag.ssl.util.KeyStoreUtils;
+import nl.altindag.ssl.util.ProviderUtils;
 import nl.altindag.ssl.util.SSLFactoryUtils;
 import nl.altindag.ssl.util.SSLSessionUtils;
 import nl.altindag.ssl.util.TrustManagerUtils;
@@ -24,6 +25,7 @@ import org.junit.jupiter.api.Test;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.X509ExtendedTrustManager;
 import java.io.BufferedReader;
@@ -34,6 +36,8 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyStore;
+import java.security.Provider;
+import java.security.Security;
 import java.security.cert.CertificateException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -413,6 +417,67 @@ class SSLFactoryIT {
                 .isInstanceOfAny(SocketException.class, SSLException.class);
 
         server.stop();
+    }
+
+    @Test
+    void swapCiphersWhileUsingNetty() throws Exception {
+        SSLFactory sslFactoryForServer = SSLFactory.builder()
+                .withIdentityMaterial("keystore/client-server/server-one/identity.jks", "secret".toCharArray())
+                .withTrustMaterial("keystore/client-server/server-one/truststore.jks", "secret".toCharArray())
+                .withNeedClientAuthentication()
+                .withCiphers("TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256")
+                .withSwappableSslParameters()
+                .build();
+
+        SSLFactory sslFactoryForClient = SSLFactory.builder()
+                .withIdentityMaterial("keystore/client-server/client-one/identity.jks", "secret".toCharArray())
+                .withTrustMaterial("keystore/client-server/client-one/truststore.jks", "secret".toCharArray())
+                .build();
+
+Provider provider = ProviderUtils.create(sslFactoryForServer);
+Security.insertProviderAt(provider, 1);
+        Server server = Server.createDefault(sslFactoryForServer);
+
+        assertThatThrownBy(() -> executeRequest("https://localhost:8443/api/hello", sslFactoryForClient.getSslSocketFactory()))
+                .hasMessageContaining("Received fatal alert: handshake_failure");
+
+        SSLParameters sslParameters = sslFactoryForServer.getSslParameters();
+        sslParameters.setCipherSuites(sslFactoryForClient.getCiphers().toArray(new String[0]));
+
+        Response response = executeRequest("https://localhost:8443/api/hello", sslFactoryForClient.getSslSocketFactory());
+        assertThat(response.getStatusCode()).isEqualTo(200);
+
+        server.stop();
+        Security.removeProvider("Fenix");
+    }
+
+    @Test
+    void swapCiphersWhileUsingJetty() throws Exception {
+        SSLFactory sslFactoryForServer = SSLFactory.builder()
+                .withIdentityMaterial("keystore/client-server/server-one/identity.jks", "secret".toCharArray())
+                .withTrustMaterial("keystore/client-server/server-one/truststore.jks", "secret".toCharArray())
+                .withNeedClientAuthentication()
+                .withCiphers("TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256")
+                .withSwappableSslParameters()
+                .build();
+
+        JettyServer jettyServer = new JettyServer(sslFactoryForServer);
+
+        SSLFactory sslFactoryForClient = SSLFactory.builder()
+                .withIdentityMaterial("keystore/client-server/client-one/identity.jks", "secret".toCharArray())
+                .withTrustMaterial("keystore/client-server/client-one/truststore.jks", "secret".toCharArray())
+                .build();
+
+        assertThatThrownBy(() -> executeRequest("https://localhost:8432/api/hello", sslFactoryForClient.getSslSocketFactory()))
+                .hasMessageContaining("Received fatal alert: handshake_failure");
+
+        SSLParameters sslParameters = sslFactoryForServer.getSslParameters();
+        sslParameters.setCipherSuites(sslFactoryForClient.getCiphers().toArray(new String[0]));
+
+        Response response = executeRequest("https://localhost:8432/api/hello", sslFactoryForClient.getSslSocketFactory());
+        assertThat(response.getStatusCode()).isEqualTo(200);
+
+        jettyServer.stop();
     }
 
     private Response executeRequest(String url, SSLSocketFactory sslSocketFactory) throws IOException {

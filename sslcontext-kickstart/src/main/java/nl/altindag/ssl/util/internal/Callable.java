@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.altindag.ssl.sslparameters;
+package nl.altindag.ssl.util.internal;
 
 /**
  * <strong>NOTE:</strong>
@@ -22,7 +22,7 @@ package nl.altindag.ssl.sslparameters;
  * @author Hakan Altindag
  */
 @FunctionalInterface
-interface SSLParametersCallable<V> {
+public interface Callable<V> {
 
     V call();
 

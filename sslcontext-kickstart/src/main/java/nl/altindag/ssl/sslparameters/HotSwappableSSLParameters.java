@@ -15,6 +15,8 @@
  */
 package nl.altindag.ssl.sslparameters;
 
+import nl.altindag.ssl.util.internal.Callable;
+
 import javax.net.ssl.SSLParameters;
 import java.security.AlgorithmConstraints;
 import java.util.concurrent.locks.Lock;
@@ -104,10 +106,10 @@ public final class HotSwappableSSLParameters extends DelegatingSSLParameters {
         setSafely(() -> super.setEndpointIdentificationAlgorithm(algorithm));
     }
 
-    private <V> V getSafely(SSLParametersCallable<V> sslParametersCallable) {
+    private <V> V getSafely(Callable<V> callable) {
         readLock.lock();
         try {
-            return sslParametersCallable.call();
+            return callable.call();
         } finally {
             readLock.unlock();
         }
