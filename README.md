@@ -503,6 +503,7 @@ SSLFactory sslFactory = SSLFactory.builder()
           
 sslFactory.getSslParameters().setCipherSuites(new String[]{"TLS_DHE_RSA_WITH_AES_128_CBC_SHA256"})
 ```
+Please note that this might not work for all http clients and servers. It works for Jetty, but not for Netty. It depends on how the server uses the ciphers or other ssl properties during the ssl handshake.
 
 ##### Support for swapping KeyManager and TrustManager at runtime
 It is possible to swap a KeyManager and TrustManager from a SSLContext, SSLSocketFactory and SSLServerSocketFactory while already using it within your client or server at runtime. This option will enable to refresh the identity and trust material of a server or client without the need of restarting your application or recreating it with SSLFactory. The identity and trust material may expire at some point in time and needs to be replaced to be still functional.
