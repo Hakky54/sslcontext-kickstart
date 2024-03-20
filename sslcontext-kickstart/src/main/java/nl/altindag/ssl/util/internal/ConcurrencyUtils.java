@@ -20,6 +20,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Supplier;
 
+/**
+ * <strong>NOTE:</strong>
+ * Please don't use this class directly as it is part of the internal API. Class name and methods can be changed any time.
+ *
+ * @author Hakan Altindag
+ */
 public final class ConcurrencyUtils {
 
     public static final int NUMBER_OF_THREADS = 1;
