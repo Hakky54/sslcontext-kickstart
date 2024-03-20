@@ -262,7 +262,7 @@ public final class KeyStoreUtils {
         try {
             KeyStore keyStore;
             if (OperatingSystem.get() == WINDOWS) {
-                keyStore = ConcurrentUtils.supplyAsync(() -> createKeyStore(keyStoreType, keyStorePassword)).get(1, TimeUnit.SECONDS);
+                keyStore = ConcurrentUtils.supplyAsync(() -> createKeyStore(keyStoreType, keyStorePassword)).get(500, TimeUnit.MILLISECONDS);
             } else {
                 keyStore = createKeyStore(keyStoreType, keyStorePassword);
             }
@@ -272,8 +272,8 @@ public final class KeyStoreUtils {
                 LOGGER.debug("Successfully loaded KeyStore of the type [{}] having [{}] entries", keyStoreType, totalTrustedCertificates);
             }
             return Optional.of(keyStore);
-        } catch (Exception ignored) {
-            LOGGER.debug("Failed to load KeyStore of the type [{}]", keyStoreType);
+        } catch (Exception exception) {
+            LOGGER.debug(String.format("Failed to load KeyStore of the type [%s]", keyStoreType), exception);
             return Optional.empty();
         }
     }
