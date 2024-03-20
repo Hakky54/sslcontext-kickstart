@@ -3,6 +3,9 @@
 This list is not intended to be all-encompassing - it will document major and breaking API
 changes with their rationale when appropriate:
 
+### v8.3.4
+- Bumped dependencies
+- Bug-fix added support for reloading ciphers in SSLEngine, SSLSocketFactory and SSLServerSocketFactory
 ### v8.3.3
 - Added reloadable ciphers
 - Bumped dependencies
