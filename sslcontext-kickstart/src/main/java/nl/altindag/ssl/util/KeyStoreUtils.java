@@ -17,7 +17,7 @@ package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.exception.GenericKeyStoreException;
 import nl.altindag.ssl.util.internal.CollectorsUtils;
-import nl.altindag.ssl.util.internal.ConcurrentUtils;
+import nl.altindag.ssl.util.internal.ConcurrencyUtils;
 import nl.altindag.ssl.util.internal.IOUtils;
 import nl.altindag.ssl.util.internal.StringUtils;
 import org.slf4j.Logger;
@@ -262,7 +262,7 @@ public final class KeyStoreUtils {
         try {
             KeyStore keyStore;
             if (OperatingSystem.get() == WINDOWS) {
-                keyStore = ConcurrentUtils.supplyAsync(() -> createKeyStore(keyStoreType, keyStorePassword)).get(500, TimeUnit.MILLISECONDS);
+                keyStore = ConcurrencyUtils.supplyAsync(() -> createKeyStore(keyStoreType, keyStorePassword)).get(500, TimeUnit.MILLISECONDS);
             } else {
                 keyStore = createKeyStore(keyStoreType, keyStorePassword);
             }
@@ -273,6 +273,10 @@ public final class KeyStoreUtils {
             }
             return Optional.of(keyStore);
         } catch (Exception exception) {
+            if (exception instanceof InterruptedException) {
+                LOGGER.debug("Thread has been interrupted", exception);
+                Thread.currentThread().interrupt();
+            }
             LOGGER.debug(String.format("Failed to load KeyStore of the type [%s]", keyStoreType), exception);
             return Optional.empty();
         }

@@ -20,11 +20,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Supplier;
 
-public final class ConcurrentUtils {
+public final class ConcurrencyUtils {
 
     public static final int NUMBER_OF_THREADS = 1;
 
-    private ConcurrentUtils() {
+    private ConcurrencyUtils() {
     }
 
     public static <T> CompletableFuture<T> supplyAsync(final Supplier<T> supplier) {
@@ -52,8 +52,8 @@ public final class ConcurrentUtils {
         executorService.submit(() -> {
             try {
                 completableFuture.complete(supplier.get());
-            } catch (Throwable throwable) {
-                completableFuture.completeExceptionally(throwable);
+            } catch (Exception exception) {
+                completableFuture.completeExceptionally(exception);
             }
         });
 
