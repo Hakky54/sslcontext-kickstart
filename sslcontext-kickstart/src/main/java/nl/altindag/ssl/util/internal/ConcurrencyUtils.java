@@ -15,6 +15,8 @@
  */
 package nl.altindag.ssl.util.internal;
 
+import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -33,7 +35,7 @@ public final class ConcurrencyUtils {
     private ConcurrencyUtils() {
     }
 
-    public static <T> CompletableFuture<T> supplyAsync(final Supplier<T> supplier) {
+    public static <T> Map.Entry<CompletableFuture<T>, ExecutorService> supplyAsync(final Supplier<T> supplier) {
         ExecutorService executorService = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
         CompletableFuture<T> completableFuture = new CompletableFuture<T>() {
             @Override
@@ -63,7 +65,7 @@ public final class ConcurrencyUtils {
             }
         });
 
-        return completableFuture;
+        return new SimpleImmutableEntry<>(completableFuture, executorService);
     }
 
 }

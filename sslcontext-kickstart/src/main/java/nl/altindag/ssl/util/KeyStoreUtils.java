@@ -15,6 +15,7 @@
  */
 package nl.altindag.ssl.util;
 
+import nl.altindag.ssl.SSLFactory;
 import nl.altindag.ssl.exception.GenericKeyStoreException;
 import nl.altindag.ssl.util.internal.CollectorsUtils;
 import nl.altindag.ssl.util.internal.ConcurrencyUtils;
@@ -44,7 +45,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
@@ -260,26 +264,41 @@ public final class KeyStoreUtils {
     @SuppressWarnings("SameParameterValue")
     static Optional<KeyStore> createKeyStoreIfAvailable(String keyStoreType, char[] keyStorePassword) {
         try {
-            KeyStore keyStore;
-            if (OperatingSystem.get() == WINDOWS) {
-                keyStore = ConcurrencyUtils.supplyAsync(() -> createKeyStore(keyStoreType, keyStorePassword)).get(500, TimeUnit.MILLISECONDS);
-            } else {
-                keyStore = createKeyStore(keyStoreType, keyStorePassword);
-            }
-
+            KeyStore keyStore = OperatingSystem.get() == WINDOWS ? createKeyStoreAsync(keyStoreType, keyStorePassword) : createKeyStore(keyStoreType, keyStorePassword);
             if (LOGGER.isDebugEnabled()) {
                 int totalTrustedCertificates = countAmountOfTrustMaterial(keyStore);
                 LOGGER.debug("Successfully loaded KeyStore of the type [{}] having [{}] entries", keyStoreType, totalTrustedCertificates);
             }
             return Optional.of(keyStore);
         } catch (Exception exception) {
+            LOGGER.debug(String.format("Failed to load KeyStore of the type [%s]", keyStoreType), exception);
+            return Optional.empty();
+        }
+    }
+
+    static KeyStore createKeyStoreAsync(String keyStoreType, char[] keyStorePassword) {
+        Map.Entry<CompletableFuture<KeyStore>, ExecutorService> futureWithService = ConcurrencyUtils.supplyAsync(() -> createKeyStore(keyStoreType, keyStorePassword));
+
+        try {
+            return futureWithService.getKey()
+                    .get(500, TimeUnit.MILLISECONDS);
+        } catch (Exception exception) {
             if (exception instanceof InterruptedException) {
                 LOGGER.debug("Thread has been interrupted", exception);
                 Thread.currentThread().interrupt();
             }
-            LOGGER.debug(String.format("Failed to load KeyStore of the type [%s]", keyStoreType), exception);
-            return Optional.empty();
+            if (exception instanceof TimeoutException) {
+                LOGGER.debug(String.format("Timeout while trying to get the keystore of the type [%s]", keyStoreType), exception);
+                futureWithService.getValue().shutdownNow();
+            }
+            throw new GenericKeyStoreException(exception);
         }
+    }
+
+    public static void main(String[] args) {
+        SSLFactory.builder()
+                .withSystemTrustMaterial()
+                .build();
     }
 
     public static List<Certificate> getCertificates(KeyStore keyStore) {
