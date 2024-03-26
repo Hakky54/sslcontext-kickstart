@@ -699,6 +699,7 @@ class KeyStoreUtilsShould {
 
     @Test
     void createKeyStoreIfAvailableReturnsFilledKeyStore() {
+        System.setProperty("os.name", "mac");
         LogCaptor logCaptor = LogCaptor.forClass(KeyStoreUtils.class);
 
         KeyStore bananaKeyStore = mock(KeyStore.class);
@@ -716,6 +717,8 @@ class KeyStoreUtilsShould {
             Optional<KeyStore> keyStore = KeyStoreUtils.createKeyStoreIfAvailable("Banana", null);
             assertThat(keyStore).isPresent();
             assertThat(logCaptor.getDebugLogs()).contains("Successfully loaded KeyStore of the type [Banana] having [2] entries");
+        } finally {
+            resetOsName();
         }
     }
 
@@ -743,6 +746,7 @@ class KeyStoreUtilsShould {
 
     @Test
     void createKeyStoreIfAvailableReturnsFilledKeyStoreWithoutLoggingIfDebugIsDisabled() {
+        System.setProperty("os.name", "mac");
         LogCaptor logCaptor = LogCaptor.forClass(KeyStoreUtils.class);
         logCaptor.setLogLevelToInfo();
 
@@ -761,6 +765,8 @@ class KeyStoreUtilsShould {
             Optional<KeyStore> keyStore = KeyStoreUtils.createKeyStoreIfAvailable("Banana", null);
             assertThat(keyStore).isPresent();
             assertThat(logCaptor.getDebugLogs()).isEmpty();
+        } finally {
+            resetOsName();
         }
     }
 
