@@ -58,7 +58,7 @@
         <version.junit>5.10.2</version.junit>
         <version.assertj-core>3.25.3</version.assertj-core>
         <version.logcaptor>2.9.2</version.logcaptor>
-        <version.mockito>5.5.0</version.mockito>
+        <version.mockito>5.11.0</version.mockito>
         <version.ssl-server>1.0.6</version.ssl-server>
         <version.byte-buddy>1.14.12</version.byte-buddy>
         <version.jacoco-maven-plugin>0.8.11</version.jacoco-maven-plugin>
