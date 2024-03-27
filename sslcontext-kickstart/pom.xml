@@ -36,7 +36,6 @@
     </developers>
 
     <properties>
-        <version.jetty>9.4.54.v20240208</version.jetty>
         <version.maven-site-plugin>3.12.1</version.maven-site-plugin>
         <version.maven-project-info-reports-plugin>3.5.0</version.maven-project-info-reports-plugin>
         <version.maven-surefire-report-plugin>3.2.5</version.maven-surefire-report-plugin>
@@ -72,18 +71,6 @@
         <dependency>
             <groupId>io.github.hakky54</groupId>
             <artifactId>ssl-server</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-server</artifactId>
-            <version>${version.jetty}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-servlet</artifactId>
-            <version>${version.jetty}</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 

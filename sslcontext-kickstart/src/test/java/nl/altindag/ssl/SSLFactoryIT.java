@@ -451,35 +451,6 @@ Security.insertProviderAt(provider, 1);
         Security.removeProvider("Fenix");
     }
 
-    @Test
-    void swapCiphersWhileUsingJetty() throws Exception {
-        SSLFactory sslFactoryForServer = SSLFactory.builder()
-                .withIdentityMaterial("keystore/client-server/server-one/identity.jks", "secret".toCharArray())
-                .withTrustMaterial("keystore/client-server/server-one/truststore.jks", "secret".toCharArray())
-                .withNeedClientAuthentication()
-                .withCiphers("TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256")
-                .withSwappableSslParameters()
-                .build();
-
-        JettyServer jettyServer = new JettyServer(sslFactoryForServer);
-
-        SSLFactory sslFactoryForClient = SSLFactory.builder()
-                .withIdentityMaterial("keystore/client-server/client-one/identity.jks", "secret".toCharArray())
-                .withTrustMaterial("keystore/client-server/client-one/truststore.jks", "secret".toCharArray())
-                .build();
-
-        assertThatThrownBy(() -> executeRequest("https://localhost:8432/api/hello", sslFactoryForClient.getSslSocketFactory()))
-                .hasMessageContaining("Received fatal alert: handshake_failure");
-
-        SSLParameters sslParameters = sslFactoryForServer.getSslParameters();
-        sslParameters.setCipherSuites(sslFactoryForClient.getCiphers().toArray(new String[0]));
-
-        Response response = executeRequest("https://localhost:8432/api/hello", sslFactoryForClient.getSslSocketFactory());
-        assertThat(response.getStatusCode()).isEqualTo(200);
-
-        jettyServer.stop();
-    }
-
     private Response executeRequest(String url, SSLSocketFactory sslSocketFactory) throws IOException {
         HttpsURLConnection connection = (HttpsURLConnection) new URL(url).openConnection();
         connection.setSSLSocketFactory(sslSocketFactory);
@@ -493,7 +464,6 @@ Security.insertProviderAt(provider, 1);
         connection.disconnect();
         return new Response(statusCode, body);
     }
-
 
     private static final class Response {
         private final int statusCode;

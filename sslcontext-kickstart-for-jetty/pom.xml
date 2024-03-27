@@ -36,7 +36,7 @@
     </developers>
 
     <properties>
-        <version.jetty-util>9.4.54.v20240208</version.jetty-util>
+        <version.jetty>9.4.54.v20240208</version.jetty>
         <version.jetty-reactive-httpclient>1.1.16</version.jetty-reactive-httpclient>
     </properties>
 
@@ -48,7 +48,7 @@
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-util</artifactId>
-            <version>${version.jetty-util}</version>
+            <version>${version.jetty}</version>
             <scope>provided</scope>
         </dependency>
 
@@ -77,6 +77,18 @@
         <dependency>
             <groupId>io.github.hakky54</groupId>
             <artifactId>ssl-server</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-server</artifactId>
+            <version>${version.jetty}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-servlet</artifactId>
+            <version>${version.jetty}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

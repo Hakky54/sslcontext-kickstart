@@ -20,11 +20,15 @@ import nl.altindag.ssl.jetty.util.JettySslUtils;
 import nl.altindag.ssl.server.service.Server;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
+import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.junit.jupiter.api.Test;
 
+import javax.net.ssl.SSLParameters;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @author Hakan Altindag
@@ -61,6 +65,46 @@ class SSLFactoryIT {
         assertThat(statusCode).isEqualTo(200);
 
         server.stop();
+    }
+
+    @Test
+    void swapCiphersWhileUsingJetty() throws Exception {
+        SSLFactory sslFactoryForServer = SSLFactory.builder()
+                .withIdentityMaterial("keystore/client-server/server-one/identity.jks", "secret".toCharArray())
+                .withTrustMaterial("keystore/client-server/server-one/truststore.jks", "secret".toCharArray())
+                .withNeedClientAuthentication()
+                .withCiphers("TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256")
+                .withSwappableSslParameters()
+                .build();
+
+        JettyServer jettyServer = new JettyServer(sslFactoryForServer);
+
+        SSLFactory sslFactoryForClient = SSLFactory.builder()
+                .withIdentityMaterial("keystore/client-server/client-one/identity.jks", "secret".toCharArray())
+                .withTrustMaterial("keystore/client-server/client-one/truststore.jks", "secret".toCharArray())
+                .build();
+
+        SslContextFactory.Client sslContextFactory = JettySslUtils.forClient(sslFactoryForClient);
+        HttpClient httpClient = new HttpClient(sslContextFactory);
+        httpClient.start();
+
+        Request request = httpClient.newRequest("https://localhost:8432/api/hello")
+                .method(HttpMethod.GET);
+
+        assertThatThrownBy(request::send).hasMessageContaining("Received fatal alert: handshake_failure");
+
+        SSLParameters sslParameters = sslFactoryForServer.getSslParameters();
+        sslParameters.setCipherSuites(sslFactoryForClient.getCiphers().toArray(new String[0]));
+
+        ContentResponse contentResponse = httpClient.newRequest("https://localhost:8432/api/hello")
+                .method(HttpMethod.GET)
+                .send();
+
+        int statusCode = contentResponse.getStatus();
+        assertThat(statusCode).isEqualTo(200);
+
+        httpClient.stop();
+        jettyServer.stop();
     }
 
 }
