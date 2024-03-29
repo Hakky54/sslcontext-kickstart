@@ -21,6 +21,7 @@ import nl.altindag.ssl.provider.SSLFactoryProvider;
 import org.junit.jupiter.api.Test;
 
 import java.security.Provider;
+import java.security.Security;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -38,6 +39,18 @@ class ProviderUtilsShould {
         Provider provider = ProviderUtils.create(sslFactory);
         assertThat(provider).isInstanceOf(FenixProvider.class);
         assertThat(SSLFactoryProvider.get()).hasValue(sslFactory);
+    }
+
+    @Test
+    void configureProviderWithDefaultConfiguration() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withDefaultTrustMaterial()
+                .build();
+
+        ProviderUtils.configure(sslFactory);
+        assertThat(Security.getProvider("Fenix")).isNotNull().isInstanceOf(FenixProvider.class);
+        assertThat(SSLFactoryProvider.get()).hasValue(sslFactory);
+        Security.removeProvider("Fenix");
     }
 
 }

@@ -20,6 +20,7 @@ import nl.altindag.ssl.provider.FenixProvider;
 import nl.altindag.ssl.provider.SSLFactoryProvider;
 
 import java.security.Provider;
+import java.security.Security;
 
 /**
  * @author Hakan Altindag
@@ -31,6 +32,11 @@ public final class ProviderUtils {
     public static Provider create(SSLFactory sslFactory) {
         SSLFactoryProvider.set(sslFactory);
         return new FenixProvider();
+    }
+
+    public static void configure(SSLFactory sslFactory) {
+        Provider provider = create(sslFactory);
+        Security.insertProviderAt(provider, 1);
     }
 
 }
