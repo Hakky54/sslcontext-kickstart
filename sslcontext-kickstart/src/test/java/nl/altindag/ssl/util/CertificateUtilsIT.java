@@ -16,15 +16,15 @@
 package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.SSLFactory;
-import nl.altindag.ssl.exception.GenericCertificateException;
 import nl.altindag.ssl.server.service.Server;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -33,114 +33,81 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class CertificateUtilsIT {
 
+    private static Server serverOne;
+    private static Server serverTwo;
+
+    @BeforeAll
+    static void setupServer() {
+        SSLFactory sslFactoryForServerOne = SSLFactory.builder()
+                .withIdentityMaterial("keystore/client-server/server-one/identity.jks", "secret".toCharArray())
+                .withTrustMaterial("keystore/client-server/server-one/truststore.jks", "secret".toCharArray())
+                .build();
+
+        SSLFactory sslFactoryForServerTwo = SSLFactory.builder()
+                .withIdentityMaterial("keystore/client-server/server-two/identity.jks", "secret".toCharArray())
+                .withTrustMaterial("keystore/client-server/server-two/truststore.jks", "secret".toCharArray())
+                .build();
+
+        serverOne = Server.createDefault(sslFactoryForServerOne, 8450);
+        serverTwo = Server.createDefault(sslFactoryForServerTwo, 8451);
+    }
+
+    @AfterAll
+    static void stopServer() {
+        serverOne.stop();
+        serverTwo.stop();
+    }
+
     @Test
     void getRemoteCertificates() {
-        Supplier<Map<String, List<X509Certificate>>> certificateSupplier = () -> CertificateUtils.getCertificatesFromExternalSources(
-                "https://stackoverflow.com/",
-                "https://github.com/",
-                "https://www.linkedin.com/"
-        );
-
-        int amountOfRetries = 0;
-        int maxAmountOfRetries = 10;
-
-        Map<String, List<X509Certificate>> certificatesFromRemote = null;
-
-        while (certificatesFromRemote == null && amountOfRetries < maxAmountOfRetries) {
-            try {
-                certificatesFromRemote = certificateSupplier.get();
-                amountOfRetries++;
-            } catch (GenericCertificateException ignored) {
-            }
-        }
+        Map<String, List<X509Certificate>> certificatesFromRemote = CertificateUtils.getCertificatesFromExternalSources("https://localhost:8450", "https://localhost:8451");
 
         assertThat(certificatesFromRemote)
                 .isNotNull()
-                .containsKeys(
-                        "https://stackoverflow.com/",
-                        "https://github.com/",
-                        "https://www.linkedin.com/"
-                );
+                .containsKeys("https://localhost:8450", "https://localhost:8451");
 
-        assertThat(certificatesFromRemote.get("https://stackoverflow.com/")).hasSizeGreaterThan(0);
-        assertThat(certificatesFromRemote.get("https://github.com/")).hasSizeGreaterThan(0);
-        assertThat(certificatesFromRemote.get("https://www.linkedin.com/")).hasSizeGreaterThan(0);
+        assertThat(certificatesFromRemote.get("https://localhost:8450")).hasSizeGreaterThan(0);
+        assertThat(certificatesFromRemote.get("https://localhost:8451")).hasSizeGreaterThan(0);
     }
 
     @Test
     void getRemoteCertificatesFromList() {
-        List<String> urls = Arrays.asList(
-                "https://stackoverflow.com/",
-                "https://github.com/",
-                "https://www.linkedin.com/"
-        );
+        List<String> urls = Arrays.asList("https://localhost:8450", "https://localhost:8451");
 
-        Supplier<Map<String, List<X509Certificate>>> certificateSupplier = () -> CertificateUtils.getCertificatesFromExternalSources(urls);
-
-        int amountOfRetries = 0;
-        int maxAmountOfRetries = 10;
-
-        Map<String, List<X509Certificate>> certificatesFromRemote = null;
-
-        while (certificatesFromRemote == null && amountOfRetries < maxAmountOfRetries) {
-            try {
-                certificatesFromRemote = certificateSupplier.get();
-                amountOfRetries++;
-            } catch (GenericCertificateException ignored) {
-            }
-        }
+        Map<String, List<X509Certificate>> certificatesFromRemote = CertificateUtils.getCertificatesFromExternalSources(urls);
 
         assertThat(certificatesFromRemote)
                 .isNotNull()
-                .containsKeys(
-                        "https://stackoverflow.com/",
-                        "https://github.com/",
-                        "https://www.linkedin.com/"
-                );
+                .containsKeys("https://localhost:8450", "https://localhost:8451");
 
-        assertThat(certificatesFromRemote.get("https://stackoverflow.com/")).hasSizeGreaterThan(0);
-        assertThat(certificatesFromRemote.get("https://github.com/")).hasSizeGreaterThan(0);
-        assertThat(certificatesFromRemote.get("https://www.linkedin.com/")).hasSizeGreaterThan(0);
+        assertThat(certificatesFromRemote.get("https://localhost:8450")).hasSizeGreaterThan(0);
+        assertThat(certificatesFromRemote.get("https://localhost:8451")).hasSizeGreaterThan(0);
     }
 
     @Test
     void getRemoteCertificatesAsPem() {
-        Map<String, List<String>> certificatesFromRemote = CertificateUtils.getCertificatesFromExternalSourcesAsPem(
-                "https://stackoverflow.com/",
-                "https://github.com/",
-                "https://www.linkedin.com/"
-        );
+        Map<String, List<String>> certificatesFromRemote = CertificateUtils.getCertificatesFromExternalSourcesAsPem("https://localhost:8450", "https://localhost:8451");
 
-        assertThat(certificatesFromRemote).containsKeys(
-                "https://stackoverflow.com/",
-                "https://github.com/",
-                "https://www.linkedin.com/"
-        );
+        assertThat(certificatesFromRemote)
+                .isNotNull()
+                .containsKeys("https://localhost:8450", "https://localhost:8451");
 
-        assertThat(certificatesFromRemote.get("https://stackoverflow.com/")).hasSizeGreaterThan(0);
-        assertThat(certificatesFromRemote.get("https://github.com/")).hasSizeGreaterThan(0);
-        assertThat(certificatesFromRemote.get("https://www.linkedin.com/")).hasSizeGreaterThan(0);
+        assertThat(certificatesFromRemote.get("https://localhost:8450")).hasSizeGreaterThan(0);
+        assertThat(certificatesFromRemote.get("https://localhost:8451")).hasSizeGreaterThan(0);
     }
 
     @Test
     void getRemoteCertificatesAsPemFromList() {
-        List<String> urls = Arrays.asList(
-                "https://stackoverflow.com/",
-                "https://github.com/",
-                "https://www.linkedin.com/"
-        );
+        List<String> urls = Arrays.asList("https://localhost:8450", "https://localhost:8451");
 
         Map<String, List<String>> certificatesFromRemote = CertificateUtils.getCertificatesFromExternalSourcesAsPem(urls);
 
-        assertThat(certificatesFromRemote).containsKeys(
-                "https://stackoverflow.com/",
-                "https://github.com/",
-                "https://www.linkedin.com/"
-        );
+        assertThat(certificatesFromRemote)
+                .isNotNull()
+                .containsKeys("https://localhost:8450", "https://localhost:8451");
 
-        assertThat(certificatesFromRemote.get("https://stackoverflow.com/")).hasSizeGreaterThan(0);
-        assertThat(certificatesFromRemote.get("https://github.com/")).hasSizeGreaterThan(0);
-        assertThat(certificatesFromRemote.get("https://www.linkedin.com/")).hasSizeGreaterThan(0);
+        assertThat(certificatesFromRemote.get("https://localhost:8450")).hasSizeGreaterThan(0);
+        assertThat(certificatesFromRemote.get("https://localhost:8451")).hasSizeGreaterThan(0);
     }
 
     @Test
