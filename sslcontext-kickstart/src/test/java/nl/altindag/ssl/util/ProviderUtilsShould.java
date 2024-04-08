@@ -18,6 +18,7 @@ package nl.altindag.ssl.util;
 import nl.altindag.ssl.SSLFactory;
 import nl.altindag.ssl.provider.FenixProvider;
 import nl.altindag.ssl.provider.SSLFactoryProvider;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.security.Provider;
@@ -29,6 +30,11 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Hakan Altindag
  */
 class ProviderUtilsShould {
+
+    @AfterEach
+    void clearSSLFactoryProvider() {
+        SSLFactoryProvider.set(null);
+    }
 
     @Test
     void createProviderWithDefaultConfiguration() {
