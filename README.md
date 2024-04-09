@@ -50,6 +50,7 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "8.3.4"
    - [Acknowledgement](#acknowledgement)
    - [Advantages](#advantages)
    - [Definitions](#definitions)
+   - [Compatibility](#compatibility)
 2. [Usage](#usage)
    - [Example configuration](#basic-example-configuration)
    - [Other possible configurations](#other-possible-configurations)
@@ -155,6 +156,12 @@ The original content can be found here:
 * Trust material: A KeyStore or TrustManager containing one or more certificates also known as public key. This KeyStore contains a list of trusted certificates
 * One way authentication (also known as one way tls, one way ssl): Https connection where the client validates the certificate of the counter party
 * Two way authentication (also known as two way tls, two way ssl, mutual authentication): Https connection where the client as well as the counter party validates the certificate, also known as mutual authentication
+
+### Compatibility
+
+|    Java     |    Kotlin     | Scala | Android |
+|:-----------:|:-------------:|:-----:|:-------:|
+|     8+      |     1.5+      | 2.11+ |   24+   |
 
 ## Usage
 ### Basic example configuration
