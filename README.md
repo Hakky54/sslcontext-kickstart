@@ -463,6 +463,7 @@ SSLFactory.builder()
           .build();
 ```
 ##### Support for reloading ssl at runtime
+###### Reload identity and trust material
 It is possible to reload or update the ssl configuration while already using it with your client or server without the need of restarting your application or recreating it with SSLFactory. The identity and trust material may expire at some point in time and needs to be replaced to be still functional.
 Restart of the application with a traditional setup is unavoidable and can result into a downtime for x amount of time. A restart is not needed when using the setup below. The below example is a high-level method of reloading the ssl configuration, if you prefer to use a low-level setup please have a look at the following example displayed here: [Hot swap KeyManager and TrustManager at runtime](#support-for-swapping-keymanager-and-trustmanager-at-runtime).
 ```text
@@ -501,6 +502,17 @@ In that way existing connections which already have done the ssl handshake won't
 ```text
 SSLFactoryUtils.reload(baseSslFactory, updatedSslFactory, false);
 ```
+
+See also here for other examples:
+- [Instant Server SSL Reloading with Spring Boot and Jetty](https://github.com/Hakky54/java-tutorials/tree/main/instant-server-ssl-reloading)
+- [Instant Server SSL Reloading with Spring Boot and Tomcat](https://github.com/Hakky54/java-tutorials/tree/main/instant-ssl-reloading-with-spring-tomcat)
+- [Instant Server SSL Reloading with Vert.x](https://github.com/Hakky54/java-tutorials/tree/main/instant-server-ssl-reloading-with-vertx/vertx-server)
+- [Instant Server SSL Reloading with Netty](https://github.com/Hakky54/java-tutorials/tree/main/instant-server-ssl-reloading-with-netty/netty-server)
+- [Instant Server SSL Reloading with gRPC](https://github.com/Hakky54/java-tutorials/tree/main/grpc-client-server-with-ssl/instant-server-ssl-reloading-with-grpc)
+- [Instant Server SSL Reloading with Spring Boot and Jetty and Database](https://github.com/Hakky54/java-tutorials/tree/main/instant-ssl-reloading-with-spring-jetty-database)
+- [Instant Server SSL Reloading with Quarkus](https://github.com/Hakky54/java-tutorials/tree/main/instant-server-ssl-reloading-with-quarkus)
+
+###### Reload ssl parameters
 Additionally the SSL parameters can also be reloaded such as ciphers. A basic example is demonstrated below:
 ```text
 SSLFactory sslFactory = SSLFactory.builder()
