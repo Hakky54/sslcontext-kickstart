@@ -614,6 +614,8 @@ SSLFactory sslFactory = SSLFactory.builder()
         .build();
 ```
 
+A proof-of-concept is available here: [GitHub - Trust Me](https://github.com/Hakky54/trust-me) which demonstrates how it can be integrated in a GUI and prompting the end-user to either trust or reject the server certificate. It will be applied instantly and the ssl configuration will be reloaded.
+
 ##### Routing identity material to specific host
 
 It may occur that the client is sending the wrong certificate to the server when using multiple identities. This will
