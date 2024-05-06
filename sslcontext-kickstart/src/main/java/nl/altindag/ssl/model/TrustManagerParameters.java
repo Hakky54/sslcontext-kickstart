@@ -19,6 +19,8 @@ import javax.net.ssl.SSLEngine;
 import java.net.Socket;
 import java.security.cert.X509Certificate;
 import java.util.Optional;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /**
  * @author Hakan Altindag
@@ -51,6 +53,39 @@ public class TrustManagerParameters {
 
     public Optional<SSLEngine> getSslEngine() {
         return Optional.ofNullable(sslEngine);
+    }
+
+    public Optional<String> getHostname() {
+        return findFirst(getHostnameFromSslEngine(), getHostnameFromSocket());
+    }
+
+    private Supplier<Optional<String>> getHostnameFromSslEngine() {
+        return () -> getSslEngine().map(SSLEngine::getPeerHost);
+    }
+
+    private Supplier<Optional<String>> getHostnameFromSocket() {
+        return () -> getSocket().map(socket -> socket.getInetAddress().getHostName());
+    }
+
+    public Optional<Integer> getPort() {
+        return findFirst(getPortFromSslEngine(), getPortFromSocket());
+    }
+
+    private Supplier<Optional<Integer>> getPortFromSslEngine() {
+        return () -> getSslEngine().map(SSLEngine::getPeerPort);
+    }
+
+    private Supplier<Optional<Integer>> getPortFromSocket() {
+        return () -> getSocket().map(Socket::getPort);
+    }
+
+    @SafeVarargs
+    private static <T> Optional<T> findFirst(Supplier<Optional<T>>... suppliers) {
+        return Stream.of(suppliers)
+                .map(Supplier::get)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .findFirst();
     }
 
 }
