@@ -15,7 +15,6 @@
  */
 package nl.altindag.ssl.util;
 
-import nl.altindag.log.LogCaptor;
 import nl.altindag.ssl.TestConstants;
 import nl.altindag.ssl.exception.GenericCertificateException;
 import nl.altindag.ssl.exception.GenericIOException;
@@ -643,13 +642,11 @@ class CertificateUtilsShould {
     }
 
     @Test
-    void generateDebugMessageWhenUnsupportedDataIsProvided() throws IOException {
-        try(LogCaptor logCaptor = LogCaptor.forClass(CertificateUtils.class);
-            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream("Hello".getBytes())) {
+    void returnEmptyListOfCertificatesWhenUnsupportedDataIsProvided() throws IOException {
+        try(ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream("Hello".getBytes())) {
             List<Certificate> certificates = CertificateUtils.parseDerCertificate(byteArrayInputStream);
 
             assertThat(certificates).isEmpty();
-            assertThat(logCaptor.getDebugLogs()).contains("There is no valid certificate present to parse. Please make sure to supply a valid der formatted certificate");
         }
     }
 

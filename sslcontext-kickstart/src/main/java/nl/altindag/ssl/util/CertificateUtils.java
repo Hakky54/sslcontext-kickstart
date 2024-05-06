@@ -18,8 +18,6 @@ package nl.altindag.ssl.util;
 import nl.altindag.ssl.exception.GenericCertificateException;
 import nl.altindag.ssl.exception.GenericIOException;
 import nl.altindag.ssl.util.internal.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.X509TrustManager;
 import javax.security.auth.x500.X500Principal;
@@ -68,8 +66,6 @@ import static nl.altindag.ssl.util.internal.ValidationUtils.requireNotNull;
  * @author Hakan Altindag
  */
 public final class CertificateUtils {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(CertificateUtils.class);
 
     private static final String CERTIFICATE_TYPE = "X.509";
     private static final String P7B_HEADER = "-----BEGIN PKCS7-----";
@@ -257,7 +253,6 @@ public final class CertificateUtils {
                     .generateCertificates(bufferedCertificateStream).stream()
                     .collect(toUnmodifiableList());
         } catch (CertificateException | IOException e) {
-            LOGGER.debug("There is no valid certificate present to parse. Please make sure to supply a valid der formatted certificate", e);
             return Collections.emptyList();
         }
     }
