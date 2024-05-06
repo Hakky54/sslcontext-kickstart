@@ -188,25 +188,6 @@ class DelegatingSSLEngineShould {
     }
 
     @Test
-    void getHandshakeApplicationProtocol() {
-        wrapperSslEngine.getHandshakeApplicationProtocol();
-        verify(sslEngine, times(1)).getHandshakeApplicationProtocol();
-    }
-
-    @Test
-    void setHandshakeApplicationProtocolSelector() {
-        BiFunction<SSLEngine, List<String>, String> selector = (s, l) -> "";
-        wrapperSslEngine.setHandshakeApplicationProtocolSelector(selector);
-        verify(sslEngine, times(1)).setHandshakeApplicationProtocolSelector(selector);
-    }
-
-    @Test
-    void getHandshakeApplicationProtocolSelector() {
-        wrapperSslEngine.getHandshakeApplicationProtocolSelector();
-        verify(sslEngine, times(1)).getHandshakeApplicationProtocolSelector();
-    }
-
-    @Test
     void setUseClientMode() {
         wrapperSslEngine.setUseClientMode(true);
         verify(sslEngine, times(1)).setUseClientMode(true);
@@ -277,12 +258,6 @@ class DelegatingSSLEngineShould {
         SSLParameters sslParameters = mock(SSLParameters.class);
         wrapperSslEngine.setSSLParameters(sslParameters);
         verify(sslEngine, times(1)).setSSLParameters(sslParameters);
-    }
-
-    @Test
-    void getApplicationProtocol() {
-        wrapperSslEngine.getApplicationProtocol();
-        verify(sslEngine, times(1)).getApplicationProtocol();
     }
 
 }

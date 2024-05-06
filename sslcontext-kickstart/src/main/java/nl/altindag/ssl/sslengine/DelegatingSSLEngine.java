@@ -21,8 +21,6 @@ import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLSession;
 import java.nio.ByteBuffer;
-import java.util.List;
-import java.util.function.BiFunction;
 
 /**
  * @author Hakan Altindag
@@ -141,21 +139,6 @@ class DelegatingSSLEngine extends SSLEngine {
     }
 
     @Override
-    public String getHandshakeApplicationProtocol() {
-        return sslEngine.getHandshakeApplicationProtocol();
-    }
-
-    @Override
-    public void setHandshakeApplicationProtocolSelector(BiFunction<SSLEngine, List<String>, String> selector) {
-        sslEngine.setHandshakeApplicationProtocolSelector(selector);
-    }
-
-    @Override
-    public BiFunction<SSLEngine, List<String>, String> getHandshakeApplicationProtocolSelector() {
-        return sslEngine.getHandshakeApplicationProtocolSelector();
-    }
-
-    @Override
     public void setUseClientMode(boolean mode) {
         sslEngine.setUseClientMode(mode);
     }
@@ -213,11 +196,6 @@ class DelegatingSSLEngine extends SSLEngine {
     @Override
     public void setSSLParameters(SSLParameters params) {
         sslEngine.setSSLParameters(params);
-    }
-
-    @Override
-    public String getApplicationProtocol() {
-        return sslEngine.getApplicationProtocol();
     }
 
 }
