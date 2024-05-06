@@ -1748,7 +1748,7 @@ class SSLFactoryShould {
 
         sslFactory = SSLFactory.builder()
                 .withDummyTrustMaterial()
-                .withExcludedProtocols("TLSv1.2", "TLSv1.3", "TLSv1.1")
+                .withExcludedProtocols("TLSv1.2", "TLSv1.3", "TLSv1.1", "TLSv1")
                 .build();
 
         assertThat(sslFactory.getProtocols())

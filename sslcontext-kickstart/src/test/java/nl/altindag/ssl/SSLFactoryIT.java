@@ -425,17 +425,18 @@ class SSLFactoryIT {
                 .withIdentityMaterial("keystore/client-server/server-one/identity.jks", "secret".toCharArray())
                 .withTrustMaterial("keystore/client-server/server-one/truststore.jks", "secret".toCharArray())
                 .withNeedClientAuthentication()
-                .withCiphers("TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256")
+                .withCiphers("TLS_DHE_RSA_WITH_AES_128_CBC_SHA")
                 .withSwappableSslParameters()
                 .build();
 
         SSLFactory sslFactoryForClient = SSLFactory.builder()
                 .withIdentityMaterial("keystore/client-server/client-one/identity.jks", "secret".toCharArray())
                 .withTrustMaterial("keystore/client-server/client-one/truststore.jks", "secret".toCharArray())
+                .withCiphers("TLS_DHE_RSA_WITH_AES_256_CBC_SHA")
                 .build();
 
-Provider provider = ProviderUtils.create(sslFactoryForServer);
-Security.insertProviderAt(provider, 1);
+        Provider provider = ProviderUtils.create(sslFactoryForServer);
+        Security.insertProviderAt(provider, 1);
         Server server = Server.createDefault(sslFactoryForServer);
 
         assertThatThrownBy(() -> executeRequest("https://localhost:8443/api/hello", sslFactoryForClient.getSslSocketFactory()))

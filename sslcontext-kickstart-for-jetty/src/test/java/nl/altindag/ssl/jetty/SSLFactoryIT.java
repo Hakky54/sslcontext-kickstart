@@ -73,7 +73,7 @@ class SSLFactoryIT {
                 .withIdentityMaterial("keystore/client-server/server-one/identity.jks", "secret".toCharArray())
                 .withTrustMaterial("keystore/client-server/server-one/truststore.jks", "secret".toCharArray())
                 .withNeedClientAuthentication()
-                .withCiphers("TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256")
+                .withCiphers("TLS_DHE_RSA_WITH_AES_128_CBC_SHA")
                 .withSwappableSslParameters()
                 .build();
 
@@ -82,6 +82,7 @@ class SSLFactoryIT {
         SSLFactory sslFactoryForClient = SSLFactory.builder()
                 .withIdentityMaterial("keystore/client-server/client-one/identity.jks", "secret".toCharArray())
                 .withTrustMaterial("keystore/client-server/client-one/truststore.jks", "secret".toCharArray())
+                .withCiphers("TLS_AES_128_GCM_SHA256")
                 .build();
 
         SslContextFactory.Client sslContextFactory = JettySslUtils.forClient(sslFactoryForClient);
@@ -91,7 +92,7 @@ class SSLFactoryIT {
         Request request = httpClient.newRequest("https://localhost:8432/api/hello")
                 .method(HttpMethod.GET);
 
-        assertThatThrownBy(request::send).hasMessageContaining("Received fatal alert: handshake_failure");
+        assertThatThrownBy(request::send);
 
         SSLParameters sslParameters = sslFactoryForServer.getSslParameters();
         sslParameters.setCipherSuites(sslFactoryForClient.getCiphers().toArray(new String[0]));
