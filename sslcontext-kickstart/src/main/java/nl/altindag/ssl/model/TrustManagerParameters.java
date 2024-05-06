@@ -80,7 +80,7 @@ public class TrustManagerParameters {
     }
 
     @SafeVarargs
-    private  <T> Optional<T> findFirst(Supplier<Optional<T>>... suppliers) {
+    private static <T> Optional<T> findFirst(Supplier<Optional<T>>... suppliers) {
         return Stream.of(suppliers)
                 .map(Supplier::get)
                 .filter(Optional::isPresent)
