@@ -24,25 +24,25 @@ Hey, hello there 👋 Welcome, I hope you will like this library ❤️ Feel fre
 <dependency>
     <groupId>io.github.hakky54</groupId>
     <artifactId>sslcontext-kickstart</artifactId>
-    <version>8.3.4</version>
+    <version>8.3.5</version>
 </dependency>
 ```
 ### Install with Gradle
 ```groovy
-implementation 'io.github.hakky54:sslcontext-kickstart:8.3.4'
+implementation 'io.github.hakky54:sslcontext-kickstart:8.3.5'
 ```
 ### Install with Gradle Kotlin DSL
 ```kotlin
-implementation("io.github.hakky54:sslcontext-kickstart:8.3.4")
+implementation("io.github.hakky54:sslcontext-kickstart:8.3.5")
 ```
 ### Install with Scala SBT
 ```
-libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "8.3.4"
+libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "8.3.5"
 ```
 ### Install with Apache Ivy
 ```xml
 
-<dependency org="io.github.hakky54" name="sslcontext-kickstart" rev="8.3.4"/>
+<dependency org="io.github.hakky54" name="sslcontext-kickstart" rev="8.3.5"/>
 ```
 
 ## Table of contents
@@ -777,7 +777,7 @@ Add the dependency below to use this feature, it also includes the core features
 <dependency>
     <groupId>io.github.hakky54</groupId>
   <artifactId>sslcontext-kickstart-for-pem</artifactId>
-  <version>8.3.4</version>
+  <version>8.3.5</version>
 </dependency>
 ```
 ##### Loading pem files from the classpath
@@ -1148,7 +1148,7 @@ Some know http clients which relay on netty libraries are: [Spring WebFlux WebCl
 <dependency>
     <groupId>io.github.hakky54</groupId>
   <artifactId>sslcontext-kickstart-for-netty</artifactId>
-  <version>8.3.4</version>
+  <version>8.3.5</version>
 </dependency>
 ```
 Example setup for Spring WebClient with Netty:
@@ -1186,7 +1186,7 @@ public class App {
 <dependency>
     <groupId>io.github.hakky54</groupId>
   <artifactId>sslcontext-kickstart-for-jetty</artifactId>
-  <version>8.3.4</version>
+  <version>8.3.5</version>
 </dependency>
 ```
 Example setup for [Spring WebFlux WebClient Jetty](https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html):
@@ -1224,7 +1224,7 @@ However it is still possible to configure the http client with their custom conf
 <dependency>
     <groupId>io.github.hakky54</groupId>
   <artifactId>sslcontext-kickstart-for-apache4</artifactId>
-  <version>8.3.4</version>
+  <version>8.3.5</version>
 </dependency>
 ```
 ```java
@@ -1255,7 +1255,7 @@ public class App {
 <dependency>
     <groupId>io.github.hakky54</groupId>
   <artifactId>sslcontext-kickstart-for-apache5</artifactId>
-  <version>8.3.4</version>
+  <version>8.3.5</version>
 </dependency>
 ```
 ```java

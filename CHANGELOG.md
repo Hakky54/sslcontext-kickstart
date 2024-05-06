@@ -3,6 +3,11 @@
 This list is not intended to be all-encompassing - it will document major and breaking API
 changes with their rationale when appropriate:
 
+### v8.3.5
+- Removed verbose debug logging for CertificateUtils
+- Added getters for hostname and port for TrustManagerParameters
+- Simplify usage of Security Provider
+- Bumped dependencies
 ### v8.3.4
 - Bumped dependencies
 - Bug-fix added support for reloading ciphers in SSLEngine, SSLSocketFactory and SSLServerSocketFactory
