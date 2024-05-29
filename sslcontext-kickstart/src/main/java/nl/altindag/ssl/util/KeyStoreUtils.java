@@ -304,9 +304,9 @@ public final class KeyStoreUtils {
     }
 
     private static KeyStore loadSystemPropertyDerivedKeyStore(String keyStorePathProperty,
-                                                       String keyStorePasswordProperty,
-                                                       String keyStoreTypeProperty,
-                                                       String keyStoreProviderProperty) {
+                                                              String keyStorePasswordProperty,
+                                                              String keyStoreTypeProperty,
+                                                              String keyStoreProviderProperty) {
 
         Path keyStorePath = Optional.ofNullable(System.getProperty(keyStorePathProperty))
                 .map(String::trim)
