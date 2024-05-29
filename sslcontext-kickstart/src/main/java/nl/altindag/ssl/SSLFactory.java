@@ -56,7 +56,6 @@ import javax.net.ssl.X509TrustManager;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.Key;
 import java.security.KeyStore;
 import java.security.Provider;
@@ -220,13 +219,8 @@ public final class SSLFactory {
         }
 
         public Builder withSystemPropertyDerivedTrustMaterial() {
-            return withSystemPropertyDerivedMaterial(
-                    "javax.net.ssl.trustStore",
-                    "javax.net.ssl.trustStorePassword",
-                    "javax.net.ssl.trustStoreType",
-                    "javax.net.ssl.trustStoreProvider",
-                    this::withTrustMaterial
-            );
+            KeyStore trustStore = KeyStoreUtils.loadSystemPropertyDerivedTrustStore();
+            return withTrustMaterial(trustStore);
         }
 
         /**
@@ -341,22 +335,6 @@ public final class SSLFactory {
             return this;
         }
 
-        private Builder withTrustMaterial(Path trustStorePath, char[] trustStorePassword, String trustStoreType, String securityProviderName) {
-            if (isNull(trustStorePath)) {
-                throw new GenericKeyStoreException(TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
-            }
-
-            KeyStore trustStore = KeyStoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType);
-
-            X509ExtendedTrustManager trustManager = securityProviderName == null
-                    ? TrustManagerUtils.createTrustManager(trustStore, TrustManagerFactory.getDefaultAlgorithm())
-                    : TrustManagerUtils.createTrustManager(trustStore, TrustManagerFactory.getDefaultAlgorithm(), securityProviderName);
-
-            trustManagers.add(trustManager);
-
-            return this;
-        }
-
         public Builder withTrustMaterial(Path trustStorePath,
                                          char[] trustStorePassword,
                                          String trustStoreType,
@@ -448,13 +426,14 @@ public final class SSLFactory {
         }
 
         public Builder withSystemPropertyDerivedIdentityMaterial() {
-            return withSystemPropertyDerivedMaterial(
-                    "javax.net.ssl.keyStore",
-                    "javax.net.ssl.keyStorePassword",
-                    "javax.net.ssl.keyStoreType",
-                    "javax.net.ssl.keyStoreProvider",
-                    this::withIdentityMaterial
-            );
+            KeyStore keyStore = KeyStoreUtils.loadSystemPropertyDerivedKeyStore();
+            char[] keystorePassword = Optional.ofNullable(System.getProperty("javax.net.ssl.keyStorePassword"))
+                    .map(String::trim)
+                    .filter(StringUtils::isNotBlank)
+                    .map(String::toCharArray)
+                    .orElse(null);
+
+            return withIdentityMaterial(keyStore, keystorePassword);
         }
 
         public Builder withIdentityMaterial(String identityStorePath, char[] identityStorePassword) {
@@ -500,21 +479,6 @@ public final class SSLFactory {
             KeyStore identity = KeyStoreUtils.loadKeyStore(identityStorePath, identityStorePassword, identityStoreType);
             KeyStoreHolder identityHolder = new KeyStoreHolder(identity, identityPassword);
             identities.add(identityHolder);
-            return this;
-        }
-
-        private Builder withIdentityMaterial(Path identityStorePath, char[] identityStorePassword, String identityStoreType, String securityProviderName) {
-            if (isNull(identityStorePath)) {
-                throw new GenericKeyStoreException(IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
-            }
-
-            KeyStore identity = KeyStoreUtils.loadKeyStore(identityStorePath, identityStorePassword, identityStoreType);
-
-            X509ExtendedKeyManager keyManager = securityProviderName == null
-                    ? KeyManagerUtils.createKeyManager(identity, identityStorePassword, KeyManagerFactory.getDefaultAlgorithm())
-                    : KeyManagerUtils.createKeyManager(identity, identityStorePassword, KeyManagerFactory.getDefaultAlgorithm(), securityProviderName);
-
-            identityManagers.add(keyManager);
             return this;
         }
 
@@ -809,42 +773,6 @@ public final class SSLFactory {
         public Builder withConcealedTrustMaterial() {
             this.shouldTrustedCertificatesBeConcealed = true;
             return this;
-        }
-
-        private Builder withSystemPropertyDerivedMaterial(String keyStorePathProperty,
-                                                          String keyStorePasswordProperty,
-                                                          String keyStoreTypeProperty,
-                                                          String securityProviderNameProperty,
-                                                          QuadConsumer<Path, char[], String, String> keyStorePropertyConsumer) {
-
-            Path keystore = Optional.ofNullable(System.getProperty(keyStorePathProperty))
-                    .map(String::trim)
-                    .filter(StringUtils::isNotBlank)
-                    .map(Paths::get)
-                    .orElse(null);
-
-            char[] keystorePassword = Optional.ofNullable(System.getProperty(keyStorePasswordProperty))
-                    .map(String::trim)
-                    .filter(StringUtils::isNotBlank)
-                    .map(String::toCharArray)
-                    .orElse(null);
-
-            String keystoreType = Optional.ofNullable(System.getProperty(keyStoreTypeProperty))
-                    .map(String::trim)
-                    .filter(StringUtils::isNotBlank)
-                    .orElseGet(KeyStore::getDefaultType);
-
-            String securityProvideName = Optional.ofNullable(System.getProperty(securityProviderNameProperty))
-                    .map(String::trim)
-                    .filter(StringUtils::isNotBlank)
-                    .orElse(null);
-
-            keyStorePropertyConsumer.accept(keystore, keystorePassword, keystoreType, securityProvideName);
-            return this;
-        }
-
-        private interface QuadConsumer<T, U, V, W> {
-            void accept(T t, U u, V v, W w);
         }
 
         public SSLFactory build() {
