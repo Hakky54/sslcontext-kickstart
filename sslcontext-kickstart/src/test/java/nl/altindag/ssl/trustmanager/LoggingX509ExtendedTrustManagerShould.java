@@ -73,10 +73,12 @@ class LoggingX509ExtendedTrustManagerShould {
         verify(innerTrustManager, times(1)).checkClientTrusted(trustedCerts, "RSA");
         verify(innerTrustManager, times(1)).getAcceptedIssuers();
 
-        assertThat(logCaptor.getDebugLogs()).hasSize(1);
+        assertThat(logCaptor.getDebugLogs()).hasSize(2);
         assertThat(logCaptor.getDebugLogs().get(0))
                 .contains("Validating the certificate chain of the client with authentication type RSA. See below for the full chain of the client")
                 .contains(Arrays.toString(trustedCerts));
+        assertThat(logCaptor.getDebugLogs().get(1))
+                .contains("Successfully validated the client with authentication type RSA.");
     }
 
     @Test
@@ -106,10 +108,12 @@ class LoggingX509ExtendedTrustManagerShould {
         verify(innerTrustManager, times(1)).checkClientTrusted(trustedCerts, "RSA", sslEngine);
         verify(innerTrustManager, times(1)).getAcceptedIssuers();
 
-        assertThat(logCaptor.getDebugLogs()).hasSize(1);
+        assertThat(logCaptor.getDebugLogs()).hasSize(2);
         assertThat(logCaptor.getDebugLogs().get(0))
                 .contains("Validating the certificate chain of the client[foo:443] with authentication type RSA, while also using the SSLEngine. See below for the full chain of the client")
                 .contains(Arrays.toString(trustedCerts));
+        assertThat(logCaptor.getDebugLogs().get(1))
+                .contains("Successfully validated the client[foo:443] with authentication type RSA, while also using the SSLEngine.");
     }
 
     @Test
@@ -139,10 +143,12 @@ class LoggingX509ExtendedTrustManagerShould {
         verify(innerTrustManager, times(1)).checkClientTrusted(trustedCerts, "RSA", socket);
         verify(innerTrustManager, times(1)).getAcceptedIssuers();
 
-        assertThat(logCaptor.getDebugLogs()).hasSize(1);
+        assertThat(logCaptor.getDebugLogs()).hasSize(2);
         assertThat(logCaptor.getDebugLogs().get(0))
                 .contains("Validating the certificate chain of the client[foo:443] with authentication type RSA, while also using the Socket. See below for the full chain of the client:")
                 .contains(Arrays.toString(trustedCerts));
+        assertThat(logCaptor.getDebugLogs().get(1))
+                .contains("Successfully validated the client[foo:443] with authentication type RSA, while also using the Socket.");
     }
 
     @Test
@@ -167,10 +173,12 @@ class LoggingX509ExtendedTrustManagerShould {
         verify(innerTrustManager, times(1)).checkServerTrusted(trustedCerts, "RSA");
         verify(innerTrustManager, times(1)).getAcceptedIssuers();
 
-        assertThat(logCaptor.getDebugLogs()).hasSize(1);
+        assertThat(logCaptor.getDebugLogs()).hasSize(2);
         assertThat(logCaptor.getDebugLogs().get(0))
                 .contains("Validating the certificate chain of the server with authentication type RSA. See below for the full chain of the server")
                 .contains(Arrays.toString(trustedCerts));
+        assertThat(logCaptor.getDebugLogs().get(1))
+                .contains("Successfully validated the server with authentication type RSA.");
     }
 
     @Test
@@ -200,10 +208,12 @@ class LoggingX509ExtendedTrustManagerShould {
         verify(innerTrustManager, times(1)).checkServerTrusted(trustedCerts, "RSA", sslEngine);
         verify(innerTrustManager, times(1)).getAcceptedIssuers();
 
-        assertThat(logCaptor.getDebugLogs()).hasSize(1);
+        assertThat(logCaptor.getDebugLogs()).hasSize(2);
         assertThat(logCaptor.getDebugLogs().get(0))
                 .contains("Validating the certificate chain of the server[foo:443] with authentication type RSA, while also using the SSLEngine. See below for the full chain of the server")
                 .contains(Arrays.toString(trustedCerts));
+        assertThat(logCaptor.getDebugLogs().get(1))
+                .contains("Successfully validated the server[foo:443] with authentication type RSA, while also using the SSLEngine.");
     }
 
     @Test
@@ -233,10 +243,12 @@ class LoggingX509ExtendedTrustManagerShould {
         verify(innerTrustManager, times(1)).checkServerTrusted(trustedCerts, "RSA", socket);
         verify(innerTrustManager, times(1)).getAcceptedIssuers();
 
-        assertThat(logCaptor.getDebugLogs()).hasSize(1);
+        assertThat(logCaptor.getDebugLogs()).hasSize(2);
         assertThat(logCaptor.getDebugLogs().get(0))
                 .contains("Validating the certificate chain of the server[foo:443] with authentication type RSA, while also using the Socket. See below for the full chain of the server:")
                 .contains(Arrays.toString(trustedCerts));
+        assertThat(logCaptor.getDebugLogs().get(1))
+                .contains("Successfully validated the server[foo:443] with authentication type RSA, while also using the Socket.");
     }
 
     @Test
