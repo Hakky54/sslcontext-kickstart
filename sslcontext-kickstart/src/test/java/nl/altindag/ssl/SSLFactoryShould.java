@@ -1475,7 +1475,7 @@ class SSLFactoryShould {
         SSLFactory.Builder sslFactoryBuilder = SSLFactory.builder();
         assertThatThrownBy(sslFactoryBuilder::withSystemPropertyDerivedIdentityMaterial)
                 .isInstanceOf(GenericKeyStoreException.class)
-                .hasMessageContaining("Identity details are empty, which are required to be present when SSL/TLS is enabled");
+                .hasMessageContaining("The value for the system property [javax.net.ssl.keyStore] is absent");
 
         properties.forEach((propertyName, propertyValue) -> System.clearProperty(propertyName));
     }
@@ -1491,7 +1491,7 @@ class SSLFactoryShould {
         SSLFactory.Builder sslFactoryBuilder = SSLFactory.builder();
         assertThatThrownBy(sslFactoryBuilder::withSystemPropertyDerivedIdentityMaterial)
                 .isInstanceOf(GenericKeyStoreException.class)
-                .hasMessageContaining("Identity details are empty, which are required to be present when SSL/TLS is enabled");
+                .hasMessageContaining("The value for the system property [javax.net.ssl.keyStore] is absent");
 
         properties.forEach((propertyName, propertyValue) -> System.clearProperty(propertyName));
     }
@@ -1506,7 +1506,7 @@ class SSLFactoryShould {
         SSLFactory.Builder sslFactoryBuilder = SSLFactory.builder();
         assertThatThrownBy(sslFactoryBuilder::withSystemPropertyDerivedTrustMaterial)
                 .isInstanceOf(GenericKeyStoreException.class)
-                .hasMessageContaining("TrustStore details are empty, which are required to be present when SSL/TLS is enabled");
+                .hasMessageContaining("The value for the system property [javax.net.ssl.trustStore] is absent");
 
         properties.forEach((propertyName, propertyValue) -> System.clearProperty(propertyName));
     }

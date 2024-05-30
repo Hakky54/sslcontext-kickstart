@@ -27,11 +27,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.security.Key;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -70,11 +72,16 @@ public final class KeyStoreUtils {
     }
 
     public static KeyStore loadKeyStore(String keystorePath, char[] keystorePassword, String keystoreType) {
+        return loadKeyStore(keystorePath, keystorePassword, keystoreType, null);
+    }
+
+    public static KeyStore loadKeyStore(String keystorePath, char[] keystorePassword, String keystoreType, String keystoreProvider) {
         try (InputStream keystoreInputStream = KeyStoreUtils.class.getClassLoader().getResourceAsStream(keystorePath)) {
             return loadKeyStore(
                     requireNotNull(keystoreInputStream, KEYSTORE_NOT_FOUND_EXCEPTION_MESSAGE.apply(keystorePath)),
                     keystorePassword,
-                    keystoreType
+                    keystoreType,
+                    keystoreProvider
             );
         } catch (Exception e) {
             throw new GenericKeyStoreException(e);
@@ -86,8 +93,12 @@ public final class KeyStoreUtils {
     }
 
     public static KeyStore loadKeyStore(Path keystorePath, char[] keystorePassword, String keystoreType) {
+        return loadKeyStore(keystorePath, keystorePassword, keystoreType, null);
+    }
+
+    public static KeyStore loadKeyStore(Path keystorePath, char[] keystorePassword, String keystoreType, String keystoreProvider) {
         try (InputStream keystoreInputStream = Files.newInputStream(keystorePath, StandardOpenOption.READ)) {
-            return loadKeyStore(keystoreInputStream, keystorePassword, keystoreType);
+            return loadKeyStore(keystoreInputStream, keystorePassword, keystoreType, keystoreProvider);
         } catch (Exception e) {
             throw new GenericKeyStoreException(e);
         }
@@ -102,11 +113,15 @@ public final class KeyStoreUtils {
     }
 
     public static KeyStore loadKeyStore(InputStream keystoreInputStream, char[] keystorePassword, String keystoreType) {
+        return loadKeyStore(keystoreInputStream, keystorePassword, keystoreType, null);
+    }
+
+    public static KeyStore loadKeyStore(InputStream keystoreInputStream, char[] keystorePassword, String keystoreType, String keystoreProvider) {
         try {
-            KeyStore keystore = KeyStore.getInstance(keystoreType);
+            KeyStore keystore = StringUtils.isBlank(keystoreProvider) ? KeyStore.getInstance(keystoreType) : KeyStore.getInstance(keystoreType, keystoreProvider);
             keystore.load(requireNotNull(keystoreInputStream, EMPTY_INPUT_STREAM_EXCEPTION_MESSAGE), keystorePassword);
             return keystore;
-        } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
+        } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException | NoSuchProviderException e) {
             throw new GenericKeyStoreException(e);
         }
     }
@@ -273,6 +288,54 @@ public final class KeyStoreUtils {
             LOGGER.debug("Failed to load KeyStore of the type [{}]", keyStoreType);
             return Optional.empty();
         }
+    }
+
+    public static KeyStore loadSystemPropertyDerivedKeyStore() {
+        return loadSystemPropertyDerivedKeyStore(
+                "javax.net.ssl.keyStore",
+                "javax.net.ssl.keyStorePassword",
+                "javax.net.ssl.keyStoreType",
+                "javax.net.ssl.keyStoreProvider"
+        );
+    }
+
+    public static KeyStore loadSystemPropertyDerivedTrustStore() {
+        return loadSystemPropertyDerivedKeyStore(
+                "javax.net.ssl.trustStore",
+                "javax.net.ssl.trustStorePassword",
+                "javax.net.ssl.trustStoreType",
+                "javax.net.ssl.trustStoreProvider"
+        );
+    }
+
+    private static KeyStore loadSystemPropertyDerivedKeyStore(String keyStorePathProperty,
+                                                              String keyStorePasswordProperty,
+                                                              String keyStoreTypeProperty,
+                                                              String keyStoreProviderProperty) {
+
+        Path keyStorePath = Optional.ofNullable(System.getProperty(keyStorePathProperty))
+                .map(String::trim)
+                .filter(StringUtils::isNotBlank)
+                .map(Paths::get)
+                .orElseThrow(() -> new GenericKeyStoreException(String.format("The value for the system property [%s] is absent", keyStorePathProperty)));
+
+        char[] keystorePassword = Optional.ofNullable(System.getProperty(keyStorePasswordProperty))
+                .map(String::trim)
+                .filter(StringUtils::isNotBlank)
+                .map(String::toCharArray)
+                .orElse(null);
+
+        String keystoreType = Optional.ofNullable(System.getProperty(keyStoreTypeProperty))
+                .map(String::trim)
+                .filter(StringUtils::isNotBlank)
+                .orElseGet(KeyStore::getDefaultType);
+
+        String keyStoreProvider = Optional.ofNullable(System.getProperty(keyStoreProviderProperty))
+                .map(String::trim)
+                .filter(StringUtils::isNotBlank)
+                .orElse(null);
+
+        return KeyStoreUtils.loadKeyStore(keyStorePath, keystorePassword, keystoreType, keyStoreProvider);
     }
 
     public static List<Certificate> getCertificates(KeyStore keyStore) {
