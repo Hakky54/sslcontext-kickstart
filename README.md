@@ -518,7 +518,7 @@ Additionally the SSL parameters can also be reloaded such as ciphers. A basic ex
 SSLFactory sslFactory = SSLFactory.builder()
           .withIdentityMaterial(Paths.get("/path/to/your/identity.jks"), "password".toCharArray())
           .withTrustMaterial(Paths.get("/path/to/your/truststore.jks"), "password".toCharArray())
-          .withSwappableSslParameters
+          .withSwappableSslParameters()
           .build();
           
 sslFactory.getSslParameters().setCipherSuites(new String[]{"TLS_DHE_RSA_WITH_AES_128_CBC_SHA256"})
