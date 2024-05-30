@@ -1418,6 +1418,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/austinarbor"><img src="https://avatars.githubusercontent.com/u/11469880?v=4?s=100" width="100px;" alt=""/><br /><sub><b>austinarbor</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Aaustinarbor" title="Bug reports and Ideas, Planning, & Feedback">🐛 🤔</a></td>
     <td align="center"><a href="https://github.com/ssmoss"><img src="https://avatars.githubusercontent.com/u/8904909?v=4?s=100" width="100px;" alt=""/><br /><sub><b>ssmoss</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Assmoss" title="Ideas, Planning, & Feedback">🤔</a></td>
   </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/maxxedev"><img src="https://avatars.githubusercontent.com/u/5051664?v=4?s=100" width="100px;" alt=""/><br /><sub><b>maxxedev</b></sub></a><br /> <a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Amaxxedev" title="Ideas, Planning, & Feedback">🤔</a></td>
+  </tr>
 </table>
 
 <!-- markdownlint-restore -->
