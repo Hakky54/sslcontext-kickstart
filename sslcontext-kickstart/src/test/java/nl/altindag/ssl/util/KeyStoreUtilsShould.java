@@ -115,6 +115,13 @@ class KeyStoreUtilsShould {
     }
 
     @Test
+    void loadJdkKeyStore() {
+        KeyStore keyStore = KeyStoreUtils.loadJdkKeyStore();
+        int amountOfTrustMaterial = KeyStoreUtils.countAmountOfTrustMaterial(keyStore);
+        assertThat(amountOfTrustMaterial).isPositive();
+    }
+
+    @Test
     void loadSystemKeyStore() {
         List<KeyStore> keyStores = KeyStoreUtils.loadSystemKeyStores();
 

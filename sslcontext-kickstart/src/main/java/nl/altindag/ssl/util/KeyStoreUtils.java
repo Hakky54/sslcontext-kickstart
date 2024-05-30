@@ -201,6 +201,11 @@ public final class KeyStoreUtils {
         }
     }
 
+    public static KeyStore loadJdkKeyStore() {
+        List<X509Certificate> certificates = CertificateUtils.getJdkTrustedCertificates();
+        return createTrustStore(certificates);
+    }
+
     public static List<KeyStore> loadSystemKeyStores() {
         List<KeyStore> keyStores = new ArrayList<>();
 
