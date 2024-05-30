@@ -16,6 +16,7 @@
 package nl.altindag.ssl.trustmanager;
 
 import nl.altindag.log.LogCaptor;
+import nl.altindag.log.model.LogEvent;
 import nl.altindag.ssl.util.KeyStoreUtils;
 import nl.altindag.ssl.util.internal.HostUtils;
 import org.junit.jupiter.api.Test;
@@ -36,6 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
@@ -310,6 +312,41 @@ class LoggingX509ExtendedTrustManagerShould {
     void returnEmptyHostAndPortIfSocketAndSSLEngineAreNull() {
         Optional<String> hostAndPort = LoggingX509ExtendedTrustManager.getHostAndPortOfEitherOrOther(null, null);
         assertThat(hostAndPort).isNotPresent();
+    }
+
+    @Test
+    void checkClientTrustedLogsException() throws KeyStoreException, CertificateException {
+        LogCaptor logCaptor = LogCaptor.forClass(LoggingX509ExtendedTrustManager.class);
+
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+        X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
+
+        X509ExtendedTrustManager innerTrustManager = mock(X509ExtendedTrustManager.class);
+        doThrow(new CertificateException("Not Trusted!")).when(innerTrustManager).checkClientTrusted(any(), any());
+        when(innerTrustManager.getAcceptedIssuers()).thenReturn(new X509Certificate[]{});
+
+        X509ExtendedTrustManager trustManager = new LoggingX509ExtendedTrustManager(innerTrustManager);
+
+        assertThat(trustManager.getAcceptedIssuers()).isEmpty();
+        assertThat(trustedCerts).hasSize(1);
+
+        assertThatCode(() -> trustManager.checkClientTrusted(trustedCerts, "RSA"))
+                .isInstanceOf(CertificateException.class)
+                .hasMessage("Not Trusted!");
+
+        verify(innerTrustManager, times(1)).checkClientTrusted(trustedCerts, "RSA");
+        verify(innerTrustManager, times(1)).getAcceptedIssuers();
+
+        assertThat(logCaptor.getDebugLogs()).hasSize(2);
+        assertThat(logCaptor.getDebugLogs().get(0))
+                .contains("Validating the certificate chain of the client with authentication type RSA. See below for the full chain of the client")
+                .contains(Arrays.toString(trustedCerts));
+
+        LogEvent logEvent = logCaptor.getLogEvents().get(1);
+        assertThat(logEvent.getLevel()).isEqualTo("DEBUG");
+        assertThat(logEvent.getMessage()).isEqualTo("Failed validating the client with authentication type RSA.");
+        assertThat(logEvent.getThrowable()).isPresent();
+        assertThat(logEvent.getThrowable().get().getMessage()).isEqualTo("Not Trusted!");
     }
 
 }

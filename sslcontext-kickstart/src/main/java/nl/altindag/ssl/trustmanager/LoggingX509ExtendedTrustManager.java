@@ -37,6 +37,9 @@ import java.util.Optional;
 public final class LoggingX509ExtendedTrustManager extends DelegatingX509ExtendedTrustManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggingX509ExtendedTrustManager.class);
+    private static final Logger SUCCESS_LOGGER = LoggerFactory.getLogger(LoggingX509ExtendedTrustManager.class.getName() + ".success");
+    private static final Logger EXCEPTION_LOGGER = LoggerFactory.getLogger(LoggingX509ExtendedTrustManager.class.getName() + ".exception");
+
     private static final String LOG_MESSAGE_TEMPLATE = "Validating the certificate chain of the %s%s with authentication type %s%s. See below for the full chain of the %s:\n%s";
     private static final String VALIDATION_PASSED_LOG_MESSAGE_TEMPLATE = "Successfully validated the %s%s with authentication type %s%s.";
     private static final String VALIDATION_FAILED_LOG_MESSAGE_TEMPLATE = "Failed validating the %s%s with authentication type %s%s.";
@@ -95,10 +98,10 @@ public final class LoggingX509ExtendedTrustManager extends DelegatingX509Extende
         try {
             runnable.run();
             String okMessage = String.format(VALIDATION_PASSED_LOG_MESSAGE_TEMPLATE, counterParty, hostAndPortLogMessage.orElse(""), authType, classNameLogMessage.orElse(""));
-            LOGGER.debug(okMessage);
+            SUCCESS_LOGGER.debug(okMessage);
         } catch (CertificateException e) {
             String nokMessage = String.format(VALIDATION_FAILED_LOG_MESSAGE_TEMPLATE, counterParty, hostAndPortLogMessage.orElse(""), authType, classNameLogMessage.orElse(""));
-            LOGGER.debug(nokMessage, e);
+            EXCEPTION_LOGGER.debug(nokMessage, e);
             throw e;
         }
     }
