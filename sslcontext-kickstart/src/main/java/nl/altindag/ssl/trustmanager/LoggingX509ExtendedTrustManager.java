@@ -37,7 +37,12 @@ import java.util.Optional;
 public final class LoggingX509ExtendedTrustManager extends DelegatingX509ExtendedTrustManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggingX509ExtendedTrustManager.class);
+    private static final Logger SUCCESS_LOGGER = LoggerFactory.getLogger(LoggingX509ExtendedTrustManager.class.getName() + ".success");
+    private static final Logger EXCEPTION_LOGGER = LoggerFactory.getLogger(LoggingX509ExtendedTrustManager.class.getName() + ".exception");
+
     private static final String LOG_MESSAGE_TEMPLATE = "Validating the certificate chain of the %s%s with authentication type %s%s. See below for the full chain of the %s:\n%s";
+    private static final String VALIDATION_PASSED_LOG_MESSAGE_TEMPLATE = "Successfully validated the %s%s with authentication type %s%s.";
+    private static final String VALIDATION_FAILED_LOG_MESSAGE_TEMPLATE = "Failed validating the %s%s with authentication type %s%s.";
 
     public LoggingX509ExtendedTrustManager(X509ExtendedTrustManager trustManager) {
         super(trustManager);
@@ -45,50 +50,60 @@ public final class LoggingX509ExtendedTrustManager extends DelegatingX509Extende
 
     @Override
     public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-        logCertificate(CounterParty.CLIENT, chain, authType, null, null);
-        super.checkClientTrusted(chain, authType);
+        checkTrusted(() -> super.checkClientTrusted(chain, authType), CounterParty.CLIENT, chain, authType, null, null);
     }
 
     @Override
     public void checkClientTrusted(X509Certificate[] chain, String authType, Socket socket) throws CertificateException {
-        logCertificate(CounterParty.CLIENT, chain, authType, socket, null);
-        super.checkClientTrusted(chain, authType, socket);
+        checkTrusted(() -> super.checkClientTrusted(chain, authType, socket), CounterParty.CLIENT, chain, authType, socket, null);
     }
 
     @Override
     public void checkClientTrusted(X509Certificate[] chain, String authType, SSLEngine sslEngine) throws CertificateException {
-        logCertificate(CounterParty.CLIENT, chain, authType, null, sslEngine);
-        super.checkClientTrusted(chain, authType, sslEngine);
+        checkTrusted(() -> super.checkClientTrusted(chain, authType, sslEngine), CounterParty.CLIENT, chain, authType, null, sslEngine);
     }
 
     @Override
     public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-        logCertificate(CounterParty.SERVER, chain, authType, null, null);
-        super.checkServerTrusted(chain, authType);
+        checkTrusted(() -> super.checkServerTrusted(chain, authType), CounterParty.SERVER, chain, authType, null, null);
     }
 
     @Override
     public void checkServerTrusted(X509Certificate[] chain, String authType, Socket socket) throws CertificateException {
-        logCertificate(CounterParty.SERVER, chain, authType, socket, null);
-        super.checkServerTrusted(chain, authType, socket);
+        checkTrusted(() -> super.checkServerTrusted(chain, authType, socket), CounterParty.SERVER, chain, authType, socket, null);
     }
 
     @Override
     public void checkServerTrusted(X509Certificate[] chain, String authType, SSLEngine sslEngine) throws CertificateException {
-        logCertificate(CounterParty.SERVER, chain, authType, null, sslEngine);
-        super.checkServerTrusted(chain, authType, sslEngine);
+        checkTrusted(() -> super.checkServerTrusted(chain, authType, sslEngine), CounterParty.SERVER, chain, authType, null, sslEngine);
     }
 
-    private static void logCertificate(CounterParty counterParty, X509Certificate[] chain, String authType, Socket socket, SSLEngine sslEngine) {
+    private static void checkTrusted(TrustManagerRunnable runnable,
+                                     CounterParty counterParty,
+                                     X509Certificate[] chain,
+                                     String authType,
+                                     Socket socket,
+                                     SSLEngine sslEngine) throws CertificateException {
+
         String certificateChain = Arrays.toString(chain);
 
         Optional<String> classNameLogMessage = getClassnameOfEitherOrOther(socket, sslEngine)
-                .map(className -> ", while also using the " + className + "");
+                .map(className -> ", while also using the " + className);
         Optional<String> hostAndPortLogMessage = getHostAndPortOfEitherOrOther(socket, sslEngine)
                 .map(hostAndPort -> "[" + hostAndPort + "]");
 
         String logMessage = String.format(LOG_MESSAGE_TEMPLATE, counterParty, hostAndPortLogMessage.orElse(""), authType, classNameLogMessage.orElse(""), counterParty, certificateChain);
         LOGGER.debug(logMessage);
+
+        try {
+            runnable.run();
+            String okMessage = String.format(VALIDATION_PASSED_LOG_MESSAGE_TEMPLATE, counterParty, hostAndPortLogMessage.orElse(""), authType, classNameLogMessage.orElse(""));
+            SUCCESS_LOGGER.debug(okMessage);
+        } catch (CertificateException e) {
+            String nokMessage = String.format(VALIDATION_FAILED_LOG_MESSAGE_TEMPLATE, counterParty, hostAndPortLogMessage.orElse(""), authType, classNameLogMessage.orElse(""));
+            EXCEPTION_LOGGER.debug(nokMessage, e);
+            throw e;
+        }
     }
 
     static Optional<String> getClassnameOfEitherOrOther(Socket socket, SSLEngine sslEngine) {
