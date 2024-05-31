@@ -124,14 +124,17 @@ As a developer you also need to know how to properly load your file into your ap
 The sslcontext-kickstart library is taking the responsibility of creating an instance of SSLContext from the provided arguments, and it will provide you all the ssl materials which are required to configure [40+ different Http Client](#tested-http-clients) for Java, Scala and Kotlin. 
 I wanted the library to be as easy as possible to use for all developers to give them a kickstart when configuring their Http Client. So feel free to provide feedback or feature requests.
 The library also provides other utilities such as:
+- [CertificateExtractingClient](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/CertificateExtractingClient.java)
 - [CertificateUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/CertificateUtils.java)
 - [HostnameVerifierUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/HostnameVerifierUtils.java)
 - [KeyStoreUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/KeyStoreUtils.java)
 - [KeyManagerUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/KeyManagerUtils.java)
 - [TrustManagerUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/TrustManagerUtils.java)
 - [PemUtils](sslcontext-kickstart-for-pem/src/main/java/nl/altindag/ssl/pem/util/PemUtils.java)
+- [ProviderUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/ProviderUtils.java)
 - [SSLContextUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/SSLContextUtils.java)
 - [SSLFactoryUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/SSLFactoryUtils.java)
+- [SSLParametersUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/SSLParametersUtils.java)
 - [SSLSessionUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/SSLSessionUtils.java)
 - [SSLSocketUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/SSLSocketUtils.java)
 
