@@ -43,7 +43,7 @@ class SSLFactoryIT {
                 .withNeedClientAuthentication()
                 .build();
 
-        Server server = Server.createDefault(sslFactoryForServer);
+        Server server = Server.createDefault(sslFactoryForServer, 8643);
 
         SSLFactory sslFactoryForClient = SSLFactory.builder()
                 .withIdentityMaterial("keystore/client-server/client-one/identity.jks", "secret".toCharArray())
@@ -55,7 +55,7 @@ class SSLFactoryIT {
         HttpClient httpClient = new HttpClient(sslContextFactory);
         httpClient.start();
 
-        ContentResponse contentResponse = httpClient.newRequest("https://localhost:8443/api/hello")
+        ContentResponse contentResponse = httpClient.newRequest("https://localhost:8643/api/hello")
                 .method(HttpMethod.GET)
                 .send();
 

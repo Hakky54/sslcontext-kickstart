@@ -61,7 +61,7 @@ class SSLFactoryIT {
                 .withNeedClientAuthentication()
                 .build();
 
-        server = Server.createDefault(sslFactoryForServer);
+        server = Server.createDefault(sslFactoryForServer, 8543);
     }
 
     @AfterAll
@@ -85,7 +85,7 @@ class SSLFactoryIT {
                 .setConnectionManager(connectionManager)
                 .build();
 
-        HttpGet request = new HttpGet("https://localhost:8443/api/hello");
+        HttpGet request = new HttpGet("https://localhost:8543/api/hello");
         HttpResponse response = httpClient.execute(request);
 
         int statusCode = response.getCode();
@@ -110,7 +110,7 @@ class SSLFactoryIT {
         httpAsyncClient.start();
 
         SimpleHttpResponse response = httpAsyncClient.execute(
-                        new BasicRequestProducer(Method.GET, new URI("https://localhost:8443/api/hello")),
+                        new BasicRequestProducer(Method.GET, new URI("https://localhost:8543/api/hello")),
                         SimpleResponseConsumer.create(), null, null, null)
                 .get(10, TimeUnit.SECONDS);
 
