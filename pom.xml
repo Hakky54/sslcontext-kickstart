@@ -57,7 +57,7 @@
         <version.slf4j>2.0.13</version.slf4j>
         <version.junit>5.10.2</version.junit>
         <version.assertj-core>3.26.0</version.assertj-core>
-        <version.logcaptor>2.9.2</version.logcaptor>
+        <version.logcaptor>2.9.3</version.logcaptor>
         <version.mockito>5.11.0</version.mockito>
         <version.ssl-server>1.0.6</version.ssl-server>
         <version.byte-buddy>1.14.17</version.byte-buddy>
