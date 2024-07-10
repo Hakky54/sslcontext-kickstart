@@ -22,6 +22,7 @@ import javax.net.ssl.ManagerFactoryParameters;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactorySpi;
 import java.security.KeyStore;
+import java.util.Arrays;
 
 import static nl.altindag.ssl.util.internal.ValidationUtils.GENERIC_EXCEPTION_MESSAGE;
 import static nl.altindag.ssl.util.internal.ValidationUtils.requireNotNull;
@@ -38,9 +39,9 @@ class TrustManagerFactorySpiWrapper extends TrustManagerFactorySpi {
 
     private final TrustManager[] trustManagers;
 
-    TrustManagerFactorySpiWrapper(TrustManager trustManager) {
-        requireNotNull(trustManager, GENERIC_EXCEPTION_MESSAGE.apply("TrustManager"));
-        this.trustManagers = new TrustManager[]{trustManager};
+    TrustManagerFactorySpiWrapper(TrustManager... trustManagers) {
+        requireNotNull(trustManagers, GENERIC_EXCEPTION_MESSAGE.apply("TrustManager"));
+        this.trustManagers = Arrays.copyOf(trustManagers, trustManagers.length);
     }
 
     @Override

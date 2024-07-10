@@ -225,8 +225,8 @@ public final class TrustManagerUtils {
         }
     }
 
-    public static TrustManagerFactory createTrustManagerFactory(TrustManager trustManager) {
-        return new TrustManagerFactoryWrapper(trustManager);
+    public static TrustManagerFactory createTrustManagerFactory(TrustManager... trustManagers) {
+        return new TrustManagerFactoryWrapper(trustManagers);
     }
 
     public static <T extends TrustManagerFactory> X509ExtendedTrustManager getTrustManager(T trustManagerFactory) {

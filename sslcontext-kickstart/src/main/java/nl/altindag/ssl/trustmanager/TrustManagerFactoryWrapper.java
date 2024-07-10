@@ -32,8 +32,8 @@ public final class TrustManagerFactoryWrapper extends TrustManagerFactory {
     private static final String TRUST_MANAGER_FACTORY_ALGORITHM = "no-algorithm";
     private static final Provider PROVIDER = new Provider("", 1.0, "") {};
 
-    public TrustManagerFactoryWrapper(TrustManager trustManager) {
-        super(new TrustManagerFactorySpiWrapper(trustManager), PROVIDER, TRUST_MANAGER_FACTORY_ALGORITHM);
+    public TrustManagerFactoryWrapper(TrustManager... trustManagers) {
+        super(new TrustManagerFactorySpiWrapper(trustManagers), PROVIDER, TRUST_MANAGER_FACTORY_ALGORITHM);
     }
 
 }
