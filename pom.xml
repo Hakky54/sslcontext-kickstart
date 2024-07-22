@@ -68,7 +68,7 @@
         <version.maven-javadoc-plugin>3.7.0</version.maven-javadoc-plugin>
         <version.maven-source-plugin>3.3.1</version.maven-source-plugin>
         <version.license-maven-plugin>4.5</version.license-maven-plugin>
-        <version.maven-surefire-junit5-tree-reporter>1.2.1</version.maven-surefire-junit5-tree-reporter>
+        <version.maven-surefire-junit5-tree-reporter>1.3.0</version.maven-surefire-junit5-tree-reporter>
         <license.git.copyrightYears>2019</license.git.copyrightYears>
     </properties>
 
