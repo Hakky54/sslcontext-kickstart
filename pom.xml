@@ -60,7 +60,7 @@
         <version.logcaptor>2.9.3</version.logcaptor>
         <version.mockito>5.11.0</version.mockito>
         <version.ssl-server>1.0.6</version.ssl-server>
-        <version.byte-buddy>1.14.18</version.byte-buddy>
+        <version.byte-buddy>1.14.19</version.byte-buddy>
         <version.jacoco-maven-plugin>0.8.12</version.jacoco-maven-plugin>
         <version.maven-surefire-plugin>3.3.1</version.maven-surefire-plugin>
         <version.maven-fail-safe>3.3.1</version.maven-fail-safe>
