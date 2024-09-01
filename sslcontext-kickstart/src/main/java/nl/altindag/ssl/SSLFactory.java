@@ -34,6 +34,7 @@ import nl.altindag.ssl.util.SSLContextUtils;
 import nl.altindag.ssl.util.SSLParametersUtils;
 import nl.altindag.ssl.util.SSLSessionUtils;
 import nl.altindag.ssl.util.TrustManagerUtils;
+import nl.altindag.ssl.util.internal.CollectorsUtils;
 import nl.altindag.ssl.util.internal.StringUtils;
 import nl.altindag.ssl.util.internal.UriUtils;
 import org.slf4j.Logger;
@@ -66,6 +67,7 @@ import java.security.cert.X509Certificate;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -75,6 +77,7 @@ import java.util.Set;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
@@ -886,17 +889,13 @@ public final class SSLFactory {
         }
 
         private void trustCertificateChains() {
-            List<Certificate> certificates = new ArrayList<>();
-            for (KeyStore trustStore : trustStores) {
-                KeyStoreUtils.getCertificateChains(trustStore).values().forEach(certificates::addAll);
-            }
+            KeyStore trustStore = Stream.concat(trustStores.stream(), identities.stream().map(KeyStoreHolder::getKeyStore))
+                    .map(KeyStoreUtils::getCertificateChains)
+                    .flatMap(aliasToCertificateChain -> aliasToCertificateChain.values().stream())
+                    .flatMap(Collection::stream)
+                    .collect(CollectorsUtils.toListAndThen(KeyStoreUtils::createTrustStore));
 
-            for (KeyStoreHolder identity : identities) {
-                KeyStoreUtils.getCertificateChains(identity.getKeyStore()).values().forEach(certificates::addAll);
-            }
-
-            if (!certificates.isEmpty()) {
-                KeyStore trustStore = KeyStoreUtils.createTrustStore(certificates);
+            if (KeyStoreUtils.containsTrustMaterial(trustStore)) {
                 trustStores.add(trustStore);
             }
         }
