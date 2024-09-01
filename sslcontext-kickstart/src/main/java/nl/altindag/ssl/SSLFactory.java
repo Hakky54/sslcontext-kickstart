@@ -34,7 +34,6 @@ import nl.altindag.ssl.util.SSLContextUtils;
 import nl.altindag.ssl.util.SSLParametersUtils;
 import nl.altindag.ssl.util.SSLSessionUtils;
 import nl.altindag.ssl.util.TrustManagerUtils;
-import nl.altindag.ssl.util.internal.CollectorsUtils;
 import nl.altindag.ssl.util.internal.StringUtils;
 import nl.altindag.ssl.util.internal.UriUtils;
 import org.slf4j.Logger;
@@ -81,6 +80,7 @@ import java.util.stream.Stream;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
+import static nl.altindag.ssl.util.internal.CollectorsUtils.toListAndThen;
 import static nl.altindag.ssl.util.internal.CollectorsUtils.toStringArray;
 import static nl.altindag.ssl.util.internal.ValidationUtils.requireNotBlank;
 import static nl.altindag.ssl.util.internal.ValidationUtils.requireNotEmpty;
@@ -893,7 +893,7 @@ public final class SSLFactory {
                     .map(KeyStoreUtils::getCertificateChains)
                     .flatMap(aliasToCertificateChain -> aliasToCertificateChain.values().stream())
                     .flatMap(Collection::stream)
-                    .collect(CollectorsUtils.toListAndThen(KeyStoreUtils::createTrustStore));
+                    .collect(toListAndThen(KeyStoreUtils::createTrustStore));
 
             if (KeyStoreUtils.containsTrustMaterial(trustStore)) {
                 trustStores.add(trustStore);
