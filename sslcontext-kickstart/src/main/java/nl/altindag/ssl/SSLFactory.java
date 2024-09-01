@@ -889,15 +889,12 @@ public final class SSLFactory {
         }
 
         private void trustCertificateChains() {
-            KeyStore trustStore = Stream.concat(trustStores.stream(), identities.stream().map(KeyStoreHolder::getKeyStore))
+            Stream.concat(trustStores.stream(), identities.stream().map(KeyStoreHolder::getKeyStore))
                     .map(KeyStoreUtils::getCertificateChains)
                     .flatMap(aliasToCertificateChain -> aliasToCertificateChain.values().stream())
                     .flatMap(Collection::stream)
-                    .collect(toListAndThen(KeyStoreUtils::createTrustStore));
-
-            if (KeyStoreUtils.containsTrustMaterial(trustStore)) {
-                trustStores.add(trustStore);
-            }
+                    .collect(toListAndThen(certificates -> certificates.isEmpty() ? Optional.<KeyStore>empty() : Optional.of(KeyStoreUtils.createTrustStore(certificates))))
+                    .ifPresent(trustStores::add);
         }
 
     }
