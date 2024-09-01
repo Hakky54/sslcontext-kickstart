@@ -736,6 +736,24 @@ class SSLFactoryShould {
     }
 
     @Test
+    void buildSSLFactoryWithIdentityMaterialAndTrustMaterialWhileAlsoTrustingTheIdentityCertificateChain() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD)
+                .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
+                .build();
+
+        assertThat(sslFactory.getTrustedCertificates()).hasSize(1);
+
+        sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD)
+                .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
+                .withTrustingCertificateChains()
+                .build();
+
+        assertThat(sslFactory.getTrustedCertificates()).hasSize(2);
+    }
+
+    @Test
     void buildSSLFactoryWithIdentityMaterialWithoutPasswordAndTrustMaterialWithoutPassword() {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withIdentityMaterial(KEYSTORE_LOCATION + "identity-without-password.jks", null, "secret".toCharArray())

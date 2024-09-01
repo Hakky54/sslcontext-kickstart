@@ -423,6 +423,22 @@ public final class KeyStoreUtils {
         }
     }
 
+    public static Map<String, List<Certificate>> getCertificateChains(KeyStore keystore) {
+        try {
+            Map<String, List<Certificate>> certificates = new HashMap<>();
+            for (String alias : getAliases(keystore)) {
+                if (keystore.isKeyEntry(alias)) {
+                    Certificate[] certificateChain = keystore.getCertificateChain(alias);
+                    certificates.put(alias, Arrays.asList(certificateChain));
+                }
+            }
+
+            return certificates;
+        } catch (KeyStoreException e) {
+            throw new GenericKeyStoreException(e);
+        }
+    }
+
     public static int countAmountOfTrustMaterial(KeyStore keyStore) {
         return amountOfSpecifiedMaterial(keyStore, KeyStore::isCertificateEntry, Integer.MAX_VALUE);
     }

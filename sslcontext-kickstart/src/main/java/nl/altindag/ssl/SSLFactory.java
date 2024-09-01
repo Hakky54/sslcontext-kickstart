@@ -204,6 +204,7 @@ public final class SSLFactory {
         private ChainAndAuthTypeWithSSLEngineValidator chainAndAuthTypeWithSSLEngineValidator = null;
         private Predicate<TrustManagerParameters> trustManagerParametersValidator = null;
         private boolean shouldTrustedCertificatesBeConcealed = false;
+        private boolean shouldTrustCertificateChains = false;
 
         private Builder() {
         }
@@ -775,9 +776,18 @@ public final class SSLFactory {
             return this;
         }
 
+        public Builder withTrustingCertificateChains() {
+            this.shouldTrustCertificateChains = true;
+            return this;
+        }
+
         public SSLFactory build() {
             if (!isIdentityMaterialPresent() && !isTrustMaterialPresent()) {
                 throw new GenericSecurityException(IDENTITY_AND_TRUST_MATERIAL_VALIDATION_EXCEPTION_MESSAGE);
+            }
+
+            if (shouldTrustCertificateChains) {
+                trustCertificateChains();
             }
 
             X509ExtendedKeyManager keyManager = isIdentityMaterialPresent() ? createKeyManager() : null;
@@ -873,6 +883,22 @@ public final class SSLFactory {
 
             SSLParameters mergedSslParameters = SSLParametersUtils.merge(sslParameters, defaultSSLParameters, excludedCiphers, excludedProtocols);
             return swappableSslParametersEnabled ? SSLParametersUtils.createSwappableSslParameters(mergedSslParameters) : mergedSslParameters;
+        }
+
+        private void trustCertificateChains() {
+            List<Certificate> certificates = new ArrayList<>();
+            for (KeyStore trustStore : trustStores) {
+                KeyStoreUtils.getCertificateChains(trustStore).values().forEach(certificates::addAll);
+            }
+
+            for (KeyStoreHolder identity : identities) {
+                KeyStoreUtils.getCertificateChains(identity.getKeyStore()).values().forEach(certificates::addAll);
+            }
+
+            if (!certificates.isEmpty()) {
+                KeyStore trustStore = KeyStoreUtils.createTrustStore(certificates);
+                trustStores.add(trustStore);
+            }
         }
 
     }
