@@ -18,6 +18,7 @@ package nl.altindag.ssl.apache5.util;
 import nl.altindag.ssl.SSLFactory;
 import nl.altindag.ssl.util.KeyStoreUtils;
 import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.junit.jupiter.api.Test;
 
@@ -81,7 +82,7 @@ class Apache5SslUtilsShould {
     }
 
     @Test
-    void createLTlsStrategy() {
+    void createTlsStrategy() {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 
@@ -92,6 +93,20 @@ class Apache5SslUtilsShould {
 
         TlsStrategy tlsStrategy = Apache5SslUtils.toTlsStrategy(sslFactory);
         assertThat(tlsStrategy).isNotNull();
+    }
+
+    @Test
+    void createTlsSocketStrategy() {
+        KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(identity, IDENTITY_PASSWORD)
+                .withTrustMaterial(trustStore)
+                .build();
+
+        TlsSocketStrategy tlsSocketStrategy = Apache5SslUtils.toTlsSocketStrategy(sslFactory);
+        assertThat(tlsSocketStrategy).isNotNull();
     }
 
 }

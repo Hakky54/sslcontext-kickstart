@@ -19,6 +19,7 @@ import nl.altindag.ssl.SSLFactory;
 import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.reactor.ssl.SSLBufferMode;
 
@@ -29,6 +30,7 @@ public final class Apache5SslUtils {
 
     private Apache5SslUtils() {}
 
+    @Deprecated
     public static LayeredConnectionSocketFactory toSocketFactory(SSLFactory sslFactory) {
         return new SSLConnectionSocketFactory(
                 sslFactory.getSslContext(),
@@ -39,6 +41,14 @@ public final class Apache5SslUtils {
     }
 
     public static TlsStrategy toTlsStrategy(SSLFactory sslFactory) {
+        return createClientTlsStrategy(sslFactory);
+    }
+
+    public static TlsSocketStrategy toTlsSocketStrategy(SSLFactory sslFactory) {
+        return createClientTlsStrategy(sslFactory);
+    }
+
+    private static DefaultClientTlsStrategy createClientTlsStrategy(SSLFactory sslFactory) {
         return new DefaultClientTlsStrategy(
                 sslFactory.getSslContext(),
                 sslFactory.getSslParameters().getProtocols(),
@@ -47,5 +57,4 @@ public final class Apache5SslUtils {
                 sslFactory.getHostnameVerifier()
         );
     }
-
 }
