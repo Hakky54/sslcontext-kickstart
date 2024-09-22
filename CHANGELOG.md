@@ -3,6 +3,10 @@
 This list is not intended to be all-encompassing - it will document major and breaking API
 changes with their rationale when appropriate:
 
+### v8.3.7
+- Added Apache5SslUtils toTlsSocketStrategy method
+- Marked Apache5SslUtils toSocketFactory method as deprecated
+- Bumped dependencies
 ### v8.3.6
 - Bumped dependencies
 - Enhanced logging within LoggingX509ExtendedTrustManager
