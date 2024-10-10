@@ -39,4 +39,8 @@ public final class ProviderUtils {
         Security.insertProviderAt(provider, 1);
     }
 
+    public static void remove() {
+        Security.removeProvider("Fenix");
+    }
+
 }

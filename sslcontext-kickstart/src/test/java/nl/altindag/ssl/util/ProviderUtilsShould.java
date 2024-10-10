@@ -21,6 +21,9 @@ import nl.altindag.ssl.provider.SSLFactoryProvider;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
+import javax.net.ssl.SSLContext;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.security.Provider;
 import java.security.Security;
 
@@ -57,6 +60,24 @@ class ProviderUtilsShould {
         assertThat(Security.getProvider("Fenix")).isNotNull().isInstanceOf(FenixProvider.class);
         assertThat(SSLFactoryProvider.get()).hasValue(sslFactory);
         Security.removeProvider("Fenix");
+    }
+
+    @Test
+    void removeProvider() throws NoSuchAlgorithmException, KeyManagementException {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withDefaultTrustMaterial()
+                .build();
+
+        ProviderUtils.configure(sslFactory);
+
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(null, null, null);
+        assertThat(sslContext.getProvider()).isInstanceOf(FenixProvider.class);
+
+        ProviderUtils.remove();
+        sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(null, null, null);
+        assertThat(sslContext.getProvider()).isNotInstanceOf(FenixProvider.class);
     }
 
 }
