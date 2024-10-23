@@ -24,9 +24,6 @@ import nl.altindag.ssl.model.internal.SSLMaterial;
 import nl.altindag.ssl.sslcontext.FenixSSLContext;
 import nl.altindag.ssl.trustmanager.trustoptions.TrustAnchorTrustOptions;
 import nl.altindag.ssl.trustmanager.trustoptions.TrustStoreTrustOptions;
-import nl.altindag.ssl.trustmanager.validator.ChainAndAuthTypeValidator;
-import nl.altindag.ssl.trustmanager.validator.ChainAndAuthTypeWithSSLEngineValidator;
-import nl.altindag.ssl.trustmanager.validator.ChainAndAuthTypeWithSocketValidator;
 import nl.altindag.ssl.util.HostnameVerifierUtils;
 import nl.altindag.ssl.util.KeyManagerUtils;
 import nl.altindag.ssl.util.KeyStoreUtils;
@@ -199,9 +196,6 @@ public final class SSLFactory {
         private int sessionTimeoutInSeconds = -1;
         private int sessionCacheSizeInBytes = -1;
 
-        private ChainAndAuthTypeValidator chainAndAuthTypeValidator = null;
-        private ChainAndAuthTypeWithSocketValidator chainAndAuthTypeWithSocketValidator = null;
-        private ChainAndAuthTypeWithSSLEngineValidator chainAndAuthTypeWithSSLEngineValidator = null;
         private Predicate<TrustManagerParameters> trustManagerParametersValidator = null;
         private boolean shouldTrustedCertificatesBeConcealed = false;
 
@@ -570,15 +564,6 @@ public final class SSLFactory {
             return this;
         }
 
-        @Deprecated
-        public Builder withInflatableTrustMaterial(Path trustStorePath,
-                                                   char[] trustStorePassword,
-                                                   String trustStoreType,
-                                                   BiPredicate<X509Certificate[], String> certificateAndAuthTypeTrustPredicate) {
-            trustManagers.add(TrustManagerUtils.createInflatableTrustManager(trustStorePath, trustStorePassword, trustStoreType, certificateAndAuthTypeTrustPredicate));
-            return this;
-        }
-
         public Builder withInflatableTrustMaterial(Path trustStorePath,
                                                    char[] trustStorePassword,
                                                    String trustStoreType,
@@ -747,24 +732,6 @@ public final class SSLFactory {
             return this;
         }
 
-        @Deprecated
-        public Builder withTrustEnhancer(ChainAndAuthTypeValidator validator) {
-            this.chainAndAuthTypeValidator = validator;
-            return this;
-        }
-
-        @Deprecated
-        public Builder withTrustEnhancer(ChainAndAuthTypeWithSocketValidator validator) {
-            this.chainAndAuthTypeWithSocketValidator = validator;
-            return this;
-        }
-
-        @Deprecated
-        public Builder withTrustEnhancer(ChainAndAuthTypeWithSSLEngineValidator validator) {
-            this.chainAndAuthTypeWithSSLEngineValidator = validator;
-            return this;
-        }
-
         public Builder withTrustEnhancer(Predicate<TrustManagerParameters> validator) {
             this.trustManagerParametersValidator = validator;
             return this;
@@ -845,9 +812,6 @@ public final class SSLFactory {
                     .withLoggingTrustManager(loggingTrustManagerEnabled)
                     .withTrustEnhancer(trustManagerParametersValidator)
                     .withTrustEnhancer(shouldTrustedCertificatesBeConcealed)
-                    .withTrustEnhancer(chainAndAuthTypeValidator)
-                    .withTrustEnhancer(chainAndAuthTypeWithSocketValidator)
-                    .withTrustEnhancer(chainAndAuthTypeWithSSLEngineValidator)
                     .build();
         }
 

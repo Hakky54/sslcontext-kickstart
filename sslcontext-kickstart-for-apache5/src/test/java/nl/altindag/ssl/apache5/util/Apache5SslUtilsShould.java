@@ -17,7 +17,6 @@ package nl.altindag.ssl.apache5.util;
 
 import nl.altindag.ssl.SSLFactory;
 import nl.altindag.ssl.util.KeyStoreUtils;
-import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
 import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.junit.jupiter.api.Test;
@@ -37,49 +36,6 @@ class Apache5SslUtilsShould {
     private static final char[] IDENTITY_PASSWORD = "secret".toCharArray();
     private static final char[] TRUSTSTORE_PASSWORD = "secret".toCharArray();
     private static final String KEYSTORE_LOCATION = "keystore/";
-
-    @Test
-    void createLayeredConnectionSocketFactoryWithTrustMaterial() {
-        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
-
-        SSLFactory sslFactory = SSLFactory.builder()
-                .withTrustMaterial(trustStore)
-                .build();
-
-        assertThat(sslFactory.getSslContext()).isNotNull();
-
-        assertThat(sslFactory.getKeyManager()).isNotPresent();
-
-        assertThat(sslFactory.getTrustManager()).isNotNull();
-        assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
-        assertThat(sslFactory.getTrustManager()).isNotNull();
-        assertThat(sslFactory.getHostnameVerifier()).isNotNull();
-
-        LayeredConnectionSocketFactory socketFactory = Apache5SslUtils.toSocketFactory(sslFactory);
-        assertThat(socketFactory).isNotNull();
-    }
-
-    @Test
-    void createLayeredConnectionSocketFactoryWithIdentityMaterialAndTrustMaterial() {
-        KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
-        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
-
-        SSLFactory sslFactory = SSLFactory.builder()
-                .withIdentityMaterial(identity, IDENTITY_PASSWORD)
-                .withTrustMaterial(trustStore)
-                .build();
-
-        assertThat(sslFactory.getSslContext()).isNotNull();
-        assertThat(sslFactory.getKeyManager()).isPresent();
-
-        assertThat(sslFactory.getTrustManager()).isNotNull();
-        assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
-        assertThat(sslFactory.getTrustManager()).isNotNull();
-        assertThat(sslFactory.getHostnameVerifier()).isNotNull();
-
-        LayeredConnectionSocketFactory socketFactory = Apache5SslUtils.toSocketFactory(sslFactory);
-        assertThat(socketFactory).isNotNull();
-    }
 
     @Test
     void createTlsStrategy() {

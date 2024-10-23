@@ -616,30 +616,6 @@ class TrustManagerUtilsShould {
     }
 
     @Test
-    void createInflatableTrustManagerWithOldMethodWhichWillAcceptAnyCertificate() throws KeyStoreException {
-        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
-        X509Certificate[] certificates = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
-
-        X509ExtendedTrustManager inflatableTrustManager = TrustManagerUtils.createInflatableTrustManager(null, null, null, (chain, authType) -> true);
-        assertThat(inflatableTrustManager).isInstanceOf(InflatableX509ExtendedTrustManager.class);
-
-        assertThatCode(() -> inflatableTrustManager.checkServerTrusted(new X509Certificate[]{certificates[0]}, "RSA"))
-                .doesNotThrowAnyException();
-    }
-
-    @Test
-    void createInflatableTrustManagerWithOldMethodWhichWillNotAcceptAnyCertificate() throws KeyStoreException {
-        KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
-        X509Certificate[] certificates = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
-
-        X509ExtendedTrustManager inflatableTrustManager = TrustManagerUtils.createInflatableTrustManager(null, null, null, (chain, authType) -> false);
-        assertThat(inflatableTrustManager).isInstanceOf(InflatableX509ExtendedTrustManager.class);
-
-        assertThatThrownBy(() -> inflatableTrustManager.checkServerTrusted(new X509Certificate[]{certificates[0]}, "RSA"))
-                .isInstanceOf(CertificateException.class);
-    }
-
-    @Test
     void addCertificatesToInflatableX509ExtendedTrustManager() {
         X509Certificate certificate = mock(X509Certificate.class);
         List<X509Certificate> certificates = Collections.singletonList(certificate);
@@ -701,48 +677,6 @@ class TrustManagerUtilsShould {
         TrustManagerUtils.addCertificate(compositeX509ExtendedTrustManager, certificates);
 
         verify(inflatableX509ExtendedTrustManager, times(1)).addCertificates(certificates);
-    }
-
-    @Test
-    void createEnhanceableTrustManagerWithOldMethodWhileNotHavingValidators() throws CertificateException {
-        X509ExtendedTrustManager baseTrustManager = mock(X509ExtendedTrustManager.class);
-
-        X509ExtendedTrustManager enhanceableTrustManager = TrustManagerUtils.createEnhanceableTrustManager(baseTrustManager, null, null, null);
-
-        enhanceableTrustManager.checkServerTrusted(null, null);
-        verify(baseTrustManager, times(1)).checkServerTrusted(null, null);
-    }
-
-    @Test
-    void createEnhanceableTrustManagerWithOldMethodWhileHavingChainAndAuthTypeValidator() throws CertificateException {
-        X509ExtendedTrustManager baseTrustManager = mock(X509ExtendedTrustManager.class);
-
-        X509ExtendedTrustManager enhanceableTrustManager = TrustManagerUtils.createEnhanceableTrustManager(baseTrustManager, ((certificateChain, authType) -> true), null, null);
-
-        assertThatCode(() -> enhanceableTrustManager.checkServerTrusted(null, null)).doesNotThrowAnyException();
-        verify(baseTrustManager, times(0)).checkServerTrusted(null, null);
-    }
-
-    @Test
-    void createEnhanceableTrustManagerWithOldMethodWhileHavingChainAndAuthTypeAndSocketValidator() throws CertificateException {
-        Socket socket = mock(Socket.class);
-        X509ExtendedTrustManager baseTrustManager = mock(X509ExtendedTrustManager.class);
-
-        X509ExtendedTrustManager enhanceableTrustManager = TrustManagerUtils.createEnhanceableTrustManager(baseTrustManager, null, ((certificateChain, authType, aSocket) -> true), null);
-
-        assertThatCode(() -> enhanceableTrustManager.checkServerTrusted(null, null, socket)).doesNotThrowAnyException();
-        verify(baseTrustManager, times(0)).checkServerTrusted(null, null, socket);
-    }
-
-    @Test
-    void createEnhanceableTrustManagerWithOldMethodWhileHavingChainAndAuthTypeAndSSLEngineValidator() throws CertificateException {
-        SSLEngine sslEngine = mock(SSLEngine.class);
-        X509ExtendedTrustManager baseTrustManager = mock(X509ExtendedTrustManager.class);
-
-        X509ExtendedTrustManager enhanceableTrustManager = TrustManagerUtils.createEnhanceableTrustManager(baseTrustManager, null, null, ((certificateChain, authType, aSslEngine) -> true));
-
-        assertThatCode(() -> enhanceableTrustManager.checkServerTrusted(null, null, sslEngine)).doesNotThrowAnyException();
-        verify(baseTrustManager, times(0)).checkServerTrusted(null, null, sslEngine);
     }
 
     private CertPathTrustManagerParameters createTrustManagerParameters(KeyStore trustStore) throws NoSuchAlgorithmException, KeyStoreException, InvalidAlgorithmParameterException {
