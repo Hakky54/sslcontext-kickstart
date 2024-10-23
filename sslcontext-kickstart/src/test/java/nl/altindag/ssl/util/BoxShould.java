@@ -27,7 +27,8 @@ class BoxShould {
 
     @Test
     void wrapAnyExceptionInGenericException() {
-        assertThatThrownBy(() -> new Box<>("").map(value -> {
+        Box<String> stringBox = new Box<>("");
+        assertThatThrownBy(() -> stringBox.map(value -> {
             throw new RuntimeException("KABOOM");
         }))
                 .isInstanceOf(GenericException.class)
