@@ -27,9 +27,11 @@ import nl.altindag.ssl.trustmanager.trustoptions.TrustStoreTrustOptions;
 import nl.altindag.ssl.trustmanager.validator.ChainAndAuthTypeValidator;
 import nl.altindag.ssl.trustmanager.validator.ChainAndAuthTypeWithSSLEngineValidator;
 import nl.altindag.ssl.trustmanager.validator.ChainAndAuthTypeWithSocketValidator;
+import nl.altindag.ssl.util.Function;
 import nl.altindag.ssl.util.HostnameVerifierUtils;
 import nl.altindag.ssl.util.KeyManagerUtils;
 import nl.altindag.ssl.util.KeyStoreUtils;
+import nl.altindag.ssl.util.Box;
 import nl.altindag.ssl.util.SSLContextUtils;
 import nl.altindag.ssl.util.SSLParametersUtils;
 import nl.altindag.ssl.util.SSLSessionUtils;
@@ -157,6 +159,15 @@ public final class SSLFactory {
         } else {
             return sslMaterial.getSslContext().createSSLEngine();
         }
+    }
+
+    /**
+     * Returns a cardboard box to further process the SSLFactory instance.
+     * The helper {@link Box} class provides a mapping method to map the
+     * source in a functional way.
+     */
+    public <T> Box<T> map(Function<SSLFactory, T> mapper) {
+        return new Box<>(this).map(mapper);
     }
 
     public static Builder builder() {

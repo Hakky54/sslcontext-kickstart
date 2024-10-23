@@ -2020,6 +2020,18 @@ class SSLFactoryShould {
     }
 
     @Test
+    void mapSslFactoryInternalsInFunctionalWay() {
+        SSLParameters sslParameters = SSLFactory.builder()
+                .withDefaultTrustMaterial()
+                .build()
+                .map(SSLFactory::getSSLEngine)
+                .map(SSLEngine::getSSLParameters)
+                .get();
+
+        assertThat(sslParameters).isNotNull();
+    }
+
+    @Test
     void throwIllegalArgumentExceptionWhenCertificateIsAbsent() {
         List<Certificate> certificates = Collections.emptyList();
         SSLFactory.Builder sslFactoryBuilder = SSLFactory.builder();
