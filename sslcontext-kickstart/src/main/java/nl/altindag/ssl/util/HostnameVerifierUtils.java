@@ -33,7 +33,7 @@ public final class HostnameVerifierUtils {
 
     /**
      * Creates a basic hostname verifier which validates the hostname against the peer host from the ssl session.
-     * This basic hostname verifier provides minimal security. It is recommended to use {@link HostnameVerifierUtils#createFenix()}
+     * This basic hostname verifier provides minimal security. It is recommended to use {@link HostnameVerifierUtils#createDefault()}
      */
     public static HostnameVerifier createBasic() {
         return BasicHostnameVerifier.getInstance();
@@ -45,14 +45,6 @@ public final class HostnameVerifierUtils {
      */
     public static HostnameVerifier createUnsafe() {
         return UnsafeHostnameVerifier.getInstance();
-    }
-
-    /**
-     * Creates a fenix hostname verifier which validates the hostname against the SAN field of the peer certificate.
-     */
-    @Deprecated
-    public static HostnameVerifier createFenix() {
-        return createDefault();
     }
 
     /**
