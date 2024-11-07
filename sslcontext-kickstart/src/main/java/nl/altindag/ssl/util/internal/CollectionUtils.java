@@ -15,6 +15,8 @@
  */
 package nl.altindag.ssl.util.internal;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -30,6 +32,11 @@ public final class CollectionUtils {
 
     public static boolean isEmpty(List<?> collection) {
         return collection == null || collection.isEmpty();
+    }
+
+    @SafeVarargs
+    public static <T> List<T> toUnmodifiableList(T... values) {
+        return Collections.unmodifiableList(Arrays.asList(values));
     }
 
 }

@@ -21,13 +21,13 @@ import nl.altindag.ssl.util.internal.IOUtils;
 import java.io.IOException;
 import java.security.cert.Certificate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static nl.altindag.ssl.util.OperatingSystem.MAC;
+import static nl.altindag.ssl.util.internal.CollectionUtils.toUnmodifiableList;
 
 /**
  * @author Hakan Altindag
@@ -36,7 +36,7 @@ final class MacCertificateUtils {
 
     private static final String SECURITY_EXECUTABLE = "security";
     private static final String SYSTEM_ROOT_KEYCHAIN_FILE = "/System/Library/Keychains/SystemRootCertificates.keychain";
-    private static final List<String> KEYCHAIN_LOOKUP_COMMANDS = Arrays.asList("list-keychains", "default-keychain");
+    private static final List<String> KEYCHAIN_LOOKUP_COMMANDS = toUnmodifiableList("list-keychains", "default-keychain");
 
     private static final String EMPTY = "";
     private static final String SPACE = " ";

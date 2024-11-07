@@ -20,8 +20,9 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509ExtendedTrustManager;
-import java.util.Arrays;
 import java.util.List;
+
+import static nl.altindag.ssl.util.internal.CollectionUtils.toUnmodifiableList;
 
 /**
  * <p>
@@ -62,11 +63,11 @@ public final class SSLMaterial {
     }
 
     public List<String> getCiphers() {
-        return Arrays.asList(sslParameters.getCipherSuites());
+        return toUnmodifiableList(sslParameters.getCipherSuites());
     }
 
     public List<String> getProtocols() {
-        return Arrays.asList(sslParameters.getProtocols());
+        return toUnmodifiableList(sslParameters.getProtocols());
     }
 
     public static class Builder {
