@@ -25,7 +25,7 @@ import java.util.function.Supplier;
 @FunctionalInterface
 public interface Box<T> {
 
-    ValueHolder<T> container();
+    ValueHolder<T> valueHolder();
 
     static <T> Box<T> of(T value) {
         return () -> ValueHolder.wrap(() -> value);
@@ -33,7 +33,7 @@ public interface Box<T> {
 
     default <R> Box<R> map(Function<? super T, ? extends R> mapper) {
         return () -> ValueHolder.wrap(() -> {
-            final T value = container().get();
+            final T value = valueHolder().get();
 
             try {
                 return mapper.apply(value);
@@ -44,7 +44,7 @@ public interface Box<T> {
     }
 
     default T get() {
-        return container().get();
+        return valueHolder().get();
     }
 
     @FunctionalInterface
