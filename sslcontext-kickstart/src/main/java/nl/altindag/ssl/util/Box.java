@@ -17,27 +17,48 @@ package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.exception.GenericException;
 
+import java.util.function.Supplier;
+
 /**
  * @author Hakan Altindag
  */
-public final class Box<T> {
+@FunctionalInterface
+public interface Box<T> {
 
-    private final T value;
+    ValueHolder<T> container();
 
-    public Box(T value) {
-        this.value = value;
+    static <T> Box<T> of(T value) {
+        return () -> ValueHolder.wrap(() -> value);
     }
 
-    public <U> Box<U> map(Function<? super T, ? extends U> mapper) {
-        try {
-            return new Box<>(mapper.apply(value));
-        } catch (Exception e) {
-            throw new GenericException(e);
+    default <R> Box<R> map(Function<? super T, ? extends R> mapper) {
+        return () -> ValueHolder.wrap(() -> {
+            final T value = container().get();
+
+            try {
+                return mapper.apply(value);
+            } catch (Exception e) {
+                throw new GenericException(e);
+            }
+        });
+    }
+
+    default T get() {
+        return container().get();
+    }
+
+    @FunctionalInterface
+    interface ValueHolder<T> {
+
+        Supplier<T> valueSupplier();
+
+        default T get() {
+            return valueSupplier().get();
         }
-    }
 
-    public T get() {
-        return value;
+        static <U> ValueHolder<U> wrap(Supplier<U> supplier) {
+            return () -> supplier;
+        }
     }
 
 }

@@ -167,7 +167,7 @@ public final class SSLFactory {
      * source in a functional way.
      */
     public <T> Box<T> map(Function<SSLFactory, T> mapper) {
-        return new Box<>(this).map(mapper);
+        return Box.of(this).map(mapper);
     }
 
     public static Builder builder() {

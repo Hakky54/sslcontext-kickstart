@@ -27,10 +27,12 @@ class BoxShould {
 
     @Test
     void wrapAnyExceptionInGenericException() {
-        Box<String> stringBox = new Box<>("");
-        assertThatThrownBy(() -> stringBox.map(value -> {
-            throw new RuntimeException("KABOOM");
-        }))
+        Box<String> stringBox = Box.of("")
+                .map(value -> {
+                    throw new RuntimeException("KABOOM");
+                });
+
+        assertThatThrownBy(stringBox::get)
                 .isInstanceOf(GenericException.class)
                 .hasRootCauseMessage("KABOOM");
     }
