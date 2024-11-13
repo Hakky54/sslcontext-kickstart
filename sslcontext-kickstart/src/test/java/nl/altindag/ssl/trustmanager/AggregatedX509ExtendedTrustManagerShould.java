@@ -45,7 +45,7 @@ import static org.mockito.Mockito.mock;
 /**
  * @author Hakan Altindag
  */
-class CompositeX509ExtendedTrustManagerShould {
+class AggregatedX509ExtendedTrustManagerShould {
 
     private static final String TRUSTSTORE_FILE_NAME = "truststore.jks";
     private static final char[] TRUSTSTORE_PASSWORD = new char[]{'s', 'e', 'c', 'r', 'e', 't'};
@@ -62,14 +62,14 @@ class CompositeX509ExtendedTrustManagerShould {
         X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
 
-        CompositeX509ExtendedTrustManager compositeX509ExtendedTrustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(trustManager));
+        AggregatedX509ExtendedTrustManager aggregatedX509ExtendedTrustManager = new AggregatedX509ExtendedTrustManager(Collections.singletonList(trustManager));
         assertThat(trustManager).isNotNull();
         assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
         assertThat(trustedCerts).hasSize(1);
-        int amountOfTrustManagers = compositeX509ExtendedTrustManager.getInnerTrustManagers().size();
+        int amountOfTrustManagers = aggregatedX509ExtendedTrustManager.getInnerTrustManagers().size();
         assertThat(amountOfTrustManagers).isEqualTo(1);
 
-        assertThatCode(() -> compositeX509ExtendedTrustManager.checkClientTrusted(trustedCerts, "RSA"))
+        assertThatCode(() -> aggregatedX509ExtendedTrustManager.checkClientTrusted(trustedCerts, "RSA"))
                 .doesNotThrowAnyException();
     }
 
@@ -79,12 +79,12 @@ class CompositeX509ExtendedTrustManagerShould {
         X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
 
-        CompositeX509ExtendedTrustManager compositeX509ExtendedTrustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(trustManager));
+        AggregatedX509ExtendedTrustManager aggregatedX509ExtendedTrustManager = new AggregatedX509ExtendedTrustManager(Collections.singletonList(trustManager));
         assertThat(trustManager).isNotNull();
         assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
         assertThat(trustedCerts).hasSize(1);
 
-        assertThatCode(() -> compositeX509ExtendedTrustManager.checkClientTrusted(trustedCerts, "RSA", SSL_ENGINE))
+        assertThatCode(() -> aggregatedX509ExtendedTrustManager.checkClientTrusted(trustedCerts, "RSA", SSL_ENGINE))
                 .doesNotThrowAnyException();
     }
 
@@ -94,12 +94,12 @@ class CompositeX509ExtendedTrustManagerShould {
         X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
 
-        CompositeX509ExtendedTrustManager compositeX509ExtendedTrustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(trustManager));
+        AggregatedX509ExtendedTrustManager aggregatedX509ExtendedTrustManager = new AggregatedX509ExtendedTrustManager(Collections.singletonList(trustManager));
         assertThat(trustManager).isNotNull();
         assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
         assertThat(trustedCerts).hasSize(1);
 
-        assertThatCode(() -> compositeX509ExtendedTrustManager.checkClientTrusted(trustedCerts, "RSA", SOCKET))
+        assertThatCode(() -> aggregatedX509ExtendedTrustManager.checkClientTrusted(trustedCerts, "RSA", SOCKET))
                 .doesNotThrowAnyException();
     }
 
@@ -108,7 +108,7 @@ class CompositeX509ExtendedTrustManagerShould {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-dummy-client.jks", TRUSTSTORE_PASSWORD);
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
-        CompositeX509ExtendedTrustManager trustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(TrustManagerUtils.createTrustManager(trustStore)));
+        AggregatedX509ExtendedTrustManager trustManager = new AggregatedX509ExtendedTrustManager(Collections.singletonList(TrustManagerUtils.createTrustManager(trustStore)));
         assertThat(trustedCerts).hasSize(1);
         assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
 
@@ -121,7 +121,7 @@ class CompositeX509ExtendedTrustManagerShould {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-dummy-client.jks", TRUSTSTORE_PASSWORD);
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
-        CompositeX509ExtendedTrustManager trustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(TrustManagerUtils.createTrustManager(trustStore)));
+        AggregatedX509ExtendedTrustManager trustManager = new AggregatedX509ExtendedTrustManager(Collections.singletonList(TrustManagerUtils.createTrustManager(trustStore)));
         assertThat(trustedCerts).hasSize(1);
         assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
 
@@ -134,7 +134,7 @@ class CompositeX509ExtendedTrustManagerShould {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-dummy-client.jks", TRUSTSTORE_PASSWORD);
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
-        CompositeX509ExtendedTrustManager trustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(TrustManagerUtils.createTrustManager(trustStore)));
+        AggregatedX509ExtendedTrustManager trustManager = new AggregatedX509ExtendedTrustManager(Collections.singletonList(TrustManagerUtils.createTrustManager(trustStore)));
         assertThat(trustedCerts).hasSize(1);
         assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
 
@@ -147,7 +147,7 @@ class CompositeX509ExtendedTrustManagerShould {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
-        CompositeX509ExtendedTrustManager trustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(TrustManagerUtils.createTrustManager(trustStore)));
+        AggregatedX509ExtendedTrustManager trustManager = new AggregatedX509ExtendedTrustManager(Collections.singletonList(TrustManagerUtils.createTrustManager(trustStore)));
         assertThat(trustedCerts).hasSize(1);
         assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
 
@@ -161,7 +161,7 @@ class CompositeX509ExtendedTrustManagerShould {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
-        CompositeX509ExtendedTrustManager trustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(TrustManagerUtils.createTrustManager(trustStore)));
+        AggregatedX509ExtendedTrustManager trustManager = new AggregatedX509ExtendedTrustManager(Collections.singletonList(TrustManagerUtils.createTrustManager(trustStore)));
         assertThat(trustedCerts).hasSize(1);
         assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
 
@@ -175,7 +175,7 @@ class CompositeX509ExtendedTrustManagerShould {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD));
 
-        CompositeX509ExtendedTrustManager trustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(TrustManagerUtils.createTrustManager(trustStore)));
+        AggregatedX509ExtendedTrustManager trustManager = new AggregatedX509ExtendedTrustManager(Collections.singletonList(TrustManagerUtils.createTrustManager(trustStore)));
         assertThat(trustedCerts).hasSize(1);
         assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
 
@@ -190,12 +190,12 @@ class CompositeX509ExtendedTrustManagerShould {
         X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD));
 
-        CompositeX509ExtendedTrustManager compositeX509ExtendedTrustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(trustManager));
+        AggregatedX509ExtendedTrustManager aggregatedX509ExtendedTrustManager = new AggregatedX509ExtendedTrustManager(Collections.singletonList(trustManager));
         assertThat(trustManager).isNotNull();
         assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
         assertThat(trustedCerts).hasSize(1);
 
-        assertThatThrownBy(() -> compositeX509ExtendedTrustManager.checkClientTrusted(trustedCerts, "RSA"))
+        assertThatThrownBy(() -> aggregatedX509ExtendedTrustManager.checkClientTrusted(trustedCerts, "RSA"))
                 .isInstanceOf(CertificateException.class)
                 .hasMessage("None of the TrustManagers trust this certificate chain");
     }
@@ -206,12 +206,12 @@ class CompositeX509ExtendedTrustManagerShould {
         X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD));
 
-        CompositeX509ExtendedTrustManager compositeX509ExtendedTrustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(trustManager));
+        AggregatedX509ExtendedTrustManager aggregatedX509ExtendedTrustManager = new AggregatedX509ExtendedTrustManager(Collections.singletonList(trustManager));
         assertThat(trustManager).isNotNull();
         assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
         assertThat(trustedCerts).hasSize(1);
 
-        assertThatThrownBy(() -> compositeX509ExtendedTrustManager.checkClientTrusted(trustedCerts, "RSA", SSL_ENGINE))
+        assertThatThrownBy(() -> aggregatedX509ExtendedTrustManager.checkClientTrusted(trustedCerts, "RSA", SSL_ENGINE))
                 .isInstanceOf(CertificateException.class)
                 .hasMessage("None of the TrustManagers trust this certificate chain");
     }
@@ -222,12 +222,12 @@ class CompositeX509ExtendedTrustManagerShould {
         X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(trustStore);
         X509Certificate[] trustedCerts = KeyStoreTestUtils.getTrustedX509Certificates(KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-containing-github.jks", TRUSTSTORE_PASSWORD));
 
-        CompositeX509ExtendedTrustManager compositeX509ExtendedTrustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(trustManager));
+        AggregatedX509ExtendedTrustManager aggregatedX509ExtendedTrustManager = new AggregatedX509ExtendedTrustManager(Collections.singletonList(trustManager));
         assertThat(trustManager).isNotNull();
         assertThat(trustManager.getAcceptedIssuers()).hasSize(1);
         assertThat(trustedCerts).hasSize(1);
 
-        assertThatThrownBy(() -> compositeX509ExtendedTrustManager.checkClientTrusted(trustedCerts, "RSA", SOCKET))
+        assertThatThrownBy(() -> aggregatedX509ExtendedTrustManager.checkClientTrusted(trustedCerts, "RSA", SOCKET))
                 .isInstanceOf(CertificateException.class)
                 .hasMessage("None of the TrustManagers trust this certificate chain");
     }
@@ -240,14 +240,14 @@ class CompositeX509ExtendedTrustManagerShould {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
         X509Certificate[] certificateChain = KeyStoreTestUtils.getTrustedX509Certificates(trustStore);
 
-        CompositeX509ExtendedTrustManager compositeX509ExtendedTrustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(emptyTrustManager));
+        AggregatedX509ExtendedTrustManager aggregatedX509ExtendedTrustManager = new AggregatedX509ExtendedTrustManager(Collections.singletonList(emptyTrustManager));
         assertThat(emptyTrustManager).isNotNull();
         assertThat(emptyTrustManager.getAcceptedIssuers()).isEmpty();
         assertThat(certificateChain).hasSize(1);
-        int amountOfTrustManagers = compositeX509ExtendedTrustManager.getInnerTrustManagers().size();
+        int amountOfTrustManagers = aggregatedX509ExtendedTrustManager.getInnerTrustManagers().size();
         assertThat(amountOfTrustManagers).isEqualTo(1);
 
-        CertificateException certificateException = catchThrowableOfType(() -> compositeX509ExtendedTrustManager.checkClientTrusted(certificateChain, "RSA"), CertificateException.class);
+        CertificateException certificateException = catchThrowableOfType(() -> aggregatedX509ExtendedTrustManager.checkClientTrusted(certificateChain, "RSA"), CertificateException.class);
         assertThat(certificateException.getSuppressed()).hasSize(1);
         Throwable suppressedException = certificateException.getSuppressed()[0];
 
@@ -263,12 +263,12 @@ class CompositeX509ExtendedTrustManagerShould {
         X509ExtendedTrustManager shadyTrustManager = mock(X509ExtendedTrustManager.class);
         doThrow(new RuntimeException("KABOOM!!!")).when(shadyTrustManager).checkClientTrusted(certificateChain, "RSA");
 
-        CompositeX509ExtendedTrustManager compositeX509ExtendedTrustManager = new CompositeX509ExtendedTrustManager(Collections.singletonList(shadyTrustManager));
+        AggregatedX509ExtendedTrustManager aggregatedX509ExtendedTrustManager = new AggregatedX509ExtendedTrustManager(Collections.singletonList(shadyTrustManager));
         assertThat(certificateChain).hasSize(1);
-        int amountOfTrustManagers = compositeX509ExtendedTrustManager.getInnerTrustManagers().size();
+        int amountOfTrustManagers = aggregatedX509ExtendedTrustManager.getInnerTrustManagers().size();
         assertThat(amountOfTrustManagers).isEqualTo(1);
 
-        assertThatThrownBy(() -> compositeX509ExtendedTrustManager.checkClientTrusted(certificateChain, "RSA"))
+        assertThatThrownBy(() -> aggregatedX509ExtendedTrustManager.checkClientTrusted(certificateChain, "RSA"))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("KABOOM!!!");
     }

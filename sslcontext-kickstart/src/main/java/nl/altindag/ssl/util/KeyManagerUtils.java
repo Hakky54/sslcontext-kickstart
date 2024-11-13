@@ -17,7 +17,7 @@ package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.exception.GenericKeyManagerException;
 import nl.altindag.ssl.exception.GenericKeyStoreException;
-import nl.altindag.ssl.keymanager.CompositeX509ExtendedKeyManager;
+import nl.altindag.ssl.keymanager.AggregatedX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.DummyX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.HotSwappableX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.KeyManagerFactoryWrapper;
@@ -240,9 +240,9 @@ public final class KeyManagerUtils {
         requireNotNull(alias, GENERIC_EXCEPTION_MESSAGE.apply("Alias"));
         requireNotNull(keyManager, GENERIC_EXCEPTION_MESSAGE.apply("Host"));
 
-        if (keyManager instanceof CompositeX509ExtendedKeyManager) {
-            CompositeX509ExtendedKeyManager compositeX509ExtendedKeyManager = (CompositeX509ExtendedKeyManager) keyManager;
-            Map<String, List<URI>> aliasToHosts = compositeX509ExtendedKeyManager.getIdentityRoute();
+        if (keyManager instanceof AggregatedX509ExtendedKeyManager) {
+            AggregatedX509ExtendedKeyManager aggregatedX509ExtendedKeyManager = (AggregatedX509ExtendedKeyManager) keyManager;
+            Map<String, List<URI>> aliasToHosts = aggregatedX509ExtendedKeyManager.getIdentityRoute();
 
             List<URI> uris = new ArrayList<>();
             for (String host : hosts) {
@@ -265,7 +265,7 @@ public final class KeyManagerUtils {
         } else {
             throw new GenericKeyManagerException(String.format(
                     "KeyManager should be an instance of: [%s], but received: [%s]",
-                    CompositeX509ExtendedKeyManager.class.getName(),
+                    AggregatedX509ExtendedKeyManager.class.getName(),
                     keyManager.getClass().getName()));
         }
     }
@@ -273,8 +273,8 @@ public final class KeyManagerUtils {
     public static Map<String, List<String>> getIdentityRoute(X509ExtendedKeyManager keyManager) {
         requireNotNull(keyManager, GENERIC_EXCEPTION_MESSAGE.apply("KeyManager"));
 
-        if (keyManager instanceof CompositeX509ExtendedKeyManager) {
-            return ((CompositeX509ExtendedKeyManager) keyManager)
+        if (keyManager instanceof AggregatedX509ExtendedKeyManager) {
+            return ((AggregatedX509ExtendedKeyManager) keyManager)
                     .getIdentityRoute()
                     .entrySet().stream()
                     .collect(Collectors.collectingAndThen(
@@ -288,15 +288,15 @@ public final class KeyManagerUtils {
         } else {
             throw new GenericKeyManagerException(String.format(
                     "KeyManager should be an instance of: [%s], but received: [%s]",
-                    CompositeX509ExtendedKeyManager.class.getName(),
+                    AggregatedX509ExtendedKeyManager.class.getName(),
                     keyManager.getClass().getName()));
         }
     }
 
     private static List<X509ExtendedKeyManager> unwrapIfPossible(X509ExtendedKeyManager keyManager) {
-        if (keyManager instanceof CompositeX509ExtendedKeyManager) {
+        if (keyManager instanceof AggregatedX509ExtendedKeyManager) {
             List<X509ExtendedKeyManager> keyManagers = new ArrayList<>();
-            for (X509ExtendedKeyManager innerKeyManager : ((CompositeX509ExtendedKeyManager) keyManager).getInnerKeyManagers()) {
+            for (X509ExtendedKeyManager innerKeyManager : ((AggregatedX509ExtendedKeyManager) keyManager).getInnerKeyManagers()) {
                 List<X509ExtendedKeyManager> unwrappedKeyManagers = KeyManagerUtils.unwrapIfPossible(innerKeyManager);
                 keyManagers.addAll(unwrappedKeyManagers);
             }
@@ -397,7 +397,7 @@ public final class KeyManagerUtils {
                 baseKeyManager = keyManagers.stream()
                         .map(KeyManagerUtils::unwrapIfPossible)
                         .flatMap(Collection::stream)
-                        .collect(toListAndThen(extendedKeyManagers -> new CompositeX509ExtendedKeyManager(extendedKeyManagers, aliasToHost)));
+                        .collect(toListAndThen(extendedKeyManagers -> new AggregatedX509ExtendedKeyManager(extendedKeyManagers, aliasToHost)));
             }
 
             if (loggingKeyManagerEnabled) {

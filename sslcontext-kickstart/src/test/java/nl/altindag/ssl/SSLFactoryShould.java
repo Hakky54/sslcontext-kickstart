@@ -22,7 +22,7 @@ import nl.altindag.ssl.exception.GenericSecurityException;
 import nl.altindag.ssl.exception.GenericTrustManagerException;
 import nl.altindag.ssl.hostnameverifier.EnhanceableHostnameVerifier;
 import nl.altindag.ssl.hostnameverifier.FenixHostnameVerifier;
-import nl.altindag.ssl.keymanager.CompositeX509ExtendedKeyManager;
+import nl.altindag.ssl.keymanager.AggregatedX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.DummyX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.HotSwappableX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.LoggingX509ExtendedKeyManager;
@@ -1870,7 +1870,7 @@ class SSLFactoryShould {
                 .containsKey("some-client-alias")
                 .containsValue(Arrays.asList("https://localhost:8443", "https://localhost:8444"));
 
-        assertThat(((CompositeX509ExtendedKeyManager)sslFactory.getKeyManager().get()).getIdentityRoute())
+        assertThat(((AggregatedX509ExtendedKeyManager)sslFactory.getKeyManager().get()).getIdentityRoute())
                 .containsKey("some-client-alias")
                 .containsValue(Arrays.asList(URI.create("https://localhost:8443"), URI.create("https://localhost:8444")));
     }

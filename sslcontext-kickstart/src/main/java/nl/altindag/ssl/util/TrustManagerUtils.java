@@ -18,7 +18,7 @@ package nl.altindag.ssl.util;
 import nl.altindag.ssl.exception.GenericTrustManagerException;
 import nl.altindag.ssl.model.TrustManagerParameters;
 import nl.altindag.ssl.trustmanager.CertificateCapturingX509ExtendedTrustManager;
-import nl.altindag.ssl.trustmanager.CompositeX509ExtendedTrustManager;
+import nl.altindag.ssl.trustmanager.AggregatedX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.DelegatingX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.DummyX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.EnhanceableX509ExtendedTrustManager;
@@ -263,7 +263,7 @@ public final class TrustManagerUtils {
     /**
      * Adds a new to be trusted certificate to the existing TrustManager.
      * The provided TrustManager should be an instance of {@link InflatableX509ExtendedTrustManager}
-     * and it is allowed that it is wrapped in a {@link CompositeX509ExtendedTrustManager}
+     * and it is allowed that it is wrapped in a {@link AggregatedX509ExtendedTrustManager}
      */
     public static void addCertificate(X509ExtendedTrustManager trustManager, X509Certificate certificate) {
         addCertificate(trustManager, Collections.singletonList(certificate));
@@ -272,7 +272,7 @@ public final class TrustManagerUtils {
     /**
      * Adds a new to be trusted certificate to the existing TrustManager.
      * The provided TrustManager should be an instance of {@link InflatableX509ExtendedTrustManager}
-     * and it is allowed that it is wrapped in a {@link CompositeX509ExtendedTrustManager}
+     * and it is allowed that it is wrapped in a {@link AggregatedX509ExtendedTrustManager}
      */
     public static void addCertificate(X509ExtendedTrustManager trustManager, List<X509Certificate> certificates) {
         boolean certificateAdded = addCertificateIfPossible(trustManager, certificates);
@@ -296,8 +296,8 @@ public final class TrustManagerUtils {
             return addCertificateIfPossible(innerTrustManager, certificates);
         }
 
-        if (trustManager instanceof CompositeX509ExtendedTrustManager) {
-            List<X509ExtendedTrustManager> innerTrustManagers = ((CompositeX509ExtendedTrustManager) trustManager).getInnerTrustManagers();
+        if (trustManager instanceof AggregatedX509ExtendedTrustManager) {
+            List<X509ExtendedTrustManager> innerTrustManagers = ((AggregatedX509ExtendedTrustManager) trustManager).getInnerTrustManagers();
 
             Optional<InflatableX509ExtendedTrustManager> inflatableX509ExtendedTrustManager = innerTrustManagers.stream()
                     .filter(InflatableX509ExtendedTrustManager.class::isInstance)
@@ -439,9 +439,9 @@ public final class TrustManagerUtils {
     }
 
     private static List<X509ExtendedTrustManager> unwrapIfPossible(X509ExtendedTrustManager trustManager) {
-        if (trustManager instanceof CompositeX509ExtendedTrustManager) {
+        if (trustManager instanceof AggregatedX509ExtendedTrustManager) {
             List<X509ExtendedTrustManager> trustManagers = new ArrayList<>();
-            for (X509ExtendedTrustManager innerTrustManager : ((CompositeX509ExtendedTrustManager) trustManager).getInnerTrustManagers()) {
+            for (X509ExtendedTrustManager innerTrustManager : ((AggregatedX509ExtendedTrustManager) trustManager).getInnerTrustManagers()) {
                 List<X509ExtendedTrustManager> unwrappedTrustManagers = TrustManagerUtils.unwrapIfPossible(innerTrustManager);
                 trustManagers.addAll(unwrappedTrustManagers);
             }
@@ -611,7 +611,7 @@ public final class TrustManagerUtils {
             return trustManagers.stream()
                     .map(TrustManagerUtils::unwrapIfPossible)
                     .flatMap(Collection::stream)
-                    .collect(CollectorsUtils.toListAndThen(CompositeX509ExtendedTrustManager::new));
+                    .collect(CollectorsUtils.toListAndThen(AggregatedX509ExtendedTrustManager::new));
         }
 
         private Optional<X509ExtendedTrustManager> createEnhanceableTrustManagerIfEnabled(X509ExtendedTrustManager baseTrustManager) {

@@ -47,7 +47,7 @@ import static org.mockito.Mockito.when;
  * @author Hakan Altindag
  */
 @ExtendWith(MockitoExtension.class)
-class CompositeX509ExtendedKeyManagerShould {
+class AggregatedX509ExtendedKeyManagerShould {
 
     private static final String IDENTITY_FILE_NAME = "identity.jks";
     private static final String IDENTITY_TWO_FILE_NAME = "identity-two.jks";
@@ -62,7 +62,7 @@ class CompositeX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
-        CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
+        AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
                 Arrays.asList(keyManagerOne, keyManagerTwo)
         );
 
@@ -84,7 +84,7 @@ class CompositeX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
-        CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
+        AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
                 Arrays.asList(keyManagerOne, keyManagerTwo)
         );
 
@@ -105,7 +105,7 @@ class CompositeX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
-        CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
+        AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
                 Arrays.asList(keyManagerOne, keyManagerTwo)
         );
 
@@ -133,7 +133,7 @@ class CompositeX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
-        CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
+        AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
                 Arrays.asList(keyManagerOne, keyManagerTwo)
         );
 
@@ -151,7 +151,7 @@ class CompositeX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager mockedInnerKeyManager = mock(X509ExtendedKeyManager.class);
         when(mockedInnerKeyManager.getCertificateChain(anyString())).thenReturn(new X509Certificate[] {});
 
-        CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(Collections.singletonList(mockedInnerKeyManager));
+        AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(Collections.singletonList(mockedInnerKeyManager));
         X509Certificate[] certificateChain = keyManager.getCertificateChain("dummy-client");
 
         assertThat(certificateChain).isNull();
@@ -166,7 +166,7 @@ class CompositeX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
-        CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
+        AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
                 Arrays.asList(keyManagerOne, keyManagerTwo)
         );
 
@@ -187,7 +187,7 @@ class CompositeX509ExtendedKeyManagerShould {
         Principal[] mockedIssuers = new Principal[]{ mockedIssuer };
         when(mockedInnerKeyManager.getServerAliases("RSA", mockedIssuers)).thenReturn(null);
 
-        CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(Collections.singletonList(mockedInnerKeyManager));
+        AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(Collections.singletonList(mockedInnerKeyManager));
         String[] serverAliases = keyManager.getServerAliases("RSA", mockedIssuers);
 
         assertThat(serverAliases).isNull();
@@ -201,7 +201,7 @@ class CompositeX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
-        CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
+        AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
                 Arrays.asList(keyManagerOne, keyManagerTwo)
         );
 
@@ -223,7 +223,7 @@ class CompositeX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
-        CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
+        AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
                 Arrays.asList(keyManagerOne, keyManagerTwo)
         );
 
@@ -245,7 +245,7 @@ class CompositeX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
-        CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
+        AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
                 Arrays.asList(keyManagerOne, keyManagerTwo), Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://another-server.com:443/")))
         );
 
@@ -276,7 +276,7 @@ class CompositeX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerOne = mock(X509ExtendedKeyManager.class);
         X509ExtendedKeyManager keyManagerTwo = mock(X509ExtendedKeyManager.class);
 
-        CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
+        AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
                 Arrays.asList(keyManagerOne, keyManagerTwo), Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://another-server.com:443/")))
         );
 
@@ -294,7 +294,7 @@ class CompositeX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerOne = mock(X509ExtendedKeyManager.class);
         X509ExtendedKeyManager keyManagerTwo = mock(X509ExtendedKeyManager.class);
 
-        CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
+        AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
                 Arrays.asList(keyManagerOne, keyManagerTwo), Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://another-server.com:443/")))
         );
 
@@ -314,7 +314,7 @@ class CompositeX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
-        CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
+        AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
                 Arrays.asList(keyManagerOne, keyManagerTwo)
         );
 
@@ -336,7 +336,7 @@ class CompositeX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
-        CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
+        AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
                 Arrays.asList(keyManagerOne, keyManagerTwo), Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://another-server.com:443/")))
         );
 
@@ -366,7 +366,7 @@ class CompositeX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
-        CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
+        AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
                 Arrays.asList(keyManagerTwo, keyManagerOne)
         );
 
@@ -388,7 +388,7 @@ class CompositeX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
-        CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
+        AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
                 Arrays.asList(keyManagerTwo, keyManagerOne)
         );
 
@@ -410,7 +410,7 @@ class CompositeX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
-        CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
+        AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
                 Arrays.asList(keyManagerOne, keyManagerTwo)
         );
 
@@ -432,7 +432,7 @@ class CompositeX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
-        CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
+        AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
                 Arrays.asList(keyManagerOne, keyManagerTwo)
         );
 
@@ -454,7 +454,7 @@ class CompositeX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
-        CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
+        AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
                 Arrays.asList(keyManagerOne, keyManagerTwo)
         );
 
@@ -476,7 +476,7 @@ class CompositeX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
-        CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
+        AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
                 Arrays.asList(keyManagerOne, keyManagerTwo),
                 Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://another-server.com:443/")))
         );
@@ -506,7 +506,7 @@ class CompositeX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
-        CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
+        AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
                 Arrays.asList(keyManagerOne, keyManagerTwo),
                 Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://another-server.com:443/")))
         );
@@ -533,7 +533,7 @@ class CompositeX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
-        CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
+        AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
                 Arrays.asList(keyManagerOne, keyManagerTwo),
                 Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://another-server.com:443/")))
         );
@@ -562,7 +562,7 @@ class CompositeX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
-        CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
+        AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
                 Arrays.asList(keyManagerOne, keyManagerTwo),
                 Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://another-server.com:443/")))
         );
@@ -585,7 +585,7 @@ class CompositeX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
-        CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
+        AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
                 Arrays.asList(keyManagerOne, keyManagerTwo)
         );
 
@@ -607,7 +607,7 @@ class CompositeX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
-        CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
+        AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
                 Arrays.asList(keyManagerOne, keyManagerTwo),
                 Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://another-server.com:443/")))
         );
@@ -634,7 +634,7 @@ class CompositeX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
-        CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
+        AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
                 Arrays.asList(keyManagerOne, keyManagerTwo),
                 Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://another-server.com:443/")))
         );
@@ -657,7 +657,7 @@ class CompositeX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
-        CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
+        AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
                 Arrays.asList(keyManagerOne, keyManagerTwo)
         );
 
@@ -679,7 +679,7 @@ class CompositeX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
-        CompositeX509ExtendedKeyManager keyManager = new CompositeX509ExtendedKeyManager(
+        AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
                 Arrays.asList(keyManagerOne, keyManagerTwo)
         );
 

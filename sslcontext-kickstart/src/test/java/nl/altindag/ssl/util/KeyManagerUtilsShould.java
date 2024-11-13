@@ -17,7 +17,7 @@ package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.exception.GenericKeyManagerException;
 import nl.altindag.ssl.exception.GenericKeyStoreException;
-import nl.altindag.ssl.keymanager.CompositeX509ExtendedKeyManager;
+import nl.altindag.ssl.keymanager.AggregatedX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.HotSwappableX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.LoggingX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.X509KeyManagerWrapper;
@@ -92,7 +92,7 @@ class KeyManagerUtilsShould {
 
         X509ExtendedKeyManager keyManager = KeyManagerUtils.createKeyManager(keyStoreHolderOne, keyStoreHolderTwo);
 
-        assertThat(keyManager).isInstanceOf(CompositeX509ExtendedKeyManager.class);
+        assertThat(keyManager).isInstanceOf(AggregatedX509ExtendedKeyManager.class);
     }
 
     @Test
@@ -142,7 +142,7 @@ class KeyManagerUtilsShould {
 
         X509ExtendedKeyManager combinedKeyManager = KeyManagerUtils.combine(keyManagerOne, keyManagerTwo);
 
-        assertThat(combinedKeyManager).isInstanceOf(CompositeX509ExtendedKeyManager.class);
+        assertThat(combinedKeyManager).isInstanceOf(AggregatedX509ExtendedKeyManager.class);
     }
 
     @Test
@@ -157,12 +157,12 @@ class KeyManagerUtilsShould {
         X509ExtendedKeyManager combinedCombinedKeyManager = KeyManagerUtils.combine(combinedKeyManager, keyManagerOne, keyManagerTwo);
         X509ExtendedKeyManager combinedCombinedCombinedKeyManager = KeyManagerUtils.combine(combinedCombinedKeyManager, combinedKeyManager, keyManagerOne, keyManagerTwo);
 
-        assertThat(combinedKeyManager).isInstanceOf(CompositeX509ExtendedKeyManager.class);
-        assertThat(combinedCombinedKeyManager).isInstanceOf(CompositeX509ExtendedKeyManager.class);
-        assertThat(combinedCombinedCombinedKeyManager).isInstanceOf(CompositeX509ExtendedKeyManager.class);
-        assertThat(((CompositeX509ExtendedKeyManager) combinedKeyManager).getInnerKeyManagers().size()).isEqualTo(2);
-        assertThat(((CompositeX509ExtendedKeyManager) combinedCombinedKeyManager).getInnerKeyManagers().size()).isEqualTo(4);
-        assertThat(((CompositeX509ExtendedKeyManager) combinedCombinedCombinedKeyManager).getInnerKeyManagers().size()).isEqualTo(8);
+        assertThat(combinedKeyManager).isInstanceOf(AggregatedX509ExtendedKeyManager.class);
+        assertThat(combinedCombinedKeyManager).isInstanceOf(AggregatedX509ExtendedKeyManager.class);
+        assertThat(combinedCombinedCombinedKeyManager).isInstanceOf(AggregatedX509ExtendedKeyManager.class);
+        assertThat(((AggregatedX509ExtendedKeyManager) combinedKeyManager).getInnerKeyManagers().size()).isEqualTo(2);
+        assertThat(((AggregatedX509ExtendedKeyManager) combinedCombinedKeyManager).getInnerKeyManagers().size()).isEqualTo(4);
+        assertThat(((AggregatedX509ExtendedKeyManager) combinedCombinedCombinedKeyManager).getInnerKeyManagers().size()).isEqualTo(8);
     }
 
     @Test
