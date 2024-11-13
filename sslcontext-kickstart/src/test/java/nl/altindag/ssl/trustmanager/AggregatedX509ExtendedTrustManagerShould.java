@@ -153,7 +153,7 @@ class AggregatedX509ExtendedTrustManagerShould {
 
         assertThatThrownBy(() -> trustManager.checkServerTrusted(trustedCerts, "RSA"))
                 .isInstanceOf(CertificateException.class)
-                .hasMessage("None of the TrustManagers trust this certificate chain");
+                .hasMessage("The certificate chain is not trusted");
     }
 
     @Test
@@ -167,7 +167,7 @@ class AggregatedX509ExtendedTrustManagerShould {
 
         assertThatThrownBy(() -> trustManager.checkServerTrusted(trustedCerts, "RSA", SSL_ENGINE))
                 .isInstanceOf(CertificateException.class)
-                .hasMessage("None of the TrustManagers trust this certificate chain");
+                .hasMessage("The certificate chain is not trusted");
     }
 
     @Test
@@ -181,7 +181,7 @@ class AggregatedX509ExtendedTrustManagerShould {
 
         assertThatThrownBy(() -> trustManager.checkServerTrusted(trustedCerts, "RSA", SOCKET))
                 .isInstanceOf(CertificateException.class)
-                .hasMessage("None of the TrustManagers trust this certificate chain");
+                .hasMessage("The certificate chain is not trusted");
     }
 
     @Test
@@ -197,7 +197,7 @@ class AggregatedX509ExtendedTrustManagerShould {
 
         assertThatThrownBy(() -> aggregatedX509ExtendedTrustManager.checkClientTrusted(trustedCerts, "RSA"))
                 .isInstanceOf(CertificateException.class)
-                .hasMessage("None of the TrustManagers trust this certificate chain");
+                .hasMessage("The certificate chain is not trusted");
     }
 
     @Test
@@ -213,7 +213,7 @@ class AggregatedX509ExtendedTrustManagerShould {
 
         assertThatThrownBy(() -> aggregatedX509ExtendedTrustManager.checkClientTrusted(trustedCerts, "RSA", SSL_ENGINE))
                 .isInstanceOf(CertificateException.class)
-                .hasMessage("None of the TrustManagers trust this certificate chain");
+                .hasMessage("The certificate chain is not trusted");
     }
 
     @Test
@@ -229,7 +229,7 @@ class AggregatedX509ExtendedTrustManagerShould {
 
         assertThatThrownBy(() -> aggregatedX509ExtendedTrustManager.checkClientTrusted(trustedCerts, "RSA", SOCKET))
                 .isInstanceOf(CertificateException.class)
-                .hasMessage("None of the TrustManagers trust this certificate chain");
+                .hasMessage("The certificate chain is not trusted");
     }
 
     @Test

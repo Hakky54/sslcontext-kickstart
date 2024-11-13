@@ -543,7 +543,7 @@ class KeyManagerUtilsShould {
 
         assertThatThrownBy(() -> KeyManagerUtils.addIdentityRoute(keyManager, "another-server", "https://localhost:8443/"))
                 .isInstanceOf(GenericKeyManagerException.class)
-                .hasMessage("KeyManager should be an instance of: [nl.altindag.ssl.keymanager.CompositeX509ExtendedKeyManager], " +
+                .hasMessage("KeyManager should be an instance of: [nl.altindag.ssl.keymanager.AggregatedX509ExtendedKeyManager], " +
                             "but received: [sun.security.ssl.SunX509KeyManagerImpl]");
     }
 
@@ -554,7 +554,7 @@ class KeyManagerUtilsShould {
 
         assertThatThrownBy(() -> KeyManagerUtils.getIdentityRoute(keyManager))
                 .isInstanceOf(GenericKeyManagerException.class)
-                .hasMessage("KeyManager should be an instance of: [nl.altindag.ssl.keymanager.CompositeX509ExtendedKeyManager], " +
+                .hasMessage("KeyManager should be an instance of: [nl.altindag.ssl.keymanager.AggregatedX509ExtendedKeyManager], " +
                         "but received: [sun.security.ssl.SunX509KeyManagerImpl]");
     }
 
