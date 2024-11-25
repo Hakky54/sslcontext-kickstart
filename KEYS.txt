@@ -1,0 +1,65 @@
+**********************************************************************************************
+**                                                                                          **
+**  Command used to export public key information: gpg --list-sigs && gpg --armor --export  **
+**                                                                                          **
+**********************************************************************************************
+
+pub   rsa4096 2019-06-20 [SC]
+      E5138A8E9F2E7E42D38B14D99AEE152CDCCEBFCB
+uid           [ unknown] Hakan Altindag <hakangoudberg@hotmail.com>
+sig 3        9AEE152CDCCEBFCB 2019-06-20  [self-signature]
+sub   rsa4096 2019-06-20 [E]
+sig          9AEE152CDCCEBFCB 2019-06-20  [self-signature]
+
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+mQINBF0LJ4UBEADDviIvloIaEtjAac3EHGGQtHtqKlp4uXXIgEWh1vNulzVSRpBE
+LDqDcrTowNU+CYQ3elTKa8cDrZviR7bMBju7esbVWxZu3ueMTG3IrvbDZUPYQ9Zt
+DQQr4/kDaSn/JpNiOyC815QHC5eQD9CjIRntZnxiigpIerb2PStd2v7DcziA9oK9
+8ByIVvEAWjxawI/E/Nkt1kuasoQCvdcZrhoGhPvLzI4OdCpgow8IB8kpRlO7vZGF
+ncQXuyluA2FXO0t1FHOGaPN5F+PZ0JuBH/84VWacepSO0lztopMpUtzS3eNzxUDq
+t01Q35RPgzp/DAh4lAB03XA6vo2BDzMG61CxieH8Qd+7lqXglO6y376gtuQ3H0Hk
+HoXLRn/0mExcYRxAR5li+Loib65da9nRGclIhYz5Ksy9waqzkSIU16UX/xmxo0S7
+T7OFhKexoRPsJkNPSFRgdj/Kro03WL7qqPMemJ5tjAcfbIDcI1HJH3uTmK6tlDfG
+L62Rz8LskiVjHXhLShq5KgGRB+Z6o2aW8tjy3RqBGJDRmh1pqOok3VgvfohiYukN
+VgK7oEJflq44v2ZW2T+/06iPX073TpcxGmpUKBkh4EybO6v1Crucb4+6L6c32xS0
++DDz0tw4xm320iPthut6xlaAjaUvP0BKxwrzwifImTeZUx2p/5ewydMElQARAQAB
+tCpIYWthbiBBbHRpbmRhZyA8aGFrYW5nb3VkYmVyZ0Bob3RtYWlsLmNvbT6JAk4E
+EwEIADgWIQTlE4qOny5+QtOLFNma7hUs3M6/ywUCXQsnhQIbAwULCQgHAgYVCgkI
+CwIEFgIDAQIeAQIXgAAKCRCa7hUs3M6/y/uMEACygnUhYQFBs/FU5Y4Bifbg36Wj
+Ht3OGG3lDPhldpxr3QMkIWug294qkwFCPqLy8FZm5qrSdQk9BRgZR5SkAzRIOaEf
+HwTmf42qk7w1ohNQkqrpFuw/kAAHodsI5O1K/TYojCn/E8mHiLcSG8nJ3+YUIMTQ
+ACKtTQW9/mo1BEnknRbrMqf/sM7TGV1kM7jUy5r3Izr0UediO4S4Ljoeg1GVn2Yn
+xcc7dozwBlQLWMqTbhb3mrrK8aPUU3hRCWllW2gDYuXvenK9UJ4GYzHhHtkSqPcS
+XoYaG+EX3PYKd/6eEzf9VWb+Rm3pAGIfaFufjSvCvcaQkqGR/a3szl/C5mwdEJqg
+01bRsORU3yoqoqZfVA5VJryPYQ4OKuOsjIOcaZvfN2rMjW/R4L+j81ru44gr6Q1h
+Q/dX5aau1Orkznaa5QqQ7m1xHQd9491XH5LnAgHJDW55LtGhxX8TGJ2azMMp77QH
+3ltVzIrprERPIYwVzUnqsPGFsMtSeDtVbraD5fht0FUzCspCrgxpXnpfd1Br3zEK
+k2AJ1809Idg42AkCdWU6g76wJU13rQRGSKEnXB7fnbfZZGgr6CvobyT+UdUbdw6+
+HIRkULEa01XvMevieFZIewINqDuVCckmiyM+2tRyGt7MtTomrF778+VkF15mwgvy
+a3JtGc7Q2s/k6acMNrkCDQRdCyeFARAAt8bXExmz5P03TOsLsieksKPY3ZoEgBGh
+JzIljA0+MulCeT6YawSxPSVvVDufIlGMd2suElwo152sFDRGjmjXcjOJvAPKLeO7
+RFOwFmx/sha0j+C/XZaOZTdjf8N4jLJNan0Zi6T+Dx9QUFQIRmaugqCh6md+aE6p
+BtDVFL4jdlrv7CTLmjKbEs8XaJ8i/Hs69hboYmvMLZeglJUts+c/XWAp2gP0sKiG
+Q7shYfCEL4Z3Eu35Lj+LDxd/7cGDzSApL9ymyr2Fnpa9UZUXCALTuKRbGQC+6DKH
+J9Q4EKMrOkJB83cH28bRS2PN4fgJfPYUO/SupLAZi0Y6Bs+1Bif2j29fxAyG8egl
+T7Y8nuWbU8IoG5oKQwxyvGo7VNeWUTRg/uuibcvGJeQGWHiPfidryQ+kTxmuOSfU
+i7tBVugROfGI3Y2SYT2drJglh5xTQGjR2RU2E0fGc/EEdVK5pBbk+xAeZRIicawo
+f1h5CJJFYlfwQyH0f1Ytera7MG5Ipc+d0asf/LrvHUFts31ursxIqFGupDVFfatM
+tXCXem5E3tyDGjU/7ROsXt2DKO/MeG5pSXW9mOb2o3rE5LADRx0cWGNZtxKNdY9Q
+WFtFsqVDfv/D2IpSI6cv9nmoBA2ngzwx5SNoPWOINRv2R63FRu3jeIcdWECu7iew
+qKUxgx/KnkEAEQEAAYkCNgQYAQgAIBYhBOUTio6fLn5C04sU2ZruFSzczr/LBQJd
+CyeFAhsMAAoJEJruFSzczr/L5wkQAJNrdqD7i9V3GShCVKZerGZsmEoUxxe8XGXT
+lVBiYG8i/Ka4mb2WCACvqWfbxFmDTFcdBK3VRXdtDJCMoRh0ZZbNih7P7mX9Wh73
+O92xrIBVMPCd6xtX1zwK1r127OfZS9U8hXqiQ0/4ZKmofX4dJJJwFlyZvXC4HZSA
+TfXSaYkQwtjQ2uC6LNy2+OG5B0GYWMf+aUeAHlsQRs+OQF/17cDeHLT5QaZvvrO1
+/7TRQ2YC60cl0bUOwtiUYRTri+gzk40uXGNcXBMFPnN1LxkHR5oY+r4/3svOCPw6
+rdV00E40UxRrNfUi0z3aFsm78XTRMHWidInpzkRdc/NFVsXaWZen8/+BxEGumLdX
+Ga3gZRPFCciaRTM+Z8nl7sxT0yJamipypoE36u7SAZ4DRsLWJ9sRAzy5ISWX9WmS
+niXhcBrigevhWhWtyfRMaMK1CgtmR33tR/sGxRFNdDDwWMbMHFGCNrsHwUG6Apqh
+ZlBPDJ84hLzjNvg0Js6TyFvC1m5GNJp0WwQ55HBdmdf7qI2OIkzOdFu+azzSYF64
+UPg3igy0xKsT10QKlEkgxUsoZ7BZ2mNe/yQWMNWSVqSarg7ZgI5n+6T3C+vapIAf
+TiGdFCjuQetpG9jepE/YiKKfpwDdylj97FPCW0tRh7C/l12XGy8Cs+TLEqm0vZME
+DoHgJ7xQ
+=KOH6
+-----END PGP PUBLIC KEY BLOCK-----
