@@ -64,7 +64,6 @@ import javax.security.auth.x500.X500Principal;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
-import java.net.Socket;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -106,7 +105,13 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anySet;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Hakan Altindag
@@ -219,24 +224,6 @@ class SSLFactoryShould {
         Path trustStoreDestination = Paths.get(HOME_DIRECTORY, "inflatable-truststore.p12");
         SSLFactory sslFactory = SSLFactory.builder()
                 .withInflatableTrustMaterial(trustStoreDestination, null, "PKCS12", trustManagerParameters -> true)
-                .build();
-
-        assertThat(sslFactory.getSslContext()).isNotNull();
-
-        assertThat(sslFactory.getTrustManager()).isPresent();
-        assertThat(sslFactory.getTrustManager().get()).isInstanceOf(InflatableX509ExtendedTrustManager.class);
-        assertThat(sslFactory.getTrustManagerFactory()).isPresent();
-        assertThat(sslFactory.getTrustedCertificates()).isEmpty();
-        assertThat(sslFactory.getHostnameVerifier()).isNotNull();
-        assertThat(sslFactory.getKeyManager()).isNotPresent();
-        assertThat(sslFactory.getKeyManagerFactory()).isNotPresent();
-    }
-
-    @Test
-    void buildSSLFactoryWithInflatableTrustMaterialWithDeprecatedOptions() {
-        Path trustStoreDestination = Paths.get(HOME_DIRECTORY, "inflatable-truststore.p12");
-        SSLFactory sslFactory = SSLFactory.builder()
-                .withInflatableTrustMaterial(trustStoreDestination, null, "PKCS12", (chain, authType) -> true)
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
@@ -1193,63 +1180,6 @@ class SSLFactoryShould {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
                 .withTrustEnhancer(trustManagerParameters -> true)
-                .build();
-
-        assertThat(sslFactory.getSslContext()).isNotNull();
-
-        assertThat(sslFactory.getTrustManager()).isPresent();
-        assertThat(sslFactory.getTrustManager().get()).isNotInstanceOf(HotSwappableX509ExtendedTrustManager.class);
-        assertThat(sslFactory.getTrustManager().get()).isInstanceOf(EnhanceableX509ExtendedTrustManager.class);
-        assertThat(sslFactory.getTrustManagerFactory()).isPresent();
-        assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
-        assertThat(sslFactory.getHostnameVerifier()).isNotNull();
-        assertThat(sslFactory.getKeyManager()).isNotPresent();
-        assertThat(sslFactory.getKeyManagerFactory()).isNotPresent();
-    }
-
-    @Test
-    void buildSSLFactoryWithTrustValidatorBasedOnChainAndAuthType() {
-        SSLFactory sslFactory = SSLFactory.builder()
-                .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
-                .withTrustEnhancer(((certificateChain, authType) -> true))
-                .build();
-
-        assertThat(sslFactory.getSslContext()).isNotNull();
-
-        assertThat(sslFactory.getTrustManager()).isPresent();
-        assertThat(sslFactory.getTrustManager().get()).isNotInstanceOf(HotSwappableX509ExtendedTrustManager.class);
-        assertThat(sslFactory.getTrustManager().get()).isInstanceOf(EnhanceableX509ExtendedTrustManager.class);
-        assertThat(sslFactory.getTrustManagerFactory()).isPresent();
-        assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
-        assertThat(sslFactory.getHostnameVerifier()).isNotNull();
-        assertThat(sslFactory.getKeyManager()).isNotPresent();
-        assertThat(sslFactory.getKeyManagerFactory()).isNotPresent();
-    }
-
-    @Test
-    void buildSSLFactoryWithTrustValidatorBasedOnChainAndAuthTypeAndSocket() {
-        SSLFactory sslFactory = SSLFactory.builder()
-                .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
-                .withTrustEnhancer((X509Certificate[] certificateChain, String authType, Socket socket) -> true)
-                .build();
-
-        assertThat(sslFactory.getSslContext()).isNotNull();
-
-        assertThat(sslFactory.getTrustManager()).isPresent();
-        assertThat(sslFactory.getTrustManager().get()).isNotInstanceOf(HotSwappableX509ExtendedTrustManager.class);
-        assertThat(sslFactory.getTrustManager().get()).isInstanceOf(EnhanceableX509ExtendedTrustManager.class);
-        assertThat(sslFactory.getTrustManagerFactory()).isPresent();
-        assertThat(sslFactory.getTrustedCertificates()).isNotEmpty();
-        assertThat(sslFactory.getHostnameVerifier()).isNotNull();
-        assertThat(sslFactory.getKeyManager()).isNotPresent();
-        assertThat(sslFactory.getKeyManagerFactory()).isNotPresent();
-    }
-
-    @Test
-    void buildSSLFactoryWithTrustValidatorBasedOnChainAndAuthTypeAndSSLEngine() {
-        SSLFactory sslFactory = SSLFactory.builder()
-                .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
-                .withTrustEnhancer((X509Certificate[] certificateChain, String authType, SSLEngine socket) -> true)
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();

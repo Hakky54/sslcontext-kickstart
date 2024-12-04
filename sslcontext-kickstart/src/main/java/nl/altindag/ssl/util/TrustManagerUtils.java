@@ -30,9 +30,6 @@ import nl.altindag.ssl.trustmanager.SystemX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.TrustManagerFactoryWrapper;
 import nl.altindag.ssl.trustmanager.UnsafeX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.X509TrustManagerWrapper;
-import nl.altindag.ssl.trustmanager.validator.ChainAndAuthTypeValidator;
-import nl.altindag.ssl.trustmanager.validator.ChainAndAuthTypeWithSSLEngineValidator;
-import nl.altindag.ssl.trustmanager.validator.ChainAndAuthTypeWithSocketValidator;
 import nl.altindag.ssl.util.internal.CollectorsUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +53,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
@@ -241,18 +237,6 @@ public final class TrustManagerUtils {
         return new InflatableX509ExtendedTrustManager();
     }
 
-    @Deprecated
-    public static X509ExtendedTrustManager createInflatableTrustManager(Path trustStorePath,
-                                                                        char[] trustStorePassword,
-                                                                        String trustStoreType,
-                                                                        BiPredicate<X509Certificate[], String> certificateAndAuthTypeTrustPredicate) {
-        return new InflatableX509ExtendedTrustManager(
-                trustStorePath,
-                trustStorePassword,
-                trustStoreType,
-                trustManagerParameters -> certificateAndAuthTypeTrustPredicate.test(trustManagerParameters.getChain(), trustManagerParameters.getAuthType()));
-    }
-
     public static X509ExtendedTrustManager createInflatableTrustManager(Path trustStorePath,
                                                                         char[] trustStorePassword,
                                                                         String trustStoreType,
@@ -391,38 +375,6 @@ public final class TrustManagerUtils {
         }
     }
 
-    @Deprecated
-    public static X509ExtendedTrustManager createEnhanceableTrustManager(
-            X509ExtendedTrustManager trustManager,
-            ChainAndAuthTypeValidator chainAndAuthTypeValidator,
-            ChainAndAuthTypeWithSocketValidator chainAndAuthTypeWithSocketValidator,
-            ChainAndAuthTypeWithSSLEngineValidator chainAndAuthTypeWithSSLEngineValidator) {
-
-        Predicate<TrustManagerParameters> trustManagerParametersValidator;
-        if (chainAndAuthTypeValidator == null && chainAndAuthTypeWithSocketValidator == null && chainAndAuthTypeWithSSLEngineValidator == null) {
-            trustManagerParametersValidator = null;
-        } else {
-            trustManagerParametersValidator = trustManagerParameters -> {
-                boolean result = false;
-                if (chainAndAuthTypeValidator != null && !trustManagerParameters.getSocket().isPresent() && !trustManagerParameters.getSslEngine().isPresent()) {
-                    result = chainAndAuthTypeValidator.test(trustManagerParameters.getChain(), trustManagerParameters.getAuthType());
-                }
-
-                if (chainAndAuthTypeWithSocketValidator != null && trustManagerParameters.getSocket().isPresent()) {
-                    result = chainAndAuthTypeWithSocketValidator.test(trustManagerParameters.getChain(), trustManagerParameters.getAuthType(), trustManagerParameters.getSocket().get());
-                }
-
-                if (chainAndAuthTypeWithSSLEngineValidator != null && trustManagerParameters.getSslEngine().isPresent()) {
-                    result = chainAndAuthTypeWithSSLEngineValidator.test(trustManagerParameters.getChain(), trustManagerParameters.getAuthType(), trustManagerParameters.getSslEngine().get());
-                }
-
-                return result;
-            };
-        }
-
-        return createEnhanceableTrustManager(trustManager, trustManagerParametersValidator);
-    }
-
     public static X509ExtendedTrustManager createEnhanceableTrustManager(
             X509ExtendedTrustManager trustManager,
             Predicate<TrustManagerParameters> trustManagerParametersValidator) {
@@ -467,9 +419,6 @@ public final class TrustManagerUtils {
         private boolean swappableTrustManagerEnabled = false;
         private boolean loggingTrustManagerEnabled = false;
 
-        private ChainAndAuthTypeValidator chainAndAuthTypeValidator;
-        private ChainAndAuthTypeWithSocketValidator chainAndAuthTypeWithSocketValidator;
-        private ChainAndAuthTypeWithSSLEngineValidator chainAndAuthTypeWithSSLEngineValidator;
         private Predicate<TrustManagerParameters> trustManagerParametersValidator;
         private boolean shouldTrustedCertificatesBeConcealed;
 
@@ -520,24 +469,6 @@ public final class TrustManagerUtils {
 
         public TrustManagerBuilder withLoggingTrustManager(boolean loggingTrustManagerEnabled) {
             this.loggingTrustManagerEnabled = loggingTrustManagerEnabled;
-            return this;
-        }
-
-        @Deprecated
-        public TrustManagerBuilder withTrustEnhancer(ChainAndAuthTypeValidator validator) {
-            this.chainAndAuthTypeValidator = validator;
-            return this;
-        }
-
-        @Deprecated
-        public TrustManagerBuilder withTrustEnhancer(ChainAndAuthTypeWithSocketValidator validator) {
-            this.chainAndAuthTypeWithSocketValidator = validator;
-            return this;
-        }
-
-        @Deprecated
-        public TrustManagerBuilder withTrustEnhancer(ChainAndAuthTypeWithSSLEngineValidator validator) {
-            this.chainAndAuthTypeWithSSLEngineValidator = validator;
             return this;
         }
 
@@ -615,23 +546,13 @@ public final class TrustManagerUtils {
         }
 
         private Optional<X509ExtendedTrustManager> createEnhanceableTrustManagerIfEnabled(X509ExtendedTrustManager baseTrustManager) {
-            if (chainAndAuthTypeValidator == null
-                    && chainAndAuthTypeWithSocketValidator == null
-                    && chainAndAuthTypeWithSSLEngineValidator == null
-                    && trustManagerParametersValidator == null
-                    && !shouldTrustedCertificatesBeConcealed) {
+            if (trustManagerParametersValidator == null && !shouldTrustedCertificatesBeConcealed) {
                 return Optional.empty();
             }
 
             Predicate<TrustManagerParameters> aTrustManagerParametersValidator;
             if (trustManagerParametersValidator != null) {
                 aTrustManagerParametersValidator = trustManagerParametersValidator;
-            } else if (chainAndAuthTypeValidator != null) {
-                aTrustManagerParametersValidator = trustManagerParameters -> chainAndAuthTypeValidator.test(trustManagerParameters.getChain(), trustManagerParameters.getAuthType());
-            } else if (chainAndAuthTypeWithSocketValidator != null) {
-                aTrustManagerParametersValidator = trustManagerParameters -> chainAndAuthTypeWithSocketValidator.test(trustManagerParameters.getChain(), trustManagerParameters.getAuthType(), trustManagerParameters.getSocket().orElse(null));
-            } else if (chainAndAuthTypeWithSSLEngineValidator != null) {
-                aTrustManagerParametersValidator = trustManagerParameters -> chainAndAuthTypeWithSSLEngineValidator.test(trustManagerParameters.getChain(), trustManagerParameters.getAuthType(), trustManagerParameters.getSslEngine().orElse(null));
             } else {
                 aTrustManagerParametersValidator = trustManagerParameters -> false;
             }
