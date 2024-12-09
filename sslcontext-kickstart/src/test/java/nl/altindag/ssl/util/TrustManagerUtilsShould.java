@@ -46,6 +46,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.Provider;
 import java.security.Security;
 import java.security.cert.CertPathBuilder;
+import java.security.cert.CertificateException;
 import java.security.cert.PKIXBuilderParameters;
 import java.security.cert.PKIXRevocationChecker;
 import java.security.cert.X509CertSelector;
@@ -315,6 +316,24 @@ class TrustManagerUtilsShould {
                 .isInstanceOf(GenericTrustManagerException.class)
                 .hasMessage("The baseTrustManager is from the instance of [nl.altindag.ssl.trustmanager.LoggingX509ExtendedTrustManager] " +
                         "and should be an instance of [nl.altindag.ssl.trustmanager.HotSwappableX509ExtendedTrustManager].");
+    }
+
+    @Test
+    void createEnhanceableTrustManagerDoesSkipCallingBaseTrustManagerWhenCustomValidatorReturnsTrue() throws CertificateException {
+        X509ExtendedTrustManager baseTrustManager = mock(X509ExtendedTrustManager.class);
+        X509ExtendedTrustManager enhanceableTrustManager = TrustManagerUtils.createEnhanceableTrustManager(baseTrustManager, trustManagerParameters -> "RSA".equals(trustManagerParameters.getAuthType()));
+
+        enhanceableTrustManager.checkServerTrusted(null, "RSA");
+        verify(baseTrustManager, times(0)).checkServerTrusted(null, "RSA");
+    }
+
+    @Test
+    void createEnhanceableTrustManagerDoesCallsBaseTrustManagerWhenCustomValidatorReturnsFalse() throws CertificateException {
+        X509ExtendedTrustManager baseTrustManager = mock(X509ExtendedTrustManager.class);
+        X509ExtendedTrustManager enhanceableTrustManager = TrustManagerUtils.createEnhanceableTrustManager(baseTrustManager, trustManagerParameters -> "RSA".equals(trustManagerParameters.getAuthType()));
+
+        enhanceableTrustManager.checkServerTrusted(null, "ASR");
+        verify(baseTrustManager, times(1)).checkServerTrusted(null, "ASR");
     }
 
     @Test
