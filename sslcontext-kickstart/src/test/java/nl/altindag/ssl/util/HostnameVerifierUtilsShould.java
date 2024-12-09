@@ -48,15 +48,6 @@ class HostnameVerifierUtilsShould {
     }
 
     @Test
-    void createFenix() {
-        HostnameVerifier hostnameVerifier = HostnameVerifierUtils.createFenix();
-
-        assertThat(hostnameVerifier)
-                .isNotNull()
-                .isInstanceOf(FenixHostnameVerifier.class);
-    }
-
-    @Test
     void createDefault() {
         HostnameVerifier hostnameVerifier = HostnameVerifierUtils.createDefault();
 
