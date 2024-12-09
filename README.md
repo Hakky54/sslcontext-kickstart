@@ -100,6 +100,7 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "8.3.7"
      - [Global SSL configuration](#global-ssl-configuration)
      - [Logging certificate validation](#logging-detailed-certificate-validation)
      - [Logging detailed KeyManager flow, input and output](#logging-detailed-keymanager-flow-input-and-output)
+     - [Fluently mapping SSLFactory](#fluently-mapping-sslfactory)
    - [Returnable values from the SSLFactory](#returnable-values-from-the-sslfactory)
 3. [Additional mappers for specific libraries](#additional-mappers-for-specific-libraries)
    - [Netty](#netty)
@@ -1095,6 +1096,37 @@ KeyIdentifier [
 
 ]]
 ```
+
+### Fluently mapping SSLFactory
+The SSLFactory can be mapped easily if it needs additional intermediate steps before it can be used fully used, such as using it with a Netty or Apache client. Below is an example for Netty with Spring WebClient.
+
+```java
+import io.netty.handler.ssl.SslContext;
+import nl.altindag.ssl.SSLFactory;
+import nl.altindag.ssl.netty.util.NettySslUtils;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.netty.http.client.HttpClient;
+
+import javax.net.ssl.SSLException;
+
+public class App {
+    
+    public static void main(String[] args) throws SSLException {
+      WebClient webClient = SSLFactory.builder()
+                .withDefaultTrustMaterial()
+                .build()
+                .map(NettySslUtils::forClient)
+                .map(SslContextBuilder::build)
+                .map(sslContext -> HttpClient.create().secure(sslSpec -> sslSpec.sslContext(sslContext)))
+                .map(ReactorClientHttpConnector::new)
+                .map(httpConnector -> WebClient.builder().clientConnector(httpConnector).build()) 
+                .get();
+    }
+
+}
+```
+
 
 ### Returnable values from the SSLFactory
 The SSLFactory provides different kinds of returnable values, see below for all the options:
