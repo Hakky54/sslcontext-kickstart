@@ -29,7 +29,7 @@ import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
-import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.nio.support.BasicRequestProducer;
@@ -76,9 +76,9 @@ class SSLFactoryIT {
                 .withTrustMaterial("keystore/client-server/client-one/truststore.jks", "secret".toCharArray())
                 .build();
 
-        LayeredConnectionSocketFactory socketFactory = Apache5SslUtils.toSocketFactory(sslFactoryForClient);
+        TlsSocketStrategy tlsSocketStrategy = Apache5SslUtils.toTlsSocketStrategy(sslFactoryForClient);
         PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
-                .setSSLSocketFactory(socketFactory)
+                .setTlsSocketStrategy(tlsSocketStrategy)
                 .build();
 
         HttpClient httpClient = HttpClients.custom()

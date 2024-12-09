@@ -25,7 +25,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * {@link CompositeX509ExtendedTrustManager} is a wrapper for a collection of TrustManagers.
+ * {@link AggregatedX509ExtendedTrustManager} is a wrapper for a collection of TrustManagers.
  * It has the ability to validate a certificate chain against multiple TrustManagers.
  * If any one of the composed managers trusts a certificate chain, then it is trusted by the composite manager.
  * The TrustManager can be build from one or more of any combination provided within the {@link nl.altindag.ssl.util.TrustManagerUtils.TrustManagerBuilder TrustManagerUtils.TrustManagerBuilder}.
@@ -53,11 +53,11 @@ import java.util.List;
  * @author Cody Ray
  * @author Hakan Altindag
  */
-public final class CompositeX509ExtendedTrustManager extends X509ExtendedTrustManager implements CombinableX509TrustManager {
+public final class AggregatedX509ExtendedTrustManager extends X509ExtendedTrustManager implements CombinableX509TrustManager {
 
     private final List<X509ExtendedTrustManager> trustManagers;
 
-    public CompositeX509ExtendedTrustManager(List<? extends X509ExtendedTrustManager> trustManagers) {
+    public AggregatedX509ExtendedTrustManager(List<? extends X509ExtendedTrustManager> trustManagers) {
         this.trustManagers = Collections.unmodifiableList(trustManagers);
     }
 

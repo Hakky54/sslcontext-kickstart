@@ -62,28 +62,28 @@ import java.util.Objects;
  * @author Cody Ray
  * @author Hakan Altindag
  */
-public final class CompositeX509ExtendedKeyManager extends X509ExtendedKeyManager implements CombinableX509KeyManager, RoutableX509KeyManager {
+public final class AggregatedX509ExtendedKeyManager extends X509ExtendedKeyManager implements CombinableX509KeyManager, RoutableX509KeyManager {
 
     private final List<X509ExtendedKeyManager> keyManagers;
     private final Map<String, List<URI>> preferredAliasToHost;
 
     /**
-     * Creates a new {@link CompositeX509ExtendedKeyManager}.
+     * Creates a new {@link AggregatedX509ExtendedKeyManager}.
      *
      * @param keyManagers the {@link X509ExtendedKeyManager}, ordered with the most-preferred managers first.
      */
-    public CompositeX509ExtendedKeyManager(List<? extends X509ExtendedKeyManager> keyManagers) {
+    public AggregatedX509ExtendedKeyManager(List<? extends X509ExtendedKeyManager> keyManagers) {
         this(keyManagers, Collections.emptyMap());
     }
 
     /**
-     * Creates a new {@link CompositeX509ExtendedKeyManager}.
+     * Creates a new {@link AggregatedX509ExtendedKeyManager}.
      *
      * @param keyManagers          the {@link X509ExtendedKeyManager}, ordered with the most-preferred managers first.
      * @param preferredAliasToHost the preferred client alias to be used for the given host
      */
-    public CompositeX509ExtendedKeyManager(List<? extends X509ExtendedKeyManager> keyManagers,
-                                           Map<String, List<URI>> preferredAliasToHost) {
+    public AggregatedX509ExtendedKeyManager(List<? extends X509ExtendedKeyManager> keyManagers,
+                                            Map<String, List<URI>> preferredAliasToHost) {
         this.keyManagers = Collections.unmodifiableList(keyManagers);
         this.preferredAliasToHost = new HashMap<>(preferredAliasToHost);
     }

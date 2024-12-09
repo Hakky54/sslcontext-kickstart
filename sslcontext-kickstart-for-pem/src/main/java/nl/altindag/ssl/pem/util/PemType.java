@@ -23,8 +23,9 @@ import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.X509TrustedCertificateBlock;
 import org.bouncycastle.pkcs.PKCS8EncryptedPrivateKeyInfo;
 
-import java.util.Arrays;
 import java.util.List;
+
+import static nl.altindag.ssl.util.internal.CollectionUtils.toUnmodifiableList;
 
 enum PemType {
 
@@ -34,7 +35,7 @@ enum PemType {
     private final List<Class<?>> supportedTypes;
 
     PemType(Class<?>... classes) {
-        this.supportedTypes = Arrays.asList(classes);
+        this.supportedTypes = toUnmodifiableList(classes);
     }
 
     static PemType from(Object object) {

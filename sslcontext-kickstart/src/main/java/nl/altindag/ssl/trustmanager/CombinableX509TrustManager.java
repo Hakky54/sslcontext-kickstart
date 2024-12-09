@@ -30,7 +30,7 @@ import java.util.List;
  */
 interface CombinableX509TrustManager extends X509TrustManager {
 
-    String CERTIFICATE_EXCEPTION_MESSAGE = "None of the TrustManagers trust this certificate chain";
+    String CERTIFICATE_EXCEPTION_MESSAGE = "The certificate chain is not trusted";
 
     List<X509ExtendedTrustManager> getInnerTrustManagers();
 

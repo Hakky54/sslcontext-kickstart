@@ -55,20 +55,20 @@
 
     <properties>
         <version.slf4j>2.0.16</version.slf4j>
-        <version.junit>5.11.2</version.junit>
+        <version.junit>5.11.3</version.junit>
         <version.assertj-core>3.26.3</version.assertj-core>
-        <version.logcaptor>2.9.3</version.logcaptor>
+        <version.logcaptor>2.10.0</version.logcaptor>
         <version.mockito>5.11.0</version.mockito>
         <version.ssl-server>1.0.6</version.ssl-server>
-        <version.byte-buddy>1.15.5</version.byte-buddy>
+        <version.byte-buddy>1.15.10</version.byte-buddy>
         <version.jacoco-maven-plugin>0.8.12</version.jacoco-maven-plugin>
-        <version.maven-surefire-plugin>3.5.1</version.maven-surefire-plugin>
-        <version.maven-fail-safe>3.5.1</version.maven-fail-safe>
+        <version.maven-surefire-plugin>3.5.2</version.maven-surefire-plugin>
+        <version.maven-fail-safe>3.5.2</version.maven-fail-safe>
         <version.maven-enforcer-plugin>3.5.0</version.maven-enforcer-plugin>
-        <version.maven-javadoc-plugin>3.10.1</version.maven-javadoc-plugin>
+        <version.maven-javadoc-plugin>3.11.1</version.maven-javadoc-plugin>
         <version.maven-source-plugin>3.3.1</version.maven-source-plugin>
         <version.license-maven-plugin>4.6</version.license-maven-plugin>
-        <version.maven-surefire-junit5-tree-reporter>1.3.0</version.maven-surefire-junit5-tree-reporter>
+        <version.maven-surefire-junit5-tree-reporter>1.4.0</version.maven-surefire-junit5-tree-reporter>
         <license.git.copyrightYears>2019</license.git.copyrightYears>
     </properties>
 
