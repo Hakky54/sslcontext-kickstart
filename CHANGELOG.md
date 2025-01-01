@@ -3,6 +3,15 @@
 This list is not intended to be all-encompassing - it will document major and breaking API
 changes with their rationale when appropriate:
 
+### v9.0.0
+- Simplified removing security provider within ProviderUtils
+- Renamed internal class CompositeX509ExtendedKeyManager to AggregatedX509ExtendedKeyManager
+- Renamed internal class CompositeX509ExtendedTrustManager to AggregatedX509ExtendedTrustManager
+- Improved exception message in CombinableX509ExtendedTrustManager
+- Removed deprecated methods in HostnameVerifier, TrustManagerUtils and SSLFactory.Builder
+- Removed deprecated classes ChainAndAuthTypeValidator, ChainAndAuthTypeWithSocketValidator and ChainAndAuthTypeWithSSLEngineValidator
+- Added fluent api mapper in SSLFactory
+- Bumped dependencies
 ### v8.3.7
 - Added Apache5SslUtils toTlsSocketStrategy method
 - Marked Apache5SslUtils toSocketFactory method as deprecated
