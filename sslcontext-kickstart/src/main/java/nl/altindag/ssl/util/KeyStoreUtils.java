@@ -34,6 +34,7 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.security.Provider;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -72,17 +73,21 @@ public final class KeyStoreUtils {
     }
 
     public static KeyStore loadKeyStore(String keystorePath, char[] keystorePassword, String keystoreType) {
-        return loadKeyStore(keystorePath, keystorePassword, keystoreType, null);
+        return loadKeyStore(keystorePath, keystorePassword, keystoreType, (String) null);
     }
 
-    public static KeyStore loadKeyStore(String keystorePath, char[] keystorePassword, String keystoreType, String keystoreProvider) {
+    public static KeyStore loadKeyStore(String keystorePath, char[] keystorePassword, String keystoreType, String providerName) {
+        return loadKeyStore(keystorePath, keystoreInputStream -> loadKeyStore(keystoreInputStream, keystorePassword, keystoreType, providerName));
+    }
+
+    public static KeyStore loadKeyStore(String keystorePath, char[] keystorePassword, String keystoreType, Provider provider) {
+        return loadKeyStore(keystorePath, keystoreInputStream -> loadKeyStore(keystoreInputStream, keystorePassword, keystoreType, provider));
+    }
+
+    private static KeyStore loadKeyStore(String keystorePath, KeyStoreFunction<InputStream, KeyStore> keyStoreKeyStoreFunction) {
         try (InputStream keystoreInputStream = KeyStoreUtils.class.getClassLoader().getResourceAsStream(keystorePath)) {
-            return loadKeyStore(
-                    requireNotNull(keystoreInputStream, KEYSTORE_NOT_FOUND_EXCEPTION_MESSAGE.apply(keystorePath)),
-                    keystorePassword,
-                    keystoreType,
-                    keystoreProvider
-            );
+            requireNotNull(keystoreInputStream, KEYSTORE_NOT_FOUND_EXCEPTION_MESSAGE.apply(keystorePath));
+            return keyStoreKeyStoreFunction.apply(keystoreInputStream);
         } catch (Exception e) {
             throw new GenericKeyStoreException(e);
         }
@@ -93,12 +98,20 @@ public final class KeyStoreUtils {
     }
 
     public static KeyStore loadKeyStore(Path keystorePath, char[] keystorePassword, String keystoreType) {
-        return loadKeyStore(keystorePath, keystorePassword, keystoreType, null);
+        return loadKeyStore(keystorePath, keystorePassword, keystoreType, (String) null);
     }
 
-    public static KeyStore loadKeyStore(Path keystorePath, char[] keystorePassword, String keystoreType, String keystoreProvider) {
+    public static KeyStore loadKeyStore(Path keystorePath, char[] keystorePassword, String keystoreType, String providerName) {
+        return loadKeyStore(keystorePath, keystoreInputStream -> loadKeyStore(keystoreInputStream, keystorePassword, keystoreType, providerName));
+    }
+
+    public static KeyStore loadKeyStore(Path keystorePath, char[] keystorePassword, String keystoreType, Provider provider) {
+        return loadKeyStore(keystorePath, keystoreInputStream -> loadKeyStore(keystoreInputStream, keystorePassword, keystoreType, provider));
+    }
+
+    private static KeyStore loadKeyStore(Path keystorePath, KeyStoreFunction<InputStream, KeyStore> mapper) {
         try (InputStream keystoreInputStream = Files.newInputStream(keystorePath, StandardOpenOption.READ)) {
-            return loadKeyStore(keystoreInputStream, keystorePassword, keystoreType, keystoreProvider);
+            return mapper.apply(keystoreInputStream);
         } catch (Exception e) {
             throw new GenericKeyStoreException(e);
         }
@@ -113,12 +126,20 @@ public final class KeyStoreUtils {
     }
 
     public static KeyStore loadKeyStore(InputStream keystoreInputStream, char[] keystorePassword, String keystoreType) {
-        return loadKeyStore(keystoreInputStream, keystorePassword, keystoreType, null);
+        return loadKeyStore(keystoreInputStream, keystorePassword, keystoreType, (String) null);
     }
 
-    public static KeyStore loadKeyStore(InputStream keystoreInputStream, char[] keystorePassword, String keystoreType, String keystoreProvider) {
+    public static KeyStore loadKeyStore(InputStream keystoreInputStream, char[] keystorePassword, String keystoreType, String providerName) {
+        return loadKeyStore(keystoreInputStream, keystorePassword, () -> StringUtils.isBlank(providerName) ? KeyStore.getInstance(keystoreType) : KeyStore.getInstance(keystoreType, providerName));
+    }
+
+    public static KeyStore loadKeyStore(InputStream keystoreInputStream, char[] keystorePassword, String keystoreType, Provider provider) {
+        return loadKeyStore(keystoreInputStream, keystorePassword, () -> provider == null ? KeyStore.getInstance(keystoreType) : KeyStore.getInstance(keystoreType, provider));
+    }
+
+    private static KeyStore loadKeyStore(InputStream keystoreInputStream, char[] keystorePassword, KeyStoreSupplier keyStoreSupplier) {
         try {
-            KeyStore keystore = StringUtils.isBlank(keystoreProvider) ? KeyStore.getInstance(keystoreType) : KeyStore.getInstance(keystoreType, keystoreProvider);
+            KeyStore keystore = keyStoreSupplier.get();
             keystore.load(requireNotNull(keystoreInputStream, EMPTY_INPUT_STREAM_EXCEPTION_MESSAGE), keystorePassword);
             return keystore;
         } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException | NoSuchProviderException e) {
@@ -460,6 +481,14 @@ public final class KeyStoreUtils {
 
     private interface KeyStoreBiPredicate<T extends KeyStore, U> {
         boolean test(T t, U u) throws KeyStoreException;
+    }
+
+    private interface KeyStoreFunction<T, R extends KeyStore> {
+        R apply(T t) throws Exception;
+    }
+
+    private interface KeyStoreSupplier {
+        KeyStore get() throws KeyStoreException, NoSuchProviderException;
     }
 
 }
