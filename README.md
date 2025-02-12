@@ -1295,42 +1295,30 @@ public class App {
 ```
 ```java
 import nl.altindag.ssl.SSLFactory;
-import org.apache.hc.client5.http.classic.HttpClient;
+import nl.altindag.ssl.apache5.util.Apache5SslUtils;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
-import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
-import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
-import nl.altindag.ssl.apache5.util.Apache5SslUtils;
 
-class App {
+public class App {
 
     public static void main(String[] args) {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withDefaultTrustMaterial()
                 .build();
 
-        LayeredConnectionSocketFactory socketFactory = Apache5SslUtils.toSocketFactory(sslFactory);
-        PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
-                .setSSLSocketFactory(socketFactory)
-                .build();
-
-        HttpClient httpClient = HttpClients.custom()
-                .setConnectionManager(connectionManager)
-                .build();
-
-        PoolingAsyncClientConnectionManager asyncConnectionManager = PoolingAsyncClientConnectionManagerBuilder.create()
+        PoolingAsyncClientConnectionManager connectionManager = PoolingAsyncClientConnectionManagerBuilder.create()
                 .setTlsStrategy(Apache5SslUtils.toTlsStrategy(sslFactory))
                 .build();
-
+        
         CloseableHttpAsyncClient httpAsyncClient = HttpAsyncClients.custom()
-                .setConnectionManager(asyncConnectionManager)
+                .setConnectionManager(connectionManager)
                 .build();
+        
+        httpAsyncClient.start();
     }
-    
+
 }
 ```
 
