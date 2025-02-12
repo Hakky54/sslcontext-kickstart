@@ -20,18 +20,19 @@ import nl.altindag.ssl.apache5.util.Apache5SslUtils;
 import nl.altindag.ssl.server.service.Server;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleResponseConsumer;
-import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
-import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.Method;
+import org.apache.hc.core5.http.io.HttpClientResponseHandler;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.nio.support.BasicRequestProducer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -81,19 +82,27 @@ class SSLFactoryIT {
                 .setTlsSocketStrategy(tlsSocketStrategy)
                 .build();
 
-        HttpClient httpClient = HttpClients.custom()
+        try (CloseableHttpClient httpClient = HttpClients.custom()
                 .setConnectionManager(connectionManager)
-                .build();
+                .build()) {
 
-        HttpGet request = new HttpGet("https://localhost:8543/api/hello");
-        HttpResponse response = httpClient.execute(request);
+            HttpGet request = new HttpGet("https://localhost:8543/api/hello");
 
-        int statusCode = response.getCode();
-        assertThat(statusCode).isEqualTo(200);
+            HttpClientResponseHandler<Response> responseHandler = httpResponse -> {
+                String body = EntityUtils.toString(httpResponse.getEntity());
+                int statusCode = httpResponse.getCode();
+                return new Response(statusCode, body);
+            };
+
+            Response response = httpClient.execute(request, responseHandler);
+
+            assertThat(response.getStatusCode()).isEqualTo(200);
+            assertThat(response.getBody()).isEqualTo("Hello World!");
+        }
     }
 
     @Test
-    void executeHttpsRequestWithMutualAuthenticationForAsyncClient() throws IOException, URISyntaxException, ExecutionException, InterruptedException, TimeoutException {
+    void executeHttpsRequestWithMutualAuthenticationForAsyncClient() throws URISyntaxException, ExecutionException, InterruptedException, TimeoutException, IOException {
         SSLFactory sslFactoryForClient = SSLFactory.builder()
                 .withIdentityMaterial("keystore/client-server/client-one/identity.jks", "secret".toCharArray())
                 .withTrustMaterial("keystore/client-server/client-one/truststore.jks", "secret".toCharArray())
@@ -116,6 +125,26 @@ class SSLFactoryIT {
 
         int statusCode = response.getCode();
         assertThat(statusCode).isEqualTo(200);
+        httpAsyncClient.close();
+    }
+
+    private static class Response {
+
+        private final int statusCode;
+        private final String body;
+
+        private Response(int statusCode, String body) {
+            this.statusCode = statusCode;
+            this.body = body;
+        }
+
+        public int getStatusCode() {
+            return statusCode;
+        }
+
+        public String getBody() {
+            return body;
+        }
     }
 
 }
