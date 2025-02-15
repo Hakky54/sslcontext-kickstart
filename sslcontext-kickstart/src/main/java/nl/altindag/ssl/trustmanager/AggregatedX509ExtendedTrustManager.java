@@ -27,8 +27,8 @@ import java.util.List;
 /**
  * {@link AggregatedX509ExtendedTrustManager} is a wrapper for a collection of TrustManagers.
  * It has the ability to validate a certificate chain against multiple TrustManagers.
- * If any one of the composed managers trusts a certificate chain, then it is trusted by the composite manager.
- * The TrustManager can be build from one or more of any combination provided within the {@link nl.altindag.ssl.util.TrustManagerUtils.TrustManagerBuilder TrustManagerUtils.TrustManagerBuilder}.
+ * If any one of the inner trust managers trusts a certificate chain, then it is trusted by the wrapper trust manager.
+ * The TrustManager can be built from one or more of any combination provided within the {@link nl.altindag.ssl.util.TrustManagerUtils.TrustManagerBuilder TrustManagerUtils.TrustManagerBuilder}.
  * <br><br>
  * This includes:
  * <pre>

@@ -665,7 +665,7 @@ class TrustManagerUtilsShould {
     }
 
     @Test
-    void addCertificateToInflatableX509ExtendedTrustManagerEvenThoughItIsWrappedInAHotSwappableX509ExtendedTrustManagerWhichIsWrappedIntoACompositeX509ExtendedTrustManager() {
+    void addCertificateToInflatableX509ExtendedTrustManagerEvenThoughItIsWrappedInAHotSwappableX509ExtendedTrustManagerWhichIsWrappedIntoAAggregatedX509ExtendedTrustManager() {
         X509Certificate certificate = mock(X509Certificate.class);
         List<X509Certificate> certificates = Collections.singletonList(certificate);
 
@@ -680,7 +680,7 @@ class TrustManagerUtilsShould {
     }
 
     @Test
-    void addCertificateToInflatableX509ExtendedTrustManagerEvenThoughItIsWrappedInACompositeX509ExtendedTrustManager() {
+    void addCertificateToInflatableX509ExtendedTrustManagerEvenThoughItIsWrappedInAAggregatedX509ExtendedTrustManager() {
         X509Certificate certificate = mock(X509Certificate.class);
         List<X509Certificate> certificates = Collections.singletonList(certificate);
 
@@ -876,7 +876,7 @@ class TrustManagerUtilsShould {
     }
 
     @Test
-    void throwExceptionWhenAddingCertificateToANonInflatableX509ExtendedTrustManagerEvenThoughItIsWrappedInAHotSwappableX509ExtendedTrustManagerContainingACompositeX509ExtendedTrustManager() {
+    void throwExceptionWhenAddingCertificateToANonInflatableX509ExtendedTrustManagerEvenThoughItIsWrappedInAHotSwappableX509ExtendedTrustManagerContainingAAggregatedX509ExtendedTrustManager() {
         X509Certificate certificate = mock(X509Certificate.class);
         List<X509Certificate> certificates = Collections.singletonList(certificate);
         X509ExtendedTrustManager nonInflatableTrustManager = mock(X509ExtendedTrustManager.class);
@@ -891,7 +891,7 @@ class TrustManagerUtilsShould {
     }
 
     @Test
-    void throwExceptionWhenAddingCertificateToANonInflatableX509ExtendedTrustManagerEvenThoughItIsWrappedInACompositeX509ExtendedTrustManager() {
+    void throwExceptionWhenAddingCertificateToANonInflatableX509ExtendedTrustManagerEvenThoughItIsWrappedInAAggregatedX509ExtendedTrustManager() {
         X509Certificate certificate = mock(X509Certificate.class);
         List<X509Certificate> certificates = Collections.singletonList(certificate);
         X509ExtendedTrustManager trustManager = mock(X509ExtendedTrustManager.class);
