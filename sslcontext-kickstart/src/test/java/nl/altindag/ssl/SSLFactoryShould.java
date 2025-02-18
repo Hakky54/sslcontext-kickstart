@@ -2309,7 +2309,7 @@ class SSLFactoryShould {
         Path trustStorePath = IOTestUtils.copyFileToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
         SSLFactory.Builder factoryBuilder = SSLFactory.builder();
 
-        assertThatThrownBy(() -> factoryBuilder.withTrustMaterial(trustStorePath, TRUSTSTORE_PASSWORD, EMPTY, null))
+        assertThatThrownBy(() -> factoryBuilder.withTrustMaterial(trustStorePath, TRUSTSTORE_PASSWORD, EMPTY, (TrustStoreTrustOptions<? extends CertPathTrustManagerParameters>) null))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE);
 
@@ -2338,7 +2338,7 @@ class SSLFactoryShould {
     void throwExceptionWhenBuildingSSLFactoryWithEmptyTrustStoreTypeWhileUsingTrustOptionsWithClassPathTrustStore() {
         SSLFactory.Builder factoryBuilder = SSLFactory.builder();
 
-        assertThatThrownBy(() -> factoryBuilder.withTrustMaterial("/some-path", TRUSTSTORE_PASSWORD, EMPTY, null))
+        assertThatThrownBy(() -> factoryBuilder.withTrustMaterial("/some-path", TRUSTSTORE_PASSWORD, EMPTY, (TrustStoreTrustOptions<? extends CertPathTrustManagerParameters>) null))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE);
     }
@@ -2347,7 +2347,7 @@ class SSLFactoryShould {
     void throwExceptionWhenBuildingSSLFactoryWithNullTrustStoreTypeWhileUsingTrustOptionsWithClassPathTrustStore() {
         SSLFactory.Builder factoryBuilder = SSLFactory.builder();
 
-        assertThatThrownBy(() -> factoryBuilder.withTrustMaterial("/some-path", TRUSTSTORE_PASSWORD, null, null))
+        assertThatThrownBy(() -> factoryBuilder.withTrustMaterial("/some-path", TRUSTSTORE_PASSWORD, null, (TrustStoreTrustOptions<? extends CertPathTrustManagerParameters>) null))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE);
     }
