@@ -36,6 +36,7 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.Provider;
 import java.security.Security;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
@@ -161,6 +162,17 @@ class KeyStoreUtilsShould {
 
         assertThat(keyStore).isNotNull();
         assertThat(keyStore.getProvider()).isNotNull().isInstanceOf(BasicProvider.class);
+    }
+
+    @Test
+    void loadKeyStoreAsInputStreamWithNullAsProviderWillFallbackOnDefaultBehaviour() throws IOException {
+        KeyStore keyStore;
+        try(InputStream inputStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + IDENTITY_FILE_NAME)) {
+            keyStore = KeyStoreUtils.loadKeyStore(inputStream, "secret".toCharArray(), "PKCS12", (Provider) null);
+        }
+
+        assertThat(keyStore).isNotNull();
+        assertThat(keyStore.getProvider()).isNotNull().isNotInstanceOf(BasicProvider.class);
     }
 
     @Test
