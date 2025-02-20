@@ -565,12 +565,32 @@ public final class SSLFactory {
         }
 
         public Builder withIdentityMaterial(String identityStorePath, char[] identityStorePassword, char[] identityPassword, String identityStoreType) {
+            return withIdentityMaterial(identityStorePath, identityStoreType, () -> {
+                KeyStore identity = KeyStoreUtils.loadKeyStore(identityStorePath, identityStorePassword, identityStoreType);
+                return new KeyStoreHolder(identity, identityPassword);
+            });
+        }
+
+        public Builder withIdentityMaterial(String identityStorePath, char[] identityStorePassword, char[] identityPassword, String identityStoreType, Provider provider) {
+            return withIdentityMaterial(identityStorePath, identityStoreType, () -> {
+                KeyStore identity = KeyStoreUtils.loadKeyStore(identityStorePath, identityStorePassword, identityStoreType, provider);
+                return new KeyStoreHolder(identity, identityPassword);
+            });
+        }
+
+        public Builder withIdentityMaterial(String identityStorePath, char[] identityStorePassword, char[] identityPassword, String identityStoreType, String providerName) {
+            return withIdentityMaterial(identityStorePath, identityStoreType, () -> {
+                KeyStore identity = KeyStoreUtils.loadKeyStore(identityStorePath, identityStorePassword, identityStoreType, providerName);
+                return new KeyStoreHolder(identity, identityPassword);
+            });
+        }
+
+        private Builder withIdentityMaterial(String identityStorePath, String identityStoreType, Supplier<KeyStoreHolder> keyStoreHolderSupplier) {
             if (StringUtils.isBlank(identityStorePath) || StringUtils.isBlank(identityStoreType)) {
                 throw new GenericKeyStoreException(IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
             }
 
-            KeyStore identity = KeyStoreUtils.loadKeyStore(identityStorePath, identityStorePassword, identityStoreType);
-            KeyStoreHolder identityHolder = new KeyStoreHolder(identity, identityPassword);
+            KeyStoreHolder identityHolder = keyStoreHolderSupplier.get();
             identities.add(identityHolder);
             return this;
         }
@@ -588,14 +608,24 @@ public final class SSLFactory {
         }
 
         public Builder withIdentityMaterial(Path identityStorePath, char[] identityStorePassword, char[] identityPassword, String identityStoreType) {
-            if (isNull(identityStorePath) || StringUtils.isBlank(identityStoreType)) {
-                throw new GenericKeyStoreException(IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
-            }
+            return withIdentityMaterial(identityStorePath, identityStoreType, () -> {
+                KeyStore identity = KeyStoreUtils.loadKeyStore(identityStorePath, identityStorePassword, identityStoreType);
+                return new KeyStoreHolder(identity, identityPassword);
+            });
+        }
 
-            KeyStore identity = KeyStoreUtils.loadKeyStore(identityStorePath, identityStorePassword, identityStoreType);
-            KeyStoreHolder identityHolder = new KeyStoreHolder(identity, identityPassword);
-            identities.add(identityHolder);
-            return this;
+        public Builder withIdentityMaterial(Path identityStorePath, char[] identityStorePassword, char[] identityPassword, String identityStoreType, Provider provider) {
+            return withIdentityMaterial(identityStorePath, identityStoreType, () -> {
+                KeyStore identity = KeyStoreUtils.loadKeyStore(identityStorePath, identityStorePassword, identityStoreType, provider);
+                return new KeyStoreHolder(identity, identityPassword);
+            });
+        }
+
+        public Builder withIdentityMaterial(Path identityStorePath, char[] identityStorePassword, char[] identityPassword, String identityStoreType, String providerName) {
+            return withIdentityMaterial(identityStorePath, identityStoreType, () -> {
+                KeyStore identity = KeyStoreUtils.loadKeyStore(identityStorePath, identityStorePassword, identityStoreType, providerName);
+                return new KeyStoreHolder(identity, identityPassword);
+            });
         }
 
         public Builder withIdentityMaterial(InputStream identityStream, char[] identityStorePassword) {
@@ -611,12 +641,32 @@ public final class SSLFactory {
         }
 
         public Builder withIdentityMaterial(InputStream identityStream, char[] identityStorePassword, char[] identityPassword, String identityStoreType) {
-            if (isNull(identityStream) || StringUtils.isBlank(identityStoreType)) {
+            return withIdentityMaterial(identityStream, identityStoreType, () -> {
+                KeyStore identity = KeyStoreUtils.loadKeyStore(identityStream, identityStorePassword, identityStoreType);
+                return new KeyStoreHolder(identity, identityPassword);
+            });
+        }
+
+        public Builder withIdentityMaterial(InputStream identityStream, char[] identityStorePassword, char[] identityPassword, String identityStoreType, Provider provider) {
+            return withIdentityMaterial(identityStream, identityStoreType, () -> {
+                KeyStore identity = KeyStoreUtils.loadKeyStore(identityStream, identityStorePassword, identityStoreType, provider);
+                return new KeyStoreHolder(identity, identityPassword);
+            });
+        }
+
+        public Builder withIdentityMaterial(InputStream identityStream, char[] identityStorePassword, char[] identityPassword, String identityStoreType, String providerName) {
+            return withIdentityMaterial(identityStream, identityStoreType, () -> {
+                KeyStore identity = KeyStoreUtils.loadKeyStore(identityStream, identityStorePassword, identityStoreType, providerName);
+                return new KeyStoreHolder(identity, identityPassword);
+            });
+        }
+
+        private Builder withIdentityMaterial(Object identitySource, String identityStoreType, Supplier<KeyStoreHolder> keyStoreHolderSupplier) {
+            if (isNull(identitySource) || StringUtils.isBlank(identityStoreType)) {
                 throw new GenericKeyStoreException(IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
             }
 
-            KeyStore identity = KeyStoreUtils.loadKeyStore(identityStream, identityStorePassword, identityStoreType);
-            KeyStoreHolder identityHolder = new KeyStoreHolder(identity, identityPassword);
+            KeyStoreHolder identityHolder = keyStoreHolderSupplier.get();
             identities.add(identityHolder);
             return this;
         }
