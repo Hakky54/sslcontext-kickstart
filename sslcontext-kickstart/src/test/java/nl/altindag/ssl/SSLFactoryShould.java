@@ -187,7 +187,7 @@ class SSLFactoryShould {
     void buildSSLFactoryWithTrustMaterialFromPathAndTrustOptionsAndProvider() throws IOException {
         Path trustStorePath = IOTestUtils.copyFileToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
         SSLFactory sslFactory = SSLFactory.builder()
-                .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD, "PKCS12", new BasicProvider(), this::createTrustOptions)
+                .withTrustMaterial(trustStorePath, TRUSTSTORE_PASSWORD, "PKCS12", new BasicProvider(), this::createTrustOptions)
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
@@ -202,7 +202,7 @@ class SSLFactoryShould {
         Security.insertProviderAt(BASIC_PROVIDER, 1);
 
         SSLFactory sslFactory = SSLFactory.builder()
-                .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD, "PKCS12", "Basic", this::createTrustOptions)
+                .withTrustMaterial(trustStorePath, TRUSTSTORE_PASSWORD, "PKCS12", "Basic", this::createTrustOptions)
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
@@ -216,7 +216,7 @@ class SSLFactoryShould {
     void buildSSLFactoryWithTrustMaterialFromPathAndProvider() throws IOException {
         Path trustStorePath = IOTestUtils.copyFileToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
         SSLFactory sslFactory = SSLFactory.builder()
-                .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD, "PKCS12", new BasicProvider())
+                .withTrustMaterial(trustStorePath, TRUSTSTORE_PASSWORD, "PKCS12", new BasicProvider())
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
@@ -231,7 +231,7 @@ class SSLFactoryShould {
         Security.insertProviderAt(BASIC_PROVIDER, 1);
 
         SSLFactory sslFactory = SSLFactory.builder()
-                .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD, "PKCS12", "Basic")
+                .withTrustMaterial(trustStorePath, TRUSTSTORE_PASSWORD, "PKCS12", "Basic")
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
