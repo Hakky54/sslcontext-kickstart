@@ -22,7 +22,7 @@ import java.security.Provider;
  */
 public class BasicProvider extends Provider {
 
-    protected BasicProvider() {
+    public BasicProvider() {
         super("Basic", 1.0, "Basic Security Provider for testing");
 
         put("KeyStore.PKCS12", "sun.security.pkcs12.PKCS12KeyStore$DualFormatPKCS12");
