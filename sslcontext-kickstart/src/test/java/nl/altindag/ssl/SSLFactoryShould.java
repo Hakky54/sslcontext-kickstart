@@ -430,6 +430,34 @@ class SSLFactoryShould {
     }
 
     @Test
+    void buildSSLFactoryWithTrustMaterialFromInputStreamWithProvider() {
+        InputStream trustStoreStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withTrustMaterial(trustStoreStream, TRUSTSTORE_PASSWORD, "PKCS12", BASIC_PROVIDER)
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+        assertThat(sslFactory.getTrustManager()).isPresent();
+    }
+
+    @Test
+    void buildSSLFactoryWithTrustMaterialFromInputStreamWithProviderName() {
+        Security.insertProviderAt(BASIC_PROVIDER, 1);
+
+        InputStream trustStoreStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withTrustMaterial(trustStoreStream, TRUSTSTORE_PASSWORD, "PKCS12", "Basic")
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+        assertThat(sslFactory.getTrustManager()).isPresent();
+
+        Security.getProvider("Basic");
+    }
+
+    @Test
     void buildSSLFactoryWithTrustMaterialFromInputStreamWithTrustOptions() {
         InputStream trustStoreStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME);
 
@@ -445,6 +473,34 @@ class SSLFactoryShould {
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
         assertThat(sslFactory.getKeyManager()).isNotPresent();
         assertThat(sslFactory.getKeyManagerFactory()).isNotPresent();
+    }
+
+    @Test
+    void buildSSLFactoryWithTrustMaterialFromInputStreamWithTrustOptionsAndProvider() {
+        InputStream trustStoreStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withTrustMaterial(trustStoreStream, TRUSTSTORE_PASSWORD, "PKCS12", BASIC_PROVIDER, this::createTrustOptions)
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+        assertThat(sslFactory.getTrustManager()).isPresent();
+    }
+
+    @Test
+    void buildSSLFactoryWithTrustMaterialFromInputStreamWithTrustOptionsAndProviderName() {
+        Security.insertProviderAt(BASIC_PROVIDER, 1);
+
+        InputStream trustStoreStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withTrustMaterial(trustStoreStream, TRUSTSTORE_PASSWORD, "PKCS12", "Basic", this::createTrustOptions)
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+        assertThat(sslFactory.getTrustManager()).isPresent();
+
+        Security.getProvider("Basic");
     }
 
     @Test
