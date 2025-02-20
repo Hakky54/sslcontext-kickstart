@@ -2341,33 +2341,39 @@ class SSLFactoryShould {
     }
 
     @Test
-    void throwExceptionWhenIdentityTypeIsNotProvidedWhileUsingInputStream() {
+    void throwExceptionWhenIdentityTypeIsNotProvidedWhileUsingInputStream() throws IOException {
         InputStream identityStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + IDENTITY_FILE_NAME);
         SSLFactory.Builder factoryBuilder = SSLFactory.builder();
 
         assertThatThrownBy(() -> factoryBuilder.withIdentityMaterial(identityStream, IDENTITY_PASSWORD, EMPTY))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
+
+        identityStream.close();
     }
 
     @Test
-    void throwExceptionWhenUnknownIdentityTypeIsProvidedWhileUsingInputStream() {
+    void throwExceptionWhenUnknownIdentityTypeIsProvidedWhileUsingInputStream() throws IOException {
         InputStream identityStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + IDENTITY_FILE_NAME);
         SSLFactory.Builder factoryBuilder = SSLFactory.builder();
 
         assertThatThrownBy(() -> factoryBuilder.withIdentityMaterial(identityStream, IDENTITY_PASSWORD, "KABOOM"))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessageContaining("KABOOM not found");
+
+        identityStream.close();
     }
 
     @Test
-    void throwExceptionWhenUnknownTrustStoreTypeIsProvidedWhileUsingInputStream() {
+    void throwExceptionWhenUnknownTrustStoreTypeIsProvidedWhileUsingInputStream() throws IOException {
         InputStream trustStoreStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME);
         SSLFactory.Builder factoryBuilder = SSLFactory.builder();
 
         assertThatThrownBy(() -> factoryBuilder.withTrustMaterial(trustStoreStream, TRUSTSTORE_PASSWORD, "KABOOM"))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessageContaining("KABOOM not found");
+
+        trustStoreStream.close();
     }
 
     @Test
