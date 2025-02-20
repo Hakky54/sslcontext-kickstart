@@ -25,6 +25,7 @@ public class BasicProvider extends Provider {
     public BasicProvider() {
         super("Basic", 1.0, "Basic Security Provider for testing");
 
+        put("Alg.Alias.KeyStore.SENZU", "PKCS12");
         put("KeyStore.PKCS12", "sun.security.pkcs12.PKCS12KeyStore$DualFormatPKCS12");
     }
 

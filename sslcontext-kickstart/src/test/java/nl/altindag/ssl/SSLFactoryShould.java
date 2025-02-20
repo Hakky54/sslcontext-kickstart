@@ -163,7 +163,7 @@ class SSLFactoryShould {
     @Test
     void buildSSLFactoryWithTrustMaterialFromClasspathAndTrustOptionsAndProvider() {
         SSLFactory sslFactory = SSLFactory.builder()
-                .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD, "PKCS12", new BasicProvider(), this::createTrustOptions)
+                .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD, "SENZU", new BasicProvider(), this::createTrustOptions)
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
@@ -174,7 +174,7 @@ class SSLFactoryShould {
     void buildSSLFactoryWithTrustMaterialFromClasspathAndTrustOptionsAndProviderName() {
         Security.insertProviderAt(BASIC_PROVIDER, 1);
         SSLFactory sslFactory = SSLFactory.builder()
-                .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD, "PKCS12", "Basic", this::createTrustOptions)
+                .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD, "SENZU", "Basic", this::createTrustOptions)
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
@@ -187,7 +187,7 @@ class SSLFactoryShould {
     void buildSSLFactoryWithTrustMaterialFromPathAndTrustOptionsAndProvider() throws IOException {
         Path trustStorePath = IOTestUtils.copyFileToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
         SSLFactory sslFactory = SSLFactory.builder()
-                .withTrustMaterial(trustStorePath, TRUSTSTORE_PASSWORD, "PKCS12", new BasicProvider(), this::createTrustOptions)
+                .withTrustMaterial(trustStorePath, TRUSTSTORE_PASSWORD, "SENZU", new BasicProvider(), this::createTrustOptions)
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
@@ -202,7 +202,7 @@ class SSLFactoryShould {
         Security.insertProviderAt(BASIC_PROVIDER, 1);
 
         SSLFactory sslFactory = SSLFactory.builder()
-                .withTrustMaterial(trustStorePath, TRUSTSTORE_PASSWORD, "PKCS12", "Basic", this::createTrustOptions)
+                .withTrustMaterial(trustStorePath, TRUSTSTORE_PASSWORD, "SENZU", "Basic", this::createTrustOptions)
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
@@ -216,7 +216,7 @@ class SSLFactoryShould {
     void buildSSLFactoryWithTrustMaterialFromPathAndProvider() throws IOException {
         Path trustStorePath = IOTestUtils.copyFileToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
         SSLFactory sslFactory = SSLFactory.builder()
-                .withTrustMaterial(trustStorePath, TRUSTSTORE_PASSWORD, "PKCS12", new BasicProvider())
+                .withTrustMaterial(trustStorePath, TRUSTSTORE_PASSWORD, "SENZU", new BasicProvider())
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
@@ -231,7 +231,7 @@ class SSLFactoryShould {
         Security.insertProviderAt(BASIC_PROVIDER, 1);
 
         SSLFactory sslFactory = SSLFactory.builder()
-                .withTrustMaterial(trustStorePath, TRUSTSTORE_PASSWORD, "PKCS12", "Basic")
+                .withTrustMaterial(trustStorePath, TRUSTSTORE_PASSWORD, "SENZU", "Basic")
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
@@ -244,7 +244,7 @@ class SSLFactoryShould {
     @Test
     void buildSSLFactoryWithTrustMaterialFromClasspathAndProvider() {
         SSLFactory sslFactory = SSLFactory.builder()
-                .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD, "PKCS12", new BasicProvider())
+                .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD, "SENZU", new BasicProvider())
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
@@ -255,7 +255,7 @@ class SSLFactoryShould {
     void buildSSLFactoryWithTrustMaterialFromClasspathAndProviderName() {
         Security.insertProviderAt(BASIC_PROVIDER, 1);
         SSLFactory sslFactory = SSLFactory.builder()
-                .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD, "PKCS12", "Basic")
+                .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD, "SENZU", "Basic")
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
@@ -434,7 +434,7 @@ class SSLFactoryShould {
         InputStream trustStoreStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME);
 
         SSLFactory sslFactory = SSLFactory.builder()
-                .withTrustMaterial(trustStoreStream, TRUSTSTORE_PASSWORD, "PKCS12", BASIC_PROVIDER)
+                .withTrustMaterial(trustStoreStream, TRUSTSTORE_PASSWORD, "SENZU", BASIC_PROVIDER)
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
@@ -448,7 +448,7 @@ class SSLFactoryShould {
         InputStream trustStoreStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME);
 
         SSLFactory sslFactory = SSLFactory.builder()
-                .withTrustMaterial(trustStoreStream, TRUSTSTORE_PASSWORD, "PKCS12", "Basic")
+                .withTrustMaterial(trustStoreStream, TRUSTSTORE_PASSWORD, "SENZU", "Basic")
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
@@ -480,7 +480,7 @@ class SSLFactoryShould {
         InputStream trustStoreStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME);
 
         SSLFactory sslFactory = SSLFactory.builder()
-                .withTrustMaterial(trustStoreStream, TRUSTSTORE_PASSWORD, "PKCS12", BASIC_PROVIDER, this::createTrustOptions)
+                .withTrustMaterial(trustStoreStream, TRUSTSTORE_PASSWORD, "SENZU", BASIC_PROVIDER, this::createTrustOptions)
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
@@ -494,7 +494,7 @@ class SSLFactoryShould {
         InputStream trustStoreStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME);
 
         SSLFactory sslFactory = SSLFactory.builder()
-                .withTrustMaterial(trustStoreStream, TRUSTSTORE_PASSWORD, "PKCS12", "Basic", this::createTrustOptions)
+                .withTrustMaterial(trustStoreStream, TRUSTSTORE_PASSWORD, "SENZU", "Basic", this::createTrustOptions)
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();

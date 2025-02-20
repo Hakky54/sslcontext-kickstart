@@ -103,7 +103,7 @@ class KeyStoreUtilsShould {
 
     @Test
     void loadPKCS12KeyStoreFromClasspathWithProvider() {
-        KeyStore keyStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + PKCS12_KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD, "PKCS12", BASIC_PROVIDER);
+        KeyStore keyStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + PKCS12_KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD, "SENZU", BASIC_PROVIDER);
         assertThat(keyStore).isNotNull();
         assertThat(keyStore.getProvider()).isNotNull().isInstanceOf(BasicProvider.class);
     }
@@ -112,7 +112,7 @@ class KeyStoreUtilsShould {
     void loadPKCS12KeyStoreFromClasspathWithProviderName() {
         Security.insertProviderAt(BASIC_PROVIDER, 1);
 
-        KeyStore keyStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + PKCS12_KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD, "PKCS12", "Basic");
+        KeyStore keyStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + PKCS12_KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD, "SENZU", "Basic");
         assertThat(keyStore).isNotNull();
         assertThat(keyStore.getProvider()).isNotNull().isInstanceOf(BasicProvider.class);
 
@@ -127,7 +127,7 @@ class KeyStoreUtilsShould {
 
     @Test
     void loadKeyStoreWithPathFromDirectoryWithProvider() {
-        KeyStore keyStore = KeyStoreUtils.loadKeyStore(Paths.get(TEST_RESOURCES_LOCATION + KEYSTORE_LOCATION + IDENTITY_FILE_NAME).toAbsolutePath(), KEYSTORE_PASSWORD, "PKCS12", BASIC_PROVIDER);
+        KeyStore keyStore = KeyStoreUtils.loadKeyStore(Paths.get(TEST_RESOURCES_LOCATION + KEYSTORE_LOCATION + IDENTITY_FILE_NAME).toAbsolutePath(), KEYSTORE_PASSWORD, "SENZU", BASIC_PROVIDER);
         assertThat(keyStore).isNotNull();
         assertThat(keyStore.getProvider()).isNotNull().isInstanceOf(BasicProvider.class);
     }
@@ -136,7 +136,7 @@ class KeyStoreUtilsShould {
     void loadKeyStoreWithPathFromDirectoryWithProviderName() {
         Security.insertProviderAt(BASIC_PROVIDER, 1);
 
-        KeyStore keyStore = KeyStoreUtils.loadKeyStore(Paths.get(TEST_RESOURCES_LOCATION + KEYSTORE_LOCATION + IDENTITY_FILE_NAME).toAbsolutePath(), KEYSTORE_PASSWORD, "PKCS12", "Basic");
+        KeyStore keyStore = KeyStoreUtils.loadKeyStore(Paths.get(TEST_RESOURCES_LOCATION + KEYSTORE_LOCATION + IDENTITY_FILE_NAME).toAbsolutePath(), KEYSTORE_PASSWORD, "SENZU", "Basic");
         assertThat(keyStore).isNotNull();
         assertThat(keyStore.getProvider()).isNotNull().isInstanceOf(BasicProvider.class);
 
@@ -157,7 +157,7 @@ class KeyStoreUtilsShould {
     void loadKeyStoreAsInputStreamWithProvider() throws IOException {
         KeyStore keyStore;
         try(InputStream inputStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + IDENTITY_FILE_NAME)) {
-            keyStore = KeyStoreUtils.loadKeyStore(inputStream, "secret".toCharArray(), "PKCS12", BASIC_PROVIDER);
+            keyStore = KeyStoreUtils.loadKeyStore(inputStream, "secret".toCharArray(), "SENZU", BASIC_PROVIDER);
         }
 
         assertThat(keyStore).isNotNull();
@@ -181,7 +181,7 @@ class KeyStoreUtilsShould {
 
         KeyStore keyStore;
         try(InputStream inputStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + IDENTITY_FILE_NAME)) {
-            keyStore = KeyStoreUtils.loadKeyStore(inputStream, "secret".toCharArray(), "PKCS12", "Basic");
+            keyStore = KeyStoreUtils.loadKeyStore(inputStream, "secret".toCharArray(), "SENZU", "Basic");
         }
 
         assertThat(keyStore).isNotNull();
