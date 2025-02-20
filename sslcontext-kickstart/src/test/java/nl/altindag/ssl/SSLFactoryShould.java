@@ -818,7 +818,7 @@ class SSLFactoryShould {
         Security.insertProviderAt(BASIC_PROVIDER, 1);
 
         SSLFactory sslFactory = SSLFactory.builder()
-                .withIdentityMaterial(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD, IDENTITY_PASSWORD, "SENZU", "Basic")
+                .withIdentityMaterial(identityPath, IDENTITY_PASSWORD, IDENTITY_PASSWORD, "SENZU", "Basic")
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
