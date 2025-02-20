@@ -775,6 +775,90 @@ class SSLFactoryShould {
     }
 
     @Test
+    void buildSSLFactoryWithIdentityMaterialFromClasspathAndWhileUsingProvider() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD, IDENTITY_PASSWORD, "SENZU", BASIC_PROVIDER)
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+        assertThat(sslFactory.getKeyManager()).isPresent();
+    }
+
+    @Test
+    void buildSSLFactoryWithIdentityMaterialFromClasspathAndWhileUsingProviderName() {
+        Security.insertProviderAt(BASIC_PROVIDER, 1);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD, IDENTITY_PASSWORD, "SENZU", "Basic")
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+        assertThat(sslFactory.getKeyManager()).isPresent();
+
+        Security.removeProvider("Basic");
+    }
+
+    @Test
+    void buildSSLFactoryWithIdentityMaterialFromPathAndWhileUsingProvider() throws IOException {
+        Path identityPath = IOTestUtils.copyFileToHomeDirectory(KEYSTORE_LOCATION, IDENTITY_FILE_NAME);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(identityPath, IDENTITY_PASSWORD, IDENTITY_PASSWORD, "SENZU", BASIC_PROVIDER)
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+        assertThat(sslFactory.getKeyManager()).isPresent();
+
+        Files.delete(identityPath);
+    }
+
+    @Test
+    void buildSSLFactoryWithIdentityMaterialFromPathAndWhileUsingProviderName() throws IOException {
+        Path identityPath = IOTestUtils.copyFileToHomeDirectory(KEYSTORE_LOCATION, IDENTITY_FILE_NAME);
+        Security.insertProviderAt(BASIC_PROVIDER, 1);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD, IDENTITY_PASSWORD, "SENZU", "Basic")
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+        assertThat(sslFactory.getKeyManager()).isPresent();
+
+        Security.removeProvider("Basic");
+        Files.delete(identityPath);
+    }
+
+    @Test
+    void buildSSLFactoryWithIdentityMaterialFromInputStreamAndWhileUsingProvider() throws IOException {
+        InputStream identityStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + IDENTITY_FILE_NAME);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(identityStream, IDENTITY_PASSWORD, IDENTITY_PASSWORD, "SENZU", BASIC_PROVIDER)
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+        assertThat(sslFactory.getKeyManager()).isPresent();
+
+        identityStream.close();
+    }
+
+    @Test
+    void buildSSLFactoryWithIdentityMaterialFromInputStreamAndWhileUsingProviderName() throws IOException {
+        InputStream identityStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + IDENTITY_FILE_NAME);
+        Security.insertProviderAt(BASIC_PROVIDER, 1);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(identityStream, IDENTITY_PASSWORD, IDENTITY_PASSWORD, "SENZU", "Basic")
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+        assertThat(sslFactory.getKeyManager()).isPresent();
+
+        Security.removeProvider("Basic");
+        identityStream.close();
+    }
+
+    @Test
     void buildSSLFactoryWithSwappableIdentityMaterial() {
         SSLFactory sslFactory = SSLFactory.builder()
                 .withIdentityMaterial(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD)
