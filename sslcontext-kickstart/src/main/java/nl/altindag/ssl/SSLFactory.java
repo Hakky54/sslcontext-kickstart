@@ -72,6 +72,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.isNull;
@@ -286,19 +287,24 @@ public final class SSLFactory {
             return withTrustMaterial(trustStorePath, trustStorePassword, KeyStore.getDefaultType());
         }
 
-        public Builder withTrustMaterial(String trustStorePath,
-                                         char[] trustStorePassword,
-                                         TrustStoreTrustOptions<? extends CertPathTrustManagerParameters> trustOptions) {
-
-            return withTrustMaterial(trustStorePath, trustStorePassword, KeyStore.getDefaultType(), trustOptions);
+        public Builder withTrustMaterial(String trustStorePath, char[] trustStorePassword, String trustStoreType) {
+            return withTrustMaterial(trustStorePath, trustStoreType, () -> KeyStoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType));
         }
 
-        public Builder withTrustMaterial(String trustStorePath, char[] trustStorePassword, String trustStoreType) {
+        public Builder withTrustMaterial(String trustStorePath, char[] trustStorePassword, String trustStoreType, Provider provider) {
+            return withTrustMaterial(trustStorePath, trustStoreType, () -> KeyStoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType, provider));
+        }
+
+        public Builder withTrustMaterial(String trustStorePath, char[] trustStorePassword, String trustStoreType, String providerName) {
+            return withTrustMaterial(trustStorePath, trustStoreType, () -> KeyStoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType, providerName));
+        }
+
+        private Builder withTrustMaterial(String trustStorePath, String trustStoreType, Supplier<KeyStore> trustStoreSupplier) {
             if (StringUtils.isBlank(trustStorePath)  || StringUtils.isBlank(trustStoreType)) {
                 throw new GenericKeyStoreException(TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
             }
 
-            KeyStore trustStore = KeyStoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType);
+            KeyStore trustStore = trustStoreSupplier.get();
             trustStores.add(trustStore);
 
             return this;
@@ -306,14 +312,43 @@ public final class SSLFactory {
 
         public Builder withTrustMaterial(String trustStorePath,
                                          char[] trustStorePassword,
-                                         String trustStoreType,
                                          TrustStoreTrustOptions<? extends CertPathTrustManagerParameters> trustOptions) {
 
+            return withTrustMaterial(trustStorePath, trustStorePassword, KeyStore.getDefaultType(), trustOptions);
+        }
+
+        public Builder withTrustMaterial(String trustStorePath,
+                                         char[] trustStorePassword,
+                                         String trustStoreType,
+                                         TrustStoreTrustOptions<? extends CertPathTrustManagerParameters> trustOptions) {
+            return withTrustMaterial(trustStorePath, trustStoreType, trustOptions, () -> KeyStoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType));
+        }
+
+        public Builder withTrustMaterial(String trustStorePath,
+                                         char[] trustStorePassword,
+                                         String trustStoreType,
+                                         Provider provider,
+                                         TrustStoreTrustOptions<? extends CertPathTrustManagerParameters> trustOptions) {
+            return withTrustMaterial(trustStorePath, trustStoreType, trustOptions, () -> KeyStoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType, provider));
+        }
+
+        public Builder withTrustMaterial(String trustStorePath,
+                                         char[] trustStorePassword,
+                                         String trustStoreType,
+                                         String providerName,
+                                         TrustStoreTrustOptions<? extends CertPathTrustManagerParameters> trustOptions) {
+            return withTrustMaterial(trustStorePath, trustStoreType, trustOptions, () -> KeyStoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType, providerName));
+        }
+
+        private Builder withTrustMaterial(String trustStorePath,
+                                          String trustStoreType,
+                                          TrustStoreTrustOptions<? extends CertPathTrustManagerParameters> trustOptions,
+                                          Supplier<KeyStore> trustStoreSupplier) {
             if (StringUtils.isBlank(trustStorePath) || StringUtils.isBlank(trustStoreType)) {
                 throw new GenericKeyStoreException(TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
             }
 
-            KeyStore trustStore = KeyStoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType);
+            KeyStore trustStore = trustStoreSupplier.get();
             return withTrustMaterial(trustStore, trustOptions);
         }
 
@@ -321,6 +356,18 @@ public final class SSLFactory {
             return withTrustMaterial(trustStorePath, trustStorePassword, KeyStore.getDefaultType());
         }
 
+        public Builder withTrustMaterial(Path trustStorePath, char[] trustStorePassword, String trustStoreType) {
+            return withTrustMaterial(trustStorePath, trustStoreType, () -> KeyStoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType));
+        }
+
+        public Builder withTrustMaterial(Path trustStorePath, char[] trustStorePassword, String trustStoreType, Provider provider) {
+            return withTrustMaterial(trustStorePath, trustStoreType, () -> KeyStoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType, provider));
+        }
+
+        public Builder withTrustMaterial(Path trustStorePath, char[] trustStorePassword, String trustStoreType, String providerName) {
+            return withTrustMaterial(trustStorePath, trustStoreType, () -> KeyStoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType, providerName));
+        }
+
         public Builder withTrustMaterial(Path trustStorePath,
                                          char[] trustStorePassword,
                                          TrustStoreTrustOptions<? extends CertPathTrustManagerParameters> trustOptions) {
@@ -328,32 +375,53 @@ public final class SSLFactory {
             return withTrustMaterial(trustStorePath, trustStorePassword, KeyStore.getDefaultType(), trustOptions);
         }
 
-        public Builder withTrustMaterial(Path trustStorePath, char[] trustStorePassword, String trustStoreType) {
-            if (isNull(trustStorePath) || StringUtils.isBlank(trustStoreType)) {
-                throw new GenericKeyStoreException(TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
-            }
-
-            KeyStore trustStore = KeyStoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType);
-            trustStores.add(trustStore);
-
-            return this;
+        public Builder withTrustMaterial(Path trustStorePath,
+                                         char[] trustStorePassword,
+                                         String trustStoreType,
+                                         TrustStoreTrustOptions<? extends CertPathTrustManagerParameters> trustOptions) {
+            return withTrustMaterial(trustStorePath, trustStoreType, trustOptions, () -> KeyStoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType));
         }
 
         public Builder withTrustMaterial(Path trustStorePath,
                                          char[] trustStorePassword,
                                          String trustStoreType,
+                                         Provider provider,
                                          TrustStoreTrustOptions<? extends CertPathTrustManagerParameters> trustOptions) {
+            return withTrustMaterial(trustStorePath, trustStoreType, trustOptions, () -> KeyStoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType, provider));
+        }
 
-            if (isNull(trustStorePath) || StringUtils.isBlank(trustStoreType)) {
-                throw new GenericKeyStoreException(TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
-            }
-
-            KeyStore trustStore = KeyStoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType);
-            return withTrustMaterial(trustStore, trustOptions);
+        public Builder withTrustMaterial(Path trustStorePath,
+                                         char[] trustStorePassword,
+                                         String trustStoreType,
+                                         String providerName,
+                                         TrustStoreTrustOptions<? extends CertPathTrustManagerParameters> trustOptions) {
+            return withTrustMaterial(trustStorePath, trustStoreType, trustOptions, () -> KeyStoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType, providerName));
         }
 
         public Builder withTrustMaterial(InputStream trustStoreStream, char[] trustStorePassword) {
             return withTrustMaterial(trustStoreStream, trustStorePassword, KeyStore.getDefaultType());
+        }
+
+        public Builder withTrustMaterial(InputStream trustStoreStream, char[] trustStorePassword, String trustStoreType) {
+            return withTrustMaterial(trustStoreStream, trustStoreType, () -> KeyStoreUtils.loadKeyStore(trustStoreStream, trustStorePassword, trustStoreType));
+        }
+
+        public Builder withTrustMaterial(InputStream trustStoreStream, char[] trustStorePassword, String trustStoreType, Provider provider) {
+            return withTrustMaterial(trustStoreStream, trustStoreType, () -> KeyStoreUtils.loadKeyStore(trustStoreStream, trustStorePassword, trustStoreType, provider));
+        }
+
+        public Builder withTrustMaterial(InputStream trustStoreStream, char[] trustStorePassword, String trustStoreType, String providerName) {
+            return withTrustMaterial(trustStoreStream, trustStoreType, () -> KeyStoreUtils.loadKeyStore(trustStoreStream, trustStorePassword, trustStoreType, providerName));
+        }
+
+        private Builder withTrustMaterial(Object trustStoreSource, String trustStoreType, Supplier<KeyStore> trustStoreSupplier) {
+            if (isNull(trustStoreSource) || StringUtils.isBlank(trustStoreType)) {
+                throw new GenericKeyStoreException(TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
+            }
+
+            KeyStore trustStore = trustStoreSupplier.get();
+            trustStores.add(trustStore);
+            return this;
         }
 
         public Builder withTrustMaterial(InputStream trustStoreStream,
@@ -363,17 +431,38 @@ public final class SSLFactory {
             return withTrustMaterial(trustStoreStream, trustStorePassword, KeyStore.getDefaultType(), trustOptions);
         }
 
-        public Builder withTrustMaterial(InputStream trustStoreStream, char[] trustStorePassword, String trustStoreType) {
-            KeyStore trustStore = KeyStoreUtils.loadKeyStore(trustStoreStream, trustStorePassword, trustStoreType);
-            trustStores.add(trustStore);
-            return this;
+        public Builder withTrustMaterial(InputStream trustStoreStream,
+                                         char[] trustStorePassword,
+                                         String trustStoreType,
+                                         TrustStoreTrustOptions<? extends CertPathTrustManagerParameters> trustOptions) {
+            return withTrustMaterial(trustStoreStream, trustStoreType, trustOptions, () -> KeyStoreUtils.loadKeyStore(trustStoreStream, trustStorePassword, trustStoreType));
         }
 
         public Builder withTrustMaterial(InputStream trustStoreStream,
                                          char[] trustStorePassword,
-                                         String trustStoreType, TrustStoreTrustOptions<? extends CertPathTrustManagerParameters> trustOptions) {
+                                         String trustStoreType,
+                                         Provider provider,
+                                         TrustStoreTrustOptions<? extends CertPathTrustManagerParameters> trustOptions) {
+            return withTrustMaterial(trustStoreStream, trustStoreType, trustOptions, () -> KeyStoreUtils.loadKeyStore(trustStoreStream, trustStorePassword, trustStoreType, provider));
+        }
 
-            KeyStore trustStore = KeyStoreUtils.loadKeyStore(trustStoreStream, trustStorePassword, trustStoreType);
+        public Builder withTrustMaterial(InputStream trustStoreStream,
+                                         char[] trustStorePassword,
+                                         String trustStoreType,
+                                         String providerName,
+                                         TrustStoreTrustOptions<? extends CertPathTrustManagerParameters> trustOptions) {
+            return withTrustMaterial(trustStoreStream, trustStoreType, trustOptions, () -> KeyStoreUtils.loadKeyStore(trustStoreStream, trustStorePassword, trustStoreType, providerName));
+        }
+
+        private Builder withTrustMaterial(Object trustStoreSource,
+                                          String trustStoreType,
+                                          TrustStoreTrustOptions<? extends CertPathTrustManagerParameters> trustOptions,
+                                          Supplier<KeyStore> trustStoreSupplier) {
+            if (isNull(trustStoreSource) || StringUtils.isBlank(trustStoreType)) {
+                throw new GenericKeyStoreException(TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
+            }
+
+            KeyStore trustStore = trustStoreSupplier.get();
             return withTrustMaterial(trustStore, trustOptions);
         }
 
@@ -453,12 +542,32 @@ public final class SSLFactory {
         }
 
         public Builder withIdentityMaterial(String identityStorePath, char[] identityStorePassword, char[] identityPassword, String identityStoreType) {
+            return withIdentityMaterial(identityStorePath, identityStoreType, () -> {
+                KeyStore identity = KeyStoreUtils.loadKeyStore(identityStorePath, identityStorePassword, identityStoreType);
+                return new KeyStoreHolder(identity, identityPassword);
+            });
+        }
+
+        public Builder withIdentityMaterial(String identityStorePath, char[] identityStorePassword, char[] identityPassword, String identityStoreType, Provider provider) {
+            return withIdentityMaterial(identityStorePath, identityStoreType, () -> {
+                KeyStore identity = KeyStoreUtils.loadKeyStore(identityStorePath, identityStorePassword, identityStoreType, provider);
+                return new KeyStoreHolder(identity, identityPassword);
+            });
+        }
+
+        public Builder withIdentityMaterial(String identityStorePath, char[] identityStorePassword, char[] identityPassword, String identityStoreType, String providerName) {
+            return withIdentityMaterial(identityStorePath, identityStoreType, () -> {
+                KeyStore identity = KeyStoreUtils.loadKeyStore(identityStorePath, identityStorePassword, identityStoreType, providerName);
+                return new KeyStoreHolder(identity, identityPassword);
+            });
+        }
+
+        private Builder withIdentityMaterial(String identityStorePath, String identityStoreType, Supplier<KeyStoreHolder> keyStoreHolderSupplier) {
             if (StringUtils.isBlank(identityStorePath) || StringUtils.isBlank(identityStoreType)) {
                 throw new GenericKeyStoreException(IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
             }
 
-            KeyStore identity = KeyStoreUtils.loadKeyStore(identityStorePath, identityStorePassword, identityStoreType);
-            KeyStoreHolder identityHolder = new KeyStoreHolder(identity, identityPassword);
+            KeyStoreHolder identityHolder = keyStoreHolderSupplier.get();
             identities.add(identityHolder);
             return this;
         }
@@ -476,14 +585,24 @@ public final class SSLFactory {
         }
 
         public Builder withIdentityMaterial(Path identityStorePath, char[] identityStorePassword, char[] identityPassword, String identityStoreType) {
-            if (isNull(identityStorePath) || StringUtils.isBlank(identityStoreType)) {
-                throw new GenericKeyStoreException(IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
-            }
+            return withIdentityMaterial(identityStorePath, identityStoreType, () -> {
+                KeyStore identity = KeyStoreUtils.loadKeyStore(identityStorePath, identityStorePassword, identityStoreType);
+                return new KeyStoreHolder(identity, identityPassword);
+            });
+        }
 
-            KeyStore identity = KeyStoreUtils.loadKeyStore(identityStorePath, identityStorePassword, identityStoreType);
-            KeyStoreHolder identityHolder = new KeyStoreHolder(identity, identityPassword);
-            identities.add(identityHolder);
-            return this;
+        public Builder withIdentityMaterial(Path identityStorePath, char[] identityStorePassword, char[] identityPassword, String identityStoreType, Provider provider) {
+            return withIdentityMaterial(identityStorePath, identityStoreType, () -> {
+                KeyStore identity = KeyStoreUtils.loadKeyStore(identityStorePath, identityStorePassword, identityStoreType, provider);
+                return new KeyStoreHolder(identity, identityPassword);
+            });
+        }
+
+        public Builder withIdentityMaterial(Path identityStorePath, char[] identityStorePassword, char[] identityPassword, String identityStoreType, String providerName) {
+            return withIdentityMaterial(identityStorePath, identityStoreType, () -> {
+                KeyStore identity = KeyStoreUtils.loadKeyStore(identityStorePath, identityStorePassword, identityStoreType, providerName);
+                return new KeyStoreHolder(identity, identityPassword);
+            });
         }
 
         public Builder withIdentityMaterial(InputStream identityStream, char[] identityStorePassword) {
@@ -499,12 +618,32 @@ public final class SSLFactory {
         }
 
         public Builder withIdentityMaterial(InputStream identityStream, char[] identityStorePassword, char[] identityPassword, String identityStoreType) {
-            if (isNull(identityStream) || StringUtils.isBlank(identityStoreType)) {
+            return withIdentityMaterial(identityStream, identityStoreType, () -> {
+                KeyStore identity = KeyStoreUtils.loadKeyStore(identityStream, identityStorePassword, identityStoreType);
+                return new KeyStoreHolder(identity, identityPassword);
+            });
+        }
+
+        public Builder withIdentityMaterial(InputStream identityStream, char[] identityStorePassword, char[] identityPassword, String identityStoreType, Provider provider) {
+            return withIdentityMaterial(identityStream, identityStoreType, () -> {
+                KeyStore identity = KeyStoreUtils.loadKeyStore(identityStream, identityStorePassword, identityStoreType, provider);
+                return new KeyStoreHolder(identity, identityPassword);
+            });
+        }
+
+        public Builder withIdentityMaterial(InputStream identityStream, char[] identityStorePassword, char[] identityPassword, String identityStoreType, String providerName) {
+            return withIdentityMaterial(identityStream, identityStoreType, () -> {
+                KeyStore identity = KeyStoreUtils.loadKeyStore(identityStream, identityStorePassword, identityStoreType, providerName);
+                return new KeyStoreHolder(identity, identityPassword);
+            });
+        }
+
+        private Builder withIdentityMaterial(Object identitySource, String identityStoreType, Supplier<KeyStoreHolder> keyStoreHolderSupplier) {
+            if (isNull(identitySource) || StringUtils.isBlank(identityStoreType)) {
                 throw new GenericKeyStoreException(IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
             }
 
-            KeyStore identity = KeyStoreUtils.loadKeyStore(identityStream, identityStorePassword, identityStoreType);
-            KeyStoreHolder identityHolder = new KeyStoreHolder(identity, identityPassword);
+            KeyStoreHolder identityHolder = keyStoreHolderSupplier.get();
             identities.add(identityHolder);
             return this;
         }

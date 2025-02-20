@@ -34,6 +34,7 @@ import nl.altindag.ssl.trustmanager.LoggingX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.UnsafeX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.trustoptions.TrustAnchorTrustOptions;
 import nl.altindag.ssl.trustmanager.trustoptions.TrustStoreTrustOptions;
+import nl.altindag.ssl.util.BasicProvider;
 import nl.altindag.ssl.util.KeyManagerUtils;
 import nl.altindag.ssl.util.KeyStoreUtils;
 import nl.altindag.ssl.util.TrustManagerUtils;
@@ -123,6 +124,7 @@ class SSLFactoryShould {
 
     private static final String GENERIC_IDENTITY_VALIDATION_EXCEPTION_MESSAGE = "Identity details are empty, which are required to be present when SSL/TLS is enabled";
     private static final String GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE = "TrustStore details are empty, which are required to be present when SSL/TLS is enabled";
+    private static final BasicProvider BASIC_PROVIDER = new BasicProvider();
 
     @Test
     void buildSSLFactoryWithTrustMaterial() {
@@ -142,17 +144,9 @@ class SSLFactoryShould {
     }
 
     @Test
-    void buildSSLFactoryWithTrustMaterialAndTrustOptions() throws NoSuchAlgorithmException {
-        CertPathBuilder certPathBuilder = CertPathBuilder.getInstance("PKIX");
-        PKIXRevocationChecker revocationChecker = (PKIXRevocationChecker) certPathBuilder.getRevocationChecker();
-        revocationChecker.setOptions(EnumSet.of(PKIXRevocationChecker.Option.NO_FALLBACK));
-
+    void buildSSLFactoryWithTrustMaterialAndTrustOptions() {
         SSLFactory sslFactory = SSLFactory.builder()
-                .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD, trustStore -> {
-                    PKIXBuilderParameters pkixBuilderParameters = new PKIXBuilderParameters(trustStore, new X509CertSelector());
-                    pkixBuilderParameters.addCertPathChecker(revocationChecker);
-                    return new CertPathTrustManagerParameters(pkixBuilderParameters);
-                })
+                .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD, this::createTrustOptions)
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
@@ -164,6 +158,110 @@ class SSLFactoryShould {
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
         assertThat(sslFactory.getKeyManager()).isNotPresent();
         assertThat(sslFactory.getKeyManagerFactory()).isNotPresent();
+    }
+
+    @Test
+    void buildSSLFactoryWithTrustMaterialFromClasspathAndTrustOptionsAndProvider() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD, "SENZU", new BasicProvider(), this::createTrustOptions)
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+        assertThat(sslFactory.getTrustManager()).isPresent();
+    }
+
+    @Test
+    void buildSSLFactoryWithTrustMaterialFromClasspathAndTrustOptionsAndProviderName() {
+        Security.insertProviderAt(BASIC_PROVIDER, 1);
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD, "SENZU", "Basic", this::createTrustOptions)
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+        assertThat(sslFactory.getTrustManager()).isPresent();
+
+        Security.removeProvider("Basic");
+    }
+
+    @Test
+    void buildSSLFactoryWithTrustMaterialFromPathAndTrustOptionsAndProvider() throws IOException {
+        Path trustStorePath = IOTestUtils.copyFileToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withTrustMaterial(trustStorePath, TRUSTSTORE_PASSWORD, "SENZU", new BasicProvider(), this::createTrustOptions)
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+        assertThat(sslFactory.getTrustManager()).isPresent();
+
+        Files.delete(trustStorePath);
+    }
+
+    @Test
+    void buildSSLFactoryWithTrustMaterialFromPathAndTrustOptionsAndProviderName() throws IOException {
+        Path trustStorePath = IOTestUtils.copyFileToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
+        Security.insertProviderAt(BASIC_PROVIDER, 1);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withTrustMaterial(trustStorePath, TRUSTSTORE_PASSWORD, "SENZU", "Basic", this::createTrustOptions)
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+        assertThat(sslFactory.getTrustManager()).isPresent();
+
+        Security.removeProvider("Basic");
+        Files.delete(trustStorePath);
+    }
+
+    @Test
+    void buildSSLFactoryWithTrustMaterialFromPathAndProvider() throws IOException {
+        Path trustStorePath = IOTestUtils.copyFileToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withTrustMaterial(trustStorePath, TRUSTSTORE_PASSWORD, "SENZU", new BasicProvider())
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+        assertThat(sslFactory.getTrustManager()).isPresent();
+
+        Files.delete(trustStorePath);
+    }
+
+    @Test
+    void buildSSLFactoryWithTrustMaterialFromPathAndProviderName() throws IOException {
+        Path trustStorePath = IOTestUtils.copyFileToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
+        Security.insertProviderAt(BASIC_PROVIDER, 1);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withTrustMaterial(trustStorePath, TRUSTSTORE_PASSWORD, "SENZU", "Basic")
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+        assertThat(sslFactory.getTrustManager()).isPresent();
+
+        Security.removeProvider("Basic");
+        Files.delete(trustStorePath);
+    }
+
+    @Test
+    void buildSSLFactoryWithTrustMaterialFromClasspathAndProvider() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD, "SENZU", new BasicProvider())
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+        assertThat(sslFactory.getTrustManager()).isPresent();
+    }
+
+    @Test
+    void buildSSLFactoryWithTrustMaterialFromClasspathAndProviderName() {
+        Security.insertProviderAt(BASIC_PROVIDER, 1);
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withTrustMaterial(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD, "SENZU", "Basic")
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+        assertThat(sslFactory.getTrustManager()).isPresent();
+
+        Security.removeProvider("Basic");
     }
 
     @Test
@@ -255,17 +353,9 @@ class SSLFactoryShould {
     }
 
     @Test
-    void buildSSLFactoryWithTrustMaterialWithoutPasswordAndWithTrustOptions() throws NoSuchAlgorithmException {
-        CertPathBuilder certPathBuilder = CertPathBuilder.getInstance("PKIX");
-        PKIXRevocationChecker revocationChecker = (PKIXRevocationChecker) certPathBuilder.getRevocationChecker();
-        revocationChecker.setOptions(EnumSet.of(PKIXRevocationChecker.Option.NO_FALLBACK));
-
+    void buildSSLFactoryWithTrustMaterialWithoutPasswordAndWithTrustOptions() {
         SSLFactory sslFactory = SSLFactory.builder()
-                .withTrustMaterial(KEYSTORE_LOCATION + "truststore-without-password.jks", null, trustStore -> {
-                    PKIXBuilderParameters pkixParams = new PKIXBuilderParameters(trustStore, new X509CertSelector());
-                    pkixParams.addCertPathChecker(revocationChecker);
-                    return new CertPathTrustManagerParameters(pkixParams);
-                })
+                .withTrustMaterial(KEYSTORE_LOCATION + "truststore-without-password.jks", null, this::createTrustOptions)
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
@@ -301,19 +391,11 @@ class SSLFactoryShould {
     }
 
     @Test
-    void buildSSLFactoryWithTrustMaterialFromPathWithTrustOptions() throws IOException, NoSuchAlgorithmException {
+    void buildSSLFactoryWithTrustMaterialFromPathWithTrustOptions() throws IOException {
         Path trustStorePath = IOTestUtils.copyFileToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
 
-        CertPathBuilder certPathBuilder = CertPathBuilder.getInstance("PKIX");
-        PKIXRevocationChecker revocationChecker = (PKIXRevocationChecker) certPathBuilder.getRevocationChecker();
-        revocationChecker.setOptions(EnumSet.of(PKIXRevocationChecker.Option.NO_FALLBACK));
-
         SSLFactory sslFactory = SSLFactory.builder()
-                .withTrustMaterial(trustStorePath, TRUSTSTORE_PASSWORD, trustStore -> {
-                    PKIXBuilderParameters pkixParams = new PKIXBuilderParameters(trustStore, new X509CertSelector());
-                    pkixParams.addCertPathChecker(revocationChecker);
-                    return new CertPathTrustManagerParameters(pkixParams);
-                })
+                .withTrustMaterial(trustStorePath, TRUSTSTORE_PASSWORD, this::createTrustOptions)
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
@@ -348,19 +430,39 @@ class SSLFactoryShould {
     }
 
     @Test
-    void buildSSLFactoryWithTrustMaterialFromInputStreamWithTrustOptions() throws NoSuchAlgorithmException {
+    void buildSSLFactoryWithTrustMaterialFromInputStreamWithProvider() {
         InputStream trustStoreStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME);
 
-        CertPathBuilder certPathBuilder = CertPathBuilder.getInstance("PKIX");
-        PKIXRevocationChecker revocationChecker = (PKIXRevocationChecker) certPathBuilder.getRevocationChecker();
-        revocationChecker.setOptions(EnumSet.of(PKIXRevocationChecker.Option.NO_FALLBACK));
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withTrustMaterial(trustStoreStream, TRUSTSTORE_PASSWORD, "SENZU", BASIC_PROVIDER)
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+        assertThat(sslFactory.getTrustManager()).isPresent();
+    }
+
+    @Test
+    void buildSSLFactoryWithTrustMaterialFromInputStreamWithProviderName() {
+        Security.insertProviderAt(BASIC_PROVIDER, 1);
+
+        InputStream trustStoreStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME);
 
         SSLFactory sslFactory = SSLFactory.builder()
-                .withTrustMaterial(trustStoreStream, TRUSTSTORE_PASSWORD, trustStore -> {
-                    PKIXBuilderParameters pkixParams = new PKIXBuilderParameters(trustStore, new X509CertSelector());
-                    pkixParams.addCertPathChecker(revocationChecker);
-                    return new CertPathTrustManagerParameters(pkixParams);
-                })
+                .withTrustMaterial(trustStoreStream, TRUSTSTORE_PASSWORD, "SENZU", "Basic")
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+        assertThat(sslFactory.getTrustManager()).isPresent();
+
+        Security.getProvider("Basic");
+    }
+
+    @Test
+    void buildSSLFactoryWithTrustMaterialFromInputStreamWithTrustOptions() {
+        InputStream trustStoreStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withTrustMaterial(trustStoreStream, TRUSTSTORE_PASSWORD, this::createTrustOptions)
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
@@ -371,6 +473,34 @@ class SSLFactoryShould {
         assertThat(sslFactory.getHostnameVerifier()).isNotNull();
         assertThat(sslFactory.getKeyManager()).isNotPresent();
         assertThat(sslFactory.getKeyManagerFactory()).isNotPresent();
+    }
+
+    @Test
+    void buildSSLFactoryWithTrustMaterialFromInputStreamWithTrustOptionsAndProvider() {
+        InputStream trustStoreStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withTrustMaterial(trustStoreStream, TRUSTSTORE_PASSWORD, "SENZU", BASIC_PROVIDER, this::createTrustOptions)
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+        assertThat(sslFactory.getTrustManager()).isPresent();
+    }
+
+    @Test
+    void buildSSLFactoryWithTrustMaterialFromInputStreamWithTrustOptionsAndProviderName() {
+        Security.insertProviderAt(BASIC_PROVIDER, 1);
+
+        InputStream trustStoreStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withTrustMaterial(trustStoreStream, TRUSTSTORE_PASSWORD, "SENZU", "Basic", this::createTrustOptions)
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+        assertThat(sslFactory.getTrustManager()).isPresent();
+
+        Security.getProvider("Basic");
     }
 
     @Test
@@ -412,19 +542,11 @@ class SSLFactoryShould {
     }
 
     @Test
-    void buildSSLFactoryWithTrustMaterialFromKeyStoreWithTrustOptions() throws NoSuchAlgorithmException {
+    void buildSSLFactoryWithTrustMaterialFromKeyStoreWithTrustOptions() {
         KeyStore trustStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
 
-        CertPathBuilder certPathBuilder = CertPathBuilder.getInstance("PKIX");
-        PKIXRevocationChecker revocationChecker = (PKIXRevocationChecker) certPathBuilder.getRevocationChecker();
-        revocationChecker.setOptions(EnumSet.of(PKIXRevocationChecker.Option.NO_FALLBACK));
-
         SSLFactory sslFactory = SSLFactory.builder()
-                .withTrustMaterial(trustStore, t -> {
-                    PKIXBuilderParameters pkixParams = new PKIXBuilderParameters(t, new X509CertSelector());
-                    pkixParams.addCertPathChecker(revocationChecker);
-                    return new CertPathTrustManagerParameters(pkixParams);
-                })
+                .withTrustMaterial(trustStore, this::createTrustOptions)
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
@@ -459,21 +581,13 @@ class SSLFactoryShould {
     }
 
     @Test
-    void buildSSLFactoryWithTrustMaterialFromTrustManagerWithOptions() throws NoSuchAlgorithmException {
+    void buildSSLFactoryWithTrustMaterialFromTrustManagerWithOptions() {
         X509ExtendedTrustManager trustManager = TrustManagerUtils.createTrustManager(
                 KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD)
         );
 
-        CertPathBuilder certPathBuilder = CertPathBuilder.getInstance("PKIX");
-        PKIXRevocationChecker revocationChecker = (PKIXRevocationChecker) certPathBuilder.getRevocationChecker();
-        revocationChecker.setOptions(EnumSet.of(PKIXRevocationChecker.Option.NO_FALLBACK));
-
         SSLFactory sslFactory = SSLFactory.builder()
-                .withTrustMaterial(trustManager, trustStore -> {
-                    PKIXBuilderParameters pkixParams = new PKIXBuilderParameters(trustStore, new X509CertSelector());
-                    pkixParams.addCertPathChecker(revocationChecker);
-                    return new CertPathTrustManagerParameters(pkixParams);
-                })
+                .withTrustMaterial(trustManager, this::createTrustOptions)
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
@@ -528,20 +642,12 @@ class SSLFactoryShould {
     }
 
     @Test
-    void buildSSLFactoryWithTrustMaterialFromCertificatesWithTrustOptions() throws NoSuchAlgorithmException {
+    void buildSSLFactoryWithTrustMaterialFromCertificatesWithTrustOptions() {
         X509Certificate[] certificates = TrustManagerUtils.createTrustManagerWithJdkTrustedCertificates()
                 .getAcceptedIssuers();
 
-        CertPathBuilder certPathBuilder = CertPathBuilder.getInstance("PKIX");
-        PKIXRevocationChecker revocationChecker = (PKIXRevocationChecker) certPathBuilder.getRevocationChecker();
-        revocationChecker.setOptions(EnumSet.of(PKIXRevocationChecker.Option.NO_FALLBACK));
-
         SSLFactory sslFactory = SSLFactory.builder()
-                .withTrustMaterial(certificates, trustStore -> {
-                    PKIXBuilderParameters pkixParams = new PKIXBuilderParameters(trustStore, new X509CertSelector());
-                    pkixParams.addCertPathChecker(revocationChecker);
-                    return new CertPathTrustManagerParameters(pkixParams);
-                })
+                .withTrustMaterial(certificates, this::createTrustOptions)
                 .build();
 
         assertThat(sslFactory.getSslContext()).isNotNull();
@@ -666,6 +772,90 @@ class SSLFactoryShould {
         assertThat(sslFactory.getTrustManager()).isNotPresent();
         assertThat(sslFactory.getTrustManagerFactory()).isNotPresent();
         assertThat(sslFactory.getTrustedCertificates()).isEmpty();
+    }
+
+    @Test
+    void buildSSLFactoryWithIdentityMaterialFromClasspathAndWhileUsingProvider() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD, IDENTITY_PASSWORD, "SENZU", BASIC_PROVIDER)
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+        assertThat(sslFactory.getKeyManager()).isPresent();
+    }
+
+    @Test
+    void buildSSLFactoryWithIdentityMaterialFromClasspathAndWhileUsingProviderName() {
+        Security.insertProviderAt(BASIC_PROVIDER, 1);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD, IDENTITY_PASSWORD, "SENZU", "Basic")
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+        assertThat(sslFactory.getKeyManager()).isPresent();
+
+        Security.removeProvider("Basic");
+    }
+
+    @Test
+    void buildSSLFactoryWithIdentityMaterialFromPathAndWhileUsingProvider() throws IOException {
+        Path identityPath = IOTestUtils.copyFileToHomeDirectory(KEYSTORE_LOCATION, IDENTITY_FILE_NAME);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(identityPath, IDENTITY_PASSWORD, IDENTITY_PASSWORD, "SENZU", BASIC_PROVIDER)
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+        assertThat(sslFactory.getKeyManager()).isPresent();
+
+        Files.delete(identityPath);
+    }
+
+    @Test
+    void buildSSLFactoryWithIdentityMaterialFromPathAndWhileUsingProviderName() throws IOException {
+        Path identityPath = IOTestUtils.copyFileToHomeDirectory(KEYSTORE_LOCATION, IDENTITY_FILE_NAME);
+        Security.insertProviderAt(BASIC_PROVIDER, 1);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(identityPath, IDENTITY_PASSWORD, IDENTITY_PASSWORD, "SENZU", "Basic")
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+        assertThat(sslFactory.getKeyManager()).isPresent();
+
+        Security.removeProvider("Basic");
+        Files.delete(identityPath);
+    }
+
+    @Test
+    void buildSSLFactoryWithIdentityMaterialFromInputStreamAndWhileUsingProvider() throws IOException {
+        InputStream identityStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + IDENTITY_FILE_NAME);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(identityStream, IDENTITY_PASSWORD, IDENTITY_PASSWORD, "SENZU", BASIC_PROVIDER)
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+        assertThat(sslFactory.getKeyManager()).isPresent();
+
+        identityStream.close();
+    }
+
+    @Test
+    void buildSSLFactoryWithIdentityMaterialFromInputStreamAndWhileUsingProviderName() throws IOException {
+        InputStream identityStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + IDENTITY_FILE_NAME);
+        Security.insertProviderAt(BASIC_PROVIDER, 1);
+
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(identityStream, IDENTITY_PASSWORD, IDENTITY_PASSWORD, "SENZU", "Basic")
+                .build();
+
+        assertThat(sslFactory.getSslContext()).isNotNull();
+        assertThat(sslFactory.getKeyManager()).isPresent();
+
+        Security.removeProvider("Basic");
+        identityStream.close();
     }
 
     @Test
@@ -2151,33 +2341,39 @@ class SSLFactoryShould {
     }
 
     @Test
-    void throwExceptionWhenIdentityTypeIsNotProvidedWhileUsingInputStream() {
+    void throwExceptionWhenIdentityTypeIsNotProvidedWhileUsingInputStream() throws IOException {
         InputStream identityStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + IDENTITY_FILE_NAME);
         SSLFactory.Builder factoryBuilder = SSLFactory.builder();
 
         assertThatThrownBy(() -> factoryBuilder.withIdentityMaterial(identityStream, IDENTITY_PASSWORD, EMPTY))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_IDENTITY_VALIDATION_EXCEPTION_MESSAGE);
+
+        identityStream.close();
     }
 
     @Test
-    void throwExceptionWhenUnknownIdentityTypeIsProvidedWhileUsingInputStream() {
+    void throwExceptionWhenUnknownIdentityTypeIsProvidedWhileUsingInputStream() throws IOException {
         InputStream identityStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + IDENTITY_FILE_NAME);
         SSLFactory.Builder factoryBuilder = SSLFactory.builder();
 
         assertThatThrownBy(() -> factoryBuilder.withIdentityMaterial(identityStream, IDENTITY_PASSWORD, "KABOOM"))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessageContaining("KABOOM not found");
+
+        identityStream.close();
     }
 
     @Test
-    void throwExceptionWhenUnknownTrustStoreTypeIsProvidedWhileUsingInputStream() {
+    void throwExceptionWhenUnknownTrustStoreTypeIsProvidedWhileUsingInputStream() throws IOException {
         InputStream trustStoreStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME);
         SSLFactory.Builder factoryBuilder = SSLFactory.builder();
 
         assertThatThrownBy(() -> factoryBuilder.withTrustMaterial(trustStoreStream, TRUSTSTORE_PASSWORD, "KABOOM"))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessageContaining("KABOOM not found");
+
+        trustStoreStream.close();
     }
 
     @Test
@@ -2309,7 +2505,7 @@ class SSLFactoryShould {
         Path trustStorePath = IOTestUtils.copyFileToHomeDirectory(KEYSTORE_LOCATION, TRUSTSTORE_FILE_NAME);
         SSLFactory.Builder factoryBuilder = SSLFactory.builder();
 
-        assertThatThrownBy(() -> factoryBuilder.withTrustMaterial(trustStorePath, TRUSTSTORE_PASSWORD, EMPTY, null))
+        assertThatThrownBy(() -> factoryBuilder.withTrustMaterial(trustStorePath, TRUSTSTORE_PASSWORD, EMPTY, (TrustStoreTrustOptions<? extends CertPathTrustManagerParameters>) null))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE);
 
@@ -2338,7 +2534,7 @@ class SSLFactoryShould {
     void throwExceptionWhenBuildingSSLFactoryWithEmptyTrustStoreTypeWhileUsingTrustOptionsWithClassPathTrustStore() {
         SSLFactory.Builder factoryBuilder = SSLFactory.builder();
 
-        assertThatThrownBy(() -> factoryBuilder.withTrustMaterial("/some-path", TRUSTSTORE_PASSWORD, EMPTY, null))
+        assertThatThrownBy(() -> factoryBuilder.withTrustMaterial("/some-path", TRUSTSTORE_PASSWORD, EMPTY, (TrustStoreTrustOptions<? extends CertPathTrustManagerParameters>) null))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE);
     }
@@ -2347,7 +2543,7 @@ class SSLFactoryShould {
     void throwExceptionWhenBuildingSSLFactoryWithNullTrustStoreTypeWhileUsingTrustOptionsWithClassPathTrustStore() {
         SSLFactory.Builder factoryBuilder = SSLFactory.builder();
 
-        assertThatThrownBy(() -> factoryBuilder.withTrustMaterial("/some-path", TRUSTSTORE_PASSWORD, null, null))
+        assertThatThrownBy(() -> factoryBuilder.withTrustMaterial("/some-path", TRUSTSTORE_PASSWORD, null, (TrustStoreTrustOptions<? extends CertPathTrustManagerParameters>) null))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE);
     }
@@ -2359,6 +2555,62 @@ class SSLFactoryShould {
         assertThatThrownBy(() -> factoryBuilder.withTrustMaterial("/some-path", TRUSTSTORE_PASSWORD, (String) null))
                 .isInstanceOf(GenericKeyStoreException.class)
                 .hasMessage(GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE);
+    }
+
+    @Test
+    void throwExceptionWhenBuildingSSLFactoryWithTrustMaterialAsInputStream() {
+        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
+
+        assertThatThrownBy(() -> factoryBuilder.withTrustMaterial((InputStream) null, TRUSTSTORE_PASSWORD))
+                .isInstanceOf(GenericKeyStoreException.class)
+                .hasMessage(GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE);
+    }
+
+    @Test
+    void throwExceptionWhenBuildingSSLFactoryWithTrustMaterialWhileUsingInputStreamAndEmptyTrustStoreType() throws IOException {
+        InputStream trustStoreStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME);
+        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
+
+        assertThatThrownBy(() -> factoryBuilder.withTrustMaterial(trustStoreStream, TRUSTSTORE_PASSWORD, ""))
+                .isInstanceOf(GenericKeyStoreException.class)
+                .hasMessage(GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE);
+
+        trustStoreStream.close();
+    }
+
+    @Test
+    void throwExceptionWhenBuildingSSLFactoryWithTrustMaterialAsInputStreamWhileAlsoUsingTrustOptions() {
+        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
+
+        assertThatThrownBy(() -> factoryBuilder.withTrustMaterial((InputStream) null, TRUSTSTORE_PASSWORD, this::createTrustOptions))
+                .isInstanceOf(GenericKeyStoreException.class)
+                .hasMessage(GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE);
+    }
+
+    @Test
+    void throwExceptionWhenBuildingSSLFactoryWithTrustMaterialWhileUsingInputStreamAndEmptyTrustStoreTypeWhileAlsoUsingTrustOptions() throws IOException {
+        InputStream trustStoreStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME);
+        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
+
+        assertThatThrownBy(() -> factoryBuilder.withTrustMaterial(trustStoreStream, TRUSTSTORE_PASSWORD, "", this::createTrustOptions))
+                .isInstanceOf(GenericKeyStoreException.class)
+                .hasMessage(GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE);
+
+        trustStoreStream.close();
+    }
+
+    private CertPathTrustManagerParameters createTrustOptions(KeyStore trustStore) {
+        try {
+            CertPathBuilder certPathBuilder = CertPathBuilder.getInstance("PKIX");
+            PKIXRevocationChecker revocationChecker = (PKIXRevocationChecker) certPathBuilder.getRevocationChecker();
+            revocationChecker.setOptions(EnumSet.of(PKIXRevocationChecker.Option.NO_FALLBACK));
+
+            PKIXBuilderParameters pkixBuilderParameters = new PKIXBuilderParameters(trustStore, new X509CertSelector());
+            pkixBuilderParameters.addCertPathChecker(revocationChecker);
+            return new CertPathTrustManagerParameters(pkixBuilderParameters);
+        } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException | KeyStoreException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

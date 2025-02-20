@@ -36,6 +36,8 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.Provider;
+import java.security.Security;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
@@ -79,6 +81,7 @@ class KeyStoreUtilsShould {
     private static final char[] KEYSTORE_PASSWORD = new char[] {'s', 'e', 'c', 'r', 'e', 't'};
     private static final String ORIGINAL_OS_NAME = System.getProperty("os.name");
     private static final String TEST_RESOURCES_LOCATION = "src/test/resources/";
+    private static final BasicProvider BASIC_PROVIDER = new BasicProvider();
 
     @Test
     void loadKeyStoreFromClasspath() {
@@ -99,9 +102,45 @@ class KeyStoreUtilsShould {
     }
 
     @Test
+    void loadPKCS12KeyStoreFromClasspathWithProvider() {
+        KeyStore keyStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + PKCS12_KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD, "SENZU", BASIC_PROVIDER);
+        assertThat(keyStore).isNotNull();
+        assertThat(keyStore.getProvider()).isNotNull().isInstanceOf(BasicProvider.class);
+    }
+
+    @Test
+    void loadPKCS12KeyStoreFromClasspathWithProviderName() {
+        Security.insertProviderAt(BASIC_PROVIDER, 1);
+
+        KeyStore keyStore = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + PKCS12_KEYSTORE_FILE_NAME, KEYSTORE_PASSWORD, "SENZU", "Basic");
+        assertThat(keyStore).isNotNull();
+        assertThat(keyStore.getProvider()).isNotNull().isInstanceOf(BasicProvider.class);
+
+        Security.removeProvider("Basic");
+    }
+
+    @Test
     void loadKeyStoreWithPathFromDirectory() {
         KeyStore keyStore = KeyStoreUtils.loadKeyStore(Paths.get(TEST_RESOURCES_LOCATION + KEYSTORE_LOCATION + IDENTITY_FILE_NAME).toAbsolutePath(), KEYSTORE_PASSWORD);
         assertThat(keyStore).isNotNull();
+    }
+
+    @Test
+    void loadKeyStoreWithPathFromDirectoryWithProvider() {
+        KeyStore keyStore = KeyStoreUtils.loadKeyStore(Paths.get(TEST_RESOURCES_LOCATION + KEYSTORE_LOCATION + IDENTITY_FILE_NAME).toAbsolutePath(), KEYSTORE_PASSWORD, "SENZU", BASIC_PROVIDER);
+        assertThat(keyStore).isNotNull();
+        assertThat(keyStore.getProvider()).isNotNull().isInstanceOf(BasicProvider.class);
+    }
+
+    @Test
+    void loadKeyStoreWithPathFromDirectoryWithProviderName() {
+        Security.insertProviderAt(BASIC_PROVIDER, 1);
+
+        KeyStore keyStore = KeyStoreUtils.loadKeyStore(Paths.get(TEST_RESOURCES_LOCATION + KEYSTORE_LOCATION + IDENTITY_FILE_NAME).toAbsolutePath(), KEYSTORE_PASSWORD, "SENZU", "Basic");
+        assertThat(keyStore).isNotNull();
+        assertThat(keyStore.getProvider()).isNotNull().isInstanceOf(BasicProvider.class);
+
+        Security.removeProvider("Basic");
     }
 
     @Test
@@ -112,6 +151,43 @@ class KeyStoreUtilsShould {
         }
 
         assertThat(keyStore).isNotNull();
+    }
+
+    @Test
+    void loadKeyStoreAsInputStreamWithProvider() throws IOException {
+        KeyStore keyStore;
+        try(InputStream inputStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + IDENTITY_FILE_NAME)) {
+            keyStore = KeyStoreUtils.loadKeyStore(inputStream, "secret".toCharArray(), "SENZU", BASIC_PROVIDER);
+        }
+
+        assertThat(keyStore).isNotNull();
+        assertThat(keyStore.getProvider()).isNotNull().isInstanceOf(BasicProvider.class);
+    }
+
+    @Test
+    void loadKeyStoreAsInputStreamWithNullAsProviderWillFallbackOnDefaultBehaviour() throws IOException {
+        KeyStore keyStore;
+        try(InputStream inputStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + IDENTITY_FILE_NAME)) {
+            keyStore = KeyStoreUtils.loadKeyStore(inputStream, "secret".toCharArray(), "PKCS12", (Provider) null);
+        }
+
+        assertThat(keyStore).isNotNull();
+        assertThat(keyStore.getProvider()).isNotNull().isNotInstanceOf(BasicProvider.class);
+    }
+
+    @Test
+    void loadKeyStoreAsInputStreamWithProviderName() throws IOException {
+        Security.insertProviderAt(BASIC_PROVIDER, 1);
+
+        KeyStore keyStore;
+        try(InputStream inputStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + IDENTITY_FILE_NAME)) {
+            keyStore = KeyStoreUtils.loadKeyStore(inputStream, "secret".toCharArray(), "SENZU", "Basic");
+        }
+
+        assertThat(keyStore).isNotNull();
+        assertThat(keyStore.getProvider()).isNotNull().isInstanceOf(BasicProvider.class);
+
+        Security.removeProvider("Basic");
     }
 
     @Test
