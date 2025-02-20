@@ -368,17 +368,6 @@ public final class SSLFactory {
             return withTrustMaterial(trustStorePath, trustStoreType, () -> KeyStoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType, providerName));
         }
 
-        private Builder withTrustMaterial(Path trustStorePath, String trustStoreType, Supplier<KeyStore> trustStoreSupplier) {
-            if (isNull(trustStorePath) || StringUtils.isBlank(trustStoreType)) {
-                throw new GenericKeyStoreException(TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
-            }
-
-            KeyStore trustStore = trustStoreSupplier.get();
-            trustStores.add(trustStore);
-
-            return this;
-        }
-
         public Builder withTrustMaterial(Path trustStorePath,
                                          char[] trustStorePassword,
                                          TrustStoreTrustOptions<? extends CertPathTrustManagerParameters> trustOptions) {
@@ -409,18 +398,6 @@ public final class SSLFactory {
             return withTrustMaterial(trustStorePath, trustStoreType, trustOptions, () -> KeyStoreUtils.loadKeyStore(trustStorePath, trustStorePassword, trustStoreType, providerName));
         }
 
-        private Builder withTrustMaterial(Path trustStorePath,
-                                          String trustStoreType,
-                                          TrustStoreTrustOptions<? extends CertPathTrustManagerParameters> trustOptions,
-                                          Supplier<KeyStore> trustStoreSupplier) {
-            if (isNull(trustStorePath) || StringUtils.isBlank(trustStoreType)) {
-                throw new GenericKeyStoreException(TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
-            }
-
-            KeyStore trustStore = trustStoreSupplier.get();
-            return withTrustMaterial(trustStore, trustOptions);
-        }
-
         public Builder withTrustMaterial(InputStream trustStoreStream, char[] trustStorePassword) {
             return withTrustMaterial(trustStoreStream, trustStorePassword, KeyStore.getDefaultType());
         }
@@ -437,8 +414,8 @@ public final class SSLFactory {
             return withTrustMaterial(trustStoreStream, trustStoreType, () -> KeyStoreUtils.loadKeyStore(trustStoreStream, trustStorePassword, trustStoreType, providerName));
         }
 
-        private Builder withTrustMaterial(InputStream trustStoreStream, String trustStoreType, Supplier<KeyStore> trustStoreSupplier) {
-            if (isNull(trustStoreStream) || StringUtils.isBlank(trustStoreType)) {
+        private Builder withTrustMaterial(Object trustStoreSource, String trustStoreType, Supplier<KeyStore> trustStoreSupplier) {
+            if (isNull(trustStoreSource) || StringUtils.isBlank(trustStoreType)) {
                 throw new GenericKeyStoreException(TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
             }
 
@@ -477,11 +454,11 @@ public final class SSLFactory {
             return withTrustMaterial(trustStoreStream, trustStoreType, trustOptions, () -> KeyStoreUtils.loadKeyStore(trustStoreStream, trustStorePassword, trustStoreType, providerName));
         }
 
-        private Builder withTrustMaterial(InputStream trustStoreStream,
+        private Builder withTrustMaterial(Object trustStoreSource,
                                           String trustStoreType,
                                           TrustStoreTrustOptions<? extends CertPathTrustManagerParameters> trustOptions,
                                           Supplier<KeyStore> trustStoreSupplier) {
-            if (isNull(trustStoreStream) || StringUtils.isBlank(trustStoreType)) {
+            if (isNull(trustStoreSource) || StringUtils.isBlank(trustStoreType)) {
                 throw new GenericKeyStoreException(TRUST_STORE_VALIDATION_EXCEPTION_MESSAGE);
             }
 
