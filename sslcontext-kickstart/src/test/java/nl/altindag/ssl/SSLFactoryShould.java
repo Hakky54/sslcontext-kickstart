@@ -2467,6 +2467,48 @@ class SSLFactoryShould {
                 .hasMessage(GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE);
     }
 
+    @Test
+    void throwExceptionWhenBuildingSSLFactoryWithTrustMaterialAsInputStream() {
+        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
+
+        assertThatThrownBy(() -> factoryBuilder.withTrustMaterial((InputStream) null, TRUSTSTORE_PASSWORD))
+                .isInstanceOf(GenericKeyStoreException.class)
+                .hasMessage(GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE);
+    }
+
+    @Test
+    void throwExceptionWhenBuildingSSLFactoryWithTrustMaterialWhileUsingInputStreamAndEmptyTrustStoreType() throws IOException {
+        InputStream trustStoreStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME);
+        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
+
+        assertThatThrownBy(() -> factoryBuilder.withTrustMaterial(trustStoreStream, TRUSTSTORE_PASSWORD, ""))
+                .isInstanceOf(GenericKeyStoreException.class)
+                .hasMessage(GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE);
+
+        trustStoreStream.close();
+    }
+
+    @Test
+    void throwExceptionWhenBuildingSSLFactoryWithTrustMaterialAsInputStreamWhileAlsoUsingTrustOptions() {
+        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
+
+        assertThatThrownBy(() -> factoryBuilder.withTrustMaterial((InputStream) null, TRUSTSTORE_PASSWORD, this::createTrustOptions))
+                .isInstanceOf(GenericKeyStoreException.class)
+                .hasMessage(GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE);
+    }
+
+    @Test
+    void throwExceptionWhenBuildingSSLFactoryWithTrustMaterialWhileUsingInputStreamAndEmptyTrustStoreTypeWhileAlsoUsingTrustOptions() throws IOException {
+        InputStream trustStoreStream = IOTestUtils.getResourceAsStream(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME);
+        SSLFactory.Builder factoryBuilder = SSLFactory.builder();
+
+        assertThatThrownBy(() -> factoryBuilder.withTrustMaterial(trustStoreStream, TRUSTSTORE_PASSWORD, "", this::createTrustOptions))
+                .isInstanceOf(GenericKeyStoreException.class)
+                .hasMessage(GENERIC_TRUSTSTORE_VALIDATION_EXCEPTION_MESSAGE);
+
+        trustStoreStream.close();
+    }
+
     private CertPathTrustManagerParameters createTrustOptions(KeyStore trustStore) {
         try {
             CertPathBuilder certPathBuilder = CertPathBuilder.getInstance("PKIX");
