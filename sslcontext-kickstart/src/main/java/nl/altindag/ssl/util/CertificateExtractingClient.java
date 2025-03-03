@@ -169,7 +169,13 @@ public class CertificateExtractingClient {
         Matcher caIssuersMatcher = CA_ISSUERS_AUTHORITY_INFO_ACCESS.matcher(certificateContent);
         if (caIssuersMatcher.find()) {
             String issuerLocation = caIssuersMatcher.group(1);
-            return getCertificatesFromRemoteFile(URI.create(issuerLocation), certificate);
+            try {
+                URI issuerUri = URI.create(issuerLocation);
+                return getCertificatesFromRemoteFile(issuerUri, certificate);
+            } catch (Exception e) {
+                LOGGER.debug("Failed to resolve root ca from authority info access extension field while using the following location [{}]", issuerLocation, e);
+                return Collections.emptyList();
+            }
         }
 
         return Collections.emptyList();
@@ -183,16 +189,13 @@ public class CertificateExtractingClient {
                 ((HttpsURLConnection) connection).setSSLSocketFactory(unsafeSslSocketFactory);
             }
 
-            InputStream inputStream = connection.getInputStream();
-            List<X509Certificate> certificates = CertificateUtils.parseDerCertificate(inputStream).stream()
-                    .filter(X509Certificate.class::isInstance)
-                    .map(X509Certificate.class::cast)
-                    .filter(issuer -> isIssuerOfIntermediateCertificate(intermediateCertificate, issuer))
-                    .collect(toUnmodifiableList());
-
-            inputStream.close();
-
-            return certificates;
+            try(InputStream inputStream = connection.getInputStream()) {
+                return CertificateUtils.parseDerCertificate(inputStream).stream()
+                        .filter(X509Certificate.class::isInstance)
+                        .map(X509Certificate.class::cast)
+                        .filter(issuer -> isIssuerOfIntermediateCertificate(intermediateCertificate, issuer))
+                        .collect(toUnmodifiableList());
+            }
         } catch (IOException e) {
             throw new GenericCertificateException(e);
         } finally {
