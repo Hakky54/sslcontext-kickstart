@@ -16,7 +16,6 @@
 package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.SSLFactory;
-import nl.altindag.ssl.exception.GenericCertificateException;
 import nl.altindag.ssl.exception.GenericIOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -169,22 +168,18 @@ public class CertificateExtractingClient {
         Matcher caIssuersMatcher = CA_ISSUERS_AUTHORITY_INFO_ACCESS.matcher(certificateContent);
         if (caIssuersMatcher.find()) {
             String issuerLocation = caIssuersMatcher.group(1);
-            try {
-                URI issuerUri = URI.create(issuerLocation);
-                return getCertificatesFromRemoteFile(issuerUri, certificate);
-            } catch (Exception e) {
-                LOGGER.debug("Failed to resolve root ca from authority info access extension field while using the following location [{}]", issuerLocation, e);
-                return Collections.emptyList();
-            }
+            return getCertificatesFromRemoteFile(issuerLocation, certificate);
         }
 
         return Collections.emptyList();
     }
 
-    List<X509Certificate> getCertificatesFromRemoteFile(URI uri, X509Certificate intermediateCertificate) {
+    List<X509Certificate> getCertificatesFromRemoteFile(String issuerLocation, X509Certificate intermediateCertificate) {
         try {
-            URL url = uri.toURL();
+            URL url = URI.create(issuerLocation).toURL();
             URLConnection connection = createConnection(url);
+            connection.setConnectTimeout(timeoutInMilliseconds);
+            connection.setReadTimeout(timeoutInMilliseconds);
             if (connection instanceof HttpsURLConnection) {
                 ((HttpsURLConnection) connection).setSSLSocketFactory(unsafeSslSocketFactory);
             }
@@ -196,8 +191,9 @@ public class CertificateExtractingClient {
                         .filter(issuer -> isIssuerOfIntermediateCertificate(intermediateCertificate, issuer))
                         .collect(toUnmodifiableList());
             }
-        } catch (IOException e) {
-            throw new GenericCertificateException(e);
+        } catch (Exception e) {
+            LOGGER.debug("Skipped getting certificate from remote file while using the following location [{}]", issuerLocation, e);
+            return Collections.emptyList();
         } finally {
             SSLSessionUtils.invalidateCaches(unsafeSslFactory);
         }
