@@ -16,7 +16,6 @@
 package nl.altindag.ssl.util;
 
 import nl.altindag.log.LogCaptor;
-import nl.altindag.ssl.exception.GenericCertificateException;
 import nl.altindag.ssl.exception.GenericIOException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -141,16 +140,17 @@ class CertificateExtractingClientShould {
     }
 
     @Test
-    void throwsGenericCertificateExceptionWhenGetCertificatesFromRemoteFileFails() throws MalformedURLException {
+    void returnEmptyListOfCertificatesWhenGetCertificatesFromRemoteFileFails() {
         CertificateExtractingClient victim = CertificateExtractingClient.getInstance();
 
-        URI uri = mock(URI.class);
-        doThrow(new MalformedURLException("KABOOM!!!"))
-                .when(uri).toURL();
-
-        assertThatThrownBy(() -> victim.getCertificatesFromRemoteFile(uri, null))
-                .isInstanceOf(GenericCertificateException.class)
-                .hasMessageContaining("KABOOM!!!");
+        try (LogCaptor logCaptor = LogCaptor.forClass(CertificateExtractingClient.class);
+             MockedStatic<URI> uriMockedStatic = mockStatic(URI.class, invocationOnMock -> {
+                 throw new MalformedURLException("KABOOM!!!");
+             })) {
+            List<X509Certificate> certificates = victim.getCertificatesFromRemoteFile("https:google.com", null);
+            assertThat(certificates).isEmpty();
+            assertThat(logCaptor.getDebugLogs()).contains("Skipped getting certificate from remote file while using the following location [https:google.com]");
+        }
     }
 
     @Test
@@ -189,11 +189,11 @@ class CertificateExtractingClientShould {
 
     @Test
     void reUseExistingUnsafeSslSocketFactory() throws CertificateException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, NoSuchProviderException {
-        URI uri = URI.create("https://cacerts.digicert.com/DigiCertGlobalRootCA.crt");
+        String url = "https://cacerts.digicert.com/DigiCertGlobalRootCA.crt";
         X509Certificate intermediateCertificate = mock(X509Certificate.class);
         doNothing().when(intermediateCertificate).verify(any());
 
-        List<X509Certificate> certificatesFromRemoteFile = CertificateExtractingClient.getInstance().getCertificatesFromRemoteFile(uri, intermediateCertificate);
+        List<X509Certificate> certificatesFromRemoteFile = CertificateExtractingClient.getInstance().getCertificatesFromRemoteFile(url, intermediateCertificate);
         assertThat(certificatesFromRemoteFile).isNotEmpty();
     }
 

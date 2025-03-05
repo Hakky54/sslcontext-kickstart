@@ -83,4 +83,28 @@ class CertificateExtractingClientIT {
         }
     }
 
+    @Test
+    void shouldNotFailWhenResolvingRootCaWhichContainsAnInvalidAuthorityInfoAccess() {
+        try(LogCaptor logCaptor = LogCaptor.forClass(CertificateExtractingClient.class)) {
+            CertificateExtractingClient client = CertificateExtractingClient.builder()
+                    .withResolvedRootCa(true)
+                    .build();
+
+            SSLFactory sslFactory = SSLFactory.builder()
+                    .withIdentityMaterial("keystore/identity-with-invalid-authority-info-access.jks", "secret".toCharArray())
+                    .withTrustMaterial("keystore/truststore.jks", "secret".toCharArray())
+                    .build();
+
+            Server server = Server.builder(sslFactory)
+                    .withPort(9999)
+                    .build();
+
+            List<X509Certificate> certificates = client.get("https://localhost:9999");
+            assertThat(certificates).isNotEmpty();
+            assertThat(logCaptor.getDebugLogs()).contains("Skipped getting certificate from remote file while using the following location [http://google.com/DigiCertTLSRSASHA2562020CA1-1.crt]");
+
+            server.stop();
+        }
+    }
+
 }
