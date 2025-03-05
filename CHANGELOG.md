@@ -3,6 +3,11 @@
 This list is not intended to be all-encompassing - it will document major and breaking API
 changes with their rationale when appropriate:
 
+### v9.1.0
+- Added methods for supporting Security Provider for loading Keystores
+- Skip resolving root ca if unavailable
+- Improved java doc of AggregatedX509ExtendedTrustManager
+- Bumped dependencies
 ### v9.0.0
 - Simplified removing security provider within ProviderUtils
 - Renamed internal class CompositeX509ExtendedKeyManager to AggregatedX509ExtendedKeyManager
