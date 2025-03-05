@@ -16,7 +16,6 @@
 package nl.altindag.ssl.util;
 
 import nl.altindag.log.LogCaptor;
-import nl.altindag.ssl.exception.GenericCertificateException;
 import nl.altindag.ssl.exception.GenericIOException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
