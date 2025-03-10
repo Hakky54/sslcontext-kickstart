@@ -51,7 +51,7 @@ class CertificateExtractingClientIT {
 
             Server server = Server.builder(sslFactoryForServer)
                     .withPort(1234)
-                    .withDelayedResponseTime(200)
+                    .withDelayedResponseTime(2000)
                     .build();
 
             List<X509Certificate> certificates = client.get("https://localhost:1234");
@@ -67,7 +67,7 @@ class CertificateExtractingClientIT {
         try (LogCaptor logCaptor = LogCaptor.forClass(CertificateExtractingClient.class);) {
             CertificateExtractingClient client = CertificateExtractingClient.builder()
                     .withResolvedRootCa(true)
-                    .withTimeout(400)
+                    .withTimeout(1000)
                     .build();
 
             Server server = Server.builder(sslFactoryForServer)
