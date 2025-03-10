@@ -15,21 +15,16 @@
  */
 package nl.altindag.ssl.util;
 
-import nl.altindag.ssl.exception.GenericIOException;
-
-import java.io.IOException;
-import java.nio.file.FileVisitOption;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.cert.Certificate;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static nl.altindag.ssl.util.OperatingSystem.LINUX;
+import static nl.altindag.ssl.util.internal.CollectorsUtils.toUnmodifiableList;
 
 /**
  * @author Hakan Altindag
@@ -57,38 +52,9 @@ final class LinuxCertificateUtils {
             return Collections.emptyList();
         }
 
-        List<Certificate> certificates = new ArrayList<>();
-        try {
-            for (Path path : LINUX_CERTIFICATE_PATHS) {
-                if (Files.exists(path)) {
-                    if (Files.isRegularFile(path)) {
-                        List<Certificate> certs = loadCertificate(path);
-                        certificates.addAll(certs);
-                    } else if (Files.isDirectory(path)) {
-                        try(Stream<Path> files = Files.walk(path, 1, FileVisitOption.FOLLOW_LINKS)) {
-                            List<Certificate> certs = files
-                                    .filter(Files::isRegularFile)
-                                    .flatMap(file -> loadCertificate(file).stream())
-                                    .collect(Collectors.toList());
-                            certificates.addAll(certs);
-                        }
-                    }
-                }
-            }
-            return Collections.unmodifiableList(certificates);
-        } catch (IOException e) {
-            throw new GenericIOException(e);
-        }
-    }
-
-    static List<Certificate> loadCertificate(Path path) {
-        try {
-            return CertificateUtils.loadCertificate(path);
-        } catch (Exception e) {
-            // Ignore exception and skip trying to parse the file as it is most likely
-            // not a (supported) certificate at all. It might be a regular text file maybe containing random text?
-            return Collections.emptyList();
-        }
+        return OSCertificateUtils.getCertificates(LINUX_CERTIFICATE_PATHS).stream()
+                .distinct()
+                .collect(toUnmodifiableList());
     }
 
 }

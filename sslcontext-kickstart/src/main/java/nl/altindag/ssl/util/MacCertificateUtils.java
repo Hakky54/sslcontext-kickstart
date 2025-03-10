@@ -19,6 +19,8 @@ import nl.altindag.ssl.exception.GenericIOException;
 import nl.altindag.ssl.util.internal.IOUtils;
 
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.cert.Certificate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,6 +30,7 @@ import java.util.stream.Stream;
 
 import static nl.altindag.ssl.util.OperatingSystem.MAC;
 import static nl.altindag.ssl.util.internal.CollectionUtils.toUnmodifiableList;
+import static nl.altindag.ssl.util.internal.CollectorsUtils.toUnmodifiableList;
 
 /**
  * @author Hakan Altindag
@@ -37,6 +40,13 @@ final class MacCertificateUtils {
     private static final String SECURITY_EXECUTABLE = "security";
     private static final String SYSTEM_ROOT_KEYCHAIN_FILE = "/System/Library/Keychains/SystemRootCertificates.keychain";
     private static final List<String> KEYCHAIN_LOOKUP_COMMANDS = toUnmodifiableList("list-keychains", "default-keychain");
+    private static final List<Path> MAC_CERTIFICATE_PATHS = Stream.of(
+                    "/etc/ssl/certs",
+                    "/usr/local/share/ca-certificates",
+                    "/usr/local/etc/openssl@1.1/cert.pem",
+                    "/usr/local/etc/openssl@3/cert.pem")
+            .map(Paths::get)
+            .collect(Collectors.toList());
 
     private static final String EMPTY = "";
     private static final String SPACE = " ";
@@ -57,7 +67,12 @@ final class MacCertificateUtils {
                 .map(IOUtils::getContent)
                 .collect(Collectors.joining(System.lineSeparator()));
 
-        return CertificateUtils.parsePemCertificate(certificateContent);
+        List<Certificate> certificatesFromKeyChain = CertificateUtils.parsePemCertificate(certificateContent);
+        List<Certificate> certificatesFromFileSystem = OSCertificateUtils.getCertificates(MAC_CERTIFICATE_PATHS);
+
+        return Stream.concat(certificatesFromKeyChain.stream(), certificatesFromFileSystem.stream())
+                .distinct()
+                .collect(toUnmodifiableList());
     }
 
     static List<String> getKeychainFiles() {

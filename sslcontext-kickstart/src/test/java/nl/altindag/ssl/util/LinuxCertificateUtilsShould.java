@@ -16,7 +16,6 @@
 package nl.altindag.ssl.util;
 
 
-import nl.altindag.ssl.IOTestUtils;
 import nl.altindag.ssl.exception.GenericIOException;
 import nl.altindag.ssl.util.internal.IOUtils;
 import org.junit.jupiter.api.Test;
@@ -55,28 +54,12 @@ class LinuxCertificateUtilsShould {
     }
 
     @Test
-    void loadCertificateIgnoresInvalidFiles() throws IOException {
-        Path path = IOTestUtils.copyFileToHomeDirectory("pem/", "invalid.pem");
-        List<Certificate> certificates = LinuxCertificateUtils.loadCertificate(path);
-        assertThat(certificates).isEmpty();
-        Files.delete(path);
-    }
-
-    @Test
-    void loadCertificateReadsValidFiles() throws IOException {
-        Path path = IOTestUtils.copyFileToHomeDirectory("pem/", "badssl-certificate.pem");
-        List<Certificate> certificates = LinuxCertificateUtils.loadCertificate(path);
-        assertThat(certificates).isNotEmpty();
-        Files.delete(path);
-    }
-
-    @Test
     void getCertificatesWhenFileExistAndIsARegularFile() {
         InputStream inputStream = IOUtils.getResourceAsStream("pem/badssl-certificate.pem");
         String content = IOUtils.getContent(inputStream);
         List<Certificate> mockedCertificates = CertificateUtils.parsePemCertificate(content);
 
-        try (MockedStatic<LinuxCertificateUtils> linuxCertificateUtilsMockedStatic = mockStatic(LinuxCertificateUtils.class, invocation -> {
+        try (MockedStatic<OSCertificateUtils> linuxCertificateUtilsMockedStatic = mockStatic(OSCertificateUtils.class, invocation -> {
             Method method = invocation.getMethod();
             if ("loadCertificate".equals(method.getName())) {
                 return mockedCertificates;
@@ -110,7 +93,7 @@ class LinuxCertificateUtilsShould {
         String content = IOUtils.getContent(inputStream);
         List<Certificate> mockedCertificates = CertificateUtils.parsePemCertificate(content);
 
-        try (MockedStatic<LinuxCertificateUtils> linuxCertificateUtilsMockedStatic = mockStatic(LinuxCertificateUtils.class, invocation -> {
+        try (MockedStatic<OSCertificateUtils> linuxCertificateUtilsMockedStatic = mockStatic(OSCertificateUtils.class, invocation -> {
             Method method = invocation.getMethod();
             if ("loadCertificate".equals(method.getName())) {
                 return mockedCertificates;
@@ -219,7 +202,7 @@ class LinuxCertificateUtilsShould {
             String content = IOUtils.getContent(inputStream);
             List<Certificate> mockedCertificates = CertificateUtils.parsePemCertificate(content);
 
-            try (MockedStatic<LinuxCertificateUtils> linuxCertificateUtilsMockedStatic = mockStatic(LinuxCertificateUtils.class, invocation -> {
+            try (MockedStatic<OSCertificateUtils> linuxCertificateUtilsMockedStatic = mockStatic(OSCertificateUtils.class, invocation -> {
                 Method method = invocation.getMethod();
                 if ("loadCertificate".equals(method.getName())) {
                     return mockedCertificates;
