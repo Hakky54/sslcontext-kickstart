@@ -65,4 +65,14 @@ class OSCertificateUtils {
         }
     }
 
+    static List<Path> findPathsWithSamePrefix(String filenamePrefix, Path rootPath) {
+        try (Stream<Path> files = Files.list(rootPath)) {
+            return files.filter(Files::isDirectory)
+                    .filter(path -> path.getFileName().toString().startsWith(filenamePrefix))
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            return Collections.emptyList();
+        }
+    }
+
 }

@@ -16,6 +16,7 @@
 package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.exception.GenericIOException;
+import nl.altindag.ssl.util.internal.CollectorsUtils;
 import nl.altindag.ssl.util.internal.IOUtils;
 
 import java.io.IOException;
@@ -23,8 +24,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.cert.Certificate;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -42,11 +45,11 @@ final class MacCertificateUtils {
     private static final List<String> KEYCHAIN_LOOKUP_COMMANDS = toUnmodifiableList("list-keychains", "default-keychain");
     private static final List<Path> MAC_CERTIFICATE_PATHS = Stream.of(
                     "/etc/ssl/certs",
-                    "/usr/local/share/ca-certificates",
-                    "/usr/local/etc/openssl@1.1/cert.pem",
-                    "/usr/local/etc/openssl@3/cert.pem")
+                    "/usr/local/etc/ca-certificates",
+                    "/usr/local/share/ca-certificates")
             .map(Paths::get)
             .collect(Collectors.toList());
+    private static final Map<String, Path> MAC_CERTIFICATE_PATHS_TO_RESOLVE = Collections.singletonMap("openssl", Paths.get("/usr/local/etc"));
 
     private static final String EMPTY = "";
     private static final String SPACE = " ";
@@ -67,10 +70,16 @@ final class MacCertificateUtils {
                 .map(IOUtils::getContent)
                 .collect(Collectors.joining(System.lineSeparator()));
 
-        List<Certificate> certificatesFromKeyChain = CertificateUtils.parsePemCertificate(certificateContent);
-        List<Certificate> certificatesFromFileSystem = OSCertificateUtils.getCertificates(MAC_CERTIFICATE_PATHS);
+        List<Certificate> certificatesFromKeyChains = CertificateUtils.parsePemCertificate(certificateContent);
 
-        return Stream.concat(certificatesFromKeyChain.stream(), certificatesFromFileSystem.stream())
+        List<Certificate> certificateFromResolvedPaths = MAC_CERTIFICATE_PATHS_TO_RESOLVE.entrySet().stream()
+                .flatMap(entry -> OSCertificateUtils.findPathsWithSamePrefix(entry.getKey(), entry.getValue()).stream())
+                .collect(CollectorsUtils.toListAndThen(OSCertificateUtils::getCertificates));
+
+        List<Certificate> certificatesFromPredefinedPaths = OSCertificateUtils.getCertificates(MAC_CERTIFICATE_PATHS);
+
+        return Stream.of(certificatesFromKeyChains, certificateFromResolvedPaths, certificatesFromPredefinedPaths)
+                .flatMap(Collection::stream)
                 .distinct()
                 .collect(toUnmodifiableList());
     }
