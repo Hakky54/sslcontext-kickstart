@@ -27,7 +27,10 @@ class WindowsCertificateUtilsShould {
 
     @Test
     void getInstance() {
-        assertThat(WindowsCertificateUtils.getInstance()).isNotNull();
+        WindowsCertificateUtils instance = WindowsCertificateUtils.getInstance();
+        assertThat(instance)
+                .isNotNull()
+                .hasSameHashCodeAs(WindowsCertificateUtils.getInstance());
     }
 
 }

@@ -27,7 +27,10 @@ class AndroidCertificateUtilsShould {
 
     @Test
     void getInstance() {
-        assertThat(AndroidCertificateUtils.getInstance()).isNotNull();
+        AndroidCertificateUtils instance = AndroidCertificateUtils.getInstance();
+        assertThat(instance)
+                .isNotNull()
+                .hasSameHashCodeAs(AndroidCertificateUtils.getInstance());
     }
 
 }

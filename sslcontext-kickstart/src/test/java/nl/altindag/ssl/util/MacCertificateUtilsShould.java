@@ -41,7 +41,10 @@ class MacCertificateUtilsShould {
 
     @Test
     void getInstance() {
-        assertThat(MacCertificateUtils.getInstance()).isNotNull();
+        MacCertificateUtils instance = MacCertificateUtils.getInstance();
+        assertThat(instance)
+                .isNotNull()
+                .hasSameHashCodeAs(MacCertificateUtils.getInstance());
     }
 
     @Test

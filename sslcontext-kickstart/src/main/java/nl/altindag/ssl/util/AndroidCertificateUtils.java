@@ -19,18 +19,12 @@ import java.security.KeyStore;
 import java.util.Collections;
 import java.util.List;
 
-import static nl.altindag.ssl.util.OperatingSystem.ANDROID;
-
 final class AndroidCertificateUtils extends OSCertificateUtils {
 
     private static AndroidCertificateUtils INSTANCE;
 
     @Override
     List<KeyStore> getTrustStores() {
-        if (OperatingSystem.get() != ANDROID) {
-            return Collections.emptyList();
-        }
-
         return createKeyStoreIfAvailable("AndroidCAStore", null)
                 .map(Collections::singletonList)
                 .orElseGet(Collections::emptyList);

@@ -46,7 +46,10 @@ class LinuxCertificateUtilsShould {
 
     @Test
     void getInstance() {
-        assertThat(LinuxCertificateUtils.getInstance()).isNotNull();
+        LinuxCertificateUtils instance = LinuxCertificateUtils.getInstance();
+        assertThat(instance)
+                .isNotNull()
+                .hasSameHashCodeAs(LinuxCertificateUtils.getInstance());
     }
 
     @Test
