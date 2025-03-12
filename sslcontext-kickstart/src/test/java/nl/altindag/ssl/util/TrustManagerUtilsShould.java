@@ -191,8 +191,8 @@ class TrustManagerUtilsShould {
     @Test
     void createTrustManagerWithSystemTrustedCertificate() {
         String operatingSystem = System.getProperty("os.name").toLowerCase();
-        try (MockedStatic<MacCertificateUtils> macCertificateUtilsMockedStatic = mockStatic(MacCertificateUtils.class);
-             MockedStatic<KeyStoreUtils> keyStoreUtilsMockedStatic = mockStatic(KeyStoreUtils.class, invocation -> {
+
+        try (MockedStatic<KeyStoreUtils> keyStoreUtilsMockedStatic = mockStatic(KeyStoreUtils.class, invocation -> {
             Method method = invocation.getMethod();
             if ("createKeyStore".equals(method.getName())
                     && method.getParameterCount() == 2

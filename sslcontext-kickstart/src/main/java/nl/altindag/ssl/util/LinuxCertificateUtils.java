@@ -17,19 +17,21 @@ package nl.altindag.ssl.util;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static nl.altindag.ssl.util.OperatingSystem.LINUX;
 import static nl.altindag.ssl.util.internal.CollectorsUtils.toUnmodifiableList;
 
 /**
  * @author Hakan Altindag
  */
-final class LinuxCertificateUtils {
+final class LinuxCertificateUtils extends OSCertificateUtils {
+
+    private static LinuxCertificateUtils INSTANCE;
 
     private static final String HOME_DIRECTORY = System.getProperty("user.home");
     private static final List<Path> LINUX_CERTIFICATE_PATHS = Stream.of(
@@ -47,14 +49,28 @@ final class LinuxCertificateUtils {
     private LinuxCertificateUtils() {
     }
 
-    static List<Certificate> getCertificates() {
-        if (OperatingSystem.get() != LINUX) {
-            return Collections.emptyList();
+    @Override
+    List<KeyStore> getTrustStores() {
+        List<Certificate> certificates = getCertificates();
+        if (!certificates.isEmpty()) {
+            KeyStore linuxTrustStore = KeyStoreUtils.createTrustStore(certificates);
+            return Collections.singletonList(linuxTrustStore);
         }
 
-        return OSCertificateUtils.getCertificates(LINUX_CERTIFICATE_PATHS).stream()
+        return Collections.emptyList();
+    }
+
+    List<Certificate> getCertificates() {
+        return getCertificates(LINUX_CERTIFICATE_PATHS).stream()
                 .distinct()
                 .collect(toUnmodifiableList());
+    }
+
+    static LinuxCertificateUtils getInstance() {
+        if (INSTANCE == null) {
+            INSTANCE = new LinuxCertificateUtils();
+        }
+        return INSTANCE;
     }
 
 }

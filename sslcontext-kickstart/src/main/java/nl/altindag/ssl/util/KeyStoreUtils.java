@@ -47,7 +47,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
-import java.util.stream.Stream;
 
 import static nl.altindag.ssl.util.internal.ValidationUtils.requireNotEmpty;
 import static nl.altindag.ssl.util.internal.ValidationUtils.requireNotNull;
@@ -243,38 +242,23 @@ public final class KeyStoreUtils {
     }
 
     public static List<KeyStore> loadSystemKeyStores() {
-        List<KeyStore> keyStores = new ArrayList<>();
-
+        List<KeyStore> keyStores;
         OperatingSystem operatingSystem = OperatingSystem.get();
         switch (operatingSystem) {
             case MAC: {
-                createKeyStoreIfAvailable("KeychainStore", null).ifPresent(keyStores::add);
-
-                List<Certificate> systemTrustedCertificates = MacCertificateUtils.getCertificates();
-                if (!systemTrustedCertificates.isEmpty()) {
-                    KeyStore systemTrustStore = createTrustStore(systemTrustedCertificates);
-                    keyStores.add(systemTrustStore);
-                }
+                keyStores = MacCertificateUtils.getInstance().getTrustStores();
                 break;
             }
             case LINUX: {
-                List<Certificate> certificates = LinuxCertificateUtils.getCertificates();
-                if (!certificates.isEmpty()) {
-                    KeyStore linuxTrustStore = createTrustStore(certificates);
-                    keyStores.add(linuxTrustStore);
-                }
+                keyStores = LinuxCertificateUtils.getInstance().getTrustStores();
                 break;
             }
             case ANDROID: {
-                createKeyStoreIfAvailable("AndroidCAStore", null).ifPresent(keyStores::add);
+                keyStores = AndroidCertificateUtils.getInstance().getTrustStores();
                 break;
             }
             case WINDOWS: {
-                Stream.of("Windows-ROOT", "Windows-ROOT-LOCALMACHINE", "Windows-ROOT-CURRENTUSER", "Windows-MY", "Windows-MY-CURRENTUSER", "Windows-MY-LOCALMACHINE")
-                        .map(keystoreType -> createKeyStoreIfAvailable(keystoreType, null))
-                        .filter(Optional::isPresent)
-                        .map(Optional::get)
-                        .forEach(keyStores::add);
+                keyStores = WindowsCertificateUtils.getInstance().getTrustStores();
                 break;
             }
             default: {
@@ -293,22 +277,6 @@ public final class KeyStoreUtils {
         }
 
         return Collections.unmodifiableList(keyStores);
-    }
-
-    @SuppressWarnings("SameParameterValue")
-    static Optional<KeyStore> createKeyStoreIfAvailable(String keyStoreType, char[] keyStorePassword) {
-        try {
-            KeyStore keyStore = createKeyStore(keyStoreType, keyStorePassword);
-
-            if (LOGGER.isDebugEnabled()) {
-                int totalTrustedCertificates = countAmountOfTrustMaterial(keyStore);
-                LOGGER.debug("Successfully loaded KeyStore of the type [{}] having [{}] entries", keyStoreType, totalTrustedCertificates);
-            }
-            return Optional.of(keyStore);
-        } catch (Exception ignored) {
-            LOGGER.debug("Failed to load KeyStore of the type [{}]", keyStoreType);
-            return Optional.empty();
-        }
     }
 
     public static KeyStore loadSystemPropertyDerivedKeyStore() {

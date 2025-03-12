@@ -22,7 +22,9 @@ import org.mockito.MockedStatic;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.security.KeyStore;
 import java.security.cert.Certificate;
+import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,6 +32,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 /**
@@ -40,17 +43,39 @@ class MacCertificateUtilsShould {
     private static final String OS_NAME = System.getProperty("os.name");
 
     @Test
+    void getInstance() {
+        MacCertificateUtils instance = MacCertificateUtils.getInstance();
+        assertThat(instance)
+                .isNotNull()
+                .hasSameHashCodeAs(MacCertificateUtils.getInstance());
+    }
+
+    @Test
     void getCertificate() {
         if (OS_NAME.toLowerCase().contains("mac")) {
-            List<Certificate> certificates = MacCertificateUtils.getCertificates();
+            List<Certificate> certificates = MacCertificateUtils.getInstance().getCertificates();
             assertThat(certificates).isNotEmpty();
+        }
+    }
+
+    @Test
+    void getTrustStoresDoesNotCreateTrustStoreIfThereIsNoSystemTrustedCertificates() {
+        if (OS_NAME.toLowerCase().contains("mac")) {
+            MacCertificateUtils macCertificateUtils = spy(MacCertificateUtils.getInstance());
+            List<KeyStore> trustStores = macCertificateUtils.getTrustStores();
+            assertThat(trustStores).isNotEmpty();
+
+            when(macCertificateUtils.getCertificates()).thenReturn(Collections.emptyList());
+            List<KeyStore> newTrustStores = macCertificateUtils.getTrustStores();
+
+            assertThat(newTrustStores.size()).isLessThan(trustStores.size());
         }
     }
 
     @Test
     void notContainLoginKeychain() {
         if (OS_NAME.toLowerCase().contains("mac")) {
-            List<String> keychainFiles = MacCertificateUtils.getKeychainFiles();
+            List<String> keychainFiles = MacCertificateUtils.getInstance().getKeychainFiles();
             assertThat(keychainFiles).isNotEmpty();
 
             for (String keychainFile : keychainFiles) {
@@ -75,20 +100,10 @@ class MacCertificateUtilsShould {
             }
         })) {
 
-            assertThatThrownBy(MacCertificateUtils::getCertificates)
+            assertThatThrownBy(() -> MacCertificateUtils.getInstance().getCertificates())
                     .isInstanceOf(GenericIOException.class)
                     .hasMessageContaining("KABOOM!");
         }
-
-        resetOsName();
-    }
-
-    @Test
-    void returnEmptyListForaNonMacOs() {
-        System.setProperty("os.name", "windows");
-
-        List<Certificate> certificates = MacCertificateUtils.getCertificates();
-        assertThat(certificates).isEmpty();
 
         resetOsName();
     }

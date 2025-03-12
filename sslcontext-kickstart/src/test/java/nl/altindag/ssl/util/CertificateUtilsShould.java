@@ -30,7 +30,6 @@ import javax.security.auth.x500.X500Principal;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Method;
 import java.net.PasswordAuthentication;
 import java.net.Proxy;
 import java.nio.file.Files;
@@ -61,6 +60,7 @@ import static nl.altindag.ssl.TestConstants.TRUSTSTORE_FILE_NAME;
 import static nl.altindag.ssl.TestConstants.TRUSTSTORE_PASSWORD;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
@@ -431,28 +431,12 @@ class CertificateUtilsShould {
     void getSystemTrustedCertificates() {
         String operatingSystem = System.getProperty("os.name").toLowerCase();
 
-        try (MockedStatic<MacCertificateUtils> macCertificateUtilsMockedStatic = mockStatic(MacCertificateUtils.class);
-             MockedStatic<KeyStoreUtils> keyStoreUtilsMockedStatic = mockStatic(KeyStoreUtils.class, invocation -> {
-            Method method = invocation.getMethod();
-            if ("createKeyStore".equals(method.getName())
-                    && method.getParameterCount() == 2
-                    && operatingSystem.contains("mac")) {
-                return KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + TRUSTSTORE_FILE_NAME, TRUSTSTORE_PASSWORD);
-            } else if ("createTrustStore".equals(method.getName())
-                    && method.getParameterCount() == 1
-                    && method.getParameters()[0].getType().equals(List.class)
-                    && operatingSystem.contains("mac")) {
-                return KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "truststore-without-password.jks", null);
-            } else {
-                return invocation.callRealMethod();
-            }
-        })) {
-            List<X509Certificate> certificates = CertificateUtils.getSystemTrustedCertificates();
-            if (operatingSystem.contains("mac") || operatingSystem.contains("windows") || operatingSystem.contains("linux")) {
-                assertThat(certificates).isNotEmpty();
-            }
+        List<X509Certificate> certificates = CertificateUtils.getSystemTrustedCertificates();
+        if (operatingSystem.contains("mac") || operatingSystem.contains("windows") || operatingSystem.contains("linux")) {
+            assertThat(certificates).isNotEmpty();
+        } else {
+            fail();
         }
-
     }
 
     @Test

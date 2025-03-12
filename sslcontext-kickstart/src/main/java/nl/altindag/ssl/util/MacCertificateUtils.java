@@ -22,6 +22,7 @@ import nl.altindag.ssl.util.internal.IOUtils;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,15 +32,15 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static nl.altindag.ssl.util.OperatingSystem.MAC;
 import static nl.altindag.ssl.util.internal.CollectionUtils.toUnmodifiableList;
 import static nl.altindag.ssl.util.internal.CollectorsUtils.toUnmodifiableList;
 
 /**
  * @author Hakan Altindag
  */
-final class MacCertificateUtils {
+final class MacCertificateUtils extends OSCertificateUtils {
 
+    private static MacCertificateUtils INSTANCE;
     private static final String SECURITY_EXECUTABLE = "security";
     private static final String SYSTEM_ROOT_KEYCHAIN_FILE = "/System/Library/Keychains/SystemRootCertificates.keychain";
     private static final List<String> KEYCHAIN_LOOKUP_COMMANDS = toUnmodifiableList("list-keychains", "default-keychain");
@@ -58,11 +59,20 @@ final class MacCertificateUtils {
     private MacCertificateUtils() {
     }
 
-    static List<Certificate> getCertificates() {
-        if (OperatingSystem.get() != MAC) {
-            return Collections.emptyList();
-        }
+    @Override
+    List<KeyStore> getTrustStores() {
+        List<KeyStore> keyStores = new ArrayList<>();
+        createKeyStoreIfAvailable("KeychainStore", null).ifPresent(keyStores::add);
 
+        List<Certificate> systemTrustedCertificates = getCertificates();
+        if (!systemTrustedCertificates.isEmpty()) {
+            KeyStore systemTrustStore = KeyStoreUtils.createTrustStore(systemTrustedCertificates);
+            keyStores.add(systemTrustStore);
+        }
+        return keyStores;
+    }
+
+    List<Certificate> getCertificates() {
         String certificateContent = getKeychainFiles().stream()
                 .distinct()
                 .map(MacCertificateUtils::createProcessForGettingCertificates)
@@ -73,10 +83,10 @@ final class MacCertificateUtils {
         List<Certificate> certificatesFromKeyChains = CertificateUtils.parsePemCertificate(certificateContent);
 
         List<Certificate> certificateFromResolvedPaths = MAC_CERTIFICATE_PATHS_TO_RESOLVE.entrySet().stream()
-                .flatMap(entry -> OSCertificateUtils.findPathsWithSamePrefix(entry.getKey(), entry.getValue()).stream())
-                .collect(CollectorsUtils.toListAndThen(OSCertificateUtils::getCertificates));
+                .flatMap(entry -> findPathsWithSamePrefix(entry.getKey(), entry.getValue()).stream())
+                .collect(CollectorsUtils.toListAndThen(this::getCertificates));
 
-        List<Certificate> certificatesFromPredefinedPaths = OSCertificateUtils.getCertificates(MAC_CERTIFICATE_PATHS);
+        List<Certificate> certificatesFromPredefinedPaths = getCertificates(MAC_CERTIFICATE_PATHS);
 
         return Stream.of(certificatesFromKeyChains, certificateFromResolvedPaths, certificatesFromPredefinedPaths)
                 .flatMap(Collection::stream)
@@ -84,7 +94,7 @@ final class MacCertificateUtils {
                 .collect(toUnmodifiableList());
     }
 
-    static List<String> getKeychainFiles() {
+    List<String> getKeychainFiles() {
         List<String> keychainFiles = new ArrayList<>();
         keychainFiles.add(SYSTEM_ROOT_KEYCHAIN_FILE);
 
@@ -125,6 +135,13 @@ final class MacCertificateUtils {
         } catch (IOException e) {
             throw new GenericIOException(e);
         }
+    }
+
+    static MacCertificateUtils getInstance() {
+        if (INSTANCE == null) {
+            INSTANCE = new MacCertificateUtils();
+        }
+        return INSTANCE;
     }
 
 }

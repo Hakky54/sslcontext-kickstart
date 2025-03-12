@@ -65,6 +65,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
@@ -235,26 +236,29 @@ class KeyStoreUtilsShould {
         KeyStore windowsRootCurrentUserKeyStore = mock(KeyStore.class);
         KeyStore windowsRootLocalmachineKeyStore = mock(KeyStore.class);
 
+        WindowsCertificateUtils windowsCertificateUtils = spy(WindowsCertificateUtils.class);
+        when(windowsCertificateUtils.createKeyStoreIfAvailable("Windows-ROOT", null)).thenReturn(Optional.of(windowsRootKeyStore));
+        when(windowsCertificateUtils.createKeyStoreIfAvailable("Windows-MY", null)).thenReturn(Optional.of(windowsMyKeyStore));
+        when(windowsCertificateUtils.createKeyStoreIfAvailable("Windows-MY-CURRENTUSER", null)).thenReturn(Optional.of(windowsMyCurrentUserKeyStore));
+        when(windowsCertificateUtils.createKeyStoreIfAvailable("Windows-MY-LOCALMACHINE", null)).thenReturn(Optional.of(windowsMyLocalmachineKeyStore));
+        when(windowsCertificateUtils.createKeyStoreIfAvailable("Windows-ROOT-LOCALMACHINE", null)).thenReturn(Optional.of(windowsRootLocalmachineKeyStore));
+        when(windowsCertificateUtils.createKeyStoreIfAvailable("Windows-ROOT-CURRENTUSER", null)).thenReturn(Optional.of(windowsRootCurrentUserKeyStore));
+
         try (MockedStatic<KeyStoreUtils> keyStoreUtilsMock = mockStatic(KeyStoreUtils.class, invocation -> {
             Method method = invocation.getMethod();
             if ("loadSystemKeyStores".equals(method.getName()) && method.getParameterCount() == 0) {
                 return invocation.callRealMethod();
-            } else if ("createKeyStoreIfAvailable".equals(method.getName()) && method.getParameterCount() == 2 && "Windows-ROOT".equals(invocation.getArgument(0))) {
-                return Optional.of(windowsRootKeyStore);
-            } else if ("createKeyStoreIfAvailable".equals(method.getName()) && method.getParameterCount() == 2 && "Windows-MY".equals(invocation.getArgument(0))) {
-                return Optional.of(windowsMyKeyStore);
-            } else if ("createKeyStoreIfAvailable".equals(method.getName()) && method.getParameterCount() == 2 && "Windows-MY-CURRENTUSER".equals(invocation.getArgument(0))) {
-                return Optional.of(windowsMyCurrentUserKeyStore);
-            } else if ("createKeyStoreIfAvailable".equals(method.getName()) && method.getParameterCount() == 2 && "Windows-MY-LOCALMACHINE".equals(invocation.getArgument(0))) {
-                return Optional.of(windowsMyLocalmachineKeyStore);
-            } else if ("createKeyStoreIfAvailable".equals(method.getName()) && method.getParameterCount() == 2 && "Windows-ROOT-LOCALMACHINE".equals(invocation.getArgument(0))) {
-                return Optional.of(windowsRootLocalmachineKeyStore);
-            } else if ("createKeyStoreIfAvailable".equals(method.getName()) && method.getParameterCount() == 2 && "Windows-ROOT-CURRENTUSER".equals(invocation.getArgument(0))) {
-                return Optional.of(windowsRootCurrentUserKeyStore);
             } else if ("countAmountOfTrustMaterial".equals(method.getName())) {
                 return 2;
             } else {
                 return invocation.getMock();
+            }
+        }); MockedStatic<WindowsCertificateUtils> osCertificateUtilsMock = mockStatic(WindowsCertificateUtils.class, invocation -> {
+            Method method = invocation.getMethod();
+            if ("getInstance".equals(method.getName())) {
+                return windowsCertificateUtils;
+            } else {
+                return invocation.callRealMethod();
             }
         })) {
             List<KeyStore> keyStores = KeyStoreUtils.loadSystemKeyStores();
@@ -278,17 +282,24 @@ class KeyStoreUtilsShould {
             System.setProperty(key, value);
 
             KeyStore androidCAStore = mock(KeyStore.class);
+            AndroidCertificateUtils androidCertificateUtils = spy(AndroidCertificateUtils.class);
+            when(androidCertificateUtils.createKeyStoreIfAvailable("AndroidCAStore", null)).thenReturn(Optional.of(androidCAStore));
 
             try (MockedStatic<KeyStoreUtils> keyStoreUtilsMock = mockStatic(KeyStoreUtils.class, invocation -> {
                 Method method = invocation.getMethod();
                 if ("loadSystemKeyStores".equals(method.getName()) && method.getParameterCount() == 0) {
                     return invocation.callRealMethod();
-                } else if ("createKeyStoreIfAvailable".equals(method.getName()) && method.getParameterCount() == 2 && "AndroidCAStore".equals(invocation.getArgument(0))) {
-                    return Optional.of(androidCAStore);
                 } else if ("countAmountOfTrustMaterial".equals(method.getName())) {
                     return 2;
                 } else {
                     return invocation.getMock();
+                }
+            }); MockedStatic<AndroidCertificateUtils> osCertificateUtilsMock = mockStatic(AndroidCertificateUtils.class, invocation -> {
+                Method method = invocation.getMethod();
+                if ("getInstance".equals(method.getName())) {
+                    return androidCertificateUtils;
+                } else {
+                    return invocation.callRealMethod();
                 }
             })) {
                 List<KeyStore> keyStores = KeyStoreUtils.loadSystemKeyStores();
@@ -308,23 +319,10 @@ class KeyStoreUtilsShould {
         System.clearProperty("java.vm.vendor");
         System.clearProperty("java.runtime.name");
 
-        KeyStore androidCAStore = mock(KeyStore.class);
+        LinuxCertificateUtils linuxCertificateUtils = mock(LinuxCertificateUtils.class);
 
-        try (MockedStatic<LinuxCertificateUtils> linuxCertificateUtilsMockedStatic = mockStatic(LinuxCertificateUtils.class);
-             MockedStatic<KeyStoreUtils> keyStoreUtilsMock = mockStatic(KeyStoreUtils.class, invocation -> {
-            Method method = invocation.getMethod();
-            if ("loadSystemKeyStores".equals(method.getName()) && method.getParameterCount() == 0) {
-                return invocation.callRealMethod();
-            } else if ("createKeyStoreIfAvailable".equals(method.getName()) && method.getParameterCount() == 2 && "AndroidCAStore".equals(invocation.getArgument(0))) {
-                return Optional.of(androidCAStore);
-            } else if ("createTrustStore".equals(method.getName()) && method.getParameterCount() == 1) {
-                return mock(KeyStore.class);
-            } else if ("countAmountOfTrustMaterial".equals(method.getName())) {
-                return 2;
-            } else {
-                return invocation.getMock();
-            }
-        })) {
+        try (MockedStatic<LinuxCertificateUtils> linuxCertificateUtilsMockedStatic = mockStatic(LinuxCertificateUtils.class, invocationOnMock -> linuxCertificateUtils);
+             MockedStatic<KeyStoreUtils> keyStoreUtilsMock = mockStatic(KeyStoreUtils.class)) {
             KeyStoreUtils.loadSystemKeyStores();
             keyStoreUtilsMock.verify(() -> KeyStoreUtils.createKeyStore("AndroidCAStore", null), times(0));
         } finally {
@@ -333,41 +331,15 @@ class KeyStoreUtilsShould {
     }
 
     @Test
-    void loadMacSystemKeyStore() {
-        System.setProperty("os.name", "mac");
-        KeyStore keychainStore = mock(KeyStore.class);
-        KeyStore systemTrustStore = mock(KeyStore.class);
-
-        try (MockedStatic<MacCertificateUtils> macCertificateUtilsMockedStatic = mockStatic(MacCertificateUtils.class, invocationOnMock -> Collections.singletonList(mock(X509Certificate.class)));
-             MockedStatic<KeyStoreUtils> keyStoreUtilsMockedStatic = mockStatic(KeyStoreUtils.class, invocation -> {
-            Method method = invocation.getMethod();
-            if ("loadSystemKeyStores".equals(method.getName()) && method.getParameterCount() == 0) {
-                return invocation.callRealMethod();
-            } else if ("createKeyStoreIfAvailable".equals(method.getName()) && method.getParameterCount() == 2 && "KeychainStore".equals(invocation.getArgument(0))) {
-                return Optional.of(keychainStore);
-            } else if ("createTrustStore".equals(method.getName()) && method.getParameterCount() == 1 && method.getParameters()[0].getType().equals(List.class)) {
-                return systemTrustStore;
-            } else if ("countAmountOfTrustMaterial".equals(method.getName())) {
-                return 2;
-            } else {
-                return invocation.callRealMethod();
-            }
-        })) {
-            List<KeyStore> keyStores = KeyStoreUtils.loadSystemKeyStores();
-            assertThat(keyStores).containsExactly(keychainStore, systemTrustStore);
-            macCertificateUtilsMockedStatic.verify(MacCertificateUtils::getCertificates, times(1));
-        }
-
-        resetOsName();
-    }
-
-    @Test
     void loadLinuxSystemKeyStoreReturns() {
         System.setProperty("os.name", "linux");
 
         KeyStore systemTrustStore = mock(KeyStore.class);
 
-        try (MockedStatic<LinuxCertificateUtils> linuxCertificateUtilsMockedStatic = mockStatic(LinuxCertificateUtils.class, invocationOnMock -> Collections.singletonList(mock(X509Certificate.class)));
+        LinuxCertificateUtils linuxCertificateUtils = mock(LinuxCertificateUtils.class);
+        when(linuxCertificateUtils.getTrustStores()).thenReturn(Collections.singletonList(systemTrustStore));
+
+        try (MockedStatic<LinuxCertificateUtils> linuxCertificateUtilsMockedStatic = mockStatic(LinuxCertificateUtils.class, invocationOnMock -> linuxCertificateUtils);
              MockedStatic<KeyStoreUtils> keyStoreUtilsMockedStatic = mockStatic(KeyStoreUtils.class, invocation -> {
                  Method method = invocation.getMethod();
                  if ("loadSystemKeyStores".equals(method.getName()) && method.getParameterCount() == 0) {
@@ -380,9 +352,10 @@ class KeyStoreUtilsShould {
                      return invocation.getMock();
                  }
              })) {
+
             List<KeyStore> keyStores = KeyStoreUtils.loadSystemKeyStores();
             assertThat(keyStores).containsExactly(systemTrustStore);
-            linuxCertificateUtilsMockedStatic.verify(LinuxCertificateUtils::getCertificates, times(1));
+            assertThat(linuxCertificateUtils.getTrustStores()).containsExactly(systemTrustStore);
         }
 
         resetOsName();
@@ -775,34 +748,6 @@ class KeyStoreUtilsShould {
     }
 
     @Test
-    void createKeyStoreIfAvailableReturnsEmptyForNonExistingKeyStoreType() {
-        Optional<KeyStore> bananaKeyStore = KeyStoreUtils.createKeyStoreIfAvailable("Banana", null);
-        assertThat(bananaKeyStore).isEmpty();
-    }
-
-    @Test
-    void createKeyStoreIfAvailableReturnsFilledKeyStore() {
-        LogCaptor logCaptor = LogCaptor.forClass(KeyStoreUtils.class);
-
-        KeyStore bananaKeyStore = mock(KeyStore.class);
-
-        try (MockedStatic<KeyStoreUtils> keyStoreUtilsMock = mockStatic(KeyStoreUtils.class, invocation -> {
-            Method method = invocation.getMethod();
-            if ("createKeyStore".equals(method.getName()) && method.getParameterCount() == 2 && "Banana".equals(invocation.getArgument(0))) {
-                return bananaKeyStore;
-            } else if ("countAmountOfTrustMaterial".equals(method.getName())) {
-                return 2;
-            } else {
-                return invocation.callRealMethod();
-            }
-        })) {
-            Optional<KeyStore> keyStore = KeyStoreUtils.createKeyStoreIfAvailable("Banana", null);
-            assertThat(keyStore).isPresent();
-            assertThat(logCaptor.getDebugLogs()).contains("Successfully loaded KeyStore of the type [Banana] having [2] entries");
-        }
-    }
-
-    @Test
     void wrapKeyStoreExceptionIntoAGenericKeyStoreExceptionWhenCallingContainsCertificateFails() throws KeyStoreException {
         KeyStore keyStore = mock(KeyStore.class);
         Certificate certificate = mock(Certificate.class);
@@ -822,29 +767,6 @@ class KeyStoreUtilsShould {
 
         assertThatThrownBy(() -> KeyStoreUtils.containsTrustMaterial(keyStore))
                 .isInstanceOf(GenericKeyStoreException.class);
-    }
-
-    @Test
-    void createKeyStoreIfAvailableReturnsFilledKeyStoreWithoutLoggingIfDebugIsDisabled() {
-        LogCaptor logCaptor = LogCaptor.forClass(KeyStoreUtils.class);
-        logCaptor.setLogLevelToInfo();
-
-        KeyStore bananaKeyStore = mock(KeyStore.class);
-
-        try (MockedStatic<KeyStoreUtils> keyStoreUtilsMock = mockStatic(KeyStoreUtils.class, invocation -> {
-            Method method = invocation.getMethod();
-            if ("createKeyStore".equals(method.getName()) && method.getParameterCount() == 2 && "Banana".equals(invocation.getArgument(0))) {
-                return bananaKeyStore;
-            } else if ("countAmountOfTrustMaterial".equals(method.getName())) {
-                return 2;
-            } else {
-                return invocation.callRealMethod();
-            }
-        })) {
-            Optional<KeyStore> keyStore = KeyStoreUtils.createKeyStoreIfAvailable("Banana", null);
-            assertThat(keyStore).isPresent();
-            assertThat(logCaptor.getDebugLogs()).isEmpty();
-        }
     }
 
     @Test
