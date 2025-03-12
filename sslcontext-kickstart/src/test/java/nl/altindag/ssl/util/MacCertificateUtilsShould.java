@@ -22,7 +22,9 @@ import org.mockito.MockedStatic;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.security.KeyStore;
 import java.security.cert.Certificate;
+import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,6 +32,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 /**
@@ -52,6 +55,20 @@ class MacCertificateUtilsShould {
         if (OS_NAME.toLowerCase().contains("mac")) {
             List<Certificate> certificates = MacCertificateUtils.getInstance().getCertificates();
             assertThat(certificates).isNotEmpty();
+        }
+    }
+
+    @Test
+    void getTrustStoresDoesNotCreateTrustStoreIfThereIsNoSystemTrustedCertificates() {
+        if (OS_NAME.toLowerCase().contains("mac")) {
+            MacCertificateUtils macCertificateUtils = spy(MacCertificateUtils.getInstance());
+            List<KeyStore> trustStores = macCertificateUtils.getTrustStores();
+            assertThat(trustStores).isNotEmpty();
+
+            when(macCertificateUtils.getCertificates()).thenReturn(Collections.emptyList());
+            List<KeyStore> newTrustStores = macCertificateUtils.getTrustStores();
+
+            assertThat(newTrustStores.size()).isLessThan(trustStores.size());
         }
     }
 
