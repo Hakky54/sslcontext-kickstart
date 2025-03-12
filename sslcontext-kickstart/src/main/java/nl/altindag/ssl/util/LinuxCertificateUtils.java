@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static nl.altindag.ssl.util.OperatingSystem.LINUX;
 import static nl.altindag.ssl.util.internal.CollectorsUtils.toUnmodifiableList;
 
 /**
@@ -51,6 +52,10 @@ final class LinuxCertificateUtils extends OSCertificateUtils {
 
     @Override
     List<KeyStore> getTrustStores() {
+        if (OperatingSystem.get() != LINUX) {
+            return Collections.emptyList();
+        }
+
         List<Certificate> certificates = getCertificates();
         if (!certificates.isEmpty()) {
             KeyStore linuxTrustStore = KeyStoreUtils.createTrustStore(certificates);

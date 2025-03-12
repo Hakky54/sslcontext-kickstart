@@ -45,6 +45,11 @@ class LinuxCertificateUtilsShould {
     private static final String ORIGINAL_OS_NAME = System.getProperty("os.name").toLowerCase();
 
     @Test
+    void getInstance() {
+        assertThat(LinuxCertificateUtils.getInstance()).isNotNull();
+    }
+
+    @Test
     void getCertificate() {
         if (ORIGINAL_OS_NAME.contains("linux")) {
             List<Certificate> certificates = LinuxCertificateUtils.getInstance().getCertificates();

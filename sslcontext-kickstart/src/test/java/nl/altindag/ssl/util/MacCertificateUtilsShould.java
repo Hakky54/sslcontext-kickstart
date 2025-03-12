@@ -40,6 +40,11 @@ class MacCertificateUtilsShould {
     private static final String OS_NAME = System.getProperty("os.name");
 
     @Test
+    void getInstance() {
+        assertThat(MacCertificateUtils.getInstance()).isNotNull();
+    }
+
+    @Test
     void getCertificate() {
         if (OS_NAME.toLowerCase().contains("mac")) {
             List<Certificate> certificates = MacCertificateUtils.getInstance().getCertificates();
@@ -50,7 +55,7 @@ class MacCertificateUtilsShould {
     @Test
     void notContainLoginKeychain() {
         if (OS_NAME.toLowerCase().contains("mac")) {
-            List<String> keychainFiles = MacCertificateUtils.getKeychainFiles();
+            List<String> keychainFiles = MacCertificateUtils.getInstance().getKeychainFiles();
             assertThat(keychainFiles).isNotEmpty();
 
             for (String keychainFile : keychainFiles) {

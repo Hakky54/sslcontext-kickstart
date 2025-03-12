@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static nl.altindag.ssl.util.OperatingSystem.MAC;
 import static nl.altindag.ssl.util.internal.CollectionUtils.toUnmodifiableList;
 import static nl.altindag.ssl.util.internal.CollectorsUtils.toUnmodifiableList;
 
@@ -61,6 +62,10 @@ final class MacCertificateUtils extends OSCertificateUtils {
 
     @Override
     List<KeyStore> getTrustStores() {
+        if (OperatingSystem.get() != MAC) {
+            return Collections.emptyList();
+        }
+
         List<KeyStore> keyStores = new ArrayList<>();
         createKeyStoreIfAvailable("KeychainStore", null).ifPresent(keyStores::add);
 
@@ -94,7 +99,7 @@ final class MacCertificateUtils extends OSCertificateUtils {
                 .collect(toUnmodifiableList());
     }
 
-    static List<String> getKeychainFiles() {
+    List<String> getKeychainFiles() {
         List<String> keychainFiles = new ArrayList<>();
         keychainFiles.add(SYSTEM_ROOT_KEYCHAIN_FILE);
 

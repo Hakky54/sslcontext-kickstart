@@ -16,10 +16,12 @@
 package nl.altindag.ssl.util;
 
 import java.security.KeyStore;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import static nl.altindag.ssl.util.OperatingSystem.WINDOWS;
 import static nl.altindag.ssl.util.internal.CollectorsUtils.toUnmodifiableList;
 
 final class WindowsCertificateUtils extends OSCertificateUtils {
@@ -28,6 +30,10 @@ final class WindowsCertificateUtils extends OSCertificateUtils {
 
     @Override
     List<KeyStore> getTrustStores() {
+        if (OperatingSystem.get() != WINDOWS) {
+            return Collections.emptyList();
+        }
+
         return Stream.of("Windows-ROOT", "Windows-ROOT-LOCALMACHINE", "Windows-ROOT-CURRENTUSER", "Windows-MY", "Windows-MY-CURRENTUSER", "Windows-MY-LOCALMACHINE")
                 .map(keystoreType -> createKeyStoreIfAvailable(keystoreType, null))
                 .filter(Optional::isPresent)
