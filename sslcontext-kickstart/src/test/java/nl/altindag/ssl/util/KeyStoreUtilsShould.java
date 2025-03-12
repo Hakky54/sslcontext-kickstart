@@ -332,44 +332,6 @@ class KeyStoreUtilsShould {
     }
 
     @Test
-    @Disabled
-    void loadMacSystemKeyStore() {
-        System.setProperty("os.name", "mac");
-        KeyStore keychainStore = mock(KeyStore.class);
-        KeyStore systemTrustStore = mock(KeyStore.class);
-
-        MacCertificateUtils macCertificateUtils = spy(MacCertificateUtils.class);
-        when(macCertificateUtils.getTrustStores()).thenReturn(Arrays.asList(keychainStore, systemTrustStore));
-
-        try (MockedStatic<MacCertificateUtils> macCertificateUtilsMockedStatic = mockStatic(MacCertificateUtils.class, invocation -> {
-            Method method = invocation.getMethod();
-            if ("getInstance".equals(method.getName())) {
-                return macCertificateUtils;
-            } else {
-                return invocation.callRealMethod();
-            }
-        });
-             MockedStatic<KeyStoreUtils> keyStoreUtilsMockedStatic = mockStatic(KeyStoreUtils.class, invocation -> {
-            Method method = invocation.getMethod();
-            if ("loadSystemKeyStores".equals(method.getName()) && method.getParameterCount() == 0) {
-                return invocation.callRealMethod();
-            } else if ("createTrustStore".equals(method.getName()) && method.getParameterCount() == 1 && method.getParameters()[0].getType().equals(List.class)) {
-                return systemTrustStore;
-            } else if ("countAmountOfTrustMaterial".equals(method.getName())) {
-                return 2;
-            } else {
-                return invocation.callRealMethod();
-            }
-        })) {
-            List<KeyStore> keyStores = KeyStoreUtils.loadSystemKeyStores();
-            assertThat(keyStores).containsExactly(keychainStore, systemTrustStore);
-            assertThat(macCertificateUtils.getTrustStores()).containsExactly(keychainStore, systemTrustStore);
-        }
-
-        resetOsName();
-    }
-
-    @Test
     void loadLinuxSystemKeyStoreReturns() {
         System.setProperty("os.name", "linux");
 
