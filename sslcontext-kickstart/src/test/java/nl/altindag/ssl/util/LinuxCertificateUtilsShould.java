@@ -27,15 +27,21 @@ import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyList;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Hakan Altindag
@@ -58,6 +64,33 @@ class LinuxCertificateUtilsShould {
             List<Certificate> certificates = LinuxCertificateUtils.getInstance().getCertificates();
             assertThat(certificates).isNotEmpty();
         }
+    }
+
+    @Test
+    void getTrustStores() {
+        if (ORIGINAL_OS_NAME.contains("linux")) {
+            List<KeyStore> trustStores = LinuxCertificateUtils.getInstance().getTrustStores();
+            assertThat(trustStores).isNotEmpty();
+        } else {
+            InputStream inputStream = IOUtils.getResourceAsStream("pem/badssl-certificate.pem");
+            String content = IOUtils.getContent(inputStream);
+            List<Certificate> mockedCertificates = CertificateUtils.parsePemCertificate(content);
+
+            LinuxCertificateUtils linuxCertificateUtils = spy(LinuxCertificateUtils.getInstance());
+            when(linuxCertificateUtils.getCertificates(anyList())).thenReturn(mockedCertificates);
+            List<KeyStore> trustStores = linuxCertificateUtils.getTrustStores();
+
+            assertThat(trustStores).isNotEmpty();
+        }
+    }
+
+    @Test
+    void returnEmptyListOfTrustStoresWhenNoCertificatesAreAvailable() {
+        LinuxCertificateUtils linuxCertificateUtils = spy(LinuxCertificateUtils.getInstance());
+        when(linuxCertificateUtils.getCertificates(anyList())).thenReturn(Collections.emptyList());
+        List<KeyStore> trustStores = linuxCertificateUtils.getTrustStores();
+
+        assertThat(trustStores).isEmpty();
     }
 
     @Test
