@@ -35,8 +35,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Hakan Altindag
@@ -48,7 +47,7 @@ class LinuxCertificateUtilsShould {
     @Test
     void getCertificate() {
         if (ORIGINAL_OS_NAME.contains("linux")) {
-            List<Certificate> certificates = LinuxCertificateUtils.getCertificates();
+            List<Certificate> certificates = LinuxCertificateUtils.getInstance().getCertificates();
             assertThat(certificates).isNotEmpty();
         }
     }
@@ -59,10 +58,13 @@ class LinuxCertificateUtilsShould {
         String content = IOUtils.getContent(inputStream);
         List<Certificate> mockedCertificates = CertificateUtils.parsePemCertificate(content);
 
-        try (MockedStatic<OSCertificateUtils> linuxCertificateUtilsMockedStatic = mockStatic(OSCertificateUtils.class, invocation -> {
+        LinuxCertificateUtils linuxCertificateUtils = spy(LinuxCertificateUtils.class);
+        when(linuxCertificateUtils.getCertificates()).thenReturn(mockedCertificates);
+
+        try (MockedStatic<LinuxCertificateUtils> linuxCertificateUtilsMockedStatic = mockStatic(LinuxCertificateUtils.class, invocation -> {
             Method method = invocation.getMethod();
-            if ("loadCertificate".equals(method.getName())) {
-                return mockedCertificates;
+            if ("getInstance".equals(method.getName())) {
+                return linuxCertificateUtils;
             } else {
                 return invocation.callRealMethod();
             }
@@ -80,7 +82,7 @@ class LinuxCertificateUtilsShould {
 
             System.setProperty("os.name", "linux");
 
-            List<Certificate> certificates = LinuxCertificateUtils.getCertificates();
+            List<Certificate> certificates = LinuxCertificateUtils.getInstance().getCertificates();
             assertThat(certificates).isNotEmpty();
 
             resetOsName();
@@ -93,10 +95,13 @@ class LinuxCertificateUtilsShould {
         String content = IOUtils.getContent(inputStream);
         List<Certificate> mockedCertificates = CertificateUtils.parsePemCertificate(content);
 
-        try (MockedStatic<OSCertificateUtils> linuxCertificateUtilsMockedStatic = mockStatic(OSCertificateUtils.class, invocation -> {
+        LinuxCertificateUtils linuxCertificateUtils = spy(LinuxCertificateUtils.class);
+        when(linuxCertificateUtils.getCertificates()).thenReturn(mockedCertificates);
+
+        try (MockedStatic<LinuxCertificateUtils> linuxCertificateUtilsMockedStatic = mockStatic(LinuxCertificateUtils.class, invocation -> {
             Method method = invocation.getMethod();
-            if ("loadCertificate".equals(method.getName())) {
-                return mockedCertificates;
+            if ("getInstance".equals(method.getName())) {
+                return linuxCertificateUtils;
             } else {
                 return invocation.callRealMethod();
             }
@@ -114,7 +119,7 @@ class LinuxCertificateUtilsShould {
 
             System.setProperty("os.name", "linux");
 
-            List<Certificate> certificates = LinuxCertificateUtils.getCertificates();
+            List<Certificate> certificates = LinuxCertificateUtils.getInstance().getCertificates();
             assertThat(certificates).isNotEmpty();
 
             resetOsName();
@@ -134,7 +139,7 @@ class LinuxCertificateUtilsShould {
             }
         })) {
 
-            List<Certificate> certificates = LinuxCertificateUtils.getCertificates();
+            List<Certificate> certificates = LinuxCertificateUtils.getInstance().getCertificates();
             assertThat(certificates).isEmpty();
         }
     }
@@ -159,7 +164,7 @@ class LinuxCertificateUtilsShould {
             }
         })) {
 
-            List<Certificate> certificates = LinuxCertificateUtils.getCertificates();
+            List<Certificate> certificates = LinuxCertificateUtils.getInstance().getCertificates();
             assertThat(certificates).isEmpty();
         }
 
@@ -186,7 +191,7 @@ class LinuxCertificateUtilsShould {
             }
         })) {
 
-            List<Certificate> certificates = LinuxCertificateUtils.getCertificates();
+            List<Certificate> certificates = LinuxCertificateUtils.getInstance().getCertificates();
             assertThat(certificates).isEmpty();
         }
 
@@ -202,10 +207,13 @@ class LinuxCertificateUtilsShould {
             String content = IOUtils.getContent(inputStream);
             List<Certificate> mockedCertificates = CertificateUtils.parsePemCertificate(content);
 
-            try (MockedStatic<OSCertificateUtils> linuxCertificateUtilsMockedStatic = mockStatic(OSCertificateUtils.class, invocation -> {
+            LinuxCertificateUtils linuxCertificateUtils = spy(LinuxCertificateUtils.class);
+            when(linuxCertificateUtils.getCertificates()).thenReturn(mockedCertificates);
+
+            try (MockedStatic<LinuxCertificateUtils> linuxCertificateUtilsMockedStatic = mockStatic(LinuxCertificateUtils.class, invocation -> {
                 Method method = invocation.getMethod();
-                if ("loadCertificate".equals(method.getName())) {
-                    return mockedCertificates;
+                if ("getInstance".equals(method.getName())) {
+                    return linuxCertificateUtils;
                 } else {
                     return invocation.callRealMethod();
                 }
@@ -240,7 +248,7 @@ class LinuxCertificateUtilsShould {
                      }
                  })) {
 
-                List<Certificate> certificates = LinuxCertificateUtils.getCertificates();
+                List<Certificate> certificates = LinuxCertificateUtils.getInstance().getCertificates();
                 assertThat(certificates).isNotEmpty();
             }
         }
@@ -275,7 +283,7 @@ class LinuxCertificateUtilsShould {
                 }
             })) {
 
-                assertThatThrownBy(LinuxCertificateUtils::getCertificates)
+                assertThatThrownBy(() -> LinuxCertificateUtils.getInstance().getCertificates())
                         .isInstanceOf(GenericIOException.class)
                         .hasMessageContaining("KABOOM");
             }
@@ -307,7 +315,7 @@ class LinuxCertificateUtilsShould {
 
             System.setProperty("os.name", "linux");
 
-            List<Certificate> certificates = LinuxCertificateUtils.getCertificates();
+            List<Certificate> certificates = LinuxCertificateUtils.getInstance().getCertificates();
             assertThat(certificates).isEmpty();
 
             certificateUtilsMockedStatic.verify(() -> CertificateUtils.loadCertificate(any(Path.class)), times(8));
@@ -335,7 +343,7 @@ class LinuxCertificateUtilsShould {
             }
         })) {
 
-            List<Certificate> certificates = LinuxCertificateUtils.getCertificates();
+            List<Certificate> certificates = LinuxCertificateUtils.getInstance().getCertificates();
             assertThat(certificates).isEmpty();
         }
 
@@ -359,7 +367,7 @@ class LinuxCertificateUtilsShould {
                 }
             })) {
 
-                LinuxCertificateUtils.getCertificates();
+                LinuxCertificateUtils.getInstance().getCertificates();
                 assertThat(capturedPaths).containsExactly(
                         "/etc/ssl/certs",
                         "/etc/pki/nssdb",
@@ -372,16 +380,6 @@ class LinuxCertificateUtilsShould {
                 );
             }
         }
-
-        resetOsName();
-    }
-
-    @Test
-    void returnEmptyListForaNonLinuxOs() {
-        System.setProperty("os.name", "windows");
-
-        List<Certificate> certificates = LinuxCertificateUtils.getCertificates();
-        assertThat(certificates).isEmpty();
 
         resetOsName();
     }

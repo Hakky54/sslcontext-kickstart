@@ -42,7 +42,7 @@ class MacCertificateUtilsShould {
     @Test
     void getCertificate() {
         if (OS_NAME.toLowerCase().contains("mac")) {
-            List<Certificate> certificates = MacCertificateUtils.getCertificates();
+            List<Certificate> certificates = MacCertificateUtils.getInstance().getCertificates();
             assertThat(certificates).isNotEmpty();
         }
     }
@@ -75,20 +75,10 @@ class MacCertificateUtilsShould {
             }
         })) {
 
-            assertThatThrownBy(MacCertificateUtils::getCertificates)
+            assertThatThrownBy(() -> MacCertificateUtils.getInstance().getCertificates())
                     .isInstanceOf(GenericIOException.class)
                     .hasMessageContaining("KABOOM!");
         }
-
-        resetOsName();
-    }
-
-    @Test
-    void returnEmptyListForaNonMacOs() {
-        System.setProperty("os.name", "windows");
-
-        List<Certificate> certificates = MacCertificateUtils.getCertificates();
-        assertThat(certificates).isEmpty();
 
         resetOsName();
     }

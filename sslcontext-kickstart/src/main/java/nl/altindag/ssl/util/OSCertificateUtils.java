@@ -16,21 +16,32 @@
 package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.exception.GenericIOException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-class OSCertificateUtils {
+import static nl.altindag.ssl.util.KeyStoreUtils.countAmountOfTrustMaterial;
+import static nl.altindag.ssl.util.KeyStoreUtils.createKeyStore;
 
-    static List<Certificate> getCertificates(List<Path> certificatePaths) {
+abstract class OSCertificateUtils {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(OSCertificateUtils.class);
+
+    abstract List<KeyStore> getTrustStores();
+
+    List<Certificate> getCertificates(List<Path> certificatePaths) {
         List<Certificate> certificates = new ArrayList<>();
         try {
             for (Path path : certificatePaths) {
@@ -55,7 +66,7 @@ class OSCertificateUtils {
         }
     }
 
-    static List<Certificate> loadCertificate(Path path) {
+    List<Certificate> loadCertificate(Path path) {
         try {
             return CertificateUtils.loadCertificate(path);
         } catch (Exception e) {
@@ -65,13 +76,29 @@ class OSCertificateUtils {
         }
     }
 
-    static List<Path> findPathsWithSamePrefix(String filenamePrefix, Path rootPath) {
+    List<Path> findPathsWithSamePrefix(String filenamePrefix, Path rootPath) {
         try (Stream<Path> files = Files.list(rootPath)) {
             return files.filter(Files::isDirectory)
                     .filter(path -> path.getFileName().toString().startsWith(filenamePrefix))
                     .collect(Collectors.toList());
         } catch (Exception e) {
             return Collections.emptyList();
+        }
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    Optional<KeyStore> createKeyStoreIfAvailable(String keyStoreType, char[] keyStorePassword) {
+        try {
+            KeyStore keyStore = createKeyStore(keyStoreType, keyStorePassword);
+
+            if (LOGGER.isDebugEnabled()) {
+                int totalTrustedCertificates = countAmountOfTrustMaterial(keyStore);
+                LOGGER.debug("Successfully loaded KeyStore of the type [{}] having [{}] entries", keyStoreType, totalTrustedCertificates);
+            }
+            return Optional.of(keyStore);
+        } catch (Exception ignored) {
+            LOGGER.debug("Failed to load KeyStore of the type [{}]", keyStoreType);
+            return Optional.empty();
         }
     }
 
