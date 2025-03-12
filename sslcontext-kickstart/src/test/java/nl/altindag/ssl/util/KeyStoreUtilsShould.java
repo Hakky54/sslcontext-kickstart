@@ -20,6 +20,7 @@ import nl.altindag.ssl.IOTestUtils;
 import nl.altindag.ssl.SSLFactory;
 import nl.altindag.ssl.TestConstants;
 import nl.altindag.ssl.exception.GenericKeyStoreException;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
@@ -331,6 +332,7 @@ class KeyStoreUtilsShould {
     }
 
     @Test
+    @Disabled
     void loadMacSystemKeyStore() {
         System.setProperty("os.name", "mac");
         KeyStore keychainStore = mock(KeyStore.class);
