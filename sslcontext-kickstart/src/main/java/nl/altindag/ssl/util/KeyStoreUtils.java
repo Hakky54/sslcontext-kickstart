@@ -242,32 +242,7 @@ public final class KeyStoreUtils {
     }
 
     public static List<KeyStore> loadSystemKeyStores() {
-        List<KeyStore> keyStores;
-        OperatingSystem operatingSystem = OperatingSystem.get();
-        switch (operatingSystem) {
-            case MAC: {
-                keyStores = MacCertificateUtils.getInstance().getTrustStores();
-                break;
-            }
-            case LINUX: {
-                keyStores = LinuxCertificateUtils.getInstance().getTrustStores();
-                break;
-            }
-            case ANDROID: {
-                keyStores = AndroidCertificateUtils.getInstance().getTrustStores();
-                break;
-            }
-            case WINDOWS: {
-                keyStores = WindowsCertificateUtils.getInstance().getTrustStores();
-                break;
-            }
-            default: {
-                String resolvedOsName = OperatingSystem.getResolvedOsName();
-                LOGGER.warn("No system KeyStores available for [{}]", resolvedOsName);
-                return Collections.emptyList();
-            }
-        }
-
+        List<KeyStore> keyStores = OperatingSystem.get().getTrustStores();
         if (LOGGER.isDebugEnabled()) {
             int totalTrustedCertificates = keyStores.stream()
                     .mapToInt(KeyStoreUtils::countAmountOfTrustMaterial)

@@ -15,12 +15,32 @@
  */
 package nl.altindag.ssl.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.security.KeyStore;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
 /**
  * @author Hakan Altindag
  */
 enum OperatingSystem {
 
-    MAC, LINUX, ANDROID, WINDOWS, UNKNOWN;
+    MAC(MacCertificateUtils.getInstance()),
+    LINUX(LinuxCertificateUtils.getInstance()),
+    ANDROID(AndroidCertificateUtils.getInstance()),
+    WINDOWS(WindowsCertificateUtils.getInstance()),
+    UNKNOWN(null);
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(OperatingSystem.class);
+
+    private final OSCertificateUtils osCertificateUtils;
+
+    OperatingSystem(OSCertificateUtils osCertificateUtils) {
+        this.osCertificateUtils = osCertificateUtils;
+    }
 
     static String getResolvedOsName() {
         return System.getProperty("os.name").toLowerCase();
@@ -53,4 +73,19 @@ enum OperatingSystem {
 
         return UNKNOWN;
     }
+
+    List<KeyStore> getTrustStores() {
+        return getOsCertificateUtils()
+                .map(OSCertificateUtils::getTrustStores)
+                .orElseGet(() -> {
+                    String resolvedOsName = getResolvedOsName();
+                    LOGGER.warn("No system KeyStores available for [{}]", resolvedOsName);
+                    return Collections.emptyList();
+                });
+    }
+
+    Optional<OSCertificateUtils> getOsCertificateUtils() {
+        return Optional.ofNullable(osCertificateUtils);
+    }
+
 }
