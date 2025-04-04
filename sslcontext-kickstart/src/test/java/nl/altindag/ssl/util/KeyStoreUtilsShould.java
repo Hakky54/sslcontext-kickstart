@@ -357,6 +357,8 @@ class KeyStoreUtilsShould {
 
         LinuxCertificateUtils linuxCertificateUtils = mock(LinuxCertificateUtils.class);
         when(linuxCertificateUtils.getTrustStores()).thenReturn(Collections.singletonList(systemTrustStore));
+        OperatingSystem mockedOperatingSystem = spy(OperatingSystem.LINUX);
+        when(mockedOperatingSystem.getOsCertificateUtils()).thenReturn(Optional.of(linuxCertificateUtils));
 
         try (MockedStatic<LinuxCertificateUtils> linuxCertificateUtilsMockedStatic = mockStatic(LinuxCertificateUtils.class, invocationOnMock -> linuxCertificateUtils);
              MockedStatic<KeyStoreUtils> keyStoreUtilsMockedStatic = mockStatic(KeyStoreUtils.class, invocation -> {
@@ -370,7 +372,14 @@ class KeyStoreUtilsShould {
                  } else {
                      return invocation.getMock();
                  }
-             })) {
+             }); MockedStatic<OperatingSystem> operatingSystemEnumMock = mockStatic(OperatingSystem.class, invocation -> {
+                Method method = invocation.getMethod();
+                if ("get".equals(method.getName())) {
+                    return mockedOperatingSystem;
+                } else {
+                    return invocation.callRealMethod();
+                }
+            })) {
 
             List<KeyStore> keyStores = KeyStoreUtils.loadSystemKeyStores();
             assertThat(keyStores).containsExactly(systemTrustStore);
