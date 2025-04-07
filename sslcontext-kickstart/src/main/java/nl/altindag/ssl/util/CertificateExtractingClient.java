@@ -17,6 +17,7 @@ package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.SSLFactory;
 import nl.altindag.ssl.exception.GenericIOException;
+import nl.altindag.ssl.model.ClientConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,13 +52,13 @@ import static nl.altindag.ssl.util.internal.CollectorsUtils.toUnmodifiableList;
 /**
  * @author Hakan Altindag
  */
-public class CertificateExtractingClient {
+public class CertificateExtractingClient<T> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CertificateExtractingClient.class);
     private static final Pattern CA_ISSUERS_AUTHORITY_INFO_ACCESS = Pattern.compile("(?s)^AuthorityInfoAccess\\h+\\[\\R\\s*\\[\\R.*?accessMethod:\\h+caIssuers\\R\\h*accessLocation: URIName:\\h+(https?://\\S+)", Pattern.MULTILINE);
     private static final int DEFAULT_TIMEOUT_IN_MILLISECONDS = 1000;
 
-    private static CertificateExtractingClient instance;
+    private static CertificateExtractingClient<?> instance;
 
     private final boolean shouldResolveRootCa;
     private final Proxy proxy;
@@ -68,10 +69,20 @@ public class CertificateExtractingClient {
     private final List<X509Certificate> certificatesCollector;
     private final int timeoutInMilliseconds;
 
-    private CertificateExtractingClient(boolean shouldResolveRootCa, Proxy proxy, PasswordAuthentication passwordAuthentication, int timeoutInMilliseconds) {
+    private T client;
+    private ClientConfig clientConfig;
+    private final ClientProvider<T> clientProvider;
+
+    private CertificateExtractingClient(boolean shouldResolveRootCa,
+                                        Proxy proxy,
+                                        PasswordAuthentication passwordAuthentication,
+                                        int timeoutInMilliseconds,
+                                        ClientProvider<T> clientProvider) {
+
         this.shouldResolveRootCa = shouldResolveRootCa;
         this.proxy = proxy;
         this.timeoutInMilliseconds = timeoutInMilliseconds;
+        this.clientProvider = clientProvider;
 
         if (passwordAuthentication != null) {
             Authenticator authenticator = new FelixAuthenticator(passwordAuthentication);
@@ -92,33 +103,40 @@ public class CertificateExtractingClient {
 
         certificateCapturingSslSocketFactory = sslFactoryForCertificateCapturing.getSslSocketFactory();
         unsafeSslSocketFactory = unsafeSslFactory.getSslSocketFactory();
+
+        if (clientProvider != null) {
+            clientConfig = new ClientConfig(sslFactoryForCertificateCapturing, proxy, passwordAuthentication, timeoutInMilliseconds);
+            client = clientProvider.getClient(clientConfig);
+        }
     }
 
-    static CertificateExtractingClient getInstance() {
+    static CertificateExtractingClient<?> getInstance() {
         if (instance == null) {
-            instance = new CertificateExtractingClient(true, null, null, DEFAULT_TIMEOUT_IN_MILLISECONDS);
+            instance = new CertificateExtractingClient<>(true, null, null, DEFAULT_TIMEOUT_IN_MILLISECONDS, null);
         }
         return instance;
     }
 
     public List<X509Certificate> get(String url) {
         try {
-            URL parsedUrl = new URL(url);
-            if ("https".equalsIgnoreCase(parsedUrl.getProtocol())) {
-                HttpsURLConnection connection = (HttpsURLConnection) createConnection(parsedUrl);
+            URI uri = URI.create(url);
+            if (client != null && clientProvider != null) {
+                clientProvider.requestHandler(client, clientConfig, uri);
+            } else if ("https".equalsIgnoreCase(uri.getScheme())) {
+                HttpsURLConnection connection = (HttpsURLConnection) createConnection(uri.toURL());
                 connection.setSSLSocketFactory(certificateCapturingSslSocketFactory);
                 connection.setConnectTimeout(timeoutInMilliseconds);
                 connection.setReadTimeout(timeoutInMilliseconds);
                 connection.connect();
                 connection.disconnect();
-
-                List<X509Certificate> resolvedRootCa = shouldResolveRootCa? getRootCaFromChainIfPossible(certificatesCollector) : Collections.emptyList();
-                return Stream.of(certificatesCollector, resolvedRootCa)
-                        .flatMap(Collection::stream)
-                        .collect(toUnmodifiableList());
             } else {
                 return Collections.emptyList();
             }
+
+            List<X509Certificate> resolvedRootCa = shouldResolveRootCa? getRootCaFromChainIfPossible(certificatesCollector) : Collections.emptyList();
+            return Stream.of(certificatesCollector, resolvedRootCa)
+                    .flatMap(Collection::stream)
+                    .collect(toUnmodifiableList());
         } catch (IOException exception) {
             if (exception instanceof SocketTimeoutException || exception.getCause() instanceof SocketTimeoutException) {
                 LOGGER.debug("The client didn't get a respond within the configured time-out of [{}] milliseconds from: [{}]", timeoutInMilliseconds, url);
@@ -234,39 +252,45 @@ public class CertificateExtractingClient {
         }
     }
 
-    public static Builder builder() {
-        return new Builder();
+    public static <T> Builder<T> builder() {
+        return new Builder<>();
     }
 
-    public static class Builder {
+    public static class Builder<T> {
 
         private Proxy proxy = null;
         private PasswordAuthentication passwordAuthentication = null;
         private boolean shouldResolveRootCa = true;
         private int timeoutInMilliseconds = DEFAULT_TIMEOUT_IN_MILLISECONDS;
+        private ClientProvider<T> clientProvider = null;
 
-        public Builder withProxy(Proxy proxy) {
+        public Builder<T> withProxy(Proxy proxy) {
             this.proxy = proxy;
             return this;
         }
 
-        public Builder withPasswordAuthentication(PasswordAuthentication passwordAuthentication) {
+        public Builder<T> withPasswordAuthentication(PasswordAuthentication passwordAuthentication) {
             this.passwordAuthentication = passwordAuthentication;
             return this;
         }
 
-        public Builder withResolvedRootCa(boolean shouldResolveRootCa) {
+        public Builder<T> withResolvedRootCa(boolean shouldResolveRootCa) {
             this.shouldResolveRootCa = shouldResolveRootCa;
             return this;
         }
 
-        public Builder withTimeout(int timeoutInMilliseconds) {
+        public Builder<T> withTimeout(int timeoutInMilliseconds) {
             this.timeoutInMilliseconds = timeoutInMilliseconds;
             return this;
         }
 
-        public CertificateExtractingClient build() {
-            return new CertificateExtractingClient(shouldResolveRootCa, proxy, passwordAuthentication, timeoutInMilliseconds);
+        public Builder<T> withClientProvider(ClientProvider<T> clientProvider) {
+            this.clientProvider = clientProvider;
+            return this;
+        }
+
+        public CertificateExtractingClient<T> build() {
+            return new CertificateExtractingClient<>(shouldResolveRootCa, proxy, passwordAuthentication, timeoutInMilliseconds, clientProvider);
         }
 
     }
