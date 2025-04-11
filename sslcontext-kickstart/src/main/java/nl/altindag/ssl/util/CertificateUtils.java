@@ -329,7 +329,7 @@ public final class CertificateUtils {
     }
 
     public static Map<String, List<X509Certificate>> getCertificatesFromExternalSources(Proxy proxy, List<String> urls) {
-        CertificateExtractingClient client = CertificateExtractingClient.builder()
+        CertificateExtractingClient<?> client = CertificateExtractingClient.builder()
                 .withResolvedRootCa(true)
                 .withProxy(proxy)
                 .build();
@@ -341,7 +341,7 @@ public final class CertificateUtils {
     }
 
     public static Map<String, List<X509Certificate>> getCertificatesFromExternalSources(Proxy proxy, PasswordAuthentication passwordAuthentication, List<String> urls) {
-        CertificateExtractingClient client = CertificateExtractingClient.builder()
+        CertificateExtractingClient<?> client = CertificateExtractingClient.builder()
                 .withResolvedRootCa(true)
                 .withPasswordAuthentication(passwordAuthentication)
                 .withProxy(proxy)
