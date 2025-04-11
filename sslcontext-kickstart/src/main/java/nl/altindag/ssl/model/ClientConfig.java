@@ -16,38 +16,43 @@
 package nl.altindag.ssl.model;
 
 import nl.altindag.ssl.SSLFactory;
+import nl.altindag.ssl.util.internal.ValidationUtils;
 
 import java.net.PasswordAuthentication;
 import java.net.Proxy;
+import java.time.Duration;
+import java.util.Optional;
+
+import static nl.altindag.ssl.util.internal.ValidationUtils.GENERIC_EXCEPTION_MESSAGE;
 
 public class ClientConfig {
 
     private final SSLFactory sslFactory;
     private final Proxy proxy;
     private final PasswordAuthentication passwordAuthentication;
-    private final Integer timeoutInMilliseconds;
+    private final Duration timeout;
 
-    public ClientConfig(SSLFactory sslFactory, Proxy proxy, PasswordAuthentication passwordAuthentication, Integer timeoutInMilliseconds) {
-        this.sslFactory = sslFactory;
+    public ClientConfig(SSLFactory sslFactory, Proxy proxy, PasswordAuthentication passwordAuthentication, Duration timeout) {
+        this.sslFactory = ValidationUtils.requireNotNull(sslFactory, GENERIC_EXCEPTION_MESSAGE.apply("SSLFactory"));
         this.proxy = proxy;
         this.passwordAuthentication = passwordAuthentication;
-        this.timeoutInMilliseconds = timeoutInMilliseconds;
+        this.timeout = timeout;
     }
 
     public SSLFactory getSslFactory() {
         return sslFactory;
     }
 
-    public Proxy getProxy() {
-        return proxy;
+    public Optional<Proxy> getProxy() {
+        return Optional.ofNullable(proxy);
     }
 
-    public PasswordAuthentication getPasswordAuthentication() {
-        return passwordAuthentication;
+    public Optional<PasswordAuthentication> getPasswordAuthentication() {
+        return Optional.ofNullable(passwordAuthentication);
     }
 
-    public Integer getTimeoutInMilliseconds() {
-        return timeoutInMilliseconds;
+    public Optional<Duration> getTimeout() {
+        return Optional.ofNullable(timeout);
     }
 
 }
