@@ -72,6 +72,12 @@
             <groupId>io.github.hakky54</groupId>
             <artifactId>ssl-server</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.java-websocket</groupId>
+            <artifactId>Java-WebSocket</artifactId>
+            <version>1.6.0</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

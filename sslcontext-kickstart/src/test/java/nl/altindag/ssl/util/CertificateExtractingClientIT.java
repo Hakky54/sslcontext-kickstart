@@ -44,7 +44,7 @@ class CertificateExtractingClientIT {
     @Test
     void shouldTimeoutIfServerFailsToRespondInTimeAndReturnsEmptyListOfCertificates() {
         try (LogCaptor logCaptor = LogCaptor.forClass(CertificateExtractingClient.class);) {
-            CertificateExtractingClient<?> client = CertificateExtractingClient.builder()
+            CertificateExtractingClient client = CertificateExtractingClient.builder()
                     .withResolvedRootCa(true)
                     .withTimeout(100)
                     .build();
@@ -65,7 +65,7 @@ class CertificateExtractingClientIT {
     @Test
     void shouldNotTimeoutIfServerRespondsInTime() {
         try (LogCaptor logCaptor = LogCaptor.forClass(CertificateExtractingClient.class);) {
-            CertificateExtractingClient<?> client = CertificateExtractingClient.builder()
+            CertificateExtractingClient client = CertificateExtractingClient.builder()
                     .withResolvedRootCa(true)
                     .withTimeout(1000)
                     .build();
@@ -86,7 +86,7 @@ class CertificateExtractingClientIT {
     @Test
     void shouldNotFailWhenResolvingRootCaWhichContainsAnInvalidAuthorityInfoAccess() {
         try(LogCaptor logCaptor = LogCaptor.forClass(CertificateExtractingClient.class)) {
-            CertificateExtractingClient<?> client = CertificateExtractingClient.builder()
+            CertificateExtractingClient client = CertificateExtractingClient.builder()
                     .withResolvedRootCa(true)
                     .build();
 
