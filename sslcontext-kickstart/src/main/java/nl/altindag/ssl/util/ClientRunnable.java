@@ -21,6 +21,6 @@ import java.net.URI;
 
 public interface ClientRunnable {
 
-    void run(ClientConfig clientConfig, URI uri) throws Exception;
+    void run(ClientConfig clientConfig, URI uri);
 
 }

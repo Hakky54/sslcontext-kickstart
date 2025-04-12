@@ -132,7 +132,7 @@ public class CertificateExtractingClient {
             return Stream.of(certificatesCollector, resolvedRootCa)
                     .flatMap(Collection::stream)
                     .collect(toUnmodifiableList());
-        } catch (Exception exception) {
+        } catch (IOException exception) {
             if (exception instanceof SocketTimeoutException || exception.getCause() instanceof SocketTimeoutException) {
                 LOGGER.debug("The client didn't get a respond within the configured time-out of [{}] milliseconds from: [{}]", timeout.toMillis(), url);
                 return Collections.emptyList();

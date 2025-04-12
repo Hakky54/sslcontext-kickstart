@@ -15,11 +15,11 @@
  */
 package nl.altindag.ssl.util.websocket;
 
+import nl.altindag.ssl.exception.GenericException;
 import nl.altindag.ssl.model.ClientConfig;
 import nl.altindag.ssl.util.ClientRunnable;
 import org.java_websocket.client.WebSocketClient;
 
-import java.io.IOException;
 import java.net.URI;
 
 public class SimpleWebSocketSecureClientRunnable implements ClientRunnable {
@@ -27,10 +27,15 @@ public class SimpleWebSocketSecureClientRunnable implements ClientRunnable {
     private WebSocketClient client;
 
     @Override
-    public void run(ClientConfig clientConfig, URI uri) throws InterruptedException, IOException {
+    public void run(ClientConfig clientConfig, URI uri) {
         client = new SimpleWebSocketSecureClient(uri);
         client.setSocketFactory(clientConfig.getSslFactory().getSslSocketFactory());
-        client.connectBlocking();
+        try {
+            client.connectBlocking();
+        } catch (InterruptedException e) {
+            throw new GenericException(e);
+        }
+
     }
 
     public WebSocketClient getWebSocketClient() {
