@@ -17,10 +17,15 @@ package nl.altindag.ssl.util;
 
 import nl.altindag.ssl.SSLFactory;
 import nl.altindag.ssl.server.service.Server;
+import nl.altindag.ssl.util.websocket.SimpleWebSocketSecureClientRunnable;
+import nl.altindag.ssl.util.websocket.SimpleWebSocketServer;
+import org.java_websocket.server.DefaultSSLWebSocketServerFactory;
+import org.java_websocket.server.WebSocketServer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.net.InetSocketAddress;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.List;
@@ -168,6 +173,29 @@ class CertificateUtilsIT {
 
         assertThat(certificates).hasSizeGreaterThan(0);
         assertThat(client.getCertificatesCollector()).isEmpty();
+    }
+
+    @Test
+    void getCertificatesFromWebSocket() throws Exception {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial("keystore/client-server/server-one/identity.jks", "secret".toCharArray())
+                .withTrustMaterial("keystore/client-server/server-one/truststore.jks", "secret".toCharArray())
+                .build();
+
+        WebSocketServer server = new SimpleWebSocketServer(new InetSocketAddress("localhost", 9999));
+        server.setWebSocketFactory(new DefaultSSLWebSocketServerFactory(sslFactory.getSslContext()));
+        server.start();
+
+        SimpleWebSocketSecureClientRunnable clientRunnable = new SimpleWebSocketSecureClientRunnable();
+        CertificateExtractingClient extractingClient = CertificateExtractingClient.builder()
+                .withClientRunnable(clientRunnable)
+                .build();
+
+        List<X509Certificate> certificates = extractingClient.get("wss://localhost:9999");
+        assertThat(certificates).isNotEmpty();
+
+        server.stop();
+        clientRunnable.getWebSocketClient().closeBlocking();
     }
 
 }
