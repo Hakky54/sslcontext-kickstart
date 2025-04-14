@@ -25,7 +25,7 @@ import java.util.Optional;
 
 import static nl.altindag.ssl.util.internal.ValidationUtils.GENERIC_EXCEPTION_MESSAGE;
 
-public class ClientConfig {
+public final class ClientConfig {
 
     private final SSLFactory sslFactory;
     private final Proxy proxy;
