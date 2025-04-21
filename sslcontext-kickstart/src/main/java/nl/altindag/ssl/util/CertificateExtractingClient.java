@@ -84,7 +84,7 @@ public class CertificateExtractingClient {
         this.timeout = timeout;
         this.clientRunnable = clientRunnable;
         if (passwordAuthentication != null) {
-            Authenticator authenticator = new FelixAuthenticator(passwordAuthentication);
+            Authenticator authenticator = AuthenticatorUtils.create(passwordAuthentication);
             Authenticator.setDefault(authenticator);
         }
 
@@ -231,20 +231,6 @@ public class CertificateExtractingClient {
 
     List<X509Certificate> getCertificatesCollector() {
         return certificatesCollector;
-    }
-
-    private static class FelixAuthenticator extends Authenticator {
-
-        private final PasswordAuthentication passwordAuthentication;
-
-        private FelixAuthenticator(PasswordAuthentication passwordAuthentication) {
-            this.passwordAuthentication = passwordAuthentication;
-        }
-
-        @Override
-        protected PasswordAuthentication getPasswordAuthentication() {
-            return passwordAuthentication;
-        }
     }
 
     public static Builder builder() {
