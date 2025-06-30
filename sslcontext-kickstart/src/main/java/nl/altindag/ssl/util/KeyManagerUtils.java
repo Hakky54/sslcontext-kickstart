@@ -18,8 +18,10 @@ package nl.altindag.ssl.util;
 import nl.altindag.ssl.exception.GenericKeyManagerException;
 import nl.altindag.ssl.exception.GenericKeyStoreException;
 import nl.altindag.ssl.keymanager.AggregatedX509ExtendedKeyManager;
+import nl.altindag.ssl.keymanager.DelegatingX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.DummyX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.HotSwappableX509ExtendedKeyManager;
+import nl.altindag.ssl.keymanager.InflatableX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.KeyManagerFactoryWrapper;
 import nl.altindag.ssl.keymanager.LoggingX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.X509KeyManagerWrapper;
@@ -48,6 +50,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static nl.altindag.ssl.util.internal.CollectorsUtils.toListAndThen;
@@ -240,6 +243,11 @@ public final class KeyManagerUtils {
         requireNotNull(alias, GENERIC_EXCEPTION_MESSAGE.apply("Alias"));
         requireNotNull(keyManager, GENERIC_EXCEPTION_MESSAGE.apply("Host"));
 
+        if (keyManager instanceof DelegatingX509ExtendedKeyManager) {
+            addIdentityRoute(((DelegatingX509ExtendedKeyManager) keyManager).getInnerKeyManager(), alias, hosts, overrideExistingRouteEnabled);
+            return;
+        }
+
         if (keyManager instanceof AggregatedX509ExtendedKeyManager) {
             AggregatedX509ExtendedKeyManager aggregatedX509ExtendedKeyManager = (AggregatedX509ExtendedKeyManager) keyManager;
             Map<String, List<URI>> aliasToHosts = aggregatedX509ExtendedKeyManager.getIdentityRoute();
@@ -325,6 +333,57 @@ public final class KeyManagerUtils {
         }
     }
 
+    public static X509ExtendedKeyManager createInflatableKeyManager() {
+        return new InflatableX509ExtendedKeyManager();
+    }
+
+    public static X509ExtendedKeyManager createInflatableKeyManager(X509ExtendedKeyManager keyManager) {
+        return new InflatableX509ExtendedKeyManager(keyManager);
+    }
+
+    public static void addIdentityMaterial(X509ExtendedKeyManager keyManager, KeyStore keyStore, char[] keyPassword) {
+        X509ExtendedKeyManager keyManagerToBeAdded = createKeyManager(keyStore, keyPassword);
+        addIdentityMaterial(keyManager, keyManagerToBeAdded);
+    }
+
+    public static void addIdentityMaterial(X509ExtendedKeyManager baseKeyManager, X509ExtendedKeyManager keyManagerToBeAdded) {
+        boolean identityAdded = addIdentityMaterialIfPossible(baseKeyManager, keyManagerToBeAdded);
+        if (identityAdded) {
+            return;
+        }
+
+        throw new GenericKeyManagerException(
+                String.format("The provided keyManager should be an instance of [%s]", InflatableX509ExtendedKeyManager.class.getName())
+        );
+    }
+
+    private static boolean addIdentityMaterialIfPossible(X509ExtendedKeyManager baseKeyManager, X509ExtendedKeyManager keyManagerToBeAdded) {
+        if (baseKeyManager instanceof InflatableX509ExtendedKeyManager) {
+            ((InflatableX509ExtendedKeyManager) baseKeyManager).addIdentity(keyManagerToBeAdded);
+            return true;
+        }
+
+        if (baseKeyManager instanceof DelegatingX509ExtendedKeyManager) {
+            X509ExtendedKeyManager innerKeyManager = ((DelegatingX509ExtendedKeyManager) baseKeyManager).getInnerKeyManager();
+            return addIdentityMaterialIfPossible(innerKeyManager, keyManagerToBeAdded);
+        }
+
+        if (baseKeyManager instanceof AggregatedX509ExtendedKeyManager) {
+            List<X509ExtendedKeyManager> innerKeyManagers = ((AggregatedX509ExtendedKeyManager) baseKeyManager).getInnerKeyManagers();
+
+            Optional<InflatableX509ExtendedKeyManager> inflatableKeyManager = innerKeyManagers.stream()
+                    .filter(InflatableX509ExtendedKeyManager.class::isInstance)
+                    .map(InflatableX509ExtendedKeyManager.class::cast)
+                    .findFirst();
+
+            if (inflatableKeyManager.isPresent()) {
+                return addIdentityMaterialIfPossible(inflatableKeyManager.get(), keyManagerToBeAdded);
+            }
+        }
+
+        return false;
+    }
+
     public static final class KeyManagerBuilder {
 
         private static final String EMPTY_KEY_MANAGER_EXCEPTION = "Input does not contain KeyManagers";
@@ -333,6 +392,7 @@ public final class KeyManagerUtils {
         private final Map<String, List<URI>> aliasToHost = new HashMap<>();
         private boolean swappableKeyManagerEnabled = false;
         private boolean loggingKeyManagerEnabled = false;
+        private boolean inflatableKeyManagerEnabled = false;
 
         private KeyManagerBuilder() {}
 
@@ -382,6 +442,11 @@ public final class KeyManagerUtils {
             return this;
         }
 
+        public KeyManagerBuilder withInflatableKeyManager(boolean inflatableKeyManagerEnabled) {
+            this.inflatableKeyManagerEnabled = inflatableKeyManagerEnabled;
+            return this;
+        }
+
         public KeyManagerBuilder withIdentityRoute(Map<String, List<URI>> aliasToHost) {
             this.aliasToHost.putAll(aliasToHost);
             return this;
@@ -398,6 +463,10 @@ public final class KeyManagerUtils {
                         .map(KeyManagerUtils::unwrapIfPossible)
                         .flatMap(Collection::stream)
                         .collect(toListAndThen(extendedKeyManagers -> new AggregatedX509ExtendedKeyManager(extendedKeyManagers, aliasToHost)));
+            }
+
+            if (inflatableKeyManagerEnabled) {
+                baseKeyManager = KeyManagerUtils.createInflatableKeyManager(baseKeyManager);
             }
 
             if (loggingKeyManagerEnabled) {

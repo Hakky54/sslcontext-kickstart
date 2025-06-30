@@ -203,6 +203,7 @@ public final class SSLFactory {
         private boolean swappableSslParametersEnabled = false;
         private boolean loggingKeyManagerEnabled = false;
         private boolean loggingTrustManagerEnabled = false;
+        private boolean inflatableKeyManagerEnabled = false;
 
         private int sessionTimeoutInSeconds = -1;
         private int sessionCacheSizeInBytes = -1;
@@ -708,6 +709,11 @@ public final class SSLFactory {
             return this;
         }
 
+        public Builder withInflatableIdentityMaterial() {
+            inflatableKeyManagerEnabled = true;
+            return this;
+        }
+
         public Builder withInflatableTrustMaterial() {
             trustManagers.add(TrustManagerUtils.createInflatableTrustManager());
             return this;
@@ -949,6 +955,7 @@ public final class SSLFactory {
                     .withIdentities(identities)
                     .withSwappableKeyManager(swappableKeyManagerEnabled)
                     .withLoggingKeyManager(loggingKeyManagerEnabled)
+                    .withInflatableKeyManager(inflatableKeyManagerEnabled)
                     .withIdentityRoute(preferredAliasToHost)
                     .build();
         }
