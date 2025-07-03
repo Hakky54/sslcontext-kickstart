@@ -25,7 +25,7 @@ import java.security.Principal;
  *
  * @author Hakan Altindag
  */
-class DelegatingX509ExtendedKeyManager extends DelegatingKeyManager<X509ExtendedKeyManager> {
+public class DelegatingX509ExtendedKeyManager extends DelegatingKeyManager<X509ExtendedKeyManager> {
 
     public DelegatingX509ExtendedKeyManager(X509ExtendedKeyManager keyManager) {
         super(keyManager);
