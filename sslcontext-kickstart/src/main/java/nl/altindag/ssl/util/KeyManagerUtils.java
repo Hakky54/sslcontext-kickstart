@@ -18,6 +18,7 @@ package nl.altindag.ssl.util;
 import nl.altindag.ssl.exception.GenericKeyManagerException;
 import nl.altindag.ssl.exception.GenericKeyStoreException;
 import nl.altindag.ssl.keymanager.AggregatedX509ExtendedKeyManager;
+import nl.altindag.ssl.keymanager.CombinableX509KeyManager;
 import nl.altindag.ssl.keymanager.DelegatingX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.DummyX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.HotSwappableX509ExtendedKeyManager;
@@ -42,6 +43,7 @@ import java.security.PrivateKey;
 import java.security.Provider;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
+import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -51,9 +53,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static nl.altindag.ssl.util.internal.CollectionUtils.toUnmodifiableList;
 import static nl.altindag.ssl.util.internal.CollectorsUtils.toListAndThen;
+import static nl.altindag.ssl.util.internal.CollectorsUtils.toMapAndThen;
 import static nl.altindag.ssl.util.internal.CollectorsUtils.toUnmodifiableList;
 import static nl.altindag.ssl.util.internal.ValidationUtils.GENERIC_EXCEPTION_MESSAGE;
 import static nl.altindag.ssl.util.internal.ValidationUtils.requireNotEmpty;
@@ -304,7 +310,7 @@ public final class KeyManagerUtils {
     private static List<X509ExtendedKeyManager> unwrapIfPossible(X509ExtendedKeyManager keyManager) {
         if (keyManager instanceof AggregatedX509ExtendedKeyManager) {
             List<X509ExtendedKeyManager> keyManagers = new ArrayList<>();
-            for (X509ExtendedKeyManager innerKeyManager : ((AggregatedX509ExtendedKeyManager) keyManager).getInnerKeyManagers()) {
+            for (X509ExtendedKeyManager innerKeyManager : ((AggregatedX509ExtendedKeyManager) keyManager).getInnerKeyManagers().values()) {
                 List<X509ExtendedKeyManager> unwrappedKeyManagers = KeyManagerUtils.unwrapIfPossible(innerKeyManager);
                 keyManagers.addAll(unwrappedKeyManagers);
             }
@@ -337,17 +343,25 @@ public final class KeyManagerUtils {
         return new InflatableX509ExtendedKeyManager();
     }
 
-    public static X509ExtendedKeyManager createInflatableKeyManager(X509ExtendedKeyManager keyManager) {
-        return new InflatableX509ExtendedKeyManager(keyManager);
+    public static X509ExtendedKeyManager createInflatableKeyManager(String alias, X509ExtendedKeyManager keyManager) {
+        return new InflatableX509ExtendedKeyManager(alias, keyManager);
     }
 
-    public static void addIdentityMaterial(X509ExtendedKeyManager keyManager, KeyStore keyStore, char[] keyPassword) {
+    /**
+     * Adds identity material tp a {@link InflatableX509ExtendedKeyManager}
+     * If the provided keyManager is not of the type {@link InflatableX509ExtendedKeyManager} it will throw an exception
+     */
+    public static void addIdentityMaterial(X509ExtendedKeyManager keyManager, String alias, KeyStore keyStore, char[] keyPassword) {
         X509ExtendedKeyManager keyManagerToBeAdded = createKeyManager(keyStore, keyPassword);
-        addIdentityMaterial(keyManager, keyManagerToBeAdded);
+        addIdentityMaterial(keyManager, alias, keyManagerToBeAdded);
     }
 
-    public static void addIdentityMaterial(X509ExtendedKeyManager baseKeyManager, X509ExtendedKeyManager keyManagerToBeAdded) {
-        boolean identityAdded = addIdentityMaterialIfPossible(baseKeyManager, keyManagerToBeAdded);
+    /**
+     * Adds identity material tp a {@link InflatableX509ExtendedKeyManager}
+     * If the provided baseKeyManager is not of the type {@link InflatableX509ExtendedKeyManager} it will throw an exception
+     */
+    public static void addIdentityMaterial(X509ExtendedKeyManager baseKeyManager, String alias, X509ExtendedKeyManager keyManagerToBeAdded) {
+        boolean identityAdded = computeIdentityMaterialIfPossible(baseKeyManager, km -> km.addIdentity(alias, keyManagerToBeAdded));
         if (identityAdded) {
             return;
         }
@@ -357,31 +371,57 @@ public final class KeyManagerUtils {
         );
     }
 
-    private static boolean addIdentityMaterialIfPossible(X509ExtendedKeyManager baseKeyManager, X509ExtendedKeyManager keyManagerToBeAdded) {
+    /**
+     * Removes identity material from a {@link InflatableX509ExtendedKeyManager}
+     */
+    public static void removeIdentityMaterial(X509ExtendedKeyManager baseKeyManager, String alias) {
+        computeIdentityMaterialIfPossible(baseKeyManager, km -> km.removeIdentity(alias));
+    }
+
+    /**
+     * Remove, add or other actions related to {@link InflatableX509ExtendedKeyManager}
+     */
+    private static boolean computeIdentityMaterialIfPossible(X509ExtendedKeyManager baseKeyManager, Consumer<InflatableX509ExtendedKeyManager> consumer) {
         if (baseKeyManager instanceof InflatableX509ExtendedKeyManager) {
-            ((InflatableX509ExtendedKeyManager) baseKeyManager).addIdentity(keyManagerToBeAdded);
+
+            consumer.accept((InflatableX509ExtendedKeyManager) baseKeyManager);
             return true;
         }
 
         if (baseKeyManager instanceof DelegatingX509ExtendedKeyManager) {
             X509ExtendedKeyManager innerKeyManager = ((DelegatingX509ExtendedKeyManager) baseKeyManager).getInnerKeyManager();
-            return addIdentityMaterialIfPossible(innerKeyManager, keyManagerToBeAdded);
+            return computeIdentityMaterialIfPossible(innerKeyManager, consumer);
         }
 
         if (baseKeyManager instanceof AggregatedX509ExtendedKeyManager) {
-            List<X509ExtendedKeyManager> innerKeyManagers = ((AggregatedX509ExtendedKeyManager) baseKeyManager).getInnerKeyManagers();
+            Map<String, X509ExtendedKeyManager> innerKeyManagers = ((AggregatedX509ExtendedKeyManager) baseKeyManager).getInnerKeyManagers();
 
-            Optional<InflatableX509ExtendedKeyManager> inflatableKeyManager = innerKeyManagers.stream()
+            Optional<InflatableX509ExtendedKeyManager> inflatableKeyManager = innerKeyManagers.values().stream()
                     .filter(InflatableX509ExtendedKeyManager.class::isInstance)
                     .map(InflatableX509ExtendedKeyManager.class::cast)
                     .findFirst();
 
             if (inflatableKeyManager.isPresent()) {
-                return addIdentityMaterialIfPossible(inflatableKeyManager.get(), keyManagerToBeAdded);
+                return computeIdentityMaterialIfPossible(inflatableKeyManager.get(), consumer);
             }
         }
 
         return false;
+    }
+
+    /**
+     * Returns a list of aliases associated with the KeyManagers within a {@link CombinableX509KeyManager}
+     */
+    public static List<String> getAliases(X509ExtendedKeyManager keyManager) {
+        if (keyManager instanceof InflatableX509ExtendedKeyManager) {
+            return toUnmodifiableList(((InflatableX509ExtendedKeyManager) keyManager).getAliasToIdentity().keySet());
+        }
+
+        if (keyManager instanceof DelegatingX509ExtendedKeyManager) {
+            return getAliases(((DelegatingX509ExtendedKeyManager) keyManager).getInnerKeyManager());
+        }
+
+        return Collections.emptyList();
     }
 
     public static final class KeyManagerBuilder {
@@ -459,14 +499,16 @@ public final class KeyManagerUtils {
             if (keyManagers.size() == 1) {
                 baseKeyManager = keyManagers.get(0);
             } else {
+                AtomicInteger index = new AtomicInteger(0);
                 baseKeyManager = keyManagers.stream()
                         .map(KeyManagerUtils::unwrapIfPossible)
                         .flatMap(Collection::stream)
-                        .collect(toListAndThen(extendedKeyManagers -> new AggregatedX509ExtendedKeyManager(extendedKeyManagers, aliasToHost)));
+                        .map(keyManager -> new SimpleImmutableEntry<>(String.valueOf(index.incrementAndGet()), keyManager))
+                        .collect(toMapAndThen(extendedKeyManagers -> new AggregatedX509ExtendedKeyManager(extendedKeyManagers, aliasToHost)));
             }
 
             if (inflatableKeyManagerEnabled) {
-                baseKeyManager = KeyManagerUtils.createInflatableKeyManager(baseKeyManager);
+                baseKeyManager = KeyManagerUtils.createInflatableKeyManager("base", baseKeyManager);
             }
 
             if (loggingKeyManagerEnabled) {

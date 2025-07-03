@@ -16,48 +16,63 @@
 package nl.altindag.ssl.keymanager;
 
 import nl.altindag.ssl.util.KeyManagerUtils;
-import nl.altindag.ssl.util.TrustManagerUtils;
 
 import javax.net.ssl.X509ExtendedKeyManager;
 import java.security.KeyStore;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 /**
  * <strong>NOTE:</strong>
  * Please don't use this class directly as it is part of the internal API. Class name and methods can be changed any time.
- * Instead, use the {@link TrustManagerUtils TrustManagerUtils} which provides the same functionality
+ * Instead, use the {@link KeyManagerUtils KeyManagerUtils} which provides the same functionality
  * while it has a stable API because it is part of the public API.
  * <p>
  * The Inflatable KeyManager has the capability to grow with newly added identity material at any moment in time.
- * It can be added with {@link KeyManagerUtils#addIdentityMaterial(X509ExtendedKeyManager, KeyStore, char[])}
+ * It can be added with {@link KeyManagerUtils#addIdentityMaterial(X509ExtendedKeyManager, String, KeyStore, char[])}
+ * or with {@link KeyManagerUtils#addIdentityMaterial(X509ExtendedKeyManager, String, X509ExtendedKeyManager)}
  *
  * @author Hakan Altindag
  */
 public class InflatableX509ExtendedKeyManager extends HotSwappableX509ExtendedKeyManager {
 
     public InflatableX509ExtendedKeyManager() {
-        this(KeyManagerUtils.createDummyKeyManager());
+        this("dummy", KeyManagerUtils.createDummyKeyManager());
     }
 
-    public InflatableX509ExtendedKeyManager(X509ExtendedKeyManager keyManager) {
-        super(keyManager instanceof AggregatedX509ExtendedKeyManager ? keyManager : new AggregatedX509ExtendedKeyManager(Collections.singletonList(keyManager)));
+    public InflatableX509ExtendedKeyManager(String alias, X509ExtendedKeyManager keyManager) {
+        super(keyManager instanceof AggregatedX509ExtendedKeyManager ? keyManager : new AggregatedX509ExtendedKeyManager(Collections.singletonMap(alias, keyManager)));
     }
 
-    public void addIdentity(X509ExtendedKeyManager keyManager) {
+    public void addIdentity(String alias, X509ExtendedKeyManager keyManager) {
         writeLock.lock();
 
         try {
             AggregatedX509ExtendedKeyManager aggregatedKeyManager = (AggregatedX509ExtendedKeyManager) getInnerKeyManager();
-            List<X509ExtendedKeyManager> innerKeyManagers = aggregatedKeyManager.getInnerKeyManagers().stream()
-                    .filter(km -> !(km instanceof DummyX509ExtendedKeyManager))
-                    .collect(Collectors.toCollection(ArrayList::new));
-            innerKeyManagers.add(keyManager);
-            setKeyManager(new AggregatedX509ExtendedKeyManager(innerKeyManagers, aggregatedKeyManager.getIdentityRoute()));
+            aggregatedKeyManager.keyManagers.remove("dummy");
+            aggregatedKeyManager.keyManagers.put(alias, keyManager);
         } finally {
             writeLock.unlock();
+        }
+    }
+
+    public void removeIdentity(String alias) {
+        writeLock.lock();
+
+        try {
+            ((AggregatedX509ExtendedKeyManager) getInnerKeyManager()).keyManagers.remove(alias);
+        } finally {
+            writeLock.unlock();
+        }
+    }
+
+    public Map<String, X509ExtendedKeyManager> getAliasToIdentity() {
+        readLock.lock();
+
+        try {
+            return Collections.unmodifiableMap(((AggregatedX509ExtendedKeyManager) getInnerKeyManager()).keyManagers);
+        } finally {
+            readLock.unlock();
         }
     }
 
