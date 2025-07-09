@@ -35,8 +35,8 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.Principal;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -63,7 +63,7 @@ class AggregatedX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
         AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
-                Arrays.asList(keyManagerOne, keyManagerTwo)
+                Map.of("1", keyManagerOne, "2", keyManagerTwo)
         );
 
         int amountOfKeyManagers = keyManager.getInnerKeyManagers().size();
@@ -85,7 +85,7 @@ class AggregatedX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
         AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
-                Arrays.asList(keyManagerOne, keyManagerTwo)
+                Map.of("1", keyManagerOne, "2", keyManagerTwo)
         );
 
         int amountOfKeyManagers = keyManager.getInnerKeyManagers().size();
@@ -106,7 +106,7 @@ class AggregatedX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
         AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
-                Arrays.asList(keyManagerOne, keyManagerTwo)
+                Map.of("1", keyManagerOne, "2", keyManagerTwo)
         );
 
         int amountOfKeyManagers = keyManager.getInnerKeyManagers().size();
@@ -134,7 +134,7 @@ class AggregatedX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
         AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
-                Arrays.asList(keyManagerOne, keyManagerTwo)
+                Map.of("1", keyManagerOne, "2", keyManagerTwo)
         );
 
         int amountOfKeyManagers = keyManager.getInnerKeyManagers().size();
@@ -151,7 +151,7 @@ class AggregatedX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager mockedInnerKeyManager = mock(X509ExtendedKeyManager.class);
         when(mockedInnerKeyManager.getCertificateChain(anyString())).thenReturn(new X509Certificate[] {});
 
-        AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(Collections.singletonList(mockedInnerKeyManager));
+        AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(Map.of("1", mockedInnerKeyManager));
         X509Certificate[] certificateChain = keyManager.getCertificateChain("dummy-client");
 
         assertThat(certificateChain).isNull();
@@ -167,7 +167,7 @@ class AggregatedX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
         AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
-                Arrays.asList(keyManagerOne, keyManagerTwo)
+                Map.of("1", keyManagerOne, "2", keyManagerTwo)
         );
 
         String[] aliases = keyManager.getServerAliases("RSA", null);
@@ -187,7 +187,7 @@ class AggregatedX509ExtendedKeyManagerShould {
         Principal[] mockedIssuers = new Principal[]{ mockedIssuer };
         when(mockedInnerKeyManager.getServerAliases("RSA", mockedIssuers)).thenReturn(null);
 
-        AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(Collections.singletonList(mockedInnerKeyManager));
+        AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(Map.of("1", mockedInnerKeyManager));
         String[] serverAliases = keyManager.getServerAliases("RSA", mockedIssuers);
 
         assertThat(serverAliases).isNull();
@@ -202,7 +202,7 @@ class AggregatedX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
         AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
-                Arrays.asList(keyManagerOne, keyManagerTwo)
+                Map.of("1", keyManagerOne, "2", keyManagerTwo)
         );
 
         String[] aliases = keyManager.getClientAliases("RSA", null);
@@ -224,7 +224,7 @@ class AggregatedX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
         AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
-                Arrays.asList(keyManagerOne, keyManagerTwo)
+                Map.of("1", keyManagerOne, "2", keyManagerTwo)
         );
 
         String alias = keyManager.chooseServerAlias("RSA", null, null);
@@ -246,7 +246,7 @@ class AggregatedX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
         AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
-                Arrays.asList(keyManagerOne, keyManagerTwo), Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://another-server.com:443/")))
+                Map.of("1", keyManagerOne, "2", keyManagerTwo), Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://another-server.com:443/")))
         );
 
         SSLSocket socket = mock(SSLSocket.class);
@@ -277,7 +277,7 @@ class AggregatedX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerTwo = mock(X509ExtendedKeyManager.class);
 
         AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
-                Arrays.asList(keyManagerOne, keyManagerTwo), Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://another-server.com:443/")))
+                Map.of("1", keyManagerOne, "2", keyManagerTwo), Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://another-server.com:443/")))
         );
 
         String alias = keyManager.chooseServerAlias("RSA", null, socket);
@@ -295,7 +295,7 @@ class AggregatedX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerTwo = mock(X509ExtendedKeyManager.class);
 
         AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
-                Arrays.asList(keyManagerOne, keyManagerTwo), Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://another-server.com:443/")))
+                Map.of("1", keyManagerOne, "2", keyManagerTwo), Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://another-server.com:443/")))
         );
 
         String alias = keyManager.chooseServerAlias("RSA", null, socket);
@@ -315,7 +315,7 @@ class AggregatedX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
         AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
-                Arrays.asList(keyManagerOne, keyManagerTwo)
+                Map.of("1", keyManagerOne, "2", keyManagerTwo)
         );
 
         String alias = keyManager.chooseEngineServerAlias("RSA", null, null);
@@ -337,7 +337,7 @@ class AggregatedX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
         AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
-                Arrays.asList(keyManagerOne, keyManagerTwo), Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://another-server.com:443/")))
+                Map.of("1", keyManagerOne, "2", keyManagerTwo), Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://another-server.com:443/")))
         );
 
         SSLEngine sslEngine = mock(SSLEngine.class);
@@ -359,50 +359,6 @@ class AggregatedX509ExtendedKeyManagerShould {
     }
 
     @Test
-    void chooseFirstServerAliasWithMatchingKeyTypeWithDifferentOrderOfInitializationOfTheKeyManager() throws KeyStoreException {
-        KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
-        KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
-
-        X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
-        X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
-
-        AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
-                Arrays.asList(keyManagerTwo, keyManagerOne)
-        );
-
-        String alias = keyManager.chooseServerAlias("RSA", null, null);
-
-        int amountOfKeyManagers = keyManager.getInnerKeyManagers().size();
-        assertThat(keyManager).isNotNull();
-        assertThat(amountOfKeyManagers).isEqualTo(2);
-        assertThat(identityOne.size()).isEqualTo(1);
-        assertThat(identityTwo.size()).isEqualTo(1);
-        assertThat(alias).isEqualTo("another-server");
-    }
-
-    @Test
-    void chooseFirstEngineServerAliasWithMatchingKeyTypeWithDifferentOrderOfInitializationOfTheKeyManager() throws KeyStoreException {
-        KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
-        KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
-
-        X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
-        X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
-
-        AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
-                Arrays.asList(keyManagerTwo, keyManagerOne)
-        );
-
-        String alias = keyManager.chooseServerAlias("RSA", null, null);
-
-        int amountOfKeyManagers = keyManager.getInnerKeyManagers().size();
-        assertThat(keyManager).isNotNull();
-        assertThat(amountOfKeyManagers).isEqualTo(2);
-        assertThat(identityOne.size()).isEqualTo(1);
-        assertThat(identityTwo.size()).isEqualTo(1);
-        assertThat(alias).isEqualTo("another-server");
-    }
-
-    @Test
     void returnNullWhenThereIsNoMatchOfKeyTypeForKeyManagersWhileChoosingServerAlias() throws KeyStoreException {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
@@ -411,7 +367,7 @@ class AggregatedX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
         AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
-                Arrays.asList(keyManagerOne, keyManagerTwo)
+                Map.of("1", keyManagerOne, "2", keyManagerTwo)
         );
 
         String alias = keyManager.chooseServerAlias("ECDSA", null, null);
@@ -433,7 +389,7 @@ class AggregatedX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
         AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
-                Arrays.asList(keyManagerOne, keyManagerTwo)
+                Map.of("1", keyManagerOne, "2", keyManagerTwo)
         );
 
         String alias = keyManager.chooseEngineServerAlias("ECDSA", null, null);
@@ -455,7 +411,7 @@ class AggregatedX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
         AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
-                Arrays.asList(keyManagerOne, keyManagerTwo)
+                Map.of("1", keyManagerOne, "2", keyManagerTwo)
         );
 
         String alias = keyManager.chooseClientAlias(new String[]{"RSA"}, null, null);
@@ -477,7 +433,7 @@ class AggregatedX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
         AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
-                Arrays.asList(keyManagerOne, keyManagerTwo),
+                Map.of("1", keyManagerOne, "2", keyManagerTwo),
                 Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://another-server.com:443/")))
         );
 
@@ -507,7 +463,7 @@ class AggregatedX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
         AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
-                Arrays.asList(keyManagerOne, keyManagerTwo),
+                Map.of("1", keyManagerOne, "2", keyManagerTwo),
                 Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://another-server.com:443/")))
         );
 
@@ -534,7 +490,7 @@ class AggregatedX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
         AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
-                Arrays.asList(keyManagerOne, keyManagerTwo),
+                Map.of("1", keyManagerOne, "2", keyManagerTwo),
                 Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://another-server.com:443/")))
         );
 
@@ -563,7 +519,7 @@ class AggregatedX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
         AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
-                Arrays.asList(keyManagerOne, keyManagerTwo),
+                Map.of("1", keyManagerOne, "2", keyManagerTwo),
                 Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://another-server.com:443/")))
         );
 
@@ -586,7 +542,7 @@ class AggregatedX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
         AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
-                Arrays.asList(keyManagerOne, keyManagerTwo)
+                Map.of("1", keyManagerOne, "2", keyManagerTwo)
         );
 
         String alias = keyManager.chooseEngineClientAlias(new String[]{"RSA"}, null, null);
@@ -608,7 +564,7 @@ class AggregatedX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
         AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
-                Arrays.asList(keyManagerOne, keyManagerTwo),
+                Map.of("1", keyManagerOne, "2", keyManagerTwo),
                 Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://another-server.com:443/")))
         );
 
@@ -635,7 +591,7 @@ class AggregatedX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
         AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
-                Arrays.asList(keyManagerOne, keyManagerTwo),
+                Map.of("1", keyManagerOne, "2", keyManagerTwo),
                 Collections.singletonMap("another-server", Collections.singletonList(URI.create("https://another-server.com:443/")))
         );
 
@@ -658,7 +614,7 @@ class AggregatedX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
         AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
-                Arrays.asList(keyManagerOne, keyManagerTwo)
+                Map.of("1", keyManagerOne, "2", keyManagerTwo)
         );
 
         String alias = keyManager.chooseClientAlias(new String[]{"ECDSA"}, null, null);
@@ -680,7 +636,7 @@ class AggregatedX509ExtendedKeyManagerShould {
         X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
 
         AggregatedX509ExtendedKeyManager keyManager = new AggregatedX509ExtendedKeyManager(
-                Arrays.asList(keyManagerOne, keyManagerTwo)
+                Map.of("1", keyManagerOne, "2", keyManagerTwo)
         );
 
         String alias = keyManager.chooseEngineClientAlias(new String[]{"ECDSA"}, null, null);

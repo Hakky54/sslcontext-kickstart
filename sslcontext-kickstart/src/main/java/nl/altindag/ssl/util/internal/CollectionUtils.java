@@ -15,9 +15,11 @@
  */
 package nl.altindag.ssl.util.internal;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 /**
  * <strong>NOTE:</strong>
@@ -37,6 +39,10 @@ public final class CollectionUtils {
     @SafeVarargs
     public static <T> List<T> toUnmodifiableList(T... values) {
         return Collections.unmodifiableList(Arrays.asList(values));
+    }
+
+    public static <T> List<T> toUnmodifiableList(Set<T> values) {
+        return Collections.unmodifiableList(new ArrayList<>(values));
     }
 
 }
