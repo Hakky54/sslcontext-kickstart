@@ -83,6 +83,7 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "9.1.0"
      - [Trust additional new certificates at runtime](#trust-additional-new-certificates-at-runtime)
      - [Routing client identity to specific host](#routing-identity-material-to-specific-host)
      - [Updating client identity routes at runtime](#updating-identity-routes-at-runtime) 
+     - [Managing additional identities at runtime](#managing-additional-identities-at-runtime)
      - [Managing ssl session](#managing-ssl-session)
      - [Extracting server certificates](#extracting-server-certificates)
        - [Single server](#single-server)
