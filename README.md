@@ -659,6 +659,30 @@ KeyManagerUtils.addIdentityRoute(keyManager, "client-alias-one", "https://localh
 // Override existing routes
 KeyManagerUtils.overrideIdentityRoute(keyManager, "client-alias-two", "https://localhost:9463/", "https://localhost:9473/")
 ```
+##### Managing additional identities at runtime
+Please beware when using multiple identities from a keystore. The alias name from the key entry within the keystore should be unique across all the identities.
+```text
+SSLFactory sslFactory = SSLFactory.builder()
+          .withInflatableIdentityMaterial()
+          .withIdentityMaterial(Paths.get("/path/to/your/identity-1.jks"), "password".toCharArray())
+          .withTrustMaterial("truststore.jks", password)
+          .withIdentityRoute("client-alias-one", "https://localhost:8443/", "https://localhost:8453/")
+          .build();
+          
+X509ExtendedKeyManager keyManager = sslFactory.getKeyManager().get();
+
+// Adding identity and an additional route
+KeyStore identityTwo = KeyStoreUtils.loadKeyStore(Paths.get("/path/to/your/identity-2.jks"), "password".toCharArray());
+KeyManagerUtils.addIdentityMaterial(keyManager, "client-alias-two", identityTwo, "password".toCharArray());
+KeyManagerUtils.addIdentityRoute(keyManager, "client-alias-two", "https://localhost:8463/", "https://localhost:8473/");
+
+// Getting existing list of aliases from the inflatable key manager
+List<String> aliases = KeyManagerUtils.getAliases(keyManager);
+
+// Removing identity
+KeyManagerUtils.removeIdentityMaterial(keyManager, "client-alias-two");
+KeyManagerUtils.removeIdentityRoute(keyManager, "client-alias-two");
+```
 ##### Managing ssl session
 ```text
 SSLFactory sslFactory = SSLFactory.builder()

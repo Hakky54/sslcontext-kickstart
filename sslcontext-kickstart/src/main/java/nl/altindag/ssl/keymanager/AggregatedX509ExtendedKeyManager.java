@@ -26,10 +26,11 @@ import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Represents an ordered list of {@link X509ExtendedKeyManager} with most-preferred managers first.
@@ -64,7 +65,7 @@ import java.util.Objects;
  */
 public final class AggregatedX509ExtendedKeyManager extends X509ExtendedKeyManager implements CombinableX509KeyManager, RoutableX509KeyManager {
 
-    private final List<X509ExtendedKeyManager> keyManagers;
+    final Map<String, X509ExtendedKeyManager> keyManagers;
     private final Map<String, List<URI>> preferredAliasToHost;
 
     /**
@@ -72,7 +73,7 @@ public final class AggregatedX509ExtendedKeyManager extends X509ExtendedKeyManag
      *
      * @param keyManagers the {@link X509ExtendedKeyManager}, ordered with the most-preferred managers first.
      */
-    public AggregatedX509ExtendedKeyManager(List<? extends X509ExtendedKeyManager> keyManagers) {
+    public AggregatedX509ExtendedKeyManager(Map<String, ? extends X509ExtendedKeyManager> keyManagers) {
         this(keyManagers, Collections.emptyMap());
     }
 
@@ -82,10 +83,10 @@ public final class AggregatedX509ExtendedKeyManager extends X509ExtendedKeyManag
      * @param keyManagers          the {@link X509ExtendedKeyManager}, ordered with the most-preferred managers first.
      * @param preferredAliasToHost the preferred client alias to be used for the given host
      */
-    public AggregatedX509ExtendedKeyManager(List<? extends X509ExtendedKeyManager> keyManagers,
+    public AggregatedX509ExtendedKeyManager(Map<String, ? extends X509ExtendedKeyManager> keyManagers,
                                             Map<String, List<URI>> preferredAliasToHost) {
-        this.keyManagers = Collections.unmodifiableList(keyManagers);
-        this.preferredAliasToHost = new HashMap<>(preferredAliasToHost);
+        this.keyManagers = Collections.synchronizedMap(new LinkedHashMap<>(keyManagers));
+        this.preferredAliasToHost = new ConcurrentHashMap<>(preferredAliasToHost);
     }
 
     /**
@@ -187,8 +188,8 @@ public final class AggregatedX509ExtendedKeyManager extends X509ExtendedKeyManag
     }
 
     @Override
-    public List<X509ExtendedKeyManager> getInnerKeyManagers() {
-        return keyManagers;
+    public Map<String, X509ExtendedKeyManager> getInnerKeyManagers() {
+        return Collections.unmodifiableMap(keyManagers);
     }
 
     @Override

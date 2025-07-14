@@ -17,7 +17,9 @@ package nl.altindag.ssl.util.internal;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -41,8 +43,16 @@ public final class CollectorsUtils {
         return Collectors.toCollection(ArrayList::new);
     }
 
+    public static <T, U> Collector<Map.Entry<T, U>, ?, Map<T, U>> toModifiableMap() {
+        return Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (previous, latest) -> latest, HashMap::new);
+    }
+
     public static <T, U> Collector<T, ?, U> toListAndThen(Function<List<T>,U> finisher) {
         return Collectors.collectingAndThen(Collectors.toList(), finisher);
+    }
+
+    public static <T, U> Collector<Map.Entry<T, U>, ?, U> toMapAndThen(Function<Map<T, U>,U> finisher) {
+        return Collectors.collectingAndThen(toModifiableMap(), finisher);
     }
 
     public static <T> Collector<T, ?, T[]> toArray(T[] template) {

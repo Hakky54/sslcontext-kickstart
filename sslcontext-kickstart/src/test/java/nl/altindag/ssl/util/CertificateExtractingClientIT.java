@@ -96,10 +96,10 @@ class CertificateExtractingClientIT {
                     .build();
 
             Server server = Server.builder(sslFactory)
-                    .withPort(9999)
+                    .withPort(9998)
                     .build();
 
-            List<X509Certificate> certificates = client.get("https://localhost:9999");
+            List<X509Certificate> certificates = client.get("https://localhost:9998");
             assertThat(certificates).isNotEmpty();
             assertThat(logCaptor.getDebugLogs()).contains("Skipped getting certificate from remote file while using the following location [http://google.com/DigiCertTLSRSASHA2562020CA1-1.crt]");
 

@@ -25,6 +25,7 @@ import nl.altindag.ssl.hostnameverifier.FenixHostnameVerifier;
 import nl.altindag.ssl.keymanager.AggregatedX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.DummyX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.HotSwappableX509ExtendedKeyManager;
+import nl.altindag.ssl.keymanager.InflatableX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.LoggingX509ExtendedKeyManager;
 import nl.altindag.ssl.trustmanager.DummyX509ExtendedTrustManager;
 import nl.altindag.ssl.trustmanager.EnhanceableX509ExtendedTrustManager;
@@ -2149,6 +2150,20 @@ class SSLFactoryShould {
                 .get();
 
         assertThat(sslParameters).isNotNull();
+    }
+
+    @Test
+    void createSslFactoryWithInflatableIdentityMaterial() {
+        SSLFactory sslFactory = SSLFactory.builder()
+                .withIdentityMaterial(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD)
+                .withInflatableIdentityMaterial()
+                .build();
+
+        X509ExtendedKeyManager keyManager = sslFactory.getKeyManager().get();
+        assertThat(keyManager).isInstanceOf(InflatableX509ExtendedKeyManager.class);
+
+        List<String> aliases = KeyManagerUtils.getAliases(keyManager);
+        assertThat(aliases).contains("initial-key-manager");
     }
 
     @Test

@@ -37,11 +37,11 @@ import static nl.altindag.ssl.util.internal.ValidationUtils.requireNotNull;
  *
  * @author Hakan Altindag
  */
-public final class HotSwappableX509ExtendedKeyManager extends DelegatingX509ExtendedKeyManager {
+public class HotSwappableX509ExtendedKeyManager extends DelegatingX509ExtendedKeyManager {
 
     private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
-    private final Lock readLock = readWriteLock.readLock();
-    private final Lock writeLock = readWriteLock.writeLock();
+    protected final Lock readLock = readWriteLock.readLock();
+    protected final Lock writeLock = readWriteLock.writeLock();
 
     public HotSwappableX509ExtendedKeyManager(X509ExtendedKeyManager keyManager) {
         super(keyManager);
