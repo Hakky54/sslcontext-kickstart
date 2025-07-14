@@ -233,24 +233,28 @@ public final class KeyManagerUtils {
     }
 
     public static void addIdentityRoute(X509ExtendedKeyManager keyManager, String alias, String... hosts) {
-        addIdentityRoute(keyManager, alias, hosts, false);
+        computeIdentityRoute(keyManager, alias, hosts, false, false);
     }
 
     public static void overrideIdentityRoute(X509ExtendedKeyManager keyManager, String alias, String... hosts) {
-        addIdentityRoute(keyManager, alias, hosts, true);
+        computeIdentityRoute(keyManager, alias, hosts, true, false);
     }
 
-    private static void addIdentityRoute(X509ExtendedKeyManager keyManager,
-                                         String alias,
-                                         String[] hosts,
-                                         boolean overrideExistingRouteEnabled) {
+    public static void removeIdentityRoute(X509ExtendedKeyManager keyManager, String alias) {
+        computeIdentityRoute(keyManager, alias, null, false, true);
+    }
+
+    private static void computeIdentityRoute(X509ExtendedKeyManager keyManager,
+                                             String alias,
+                                             String[] hosts,
+                                             boolean overrideExistingRouteEnabled,
+                                             boolean removeExistingRouteEnabled) {
 
         requireNotNull(keyManager, GENERIC_EXCEPTION_MESSAGE.apply("KeyManager"));
         requireNotNull(alias, GENERIC_EXCEPTION_MESSAGE.apply("Alias"));
-        requireNotNull(keyManager, GENERIC_EXCEPTION_MESSAGE.apply("Host"));
 
         if (keyManager instanceof DelegatingX509ExtendedKeyManager) {
-            addIdentityRoute(((DelegatingX509ExtendedKeyManager) keyManager).getInnerKeyManager(), alias, hosts, overrideExistingRouteEnabled);
+            computeIdentityRoute(((DelegatingX509ExtendedKeyManager) keyManager).getInnerKeyManager(), alias, hosts, overrideExistingRouteEnabled, removeExistingRouteEnabled);
             return;
         }
 
@@ -258,6 +262,12 @@ public final class KeyManagerUtils {
             AggregatedX509ExtendedKeyManager aggregatedX509ExtendedKeyManager = (AggregatedX509ExtendedKeyManager) keyManager;
             Map<String, List<URI>> aliasToHosts = aggregatedX509ExtendedKeyManager.getIdentityRoute();
 
+            if (removeExistingRouteEnabled) {
+                aliasToHosts.remove(alias);
+                return;
+            }
+
+            requireNotNull(hosts, GENERIC_EXCEPTION_MESSAGE.apply("Host"));
             List<URI> uris = new ArrayList<>();
             for (String host : hosts) {
                 URI uri = URI.create(host);
@@ -370,9 +380,10 @@ public final class KeyManagerUtils {
             return;
         }
 
-        throw new GenericKeyManagerException(
-                String.format("The provided keyManager should be an instance of [%s]", InflatableX509ExtendedKeyManager.class.getName())
-        );
+        throw new GenericKeyManagerException(String.format(
+                "KeyManager should be an instance of: [%s], but received: [%s]",
+                InflatableX509ExtendedKeyManager.class.getName(),
+                baseKeyManager.getClass().getName()));
     }
 
     /**

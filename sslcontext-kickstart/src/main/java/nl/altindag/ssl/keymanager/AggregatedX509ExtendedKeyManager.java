@@ -26,11 +26,11 @@ import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Represents an ordered list of {@link X509ExtendedKeyManager} with most-preferred managers first.
@@ -86,7 +86,7 @@ public final class AggregatedX509ExtendedKeyManager extends X509ExtendedKeyManag
     public AggregatedX509ExtendedKeyManager(Map<String, ? extends X509ExtendedKeyManager> keyManagers,
                                             Map<String, List<URI>> preferredAliasToHost) {
         this.keyManagers = Collections.synchronizedMap(new LinkedHashMap<>(keyManagers));
-        this.preferredAliasToHost = new HashMap<>(preferredAliasToHost);
+        this.preferredAliasToHost = new ConcurrentHashMap<>(preferredAliasToHost);
     }
 
     /**

@@ -357,7 +357,8 @@ class KeyManagerUtilsShould {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
-        X509ExtendedKeyManager inflatableKeyManager = KeyManagerUtils.keyManagerBuilder().withInflatableKeyManager(true)
+        X509ExtendedKeyManager inflatableKeyManager = KeyManagerUtils.keyManagerBuilder()
+                .withInflatableKeyManager(true)
                 .withIdentity(identityOne, IDENTITY_PASSWORD, KeyManagerFactory.getDefaultAlgorithm())
                 .withIdentity(identityTwo, IDENTITY_PASSWORD, KeyManagerFactory.getDefaultAlgorithm())
                 .build();
@@ -415,6 +416,29 @@ class KeyManagerUtilsShould {
         assertThat(clientIdentityRoute)
                 .containsKey("client")
                 .containsValue(Arrays.asList("https://localhost:8443/", "https://localhost:8453/"));
+    }
+
+    @Test
+    void removeClientIdentityRoutes() {
+        KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager inflatableKeyManager = KeyManagerUtils.keyManagerBuilder()
+                .withInflatableKeyManager(true)
+                .withIdentity(identityOne, IDENTITY_PASSWORD, KeyManagerFactory.getDefaultAlgorithm())
+                .withIdentity(identityTwo, IDENTITY_PASSWORD, KeyManagerFactory.getDefaultAlgorithm())
+                .build();
+
+        KeyManagerUtils.addIdentityRoute(inflatableKeyManager, "client","https://localhost:8443/");
+        KeyManagerUtils.addIdentityRoute(inflatableKeyManager, "client","https://localhost:8453/");
+        Map<String, List<String>> identityRoute = KeyManagerUtils.getIdentityRoute(inflatableKeyManager);
+
+        assertThat(identityRoute)
+                .containsKey("client")
+                .containsValue(Arrays.asList("https://localhost:8443/", "https://localhost:8453/"));
+
+        KeyManagerUtils.removeIdentityRoute(inflatableKeyManager, "client");
+        assertThat(KeyManagerUtils.getIdentityRoute(inflatableKeyManager)).isEmpty();
     }
 
     @Test
@@ -593,7 +617,7 @@ class KeyManagerUtilsShould {
 
         assertThatThrownBy(() -> KeyManagerUtils.addIdentityMaterial(keyManager, "key-manager-one", identityTwo, IDENTITY_PASSWORD))
                 .isInstanceOf(GenericKeyManagerException.class)
-                .hasMessage("The provided keyManager should be an instance of [nl.altindag.ssl.keymanager.InflatableX509ExtendedKeyManager]");
+                .hasMessage("KeyManager should be an instance of: [nl.altindag.ssl.keymanager.InflatableX509ExtendedKeyManager], but received: [sun.security.ssl.SunX509KeyManagerImpl]");
     }
 
     @Test
@@ -607,7 +631,7 @@ class KeyManagerUtilsShould {
 
         assertThatThrownBy(() -> KeyManagerUtils.addIdentityMaterial(keyManager, "key-manager-one", identityTwo, IDENTITY_PASSWORD))
                 .isInstanceOf(GenericKeyManagerException.class)
-                .hasMessage("The provided keyManager should be an instance of [nl.altindag.ssl.keymanager.InflatableX509ExtendedKeyManager]");
+                .hasMessage("KeyManager should be an instance of: [nl.altindag.ssl.keymanager.InflatableX509ExtendedKeyManager], but received: [nl.altindag.ssl.keymanager.AggregatedX509ExtendedKeyManager]");
     }
 
     @Test
