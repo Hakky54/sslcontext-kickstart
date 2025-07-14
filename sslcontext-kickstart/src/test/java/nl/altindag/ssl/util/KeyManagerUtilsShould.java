@@ -18,7 +18,9 @@ package nl.altindag.ssl.util;
 import nl.altindag.ssl.exception.GenericKeyManagerException;
 import nl.altindag.ssl.exception.GenericKeyStoreException;
 import nl.altindag.ssl.keymanager.AggregatedX509ExtendedKeyManager;
+import nl.altindag.ssl.keymanager.DummyX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.HotSwappableX509ExtendedKeyManager;
+import nl.altindag.ssl.keymanager.InflatableX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.LoggingX509ExtendedKeyManager;
 import nl.altindag.ssl.keymanager.X509KeyManagerWrapper;
 import nl.altindag.ssl.model.KeyStoreHolder;
@@ -427,6 +429,29 @@ class KeyManagerUtilsShould {
         assertThat(clientIdentityRoute)
                 .containsKey("client")
                 .containsValue(Arrays.asList("https://localhost:8443/", "https://localhost:8453/"));
+    }
+
+    @Test
+    void createInflatableKeyManager() {
+        X509ExtendedKeyManager keyManager = KeyManagerUtils.createInflatableKeyManager();
+        assertThat(keyManager).isInstanceOf(InflatableX509ExtendedKeyManager.class);
+
+        assertThat(KeyManagerUtils.getAliases(keyManager)).containsExactly("dummy");
+        assertThat(((InflatableX509ExtendedKeyManager) keyManager).getInnerKeyManager()).isInstanceOf(AggregatedX509ExtendedKeyManager.class);
+        assertThat(((AggregatedX509ExtendedKeyManager) ((InflatableX509ExtendedKeyManager) keyManager).getInnerKeyManager()).getInnerKeyManagers().get("dummy")).isInstanceOf(DummyX509ExtendedKeyManager.class);
+    }
+
+    @Test
+    void createInflatableKeyManagerFromAnyInitialKeyManager() {
+        KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManager = KeyManagerUtils.createKeyManager(identity, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager inflatableKeyManager = KeyManagerUtils.createInflatableKeyManager("my-key-manager", keyManager);
+        assertThat(inflatableKeyManager).isInstanceOf(InflatableX509ExtendedKeyManager.class);
+
+        assertThat(KeyManagerUtils.getAliases(inflatableKeyManager)).containsExactly("my-key-manager");
+        assertThat(((InflatableX509ExtendedKeyManager) inflatableKeyManager).getInnerKeyManager()).isInstanceOf(AggregatedX509ExtendedKeyManager.class);
+        assertThat(((AggregatedX509ExtendedKeyManager) ((InflatableX509ExtendedKeyManager) inflatableKeyManager).getInnerKeyManager()).getInnerKeyManagers().get("my-key-manager")).isEqualTo(keyManager);
     }
 
     @Test
