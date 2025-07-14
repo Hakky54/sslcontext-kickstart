@@ -421,6 +421,19 @@ public final class KeyManagerUtils {
             return getAliases(((DelegatingX509ExtendedKeyManager) keyManager).getInnerKeyManager());
         }
 
+        if (keyManager instanceof AggregatedX509ExtendedKeyManager) {
+            Map<String, X509ExtendedKeyManager> innerKeyManagers = ((AggregatedX509ExtendedKeyManager) keyManager).getInnerKeyManagers();
+
+            Optional<InflatableX509ExtendedKeyManager> inflatableKeyManager = innerKeyManagers.values().stream()
+                    .filter(InflatableX509ExtendedKeyManager.class::isInstance)
+                    .map(InflatableX509ExtendedKeyManager.class::cast)
+                    .findFirst();
+
+            if (inflatableKeyManager.isPresent()) {
+                return getAliases(inflatableKeyManager.get());
+            }
+        }
+
         return Collections.emptyList();
     }
 
