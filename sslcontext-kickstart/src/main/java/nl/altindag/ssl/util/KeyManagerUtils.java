@@ -508,7 +508,7 @@ public final class KeyManagerUtils {
             }
 
             if (inflatableKeyManagerEnabled) {
-                baseKeyManager = KeyManagerUtils.createInflatableKeyManager("base", baseKeyManager);
+                baseKeyManager = KeyManagerUtils.createInflatableKeyManager("initial-key-manager", baseKeyManager);
             }
 
             if (loggingKeyManagerEnabled) {

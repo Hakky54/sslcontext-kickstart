@@ -52,7 +52,7 @@ public final class CollectorsUtils {
     }
 
     public static <T, U> Collector<Map.Entry<T, U>, ?, U> toMapAndThen(Function<Map<T, U>,U> finisher) {
-        return Collectors.collectingAndThen(Collectors.toMap(Map.Entry<T, U>::getKey, Map.Entry<T, U>::getValue, (previous, latest) -> latest, HashMap::new), finisher);
+        return Collectors.collectingAndThen(toModifiableMap(), finisher);
     }
 
     public static <T> Collector<T, ?, T[]> toArray(T[] template) {
