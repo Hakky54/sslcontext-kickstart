@@ -542,6 +542,35 @@ class KeyManagerUtilsShould {
         assertThat(innerKeyManagers.get("key-manager-two")).isEqualTo(keyManagerTwo);
     }
 
+    @Test
+    void returnNoAliasesWhenItIsNotAnInflatableKeyManager() {
+        KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManager = KeyManagerUtils.createKeyManager(identity, IDENTITY_PASSWORD);
+
+        assertThat(KeyManagerUtils.getAliases(keyManager)).isEmpty();
+    }
+
+    @Test
+    void returnAliasesForAggregatableKeyManager() {
+        KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager keyManager = KeyManagerUtils.combine(keyManagerOne, keyManagerTwo);
+        assertThat(KeyManagerUtils.getAliases(keyManager)).containsExactly("1", "2");
+    }
+
+    @Test
+    void throwsExceptionWhenAddingIdentityMaterialToNonInflatableKeyManager() {
+        KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManager = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
+
+        assertThatThrownBy(() -> KeyManagerUtils.addIdentityMaterial(keyManager, "key-manager-one", identityTwo, IDENTITY_PASSWORD))
+                .isInstanceOf(GenericKeyManagerException.class)
+                .hasMessage("The provided keyManager should be an instance of [nl.altindag.ssl.keymanager.InflatableX509ExtendedKeyManager]");
+    }
 
     @Test
     void throwExceptionWhenCreatingKeyManagerFromKeyStoreWhichDoesNotHaveMatchingAlias() throws KeyStoreException {

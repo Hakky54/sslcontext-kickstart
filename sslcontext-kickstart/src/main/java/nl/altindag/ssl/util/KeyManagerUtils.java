@@ -431,6 +431,8 @@ public final class KeyManagerUtils {
 
             if (inflatableKeyManager.isPresent()) {
                 return getAliases(inflatableKeyManager.get());
+            } else {
+                return toUnmodifiableList(((AggregatedX509ExtendedKeyManager) keyManager).getInnerKeyManagers().keySet());
             }
         }
 
