@@ -455,6 +455,48 @@ class KeyManagerUtilsShould {
     }
 
     @Test
+    void addIdentityMaterialAsKeyManagerToInflatableKeyManager() {
+        X509ExtendedKeyManager inflatableKeyManager = KeyManagerUtils.createInflatableKeyManager();
+        assertThat(inflatableKeyManager).isInstanceOf(InflatableX509ExtendedKeyManager.class);
+
+        assertThat(KeyManagerUtils.getAliases(inflatableKeyManager)).containsExactly("dummy");
+        assertThat(((InflatableX509ExtendedKeyManager) inflatableKeyManager).getInnerKeyManager()).isInstanceOf(AggregatedX509ExtendedKeyManager.class);
+        assertThat(((AggregatedX509ExtendedKeyManager) ((InflatableX509ExtendedKeyManager) inflatableKeyManager).getInnerKeyManager()).getInnerKeyManagers().get("dummy")).isInstanceOf(DummyX509ExtendedKeyManager.class);
+
+        KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
+
+        KeyManagerUtils.addIdentityMaterial(inflatableKeyManager, "key-manager-one", keyManagerOne);
+        KeyManagerUtils.addIdentityMaterial(inflatableKeyManager, "key-manager-two", keyManagerTwo);
+        assertThat(KeyManagerUtils.getAliases(inflatableKeyManager)).containsExactly("key-manager-one", "key-manager-two");
+        Map<String, X509ExtendedKeyManager> innerKeyManagers = ((AggregatedX509ExtendedKeyManager) ((InflatableX509ExtendedKeyManager) inflatableKeyManager).getInnerKeyManager()).getInnerKeyManagers();
+        assertThat(innerKeyManagers.get("key-manager-one")).isEqualTo(keyManagerOne);
+        assertThat(innerKeyManagers.get("key-manager-two")).isEqualTo(keyManagerTwo);
+    }
+
+    @Test
+    void addIdentityMaterialAsKeyStoreToInflatableKeyManager() {
+        X509ExtendedKeyManager inflatableKeyManager = KeyManagerUtils.createInflatableKeyManager();
+        assertThat(inflatableKeyManager).isInstanceOf(InflatableX509ExtendedKeyManager.class);
+
+        assertThat(KeyManagerUtils.getAliases(inflatableKeyManager)).containsExactly("dummy");
+        assertThat(((InflatableX509ExtendedKeyManager) inflatableKeyManager).getInnerKeyManager()).isInstanceOf(AggregatedX509ExtendedKeyManager.class);
+        assertThat(((AggregatedX509ExtendedKeyManager) ((InflatableX509ExtendedKeyManager) inflatableKeyManager).getInnerKeyManager()).getInnerKeyManagers().get("dummy")).isInstanceOf(DummyX509ExtendedKeyManager.class);
+
+        KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
+
+        KeyManagerUtils.addIdentityMaterial(inflatableKeyManager, "key-manager-one", identityOne, IDENTITY_PASSWORD);
+        KeyManagerUtils.addIdentityMaterial(inflatableKeyManager, "key-manager-two", identityTwo, IDENTITY_PASSWORD);
+        assertThat(KeyManagerUtils.getAliases(inflatableKeyManager)).containsExactly("key-manager-one", "key-manager-two");
+        Map<String, X509ExtendedKeyManager> innerKeyManagers = ((AggregatedX509ExtendedKeyManager) ((InflatableX509ExtendedKeyManager) inflatableKeyManager).getInnerKeyManager()).getInnerKeyManagers();
+        assertThat(innerKeyManagers.get("key-manager-one")).isNotNull();
+        assertThat(innerKeyManagers.get("key-manager-two")).isNotNull();
+    }
+
+    @Test
     void throwExceptionWhenCreatingKeyManagerFromKeyStoreWhichDoesNotHaveMatchingAlias() throws KeyStoreException {
         KeyStore identity = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + "identity-with-multiple-keys.jks", IDENTITY_PASSWORD);
 
