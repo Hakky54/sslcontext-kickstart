@@ -54,6 +54,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -71,6 +72,12 @@ import static nl.altindag.ssl.util.internal.ValidationUtils.requireNotNull;
 public final class KeyManagerUtils {
 
     private static final char[] DUMMY_PASSWORD = KeyStoreUtils.DUMMY_PASSWORD.toCharArray();
+    private static final BiFunction<Class<?>, Class<?>, GenericKeyManagerException> KEY_MANAGER_TYPE_MISMATCH_EXCEPTION_PROVIDER = (expectedKeyManagerType, actualKeyManagerType) -> new GenericKeyManagerException(
+            String.format(
+                    "KeyManager should be an instance of: [%s], but received: [%s]",
+                    expectedKeyManagerType.getName(),
+                    actualKeyManagerType.getName())
+    );
 
     private KeyManagerUtils() {}
 
@@ -287,10 +294,7 @@ public final class KeyManagerUtils {
                 }
             }
         } else {
-            throw new GenericKeyManagerException(String.format(
-                    "KeyManager should be an instance of: [%s], but received: [%s]",
-                    AggregatedX509ExtendedKeyManager.class.getName(),
-                    keyManager.getClass().getName()));
+            throw KEY_MANAGER_TYPE_MISMATCH_EXCEPTION_PROVIDER.apply(AggregatedX509ExtendedKeyManager.class, keyManager.getClass());
         }
     }
 
@@ -314,10 +318,7 @@ public final class KeyManagerUtils {
                             Collections::unmodifiableMap)
                     );
         } else {
-            throw new GenericKeyManagerException(String.format(
-                    "KeyManager should be an instance of: [%s], but received: [%s]",
-                    AggregatedX509ExtendedKeyManager.class.getName(),
-                    keyManager.getClass().getName()));
+            throw KEY_MANAGER_TYPE_MISMATCH_EXCEPTION_PROVIDER.apply(AggregatedX509ExtendedKeyManager.class, keyManager.getClass());
         }
     }
 
@@ -380,10 +381,7 @@ public final class KeyManagerUtils {
             return;
         }
 
-        throw new GenericKeyManagerException(String.format(
-                "KeyManager should be an instance of: [%s], but received: [%s]",
-                InflatableX509ExtendedKeyManager.class.getName(),
-                baseKeyManager.getClass().getName()));
+        throw KEY_MANAGER_TYPE_MISMATCH_EXCEPTION_PROVIDER.apply(InflatableX509ExtendedKeyManager.class, baseKeyManager.getClass());
     }
 
     /**
