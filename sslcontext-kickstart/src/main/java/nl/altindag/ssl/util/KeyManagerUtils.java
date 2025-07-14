@@ -287,6 +287,10 @@ public final class KeyManagerUtils {
     public static Map<String, List<String>> getIdentityRoute(X509ExtendedKeyManager keyManager) {
         requireNotNull(keyManager, GENERIC_EXCEPTION_MESSAGE.apply("KeyManager"));
 
+        if (keyManager instanceof DelegatingX509ExtendedKeyManager) {
+            return getIdentityRoute(((DelegatingX509ExtendedKeyManager) keyManager).getInnerKeyManager());
+        }
+
         if (keyManager instanceof AggregatedX509ExtendedKeyManager) {
             return ((AggregatedX509ExtendedKeyManager) keyManager)
                     .getIdentityRoute()

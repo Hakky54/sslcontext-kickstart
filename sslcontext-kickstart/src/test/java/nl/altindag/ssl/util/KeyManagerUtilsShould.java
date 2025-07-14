@@ -353,17 +353,18 @@ class KeyManagerUtilsShould {
     }
 
     @Test
-    void addMultipleClientIdentityRoutes() {
+    void addClientIdentityRoutesToInflatableKeyManager() {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
 
-        X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
-        X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager inflatableKeyManager = KeyManagerUtils.keyManagerBuilder().withInflatableKeyManager(true)
+                .withIdentity(identityOne, IDENTITY_PASSWORD, KeyManagerFactory.getDefaultAlgorithm())
+                .withIdentity(identityTwo, IDENTITY_PASSWORD, KeyManagerFactory.getDefaultAlgorithm())
+                .build();
 
-        X509ExtendedKeyManager keyManager = KeyManagerUtils.combine(keyManagerOne, keyManagerTwo);
-        KeyManagerUtils.addIdentityRoute(keyManager, "client","https://localhost:8443/");
-        KeyManagerUtils.addIdentityRoute(keyManager, "client","https://localhost:8453/");
-        Map<String, List<String>> identityRoute = KeyManagerUtils.getIdentityRoute(keyManager);
+        KeyManagerUtils.addIdentityRoute(inflatableKeyManager, "client","https://localhost:8443/");
+        KeyManagerUtils.addIdentityRoute(inflatableKeyManager, "client","https://localhost:8453/");
+        Map<String, List<String>> identityRoute = KeyManagerUtils.getIdentityRoute(inflatableKeyManager);
 
         assertThat(identityRoute)
                 .containsKey("client")
