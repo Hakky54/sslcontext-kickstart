@@ -499,6 +499,29 @@ class KeyManagerUtilsShould {
     }
 
     @Test
+    void removeIdentityMaterialFromInflatableKeyManager() {
+        X509ExtendedKeyManager inflatableKeyManager = KeyManagerUtils.createInflatableKeyManager();
+        assertThat(inflatableKeyManager).isInstanceOf(InflatableX509ExtendedKeyManager.class);
+
+        KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
+
+        KeyManagerUtils.addIdentityMaterial(inflatableKeyManager, "key-manager-one", identityOne, IDENTITY_PASSWORD);
+        KeyManagerUtils.addIdentityMaterial(inflatableKeyManager, "key-manager-two", identityTwo, IDENTITY_PASSWORD);
+        assertThat(KeyManagerUtils.getAliases(inflatableKeyManager)).containsExactly("key-manager-one", "key-manager-two");
+
+        Map<String, X509ExtendedKeyManager> innerKeyManagers = ((AggregatedX509ExtendedKeyManager) ((InflatableX509ExtendedKeyManager) inflatableKeyManager).getInnerKeyManager()).getInnerKeyManagers();
+        assertThat(innerKeyManagers.get("key-manager-one")).isNotNull();
+        assertThat(innerKeyManagers.get("key-manager-two")).isNotNull();
+
+        KeyManagerUtils.removeIdentityMaterial(inflatableKeyManager, "key-manager-one");
+
+        innerKeyManagers = ((AggregatedX509ExtendedKeyManager) ((InflatableX509ExtendedKeyManager) inflatableKeyManager).getInnerKeyManager()).getInnerKeyManagers();
+        assertThat(innerKeyManagers).doesNotContainKey("key-manager-one");
+        assertThat(innerKeyManagers.get("key-manager-two")).isNotNull();
+    }
+
+    @Test
     void addIdentityMaterialAsKeyManagerToAWrappedInflatableKeyManagerInALoggingKeyManager() {
         X509ExtendedKeyManager inflatableKeyManager = KeyManagerUtils.createInflatableKeyManager();
         X509ExtendedKeyManager loggingKeyManager = KeyManagerUtils.createLoggingKeyManager(inflatableKeyManager);
@@ -566,6 +589,20 @@ class KeyManagerUtilsShould {
         KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
         KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
         X509ExtendedKeyManager keyManager = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
+
+        assertThatThrownBy(() -> KeyManagerUtils.addIdentityMaterial(keyManager, "key-manager-one", identityTwo, IDENTITY_PASSWORD))
+                .isInstanceOf(GenericKeyManagerException.class)
+                .hasMessage("The provided keyManager should be an instance of [nl.altindag.ssl.keymanager.InflatableX509ExtendedKeyManager]");
+    }
+
+    @Test
+    void throwsExceptionWhenAddingIdentityMaterialToNonInflatableKeyManagerWrappedInAggregatableKeyManager() {
+        KeyStore identityOne = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_FILE_NAME, IDENTITY_PASSWORD);
+        KeyStore identityTwo = KeyStoreUtils.loadKeyStore(KEYSTORE_LOCATION + IDENTITY_TWO_FILE_NAME, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerOne = KeyManagerUtils.createKeyManager(identityOne, IDENTITY_PASSWORD);
+        X509ExtendedKeyManager keyManagerTwo = KeyManagerUtils.createKeyManager(identityTwo, IDENTITY_PASSWORD);
+
+        X509ExtendedKeyManager keyManager = KeyManagerUtils.combine(keyManagerOne, keyManagerTwo);
 
         assertThatThrownBy(() -> KeyManagerUtils.addIdentityMaterial(keyManager, "key-manager-one", identityTwo, IDENTITY_PASSWORD))
                 .isInstanceOf(GenericKeyManagerException.class)
