@@ -2159,7 +2159,6 @@ class SSLFactoryShould {
                 .withInflatableIdentityMaterial()
                 .build();
 
-
         X509ExtendedKeyManager keyManager = sslFactory.getKeyManager().get();
         assertThat(keyManager).isInstanceOf(InflatableX509ExtendedKeyManager.class);
 
