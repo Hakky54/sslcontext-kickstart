@@ -350,10 +350,12 @@ SSLFactory.builder()
 
 ##### Skip hostname validation
 ```text
-SSLFactory.builder()
+SSLFactory sslFactory = SSLFactory.builder()
           .withDefaultTrustMaterial()
           .withUnsafeHostnameVerifier()
           .build();
+
+HttpsURLConnection.setDefaultHostnameVerifier(sslFactory.getHostnameVerifier());
 ```
 
 ##### Loading JDK and OS trusted certificates
