@@ -3,6 +3,13 @@
 This list is not intended to be all-encompassing - it will document major and breaking API
 changes with their rationale when appropriate:
 
+### v9.2.0
+- Added support for loading additional mac certificates from filesystem
+- Improved resolving openssl directory for mac
+- Added support for a custom client for certificate extraction (websockets, sftp, etc)
+- Added support for adding additional identity material at runtime
+- Added relocation information. Project will be renamed to Ayza with the next release
+- Bumped dependencies
 ### v9.1.0
 - Added methods for supporting Security Provider for loading Keystores
 - Skip resolving root ca if unavailable
