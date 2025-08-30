@@ -35,6 +35,13 @@
         </developer>
     </developers>
 
+    <distributionManagement>
+        <relocation>
+            <artifactId>ayza-for-pem</artifactId>
+            <version>1.0.0</version>
+        </relocation>
+    </distributionManagement>
+
     <properties>
         <version.bouncy-castle>1.81</version.bouncy-castle>
     </properties>

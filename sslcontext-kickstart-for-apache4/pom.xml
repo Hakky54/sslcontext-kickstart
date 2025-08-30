@@ -35,6 +35,13 @@
         </developer>
     </developers>
 
+    <distributionManagement>
+        <relocation>
+            <artifactId>ayza-for-apache4</artifactId>
+            <version>1.0.0</version>
+        </relocation>
+    </distributionManagement>
+
     <properties>
         <version.httpcomponents.httpclient>4.5.14</version.httpcomponents.httpclient>
     </properties>

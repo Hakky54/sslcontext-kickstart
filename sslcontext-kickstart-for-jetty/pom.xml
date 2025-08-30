@@ -35,6 +35,13 @@
         </developer>
     </developers>
 
+    <distributionManagement>
+        <relocation>
+            <artifactId>ayza-for-jetty</artifactId>
+            <version>1.0.0</version>
+        </relocation>
+    </distributionManagement>
+
     <properties>
         <version.jetty>9.4.57.v20241219</version.jetty>
         <version.jetty-reactive-httpclient>1.1.18</version.jetty-reactive-httpclient>
