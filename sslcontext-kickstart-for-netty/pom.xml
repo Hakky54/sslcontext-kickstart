@@ -4,16 +4,16 @@
 
     <parent>
         <groupId>io.github.hakky54</groupId>
-        <artifactId>sslcontext-kickstart-parent</artifactId>
-        <version>9.2.1-SNAPSHOT</version>
+        <artifactId>ayza-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>sslcontext-kickstart-for-netty</artifactId>
+    <artifactId>ayza-for-netty</artifactId>
     <packaging>jar</packaging>
 
-    <name>SSLContext Kickstart for Netty</name>
+    <name>Ayza for Netty</name>
     <description>High level library to configure a SSLContext and other properties to enable SSL/TLS connection</description>
-    <url>https://github.com/Hakky54/sslcontext-kickstart</url>
+    <url>https://github.com/Hakky54/ayza</url>
 
     <licenses>
         <license>
@@ -43,7 +43,7 @@
     <dependencies>
         <dependency>
             <groupId>io.github.hakky54</groupId>
-            <artifactId>sslcontext-kickstart</artifactId>
+            <artifactId>ayza</artifactId>
         </dependency>
         <dependency>
             <groupId>io.netty</groupId>
