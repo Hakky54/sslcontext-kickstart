@@ -26,13 +26,6 @@
         <tag>HEAD</tag>
     </scm>
 
-    <distributionManagement>
-        <relocation>
-            <artifactId>ayza-bom</artifactId>
-            <version>1.0.0</version>
-        </relocation>
-    </distributionManagement>
-
     <developers>
         <developer>
             <id>Hakky54</id>

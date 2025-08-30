@@ -35,13 +35,6 @@
         </developer>
     </developers>
 
-    <distributionManagement>
-        <relocation>
-            <artifactId>ayza-for-netty</artifactId>
-            <version>1.0.0</version>
-        </relocation>
-    </distributionManagement>
-
     <properties>
         <version.netty-handler>4.2.4.Final</version.netty-handler>
         <version.reactor-netty>1.2.9</version.reactor-netty>
