@@ -1,57 +1,54 @@
-[![Actions Status](https://github.com/Hakky54/sslcontext-kickstart/workflows/Build/badge.svg)](https://github.com/Hakky54/sslcontext-kickstart/actions)
-[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=io.github.hakky54%3Asslcontext-kickstart-parent&metric=security_rating)](https://sonarcloud.io/dashboard?id=io.github.hakky54%3Asslcontext-kickstart-parent)
-[![Known Vulnerabilities](https://snyk.io/test/github/Hakky54/sslcontext-kickstart/badge.svg)](https://snyk.io/test/github/Hakky54/sslcontext-kickstart)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=io.github.hakky54%3Asslcontext-kickstart-parent&metric=coverage)](https://sonarcloud.io/dashboard?id=io.github.hakky54%3Asslcontext-kickstart-parent)
+[![Actions Status](https://github.com/Hakky54/ayza/workflows/Build/badge.svg)](https://github.com/Hakky54/ayza/actions)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=io.github.hakky54%3Aayza-parent&metric=security_rating)](https://sonarcloud.io/dashboard?id=io.github.hakky54%3Aayza-parent)
+[![Known Vulnerabilities](https://snyk.io/test/github/Hakky54/ayza/badge.svg)](https://snyk.io/test/github/Hakky54/ayza)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=io.github.hakky54%3Aayza-parent&metric=coverage)](https://sonarcloud.io/dashboard?id=io.github.hakky54%3Aayza-parent)
 [![JDK Compatibility](https://img.shields.io/badge/JDK_Compatibility-8+-blue.svg)](#)
 [![Kotlin Compatibility](https://img.shields.io/badge/Kotlin_Compatibility-1.5+-blue.svg)](#)
 [![Scala Compatibility](https://img.shields.io/badge/Scala_Compatibility-2.11+-blue.svg)](#)
 [![Android API Compatibility](https://img.shields.io/badge/Android_API_Compatibility-24+-blue.svg)](#)
-[![Apache2 license](https://img.shields.io/badge/license-Aache2.0-blue.svg)](https://github.com/Hakky54/sslcontext-kickstart/blob/master/LICENSE)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.hakky54/sslcontext-kickstart/badge.svg)](https://mvnrepository.com/artifact/io.github.hakky54/sslcontext-kickstart)
-[![javadoc](https://javadoc.io/badge2/io.github.hakky54/sslcontext-kickstart/javadoc.svg)](https://javadoc.io/doc/io.github.hakky54/sslcontext-kickstart)
+[![Apache2 license](https://img.shields.io/badge/license-Aache2.0-blue.svg)](https://github.com/Hakky54/ayza/blob/master/LICENSE)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.hakky54/ayza/badge.svg)](https://mvnrepository.com/artifact/io.github.hakky54/ayza)
 [![Dependencies: none](https://img.shields.io/badge/dependencies-1-blue.svg)](#)
-[![GitHub stars chart](https://img.shields.io/badge/github%20stars-chart-blue.svg)](https://seladb.github.io/StarTrack-js/#/preload?r=hakky54,sslcontext-kickstart)
-[![Join the chat at https://gitter.im/hakky54/sslcontext-kickstart](https://badges.gitter.im/hakky54/sslcontext-kickstart.svg)](https://gitter.im/hakky54/sslcontext-kickstart?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![GitHub stars chart](https://img.shields.io/badge/github%20stars-chart-blue.svg)](https://seladb.github.io/StarTrack-js/#/preload?r=hakky54,ayza)
 
-[![SonarCloud](https://sonarcloud.io/images/project_badges/sonarcloud-white.svg)](https://sonarcloud.io/dashboard?id=io.github.hakky54%3Asslcontext-kickstart-parent)
+[![SonarCloud](https://sonarcloud.io/images/project_badges/sonarcloud-white.svg)](https://sonarcloud.io/dashboard?id=io.github.hakky54%3Aayza-parent)
 
-# SSLContext Kickstart 🔐 [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Easily%20configure%20ssl/tls%20for%20your%20favourite%20http%20client%20with%20sslcontext-kickstart.%20Works%20with%20over%2040%20different%20java,%20scala,%20kotlin%20clients&url=https://github.com/Hakky54/sslcontext-kickstart&via=hakky541&hashtags=encryption,security,https,ssl,tls,developer,java,scala,kotlin,sslcontextkickstart)
-Hey, hello there 👋 Welcome, I hope you will like this library. Feel free to drop a message in the [📖 Guestbook](https://github.com/Hakky54/sslcontext-kickstart/discussions/302), I would love to hear your story and experience in using this library.
+# Ayza 🔐
+Hey, hello there 👋 Welcome, I hope you will like this library. Feel free to drop a message in the [📖 Guestbook](https://github.com/Hakky54/ayza/discussions/302), I would love to hear your story and experience in using this library.
 
 I have created this library with ❤️ and passion, mostly during evening and night hours. If you use my library and want to appreciate the work I have done, please consider to sponsor this project as a way to contribute back to the community.
 There are 3 options available to pick from: [GitHub](https://github.com/sponsors/Hakky54), [Ko-fi](https://ko-fi.com/hakky54) and [Open Collective](https://opencollective.com/hakky54)
 
 # Install library with:
-### Install with [Maven](https://mvnrepository.com/artifact/io.github.hakky54/sslcontext-kickstart)
+### Install with [Maven](https://mvnrepository.com/artifact/io.github.hakky54/ayza)
 ```xml
 <dependency>
     <groupId>io.github.hakky54</groupId>
-    <artifactId>sslcontext-kickstart</artifactId>
-    <version>9.2.0</version>
+    <artifactId>ayza</artifactId>
+    <version>1.0.0</version>
 </dependency>
 ```
 ### Install with Gradle
 ```groovy
-implementation 'io.github.hakky54:sslcontext-kickstart:9.2.0'
+implementation 'io.github.hakky54:ayza:1.0.0'
 ```
 ### Install with Gradle Kotlin DSL
 ```kotlin
-implementation("io.github.hakky54:sslcontext-kickstart:9.2.0")
+implementation("io.github.hakky54:ayza:1.0.0")
 ```
 ### Install with Scala SBT
 ```
-libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "9.2.0"
+libraryDependencies += "io.github.hakky54" % "ayza" % "1.0.0"
 ```
 ### Install with Apache Ivy
 ```xml
 
-<dependency org="io.github.hakky54" name="sslcontext-kickstart" rev="9.2.0"/>
+<dependency org="io.github.hakky54" name="ayza" rev="1.0.0"/>
 ```
 
 ## Table of contents
 1. [Introduction](#introduction)
    - [History](#history)
-   - [Acknowledgement](#acknowledgement)
    - [Advantages](#advantages)
    - [Definitions](#definitions)
    - [Compatibility](#compatibility)
@@ -117,7 +114,7 @@ libraryDependencies += "io.github.hakky54" % "sslcontext-kickstart" % "9.2.0"
 6. [Contributors](#contributors-)   
 
 ## Introduction
-SSLContext Kickstart is a library which provides a High-Level SSLFactory class for configuring a http client or a server to communicate over SSL/TLS for one way authentication or two-way authentication.
+Ayza is a library which provides a High-Level SSLFactory class for configuring a http client or a server to communicate over SSL/TLS for one way authentication or two-way authentication.
 It is designed to be as lightweight as possible by having minimized the external dependencies. The core library only depends on the SLF4J logging API.
 
 ### History
@@ -126,32 +123,22 @@ These requests needed to be secured, and therefore it was required to load the s
 The resulting configuration was in my opinion always verbose, not reusable, hard to test and hard to maintain. 
 
 As a developer you also need to know how to properly load your file into your application and consume it as a KeyStore instance. Therefore, you also need to understand how to properly create for example a KeyManager and a TrustManager for you SSLContext. 
-The sslcontext-kickstart library is taking the responsibility of creating an instance of SSLContext from the provided arguments, and it will provide you all the ssl materials which are required to configure [40+ different Http Client](#tested-http-clients) for Java, Scala and Kotlin. 
+Ayza is taking the responsibility of creating an instance of SSLContext from the provided arguments, and it will provide you all the ssl materials which are required to configure [40+ different Http Client](#tested-http-clients) for Java, Scala and Kotlin. 
 I wanted the library to be as easy as possible to use for all developers to give them a kickstart when configuring their Http Client. So feel free to provide feedback or feature requests.
 The library also provides other utilities such as:
-- [CertificateExtractingClient](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/CertificateExtractingClient.java)
-- [CertificateUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/CertificateUtils.java)
-- [HostnameVerifierUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/HostnameVerifierUtils.java)
-- [KeyStoreUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/KeyStoreUtils.java)
-- [KeyManagerUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/KeyManagerUtils.java)
-- [TrustManagerUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/TrustManagerUtils.java)
-- [PemUtils](sslcontext-kickstart-for-pem/src/main/java/nl/altindag/ssl/pem/util/PemUtils.java)
-- [ProviderUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/ProviderUtils.java)
-- [SSLContextUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/SSLContextUtils.java)
-- [SSLFactoryUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/SSLFactoryUtils.java)
-- [SSLParametersUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/SSLParametersUtils.java)
-- [SSLSessionUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/SSLSessionUtils.java)
-- [SSLSocketUtils](sslcontext-kickstart/src/main/java/nl/altindag/ssl/util/SSLSocketUtils.java)
-
-See the [javadoc](https://sslcontext-kickstart.com/apidocs/index.html) for all the options.
-
-### Acknowledgement
-I would like to thank [Cody A. Ray](https://github.com/codyaray) for his contribution to the community regarding loading multiple Keystores into the SSLContext. The limitation of the JDK is to only support one keystore for the KeyManagerFactory and only one keystore for the TrustManagerFactory.
-The code snippets which Cody has shared are now available within this library and can be found here: [AggregatedX509ExtendedKeyManager](sslcontext-kickstart/src/main/java/nl/altindag/ssl/keymanager/AggregatedX509ExtendedKeyManager.java) and [AggregatedX509ExtendedTrustManager](sslcontext-kickstart/src/main/java/nl/altindag/ssl/trustmanager/AggregatedX509ExtendedTrustManager.java) 
-
-The original content can be found here:
-- [Codyaray - Java SSL with Multiple KeyStores](http://codyaray.com/2013/04/java-ssl-with-multiple-keystores)
-- [Stackoverflow - Registering multiple keystores in JVM](https://stackoverflow.com/a/16229909/6777695)
+- [CertificateExtractingClient](ayza/src/main/java/nl/altindag/ssl/util/CertificateExtractingClient.java)
+- [CertificateUtils](ayza/src/main/java/nl/altindag/ssl/util/CertificateUtils.java)
+- [HostnameVerifierUtils](ayza/src/main/java/nl/altindag/ssl/util/HostnameVerifierUtils.java)
+- [KeyStoreUtils](ayza/src/main/java/nl/altindag/ssl/util/KeyStoreUtils.java)
+- [KeyManagerUtils](ayza/src/main/java/nl/altindag/ssl/util/KeyManagerUtils.java)
+- [TrustManagerUtils](ayza/src/main/java/nl/altindag/ssl/util/TrustManagerUtils.java)
+- [PemUtils](ayza-for-pem/src/main/java/nl/altindag/ssl/pem/util/PemUtils.java)
+- [ProviderUtils](ayza/src/main/java/nl/altindag/ssl/util/ProviderUtils.java)
+- [SSLContextUtils](ayza/src/main/java/nl/altindag/ssl/util/SSLContextUtils.java)
+- [SSLFactoryUtils](ayza/src/main/java/nl/altindag/ssl/util/SSLFactoryUtils.java)
+- [SSLParametersUtils](ayza/src/main/java/nl/altindag/ssl/util/SSLParametersUtils.java)
+- [SSLSessionUtils](ayza/src/main/java/nl/altindag/ssl/util/SSLSessionUtils.java)
+- [SSLSocketUtils](ayza/src/main/java/nl/altindag/ssl/util/SSLSocketUtils.java)
 
 ### Advantages:
 * No need for low-level SSLContext configuration anymore
@@ -327,7 +314,7 @@ openssl s_client -showcerts -servername 127.0.0.1 -connect 127.0.0.1:8443
 ```
 
 The output will be under `Acceptable client certificate CA names`:
-![alt text](https://github.com/Hakky54/sslcontext-kickstart/blob/master/images/demo-sending-server-ca-names.png?raw=true)
+![alt text](https://github.com/Hakky54/ayza/blob/master/images/demo-sending-server-ca-names.png?raw=true)
 
 For some end-user this might lead into information leaks and security risks. This information can be hidden away so the client cannot request it anymore with an additional option within the `SSLFactory#withConcealedTrustMaterial()`. An example usage would be:
 ```text
@@ -339,7 +326,7 @@ SSLFactory updatedSslFactory = SSLFactory.builder()
 ```
 
 Which will result into the following output:
-![alt text](https://github.com/Hakky54/sslcontext-kickstart/blob/master/images/demo-not-sending-server-ca-names.png?raw=true)
+![alt text](https://github.com/Hakky54/ayza/blob/master/images/demo-not-sending-server-ca-names.png?raw=true)
 
 ##### Trusting all certificates without validation, not recommended to use at production!
 ```text
@@ -804,14 +791,14 @@ SSLFactory.builder()
 #### Using PEM Files
 
 Support for using pem formatted private key and certificates from classpath, any directory or as an InputStream.
-See [PemUtilsShould](sslcontext-kickstart-for-pem/src/test/java/nl/altindag/ssl/pem/util/PemUtilsShould.java) for
+See [PemUtilsShould](ayza-for-pem/src/test/java/nl/altindag/ssl/pem/util/PemUtilsShould.java) for
 detailed usages.
 Add the dependency below to use this feature, it also includes the core features from the library such as SSLFactory.
 ```xml
 <dependency>
     <groupId>io.github.hakky54</groupId>
-  <artifactId>sslcontext-kickstart-for-pem</artifactId>
-  <version>9.2.0</version>
+  <artifactId>ayza-for-pem</artifactId>
+  <version>1.0.0</version>
 </dependency>
 ```
 ##### Loading pem files from the classpath
@@ -1206,14 +1193,13 @@ public class App {
 ### Additional mappers for specific libraries
 Some http clients relay on different ssl classes from third parties and require mapping from SSLFactory to those libraries.
 Below you will find the maven dependency which will provide the mapping and also the SSLFactory library.
-When using one of the below libraries, it is not required to also explicitly include [sslcontext-kickstart](#install-with-mavenhttpsmvnrepositorycomartifactiogithubhakky54sslcontext-kickstart) into your project. The additional mappers for specific libraries below won't provide transitive dependencies on Netty, Jetty or Apache. This has been decided to prevent dependency hell on your side.
 #### Netty
 Some know http clients which relay on netty libraries are: [Spring WebFlux WebClient Netty](https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html), [Async Http Client](https://github.com/AsyncHttpClient/async-http-client) and [Dispatch Reboot Http Client](https://github.com/dispatch/reboot).
 ```xml
 <dependency>
     <groupId>io.github.hakky54</groupId>
-  <artifactId>sslcontext-kickstart-for-netty</artifactId>
-  <version>9.2.0</version>
+  <artifactId>ayza-for-netty</artifactId>
+  <version>1.0.0</version>
 </dependency>
 ```
 Example setup for Spring WebClient with Netty:
@@ -1250,8 +1236,8 @@ public class App {
 ```xml
 <dependency>
     <groupId>io.github.hakky54</groupId>
-  <artifactId>sslcontext-kickstart-for-jetty</artifactId>
-  <version>9.2.0</version>
+  <artifactId>ayza-for-jetty</artifactId>
+  <version>1.0.0</version>
 </dependency>
 ```
 Example setup for [Spring WebFlux WebClient Jetty](https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html):
@@ -1288,8 +1274,8 @@ However it is still possible to configure the http client with their custom conf
 ```xml
 <dependency>
     <groupId>io.github.hakky54</groupId>
-  <artifactId>sslcontext-kickstart-for-apache4</artifactId>
-  <version>9.2.0</version>
+  <artifactId>ayza-for-apache4</artifactId>
+  <version>1.0.0</version>
 </dependency>
 ```
 ```java
@@ -1319,8 +1305,8 @@ public class App {
 ```xml
 <dependency>
     <groupId>io.github.hakky54</groupId>
-  <artifactId>sslcontext-kickstart-for-apache5</artifactId>
-  <version>9.2.0</version>
+  <artifactId>ayza-for-apache5</artifactId>
+  <version>1.0.0</version>
 </dependency>
 ```
 ```java
@@ -1424,8 +1410,7 @@ There are plenty of ways to contribute to this project:
 
 * Give it a star
 * Make a donation through [GitHub](https://github.com/sponsors/Hakky54) or [open collective](https://opencollective.com/hakky54)
-* Share it with a [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Easily%20configure%20ssl/tls%20for%20your%20favourite%20http%20client%20with%20sslcontext-kickstart.%20Works%20with%20over%2040%20different%20java,%20scala,%20kotlin%20clients&url=https://github.com/Hakky54/sslcontext-kickstart&via=hakky541&hashtags=encryption,security,https,ssl,tls,developer,java,scala,kotlin,sslcontextkickstart)
-* Join the [Gitter room](https://gitter.im/hakky54/sslcontext-kickstart) and leave a feedback or help with answering users questions
+* Join the [Gitter room](https://gitter.im/hakky54/ayza) and leave a feedback or help with answering users questions
 * Submit a PR
 
 ## Contributors ✨
@@ -1437,43 +1422,43 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <!-- markdownlint-disable -->
 <table>
   <tr>
-    <td align="center"><a href="https://github.com/MrR0807"><img src="https://avatars.githubusercontent.com/u/24605837?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Laurynas</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3AMrR0807" title="Code">💻</a> <a href="#maintenance-MrR0807" title="Maintenance">🚧</a></td>
-    <td align="center"><a href="https://github.com/charphi"><img src="https://avatars.githubusercontent.com/u/8778378?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Philippe Charles</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Acharphi" title="Ideas, Planning, & Feedback">🤔</a></td>
-    <td align="center"><a href="http://tadhgpearson.wordpress.com"><img src="https://avatars.githubusercontent.com/u/1496586?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Tadhg Pearson</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Atadhgpearson" title="Bug reports">🐛</a></td>
-    <td align="center"><a href="https://github.com/winster"><img src="https://avatars.githubusercontent.com/u/2383613?v=4?s=100" width="100px;" alt=""/><br /><sub><b>winster</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Awinster" title="Ideas, Planning, & Feedback">🤔</a></td>
-    <td align="center"><a href="https://github.com/lalloni"><img src="https://avatars.githubusercontent.com/u/84328?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Pablo Lalloni</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Alalloni" title="Ideas, Planning, & Feedback">🤔</a></td>
-    <td align="center"><a href="https://github.com/luismospinam"><img src="https://avatars.githubusercontent.com/u/25059970?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Luis Miguel Ospina</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Aluismospinam" title="Bug reports">🐛</a></td>
-    <td align="center"><a href="https://github.com/Athou"><img src="https://avatars.githubusercontent.com/u/1256795?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Jérémie Panzer</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3AAthou" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="https://github.com/MrR0807"><img src="https://avatars.githubusercontent.com/u/24605837?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Laurynas</b></sub></a><br /><a href="https://github.com/Hakky54/ayza/issues?q=author%3AMrR0807" title="Code">💻</a> <a href="#maintenance-MrR0807" title="Maintenance">🚧</a></td>
+    <td align="center"><a href="https://github.com/charphi"><img src="https://avatars.githubusercontent.com/u/8778378?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Philippe Charles</b></sub></a><br /><a href="https://github.com/Hakky54/ayza/issues?q=author%3Acharphi" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="http://tadhgpearson.wordpress.com"><img src="https://avatars.githubusercontent.com/u/1496586?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Tadhg Pearson</b></sub></a><br /><a href="https://github.com/Hakky54/ayza/issues?q=author%3Atadhgpearson" title="Bug reports">🐛</a></td>
+    <td align="center"><a href="https://github.com/winster"><img src="https://avatars.githubusercontent.com/u/2383613?v=4?s=100" width="100px;" alt=""/><br /><sub><b>winster</b></sub></a><br /><a href="https://github.com/Hakky54/ayza/issues?q=author%3Awinster" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="https://github.com/lalloni"><img src="https://avatars.githubusercontent.com/u/84328?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Pablo Lalloni</b></sub></a><br /><a href="https://github.com/Hakky54/ayza/issues?q=author%3Alalloni" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="https://github.com/luismospinam"><img src="https://avatars.githubusercontent.com/u/25059970?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Luis Miguel Ospina</b></sub></a><br /><a href="https://github.com/Hakky54/ayza/issues?q=author%3Aluismospinam" title="Bug reports">🐛</a></td>
+    <td align="center"><a href="https://github.com/Athou"><img src="https://avatars.githubusercontent.com/u/1256795?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Jérémie Panzer</b></sub></a><br /><a href="https://github.com/Hakky54/ayza/issues?q=author%3AAthou" title="Ideas, Planning, & Feedback">🤔</a></td>
   </tr>
   <tr>
-    <td align="center"><a href="https://github.com/patpatpat123"><img src="https://avatars.githubusercontent.com/u/43899031?v=4?s=100" width="100px;" alt=""/><br /><sub><b>patpatpat123</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Apatpatpat123" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Apatpatpat123" title="Bug reports">🐛</a></td>
-    <td align="center"><a href="http://codyaray.com"><img src="https://avatars.githubusercontent.com/u/44062?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Cody A. Ray</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/search?q=Cody%20Ray" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/chibenwa"><img src="https://avatars.githubusercontent.com/u/6928740?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Benoit Tellier</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Achibenwa" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/sal0max"><img src="https://avatars.githubusercontent.com/u/423373?v=4?s=100" width="100px;" alt=""/><br /><sub><b>sal0max</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Asal0max" title="Bug reports">🐛</a></td>
-    <td align="center"><a href="https://github.com/lhstack"><img src="https://avatars.githubusercontent.com/u/42345796?v=4?s=100" width="100px;" alt=""/><br /><sub><b>lhstack</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Alhstack" title="Bug reports">🐛</a></td>
-    <td align="center"><a href="https://github.com/dasteg"><img src="https://avatars.githubusercontent.com/u/3967403?v=4?s=100" width="100px;" alt=""/><br /><sub><b>dasteg</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Adasteg" title="Ideas, Planning, & Feedback">🤔</a></td>
-    <td align="center"><a href="https://github.com/rymsha"><img src="https://avatars.githubusercontent.com/u/2891483?v=4?s=100" width="100px;" alt=""/><br /><sub><b>rymsha</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Arymsha" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="https://github.com/patpatpat123"><img src="https://avatars.githubusercontent.com/u/43899031?v=4?s=100" width="100px;" alt=""/><br /><sub><b>patpatpat123</b></sub></a><br /><a href="https://github.com/Hakky54/ayza/issues?q=author%3Apatpatpat123" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/Hakky54/ayza/issues?q=author%3Apatpatpat123" title="Bug reports">🐛</a></td>
+    <td align="center"><a href="http://codyaray.com"><img src="https://avatars.githubusercontent.com/u/44062?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Cody A. Ray</b></sub></a><br /><a href="https://github.com/Hakky54/ayza/search?q=Cody%20Ray" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/chibenwa"><img src="https://avatars.githubusercontent.com/u/6928740?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Benoit Tellier</b></sub></a><br /><a href="https://github.com/Hakky54/ayza/issues?q=author%3Achibenwa" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/sal0max"><img src="https://avatars.githubusercontent.com/u/423373?v=4?s=100" width="100px;" alt=""/><br /><sub><b>sal0max</b></sub></a><br /><a href="https://github.com/Hakky54/ayza/issues?q=author%3Asal0max" title="Bug reports">🐛</a></td>
+    <td align="center"><a href="https://github.com/lhstack"><img src="https://avatars.githubusercontent.com/u/42345796?v=4?s=100" width="100px;" alt=""/><br /><sub><b>lhstack</b></sub></a><br /><a href="https://github.com/Hakky54/ayza/issues?q=author%3Alhstack" title="Bug reports">🐛</a></td>
+    <td align="center"><a href="https://github.com/dasteg"><img src="https://avatars.githubusercontent.com/u/3967403?v=4?s=100" width="100px;" alt=""/><br /><sub><b>dasteg</b></sub></a><br /><a href="https://github.com/Hakky54/ayza/issues?q=author%3Adasteg" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="https://github.com/rymsha"><img src="https://avatars.githubusercontent.com/u/2891483?v=4?s=100" width="100px;" alt=""/><br /><sub><b>rymsha</b></sub></a><br /><a href="https://github.com/Hakky54/ayza/issues?q=author%3Arymsha" title="Ideas, Planning, & Feedback">🤔</a></td>
   </tr>
   <tr>
-    <td align="center"><a href="https://github.com/manbucy"><img src="https://avatars.githubusercontent.com/u/24501621?v=4?s=100" width="100px;" alt=""/><br /><sub><b>manbucy</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Amanbucy" title="Code and Bug reports">🐛 💻</a></td>
-    <td align="center"><a href="https://github.com/swankjesse"><img src="https://avatars.githubusercontent.com/u/133019?v=4?s=100" width="100px;" alt=""/><br /><sub><b>swankjesse</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Aswankjesse" title="Bug reports">🐛</a></td>
-    <td align="center"><a href="https://github.com/ivenhov"><img src="https://avatars.githubusercontent.com/u/778457?v=4?s=100" width="100px;" alt=""/><br /><sub><b>ivenhov</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Aivenhov" title="Bug reports">🐛</a></td>
-    <td align="center"><a href="https://github.com/ecki"><img src="https://avatars.githubusercontent.com/u/361432?v=4?s=100" width="100px;" alt=""/><br /><sub><b>ecki</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Aecki" title="Code and Bug reports">🐛 💻</a></td>
-    <td align="center"><a href="https://github.com/mbenson"><img src="https://avatars.githubusercontent.com/u/487462?v=4?s=100" width="100px;" alt=""/><br /><sub><b>mbenson</b></sub></a><br /> <a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Ambenson" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Ambenson" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/EugenMayer"><img src="https://avatars.githubusercontent.com/u/136934?v=4?s=100" width="100px;" alt=""/><br /><sub><b>EugenMayer</b></sub></a><br /> <a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3AEugenMayer" title="Ideas, Planning, & Feedback">🤔</a></td>
-    <td align="center"><a href="https://github.com/bjorndarri"><img src="https://avatars.githubusercontent.com/u/2327926?v=4?s=100" width="100px;" alt=""/><br /><sub><b>bjorndarri</b></sub></a><br /> <a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=bjorndarri" title="Code and Ideas, Planning, & Feedback">🤔 💻</a></td>
+    <td align="center"><a href="https://github.com/manbucy"><img src="https://avatars.githubusercontent.com/u/24501621?v=4?s=100" width="100px;" alt=""/><br /><sub><b>manbucy</b></sub></a><br /><a href="https://github.com/Hakky54/ayza/issues?q=author%3Amanbucy" title="Code and Bug reports">🐛 💻</a></td>
+    <td align="center"><a href="https://github.com/swankjesse"><img src="https://avatars.githubusercontent.com/u/133019?v=4?s=100" width="100px;" alt=""/><br /><sub><b>swankjesse</b></sub></a><br /><a href="https://github.com/Hakky54/ayza/issues?q=author%3Aswankjesse" title="Bug reports">🐛</a></td>
+    <td align="center"><a href="https://github.com/ivenhov"><img src="https://avatars.githubusercontent.com/u/778457?v=4?s=100" width="100px;" alt=""/><br /><sub><b>ivenhov</b></sub></a><br /><a href="https://github.com/Hakky54/ayza/issues?q=author%3Aivenhov" title="Bug reports">🐛</a></td>
+    <td align="center"><a href="https://github.com/ecki"><img src="https://avatars.githubusercontent.com/u/361432?v=4?s=100" width="100px;" alt=""/><br /><sub><b>ecki</b></sub></a><br /><a href="https://github.com/Hakky54/ayza/issues?q=author%3Aecki" title="Code and Bug reports">🐛 💻</a></td>
+    <td align="center"><a href="https://github.com/mbenson"><img src="https://avatars.githubusercontent.com/u/487462?v=4?s=100" width="100px;" alt=""/><br /><sub><b>mbenson</b></sub></a><br /> <a href="https://github.com/Hakky54/ayza/issues?q=author%3Ambenson" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/Hakky54/ayza/issues?q=author%3Ambenson" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/EugenMayer"><img src="https://avatars.githubusercontent.com/u/136934?v=4?s=100" width="100px;" alt=""/><br /><sub><b>EugenMayer</b></sub></a><br /> <a href="https://github.com/Hakky54/ayza/issues?q=author%3AEugenMayer" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="https://github.com/bjorndarri"><img src="https://avatars.githubusercontent.com/u/2327926?v=4?s=100" width="100px;" alt=""/><br /><sub><b>bjorndarri</b></sub></a><br /> <a href="https://github.com/Hakky54/ayza/issues?q=bjorndarri" title="Code and Ideas, Planning, & Feedback">🤔 💻</a></td>
   </tr>
   <tr>
-    <td align="center"><a href="https://github.com/henryju"><img src="https://avatars.githubusercontent.com/u/281596?v=4?s=100" width="100px;" alt=""/><br /><sub><b>henryju</b></sub></a><br /> <a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Ahenryju" title="Code and Ideas, Planning, & Feedback">🤔 💻</a></td>
-    <td align="center"><a href="https://github.com/nquinquenel"><img src="https://avatars.githubusercontent.com/u/14952624?v=4?s=100" width="100px;" alt=""/><br /><sub><b>nquinquenel</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Anquinquenel" title="Code and Bug reports">🐛 💻</a></td>
+    <td align="center"><a href="https://github.com/henryju"><img src="https://avatars.githubusercontent.com/u/281596?v=4?s=100" width="100px;" alt=""/><br /><sub><b>henryju</b></sub></a><br /> <a href="https://github.com/Hakky54/ayza/issues?q=author%3Ahenryju" title="Code and Ideas, Planning, & Feedback">🤔 💻</a></td>
+    <td align="center"><a href="https://github.com/nquinquenel"><img src="https://avatars.githubusercontent.com/u/14952624?v=4?s=100" width="100px;" alt=""/><br /><sub><b>nquinquenel</b></sub></a><br /><a href="https://github.com/Hakky54/ayza/issues?q=author%3Anquinquenel" title="Code and Bug reports">🐛 💻</a></td>
     <td align="center"><a href="https://github.com/woj-tek"><img src="https://avatars.githubusercontent.com/u/724413?v=4?s=100" width="100px;" alt=""/><br /><sub><b>woj-tek</b></sub></a><br /><a title="Bug reports">🐛</a></td>
-    <td align="center"><a href="https://github.com/thahnen"><img src="https://avatars.githubusercontent.com/u/6588381?v=4?s=100" width="100px;" alt=""/><br /><sub><b>thahnen</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Athahnen" title="Bug reports">🐛</a></td>
-    <td align="center"><a href="https://github.com/gerardnorton"><img src="https://avatars.githubusercontent.com/u/62466694?v=4?s=100" width="100px;" alt=""/><br /><sub><b>gerardnorton</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Agerardnorton" title="Ideas, Planning, & Feedback">🤔</a></td>
-    <td align="center"><a href="https://github.com/austinarbor"><img src="https://avatars.githubusercontent.com/u/11469880?v=4?s=100" width="100px;" alt=""/><br /><sub><b>austinarbor</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Aaustinarbor" title="Bug reports and Ideas, Planning, & Feedback">🐛 🤔</a></td>
-    <td align="center"><a href="https://github.com/ssmoss"><img src="https://avatars.githubusercontent.com/u/8904909?v=4?s=100" width="100px;" alt=""/><br /><sub><b>ssmoss</b></sub></a><br /><a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Assmoss" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="https://github.com/thahnen"><img src="https://avatars.githubusercontent.com/u/6588381?v=4?s=100" width="100px;" alt=""/><br /><sub><b>thahnen</b></sub></a><br /><a href="https://github.com/Hakky54/ayza/issues?q=author%3Athahnen" title="Bug reports">🐛</a></td>
+    <td align="center"><a href="https://github.com/gerardnorton"><img src="https://avatars.githubusercontent.com/u/62466694?v=4?s=100" width="100px;" alt=""/><br /><sub><b>gerardnorton</b></sub></a><br /><a href="https://github.com/Hakky54/ayza/issues?q=author%3Agerardnorton" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="https://github.com/austinarbor"><img src="https://avatars.githubusercontent.com/u/11469880?v=4?s=100" width="100px;" alt=""/><br /><sub><b>austinarbor</b></sub></a><br /><a href="https://github.com/Hakky54/ayza/issues?q=author%3Aaustinarbor" title="Bug reports and Ideas, Planning, & Feedback">🐛 🤔</a></td>
+    <td align="center"><a href="https://github.com/ssmoss"><img src="https://avatars.githubusercontent.com/u/8904909?v=4?s=100" width="100px;" alt=""/><br /><sub><b>ssmoss</b></sub></a><br /><a href="https://github.com/Hakky54/ayza/issues?q=author%3Assmoss" title="Ideas, Planning, & Feedback">🤔</a></td>
   </tr>
   <tr>
-    <td align="center"><a href="https://github.com/maxxedev"><img src="https://avatars.githubusercontent.com/u/5051664?v=4?s=100" width="100px;" alt=""/><br /><sub><b>maxxedev</b></sub></a><br /> <a href="https://github.com/Hakky54/sslcontext-kickstart/issues?q=author%3Amaxxedev" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="https://github.com/maxxedev"><img src="https://avatars.githubusercontent.com/u/5051664?v=4?s=100" width="100px;" alt=""/><br /><sub><b>maxxedev</b></sub></a><br /> <a href="https://github.com/Hakky54/ayza/issues?q=author%3Amaxxedev" title="Ideas, Planning, & Feedback">🤔</a></td>
   </tr>
 </table>
 

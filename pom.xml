@@ -4,26 +4,26 @@
 
     <parent>
         <groupId>io.github.hakky54</groupId>
-        <artifactId>sslcontext-kickstart-bom</artifactId>
-        <version>9.2.1-SNAPSHOT</version>
-        <relativePath>./sslcontext-kickstart-bom</relativePath>
+        <artifactId>ayza-bom</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+        <relativePath>./ayza-bom</relativePath>
     </parent>
 
-    <artifactId>sslcontext-kickstart-parent</artifactId>
+    <artifactId>ayza-parent</artifactId>
     <packaging>pom</packaging>
 
-    <name>SSLContext Kickstart Parent</name>
+    <name>Ayza Parent</name>
     <description>High level library to configure a SSLContext and other properties to enable SSL/TLS connection</description>
-    <url>https://github.com/Hakky54/sslcontext-kickstart</url>
+    <url>https://github.com/Hakky54/ayza</url>
 
     <modules>
-        <module>sslcontext-kickstart-bom</module>
-        <module>sslcontext-kickstart</module>
-        <module>sslcontext-kickstart-for-netty</module>
-        <module>sslcontext-kickstart-for-jetty</module>
-        <module>sslcontext-kickstart-for-apache4</module>
-        <module>sslcontext-kickstart-for-apache5</module>
-        <module>sslcontext-kickstart-for-pem</module>
+        <module>ayza-bom</module>
+        <module>ayza</module>
+        <module>ayza-for-netty</module>
+        <module>ayza-for-jetty</module>
+        <module>ayza-for-apache4</module>
+        <module>ayza-for-apache5</module>
+        <module>ayza-for-pem</module>
     </modules>
 
     <licenses>
@@ -34,17 +34,10 @@
         </license>
     </licenses>
 
-    <distributionManagement>
-        <relocation>
-            <artifactId>ayza-parent</artifactId>
-            <version>1.0.0</version>
-        </relocation>
-    </distributionManagement>
-
     <scm>
-        <url>https://github.com/Hakky54/sslcontext-kickstart</url>
-        <connection>scm:git:git@github.com:Hakky54/sslcontext-kickstart.git</connection>
-        <developerConnection>scm:git:git@github.com:Hakky54/sslcontext-kickstart.git</developerConnection>
+        <url>https://github.com/Hakky54/ayza</url>
+        <connection>scm:git:git@github.com:Hakky54/ayza.git</connection>
+        <developerConnection>scm:git:git@github.com:Hakky54/ayza.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
 
@@ -131,7 +124,7 @@
                 <exclusions>
                     <exclusion>
                         <groupId>io.github.hakky54</groupId>
-                        <artifactId>sslcontext-kickstart</artifactId>
+                        <artifactId>ayza</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
