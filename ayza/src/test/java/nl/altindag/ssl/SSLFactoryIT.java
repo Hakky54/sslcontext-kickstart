@@ -63,14 +63,14 @@ class SSLFactoryIT {
                 .withProtocols("TLSv1.3")
                 .build();
 
-        Server server = Server.createDefault(sslFactoryForServer);
+        Server server = Server.createDefault(sslFactoryForServer, 8999);
 
         SSLFactory sslFactoryForClient = SSLFactory.builder()
                 .withIdentityMaterial("keystore/client-server/client-one/identity.jks", "secret".toCharArray())
                 .withTrustMaterial("keystore/client-server/client-one/truststore.jks", "secret".toCharArray())
                 .build();
 
-        Response response = executeRequest("https://localhost:8443/api/hello", sslFactoryForClient.getSslSocketFactory());
+        Response response = executeRequest("https://localhost:8999/api/hello", sslFactoryForClient.getSslSocketFactory());
         assertThat(response.getStatusCode()).isEqualTo(200);
 
         server.stop();
@@ -86,14 +86,14 @@ class SSLFactoryIT {
                 .withProtocols("TLSv1.3")
                 .build();
 
-        Server server = Server.createDefault(sslFactoryForServer);
+        Server server = Server.createDefault(sslFactoryForServer, 8998);
 
         SSLFactory sslFactoryForClient = SSLFactory.builder()
                 .withIdentityMaterial("keystore/client-server/client-one/identity.jks", "secret".toCharArray())
                 .withTrustMaterial("keystore/client-server/client-one/truststore.jks", "secret".toCharArray())
                 .build();
 
-        Response response = executeRequest("https://localhost:8443/api/hello", sslFactoryForClient.getSslSocketFactory());
+        Response response = executeRequest("https://localhost:8998/api/hello", sslFactoryForClient.getSslSocketFactory());
         assertThat(response.getStatusCode()).isEqualTo(200);
 
         server.stop();
@@ -116,8 +116,8 @@ class SSLFactoryIT {
                 .withProtocols("TLSv1.2")
                 .build();
 
-        Server serverOne = Server.createDefault(sslFactoryForServerOne, 8443, "Hello from server one");
-        Server serverTwo = Server.createDefault(sslFactoryForServerTwo, 8444, "Hello from server two");
+        Server serverOne = Server.createDefault(sslFactoryForServerOne, 8997, "Hello from server one");
+        Server serverTwo = Server.createDefault(sslFactoryForServerTwo, 8996, "Hello from server two");
 
         SSLFactory sslFactoryForClient = SSLFactory.builder()
                 .withIdentityMaterial("keystore/client-server/client-one/identity.jks", keyStorePassword)
@@ -127,12 +127,12 @@ class SSLFactoryIT {
                 .withProtocols("TLSv1.2")
                 .build();
 
-        Response response = executeRequest("https://localhost:8443/api/hello", sslFactoryForClient.getSslSocketFactory());
+        Response response = executeRequest("https://localhost:8997/api/hello", sslFactoryForClient.getSslSocketFactory());
 
         assertThat(response.getStatusCode()).isEqualTo(200);
         assertThat(response.getBody()).contains("Hello from server one");
 
-        response = executeRequest("https://localhost:8444/api/hello", sslFactoryForClient.getSslSocketFactory());
+        response = executeRequest("https://localhost:8996/api/hello", sslFactoryForClient.getSslSocketFactory());
 
         assertThat(response.getStatusCode()).isEqualTo(200);
         assertThat(response.getBody()).contains("Hello from server two");
@@ -160,12 +160,12 @@ class SSLFactoryIT {
                 .withProtocols("TLSv1.2")
                 .build();
 
-        Server serverOne = Server.createDefault(sslFactoryForServerOne, 8443, "Hello from server one");
-        Server serverTwo = Server.createDefault(sslFactoryForServerTwo, 8444, "Hello from server two");
+        Server serverOne = Server.createDefault(sslFactoryForServerOne, 8995, "Hello from server one");
+        Server serverTwo = Server.createDefault(sslFactoryForServerTwo, 8994, "Hello from server two");
 
         Map<String, List<String>> clientAliasesToHosts = new HashMap<>();
-        clientAliasesToHosts.put("client-one", Collections.singletonList("https://localhost:8443/api/hello"));
-        clientAliasesToHosts.put("client-two", Collections.singletonList("https://localhost:8444/api/hello"));
+        clientAliasesToHosts.put("client-one", Collections.singletonList("https://localhost:8995/api/hello"));
+        clientAliasesToHosts.put("client-two", Collections.singletonList("https://localhost:8994/api/hello"));
 
         SSLFactory sslFactoryForClient = SSLFactory.builder()
                 .withIdentityMaterial("keystore/client-server/client-one/identity.jks", keyStorePassword)
@@ -177,12 +177,12 @@ class SSLFactoryIT {
 
         SSLSocketFactory sslSocketFactoryWithCorrectClientRoutes = sslFactoryForClient.getSslSocketFactory();
 
-        Response response = executeRequest("https://localhost:8443/api/hello", sslSocketFactoryWithCorrectClientRoutes);
+        Response response = executeRequest("https://localhost:8995/api/hello", sslSocketFactoryWithCorrectClientRoutes);
 
         assertThat(response.getStatusCode()).isEqualTo(200);
         assertThat(response.getBody()).contains("Hello from server one");
 
-        response = executeRequest("https://localhost:8444/api/hello", sslSocketFactoryWithCorrectClientRoutes);
+        response = executeRequest("https://localhost:8994/api/hello", sslSocketFactoryWithCorrectClientRoutes);
 
         assertThat(response.getStatusCode()).isEqualTo(200);
         assertThat(response.getBody()).contains("Hello from server two");
@@ -192,14 +192,14 @@ class SSLFactoryIT {
                 .withIdentityMaterial("keystore/client-server/client-two/identity.jks", keyStorePassword)
                 .withTrustMaterial("keystore/client-server/client-one/truststore.jks", keyStorePassword)
                 .withTrustMaterial("keystore/client-server/client-two/truststore.jks", keyStorePassword)
-                .withIdentityRoute("client-one", "https://localhost:8444/api/hello")
-                .withIdentityRoute("client-two", "https://localhost:8443/api/hello")
+                .withIdentityRoute("client-one", "https://localhost:8994/api/hello")
+                .withIdentityRoute("client-two", "https://localhost:8995/api/hello")
                 .build();
 
         SSLSocketFactory sslSocketFactoryWithIncorrectClientRoutes = sslFactoryForClient.getSslSocketFactory();
-        assertThatThrownBy(() -> executeRequest("https://localhost:8443/api/hello", sslSocketFactoryWithIncorrectClientRoutes))
+        assertThatThrownBy(() -> executeRequest("https://localhost:8995/api/hello", sslSocketFactoryWithIncorrectClientRoutes))
                 .isInstanceOfAny(SocketException.class, SSLException.class);
-        assertThatThrownBy(() -> executeRequest("https://localhost:8444/api/hello", sslSocketFactoryWithIncorrectClientRoutes))
+        assertThatThrownBy(() -> executeRequest("https://localhost:8994/api/hello", sslSocketFactoryWithIncorrectClientRoutes))
                 .isInstanceOfAny(SocketException.class, SSLException.class);
 
         serverOne.stop();
@@ -224,8 +224,8 @@ class SSLFactoryIT {
                 .withProtocols("TLSv1.2")
                 .build();
 
-        Server serverOne = Server.createDefault(sslFactoryForServerOne, 8443, "Hello from server one");
-        Server serverTwo = Server.createDefault(sslFactoryForServerTwo, 8444, "Hello from server two");
+        Server serverOne = Server.createDefault(sslFactoryForServerOne, 8993, "Hello from server one");
+        Server serverTwo = Server.createDefault(sslFactoryForServerTwo, 8992, "Hello from server two");
 
         SSLFactory sslFactoryForClient = SSLFactory.builder()
                 .withIdentityMaterial("keystore/client-server/client-one/identity.jks", keyStorePassword)
@@ -236,11 +236,11 @@ class SSLFactoryIT {
 
         SSLSocketFactory sslSocketFactory = sslFactoryForClient.getSslSocketFactory();
 
-        Response response = executeRequest("https://localhost:8443/api/hello", sslSocketFactory);
+        Response response = executeRequest("https://localhost:8993/api/hello", sslSocketFactory);
         assertThat(response.getStatusCode()).isEqualTo(200);
         assertThat(response.getBody()).contains("Hello from server one");
 
-        assertThatThrownBy(() -> executeRequest("https://localhost:8444/api/hello", sslSocketFactory))
+        assertThatThrownBy(() -> executeRequest("https://localhost:8992/api/hello", sslSocketFactory))
                 .isInstanceOfAny(SocketException.class, SSLException.class);
 
         SSLFactory updatedSslFactoryForClient = SSLFactory.builder()
@@ -250,10 +250,10 @@ class SSLFactoryIT {
 
         SSLFactoryUtils.reload(sslFactoryForClient, updatedSslFactoryForClient);
 
-        assertThatThrownBy(() -> executeRequest("https://localhost:8443/api/hello", sslSocketFactory))
+        assertThatThrownBy(() -> executeRequest("https://localhost:8993/api/hello", sslSocketFactory))
                 .isInstanceOfAny(SocketException.class, SSLException.class);
 
-        response = executeRequest("https://localhost:8444/api/hello", sslFactoryForClient.getSslSocketFactory());
+        response = executeRequest("https://localhost:8992/api/hello", sslFactoryForClient.getSslSocketFactory());
         assertThat(response.getStatusCode()).isEqualTo(200);
         assertThat(response.getBody()).contains("Hello from server two");
 
@@ -279,8 +279,8 @@ class SSLFactoryIT {
                 .withProtocols("TLSv1.2")
                 .build();
 
-        Server serverOne = Server.createDefault(sslFactoryForServerOne, 8443, "Hello from server one");
-        Server serverTwo = Server.createDefault(sslFactoryForServerTwo, 8444, "Hello from server two");
+        Server serverOne = Server.createDefault(sslFactoryForServerOne, 8991, "Hello from server one");
+        Server serverTwo = Server.createDefault(sslFactoryForServerTwo, 8990, "Hello from server two");
 
         SSLFactory sslFactoryForClient = SSLFactory.builder()
                 .withIdentityMaterial("keystore/client-server/client-one/identity.jks", keyStorePassword)
@@ -291,11 +291,11 @@ class SSLFactoryIT {
 
         SSLSocketFactory sslSocketFactory = sslFactoryForClient.getSslSocketFactory();
 
-        Response response = executeRequest("https://localhost:8443/api/hello", sslSocketFactory);
+        Response response = executeRequest("https://localhost:8991/api/hello", sslSocketFactory);
         assertThat(response.getStatusCode()).isEqualTo(200);
         assertThat(response.getBody()).contains("Hello from server one");
 
-        assertThatThrownBy(() -> executeRequest("https://localhost:8444/api/hello", sslSocketFactory))
+        assertThatThrownBy(() -> executeRequest("https://localhost:8990/api/hello", sslSocketFactory))
                 .isInstanceOfAny(SocketException.class, SSLException.class);
 
         SSLFactory updatedSslFactoryForClient = SSLFactory.builder()
@@ -305,16 +305,16 @@ class SSLFactoryIT {
 
         SSLFactoryUtils.reload(sslFactoryForClient, updatedSslFactoryForClient, false);
 
-        response = executeRequest("https://localhost:8443/api/hello", sslSocketFactory);
+        response = executeRequest("https://localhost:8991/api/hello", sslSocketFactory);
         assertThat(response.getStatusCode()).isEqualTo(200);
         assertThat(response.getBody()).contains("Hello from server one");
 
         SSLSessionUtils.invalidateCaches(sslFactoryForClient);
 
-        assertThatThrownBy(() -> executeRequest("https://localhost:8443/api/hello", sslSocketFactory))
+        assertThatThrownBy(() -> executeRequest("https://localhost:8991/api/hello", sslSocketFactory))
                 .isInstanceOfAny(SocketException.class, SSLException.class);
 
-        response = executeRequest("https://localhost:8444/api/hello", sslFactoryForClient.getSslSocketFactory());
+        response = executeRequest("https://localhost:8990/api/hello", sslFactoryForClient.getSslSocketFactory());
         assertThat(response.getStatusCode()).isEqualTo(200);
         assertThat(response.getBody()).contains("Hello from server two");
 
@@ -330,7 +330,7 @@ class SSLFactoryIT {
                 .withNeedClientAuthentication()
                 .build();
 
-        Server server = Server.createDefault(sslFactoryForServer);
+        Server server = Server.createDefault(sslFactoryForServer, 8989);
 
         KeyStore emptyKeyStore = KeyStoreUtils.createKeyStore();
         X509ExtendedTrustManager emptyTrustManager = TrustManagerUtils.createTrustManager(emptyKeyStore);
@@ -339,7 +339,7 @@ class SSLFactoryIT {
                 .withTrustMaterial(emptyTrustManager)
                 .build();
 
-        SSLException sslException = catchThrowableOfType(() -> executeRequest("https://localhost:8443/api/hello", sslFactoryForClient.getSslSocketFactory()), SSLException.class);
+        SSLException sslException = catchThrowableOfType(() -> executeRequest("https://localhost:8989/api/hello", sslFactoryForClient.getSslSocketFactory()), SSLException.class);
 
         Throwable cause = sslException.getCause();
         assertThat(cause).isInstanceOf(RuntimeException.class);
@@ -359,7 +359,7 @@ class SSLFactoryIT {
                 .withNeedClientAuthentication()
                 .build();
 
-        Server server = Server.createDefault(sslFactoryForServer);
+        Server server = Server.createDefault(sslFactoryForServer, 8988);
 
         KeyStore emptyKeyStore = KeyStoreUtils.createKeyStore();
         X509ExtendedTrustManager emptyTrustManager = TrustManagerUtils.createTrustManager(emptyKeyStore);
@@ -369,7 +369,7 @@ class SSLFactoryIT {
                 .withTrustMaterial(emptyTrustManager)
                 .build();
 
-        SSLException sslException = catchThrowableOfType(() -> executeRequest("https://localhost:8443/api/hello", sslFactoryForClient.getSslSocketFactory()), SSLException.class);
+        SSLException sslException = catchThrowableOfType(() -> executeRequest("https://localhost:8988/api/hello", sslFactoryForClient.getSslSocketFactory()), SSLException.class);
 
         Throwable cause = sslException.getCause();
         assertThat(cause).isInstanceOf(CertificateException.class);
@@ -397,7 +397,7 @@ class SSLFactoryIT {
                 .withProtocols("TLSv1.2")
                 .build();
 
-        Server server = Server.createDefault(sslFactoryForServer, 8443, "Hello from server one");
+        Server server = Server.createDefault(sslFactoryForServer, 8987, "Hello from server one");
 
         SSLFactory sslFactoryForClient = SSLFactory.builder()
                 .withIdentityMaterial("keystore/client-server/client-one/identity.jks", keyStorePassword)
@@ -407,13 +407,13 @@ class SSLFactoryIT {
 
         SSLSocketFactory sslSocketFactory = sslFactoryForClient.getSslSocketFactory();
 
-        Response response = executeRequest("https://localhost:8443/api/hello", sslSocketFactory);
+        Response response = executeRequest("https://localhost:8987/api/hello", sslSocketFactory);
         assertThat(response.getStatusCode()).isEqualTo(200);
         assertThat(response.getBody()).contains("Hello from server one");
 
         sslFactoryForClient.getSslParameters().setCipherSuites(new String[]{"TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384"});
 
-        assertThatThrownBy(() -> executeRequest("https://localhost:8443/api/hello", sslSocketFactory))
+        assertThatThrownBy(() -> executeRequest("https://localhost:8987/api/hello", sslSocketFactory))
                 .isInstanceOfAny(SocketException.class, SSLException.class);
 
         server.stop();
@@ -437,15 +437,15 @@ class SSLFactoryIT {
 
         Provider provider = ProviderUtils.create(sslFactoryForServer);
         Security.insertProviderAt(provider, 1);
-        Server server = Server.createDefault(sslFactoryForServer);
+        Server server = Server.createDefault(sslFactoryForServer, 8986);
 
-        assertThatThrownBy(() -> executeRequest("https://localhost:8443/api/hello", sslFactoryForClient.getSslSocketFactory()))
+        assertThatThrownBy(() -> executeRequest("https://localhost:8986/api/hello", sslFactoryForClient.getSslSocketFactory()))
                 .hasMessageContaining("Received fatal alert: handshake_failure");
 
         SSLParameters sslParameters = sslFactoryForServer.getSslParameters();
         sslParameters.setCipherSuites(sslFactoryForClient.getCiphers().toArray(new String[0]));
 
-        Response response = executeRequest("https://localhost:8443/api/hello", sslFactoryForClient.getSslSocketFactory());
+        Response response = executeRequest("https://localhost:8986/api/hello", sslFactoryForClient.getSslSocketFactory());
         assertThat(response.getStatusCode()).isEqualTo(200);
 
         server.stop();

@@ -20,7 +20,6 @@ import nl.altindag.ssl.server.service.Server;
 import nl.altindag.ssl.util.KeyStoreUtils;
 import nl.altindag.ssl.util.SSLSessionUtils;
 import nl.altindag.ssl.util.TrustManagerUtils;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
@@ -48,7 +47,7 @@ class HotSwappableX509ExtendedTrustManagerIT {
     private static SSLSocketFactory sslSocketFactory;
     private static SSLSessionContext sslSessionContext;
     private static X509ExtendedTrustManager trustManager;
-    private Server server;
+    private static SSLFactory sslFactoryForServer;
 
     @BeforeAll
     static void setUpSSLSocketFactory() {
@@ -67,24 +66,19 @@ class HotSwappableX509ExtendedTrustManagerIT {
 
     @BeforeEach
     void startServer() {
-        SSLFactory sslFactoryForServer = SSLFactory.builder()
+        sslFactoryForServer = SSLFactory.builder()
                 .withIdentityMaterial("keystore/client-server/server-one/identity.jks", "secret".toCharArray())
                 .withTrustMaterial("keystore/client-server/server-one/truststore.jks", "secret".toCharArray())
                 .withNeedClientAuthentication()
                 .build();
-
-        server = Server.createDefault(sslFactoryForServer);
-    }
-
-    @AfterEach
-    void stopServer() {
-        server.stop();
     }
 
     @Test
     @Order(1)
     void executeHttpsRequestWithSslSocketFactoryContainingTrustManager() throws IOException {
-        HttpsURLConnection connection = (HttpsURLConnection) new URL("https://localhost:8443/api/hello").openConnection();
+        Server server = Server.createDefault(sslFactoryForServer, 7001);
+
+        HttpsURLConnection connection = (HttpsURLConnection) new URL("https://localhost:7001/api/hello").openConnection();
         connection.setSSLSocketFactory(sslSocketFactory);
         connection.setRequestMethod("GET");
 
@@ -92,21 +86,27 @@ class HotSwappableX509ExtendedTrustManagerIT {
         connection.disconnect();
 
         assertThat(statusCode).isEqualTo(200);
+
+        server.stop();
     }
 
     @Test
     @Order(2)
     void executeHttpsRequestWithExistingSslSocketFactoryContainingASwappedUnsafeTrustManager() throws IOException {
+        Server server = Server.createDefault(sslFactoryForServer, 7002);
+
         KeyStore trustStoreWithClientTwo = KeyStoreUtils.loadKeyStore("keystore/client-server/client-two/truststore.jks", "secret".toCharArray());
         X509ExtendedTrustManager trustManagerWithClientTwo = TrustManagerUtils.createTrustManager(trustStoreWithClientTwo);
         TrustManagerUtils.swapTrustManager(trustManager, trustManagerWithClientTwo);
         SSLSessionUtils.invalidateCaches(sslSessionContext);
 
-        HttpsURLConnection connection = (HttpsURLConnection) new URL("https://localhost:8443/api/hello").openConnection();
+        HttpsURLConnection connection = (HttpsURLConnection) new URL("https://localhost:7002/api/hello").openConnection();
         connection.setSSLSocketFactory(sslSocketFactory);
         connection.setRequestMethod("GET");
 
         assertThatThrownBy(connection::getResponseCode);
+
+        server.stop();
     }
 
 }

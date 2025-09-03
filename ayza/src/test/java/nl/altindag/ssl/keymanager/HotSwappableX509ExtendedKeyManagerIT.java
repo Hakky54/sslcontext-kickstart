@@ -48,7 +48,7 @@ class HotSwappableX509ExtendedKeyManagerIT {
     private static SSLSocketFactory sslSocketFactory;
     private static SSLSessionContext sslSessionContext;
     private static X509ExtendedKeyManager keyManager;
-    private Server server;
+    private SSLFactory sslFactoryForServer;
 
     @BeforeAll
     static void setUpClientSSLSocketFactory() {
@@ -67,24 +67,19 @@ class HotSwappableX509ExtendedKeyManagerIT {
 
     @BeforeEach
     void startServer() {
-        SSLFactory sslFactoryForServer = SSLFactory.builder()
+        sslFactoryForServer = SSLFactory.builder()
                 .withIdentityMaterial("keystore/client-server/server-one/identity.jks", "secret".toCharArray())
                 .withTrustMaterial("keystore/client-server/server-one/truststore.jks", "secret".toCharArray())
                 .withNeedClientAuthentication()
                 .build();
-
-        server = Server.createDefault(sslFactoryForServer);
-    }
-
-    @AfterEach
-    void stopServer() {
-        server.stop();
     }
 
     @Test
     @Order(1)
     void executeHttpsRequestWithSslSocketFactoryContainingKeyManager() throws IOException {
-        HttpsURLConnection connection = (HttpsURLConnection) new URL("https://localhost:8443/api/hello").openConnection();
+        Server server = Server.createDefault(sslFactoryForServer, 7003);
+
+        HttpsURLConnection connection = (HttpsURLConnection) new URL("https://localhost:7003/api/hello").openConnection();
         connection.setSSLSocketFactory(sslSocketFactory);
         connection.setRequestMethod("GET");
 
@@ -92,22 +87,28 @@ class HotSwappableX509ExtendedKeyManagerIT {
         connection.disconnect();
 
         assertThat(statusCode).isEqualTo(200);
+
+        server.stop();
     }
 
     @Test
     @Order(2)
     void executeHttpsRequestWithExistingSslSocketFactoryContainingASwappedKeyManager() throws IOException {
+        Server server = Server.createDefault(sslFactoryForServer, 7004);
+
         KeyStore identityStore = KeyStoreUtils.loadKeyStore("keystore/client-server/client-two/identity.jks", "secret".toCharArray());
         X509ExtendedKeyManager anotherKeyManager = KeyManagerUtils.createKeyManager(identityStore, "secret".toCharArray());
 
         KeyManagerUtils.swapKeyManager(keyManager, anotherKeyManager);
         SSLSessionUtils.invalidateCaches(sslSessionContext);
 
-        HttpsURLConnection connection = (HttpsURLConnection) new URL("https://localhost:8443/api/hello").openConnection();
+        HttpsURLConnection connection = (HttpsURLConnection) new URL("https://localhost:7004/api/hello").openConnection();
         connection.setSSLSocketFactory(sslSocketFactory);
         connection.setRequestMethod("GET");
 
         assertThatThrownBy(connection::getResponseCode);
+
+        server.stop();
     }
 
 }
