@@ -37,7 +37,7 @@
     <distributionManagement>
         <relocation>
             <artifactId>ayza-parent</artifactId>
-            <version>1.0.0</version>
+            <version>10.0.0</version>
         </relocation>
     </distributionManagement>
 
