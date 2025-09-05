@@ -20,9 +20,9 @@
     </licenses>
 
     <scm>
-        <url>https://github.com/Hakky54/sslcontext-kickstart</url>
-        <connection>scm:git:git@github.com:Hakky54/sslcontext-kickstart.git</connection>
-        <developerConnection>scm:git:git@github.com:Hakky54/sslcontext-kickstart.git</developerConnection>
+        <url>https://github.com/Hakky54/ayza</url>
+        <connection>scm:git:git@github.com:Hakky54/ayza.git</connection>
+        <developerConnection>scm:git:git@github.com:Hakky54/ayza.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
 
