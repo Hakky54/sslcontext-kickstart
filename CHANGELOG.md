@@ -5,6 +5,9 @@ changes with their rationale when appropriate:
 
 ### v10.0.0
 - renamed project from sslcontext-kickstart to ayza
+### v9.2.1
+- Corrected relocation information for the version from 1.0.0 to 10.0.0
+- Pointed SCM information to the rebranded repository
 ### v9.2.0
 - Added support for loading additional mac certificates from filesystem
 - Improved resolving openssl directory for mac
