@@ -42,7 +42,6 @@ libraryDependencies += "io.github.hakky54" % "ayza" % "10.0.0"
 ```
 ### Install with Apache Ivy
 ```xml
-
 <dependency org="io.github.hakky54" name="ayza" rev="10.0.0"/>
 ```
 
@@ -65,7 +64,7 @@ libraryDependencies += "io.github.hakky54" % "ayza" % "10.0.0"
          - [Certificates](#loading-trust-material-with-certificates-and-ocsp-options)
      - [Enhanceable trust validations](#enhanceable-trust-validations)
      - [Hide trusted certificate names of a server](#hide-trusted-certificate-names-of-a-server)
-     - [Skip certificate validation](#trusting-all-certificates-without-validation-not-recommended-to-use-at-production-)
+     - [Skip certificate validation](#trusting-all-certificates-without-validation-not-recommended-to-use-at-production)
      - [Skip hostname validation](#skip-hostname-validation)
      - [Loading JDK and OS trusted certificates](#loading-jdk-and-os-trusted-certificates)
      - [Using specific protocols and ciphers with custom secure-random and hostname-verifier](#using-specific-protocols-ciphers-with-custom-secure-random-and-hostname-verifier)
@@ -124,8 +123,11 @@ The resulting configuration was in my opinion always verbose, not reusable, hard
 
 As a developer you also need to know how to properly load your file into your application and consume it as a KeyStore instance. Therefore, you also need to understand how to properly create for example a KeyManager and a TrustManager for you SSLContext. 
 Ayza is taking the responsibility of creating an instance of SSLContext from the provided arguments, and it will provide you all the ssl materials which are required to configure [40+ different Http Client](#tested-http-clients) for Java, Scala and Kotlin. 
-I wanted the library to be as easy as possible to use for all developers to give them a kickstart when configuring their Http Client. So feel free to provide feedback or feature requests.
-The library also provides other utilities such as:
+I wanted the library to be as easy as possible to use for all developers to give them a kickstart when configuring their Http Client. So feel free to provide feedback or feature requests. 
+
+The library has been renamed to Ayza in September 2025 as I wanted a shorter name, which is easy to pronounce and to make it easy to remember. Detailed information about the rename can be found here: [Renaming project to Ayza](https://github.com/Hakky54/ayza/discussions/670)
+
+The library by the way also provides other utilities such as:
 - [CertificateExtractingClient](ayza/src/main/java/nl/altindag/ssl/util/CertificateExtractingClient.java)
 - [CertificateUtils](ayza/src/main/java/nl/altindag/ssl/util/CertificateUtils.java)
 - [HostnameVerifierUtils](ayza/src/main/java/nl/altindag/ssl/util/HostnameVerifierUtils.java)
@@ -1269,8 +1271,8 @@ public class App {
 
 #### Apache
 ##### Apache 4
-Apache Http Client works with javax.net.ssl.SSLContext, so an additional mapping to their library is not required, [see here](#example-configuration).
-However it is still possible to configure the http client with their custom configuration class. you can find below an example configuration for that use case:
+Apache Http Client works with javax.net.ssl.SSLContext, so an additional mapping to their library is not required.
+However, it is still possible to configure the http client with their custom configuration class. you can find below an example configuration for that use case:
 ```xml
 <dependency>
     <groupId>io.github.hakky54</groupId>

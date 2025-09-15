@@ -4,7 +4,7 @@ This list is not intended to be all-encompassing - it will document major and br
 changes with their rationale when appropriate:
 
 ### v10.0.0
-- renamed project from sslcontext-kickstart to ayza
+- renamed project from sslcontext-kickstart to ayza. Detailed explanation can be found in the README file
 ### v9.2.1
 - Corrected relocation information for the version from 1.0.0 to 10.0.0
 - Pointed SCM information to the rebranded repository
